@@ -5,3 +5,6 @@
 # React Router
 /.react-router/
 /build/
+
+# Generated API SDK (regenerate with `pnpm generate:api`)
+/app/lib/api/generated/
