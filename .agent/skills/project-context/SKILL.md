@@ -14,6 +14,8 @@ description: Core project context, tech stack, structure, and conventions for fr
 | Styling     | Tailwind CSS (CSS-first, v4)       | 4.x     |
 | Language    | TypeScript (strict mode)           | 5.x     |
 | Runtime     | React                              | 19.x    |
+| Data        | TanStack React Query               | 5.x     |
+| API Codegen | Orval (React Query + fetch)        | 8.x     |
 | Pkg Manager | pnpm                               | —       |
 | Deployment  | Docker (node:20-alpine) / Node SSR | —       |
 
@@ -75,9 +77,10 @@ frontend-v2/
 
 ### Scripts
 
-| Command          | Description                      |
-| ---------------- | -------------------------------- |
-| `pnpm dev`       | Start dev server with HMR        |
-| `pnpm build`     | Production build                 |
-| `pnpm start`     | Serve production build           |
-| `pnpm typecheck` | Generate route types + run `tsc` |
+| Command             | Description                          |
+| ------------------- | ------------------------------------ |
+| `pnpm dev`          | Start dev server with HMR            |
+| `pnpm build`        | Production build                     |
+| `pnpm start`        | Serve production build               |
+| `pnpm typecheck`    | Generate route types + run `tsc`     |
+| `pnpm generate:api` | Generate API hooks from OpenAPI spec |

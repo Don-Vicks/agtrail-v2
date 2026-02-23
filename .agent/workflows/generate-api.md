@@ -4,12 +4,12 @@ description: Generate the TypeScript API SDK from the backend Swagger/OpenAPI sp
 
 # Generate API SDK
 
-Regenerate the typed API client from the backend's Swagger/OpenAPI specification.
+Regenerate the typed API client (React Query hooks + models) from the backend's Swagger/OpenAPI specification using **Orval**.
 
 ## Prerequisites
 
 - The backend must be running, or the Swagger JSON/YAML spec must be accessible at the URL
-  configured in `openapi-ts.config.ts`
+  configured in `orval.config.ts`
 
 ## Steps
 
@@ -27,16 +27,18 @@ pnpm generate:api
 ls app/lib/api/generated/
 ```
 
-You should see files like `client.gen.ts`, `sdk.gen.ts`, `types.gen.ts`, etc.
+You should see directories/files grouped by OpenAPI tag, plus a `models/` directory with TypeScript interfaces.
 
-3. If the backend spec URL has changed, update `openapi-ts.config.ts`:
+3. If the backend spec URL has changed, update `orval.config.ts`:
 
 ```ts
-input: "https://your-new-url.com/swagger.json",
+input: {
+  target: "https://your-new-url.com/swagger.json",
+},
 ```
 
 ## Notes
 
 - The generated files in `app/lib/api/generated/` are git-ignored — they are always regenerated
-- The generated client reads its `baseUrl` from `VITE_API_BASE_URL` (set in `.env`)
+- The generated hooks use a custom fetch mutator at `app/lib/api/custom-fetch.ts` which reads `baseUrl` from `VITE_API_BASE_URL` (set in `.env`)
 - Run this workflow any time the backend API changes
