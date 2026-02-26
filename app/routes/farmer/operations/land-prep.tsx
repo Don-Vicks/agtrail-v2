@@ -1,0 +1,131 @@
+import { useParams } from 'react-router'
+import { OperationFormLayout } from '~/components/operation-form-layout'
+import { allCropCycles } from '~/lib/mock-data/farmer'
+import type { Route } from './+types/land-prep'
+
+export function meta({ }: Route.MetaArgs) {
+  return [{ title: 'Land Preparation | Agrolinking' }]
+}
+
+export default function LandPreparation() {
+  const { cropCycleId } = useParams()
+  // In a real app, fetch the cycle by ID. Here we mock it.
+  const cropCycle = allCropCycles.find((c) => c.id === cropCycleId) || allCropCycles[0]
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    // Handle form submission
+    console.log('Submitted Land Preparation')
+  }
+
+  return (
+    <OperationFormLayout
+      title="Land Preparation"
+      breadcrumbLabel="Land Preparation"
+      cropCycle={cropCycle}
+      onSubmit={handleSubmit}
+      submitLabel="Log Land Preparation"
+      organicWarning={cropCycle.status === 'planning' ? 'This is an organic crop cycle. Some synthetic inputs may trigger warnings.' : undefined}
+    >
+      {/* 2-column: Operator & Supervisor */}
+      <div className="grid grid-cols-2 gap-6">
+        <div>
+          <label className="mb-1.5 block text-sm font-semibold text-gray-900">Operator Name</label>
+          <input type="text" placeholder="Select or enter operator name" className="w-full rounded-lg border border-gray-200 px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20" />
+        </div>
+        <div>
+          <label className="mb-1.5 block text-sm font-semibold text-gray-900">Supervisor Name</label>
+          <input type="text" placeholder="Select or enter supervisor name" className="w-full rounded-lg border border-gray-200 px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20" />
+        </div>
+      </div>
+
+      {/* Primary Tillage Method */}
+      <div>
+        <label className="mb-1.5 block text-sm font-semibold text-gray-900">Primary Tillage Method</label>
+        <div className="relative">
+          <select className="w-full appearance-none rounded-lg border border-gray-200 px-3.5 py-2.5 text-sm text-gray-700 bg-white">
+            <option>Select Tillage Method</option>
+            <option>Conventional Tillage</option>
+            <option>Conservation Tillage</option>
+            <option>Zero Tillage</option>
+          </select>
+          <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+            <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      {/* Field Preparation Activities (Checkboxes) */}
+      <div>
+        <label className="mb-2.5 block text-sm font-semibold text-gray-900">Field Preparation Activities</label>
+        <div className="grid grid-cols-3 gap-3">
+          {['Plowing', 'Harrowing', 'Ridging', 'Leveling', 'Mulching', 'Terracing', 'Planting of Cover Crops', 'Construction of Bunds', 'Contour Farming'].map((activity) => (
+            <label key={activity} className="flex cursor-pointer border border-gray-200 rounded-lg p-3 items-center gap-3 hover:bg-gray-50">
+              <input type="checkbox" className="size-4 rounded border-gray-300 text-brand focus:ring-brand" />
+              <span className="text-sm font-medium text-gray-700">{activity}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      {/* Pre-Plant Inputs */}
+      <div className="grid grid-cols-3 gap-6">
+        <div>
+          <label className="mb-1.5 block text-sm font-semibold text-gray-900">Pre-Plant Inputs Applied</label>
+          <div className="relative">
+            <select className="w-full appearance-none rounded-lg border border-gray-200 px-3.5 py-2.5 text-sm text-gray-700 bg-white">
+              <option>Select Pre-plant inputs</option>
+              <option>Compost</option>
+              <option>Manure</option>
+            </select>
+            <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+              <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><polyline points="6 9 12 15 18 9" /></svg>
+            </div>
+          </div>
+        </div>
+        <div>
+          <label className="mb-1.5 block text-sm font-semibold text-gray-900">Quantity per Hectare</label>
+          <input type="text" placeholder="Enter quantity" className="w-full rounded-lg border border-gray-200 px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20" />
+        </div>
+        <div>
+          <label className="mb-1.5 block text-sm font-semibold text-gray-900">Unit</label>
+          <div className="relative">
+            <select className="w-full appearance-none rounded-lg border border-gray-200 px-3.5 py-2.5 text-sm text-gray-700 bg-white">
+              <option>Select unit</option>
+              <option>kg</option>
+              <option>tons</option>
+            </select>
+            <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+              <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><polyline points="6 9 12 15 18 9" /></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Clearing Method */}
+      <div>
+        <label className="mb-1.5 block text-sm font-semibold text-gray-900">Clearing Method</label>
+        <div className="relative">
+          <select className="w-full appearance-none rounded-lg border border-gray-200 px-3.5 py-2.5 text-sm text-gray-700 bg-white">
+            <option>Select Clearing Method</option>
+            <option>Manual</option>
+            <option>Mechanical</option>
+            <option>Chemical</option>
+            <option>Slash and Burn</option>
+          </select>
+          <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+            <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><polyline points="6 9 12 15 18 9" /></svg>
+          </div>
+        </div>
+      </div>
+
+      {/* Description */}
+      <div>
+        <label className="mb-1.5 block text-sm font-semibold text-gray-900">Description <span className="text-red-500">*</span></label>
+        <textarea rows={3} placeholder="Describe the land preparation... (e.g., Plowed and harrowed field for maize planting)" className="w-full resize-none rounded-lg border border-gray-200 px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20" required />
+      </div>
+    </OperationFormLayout>
+  )
+}
