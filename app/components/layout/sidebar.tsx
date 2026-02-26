@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router'
 import { currentUser, sidebarNavigation } from '~/lib/mock-data/farmer'
 import { cn } from '~/lib/utils'
+import { useSidebar } from './sidebar-context'
 
 interface NavGroupProps {
   label: string
@@ -23,7 +24,7 @@ function NavGroup({ label, items }: NavGroupProps) {
               cn(
                 'mx-2 flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
                 isActive
-                  ? 'bg-brand-light text-white'
+                  ? 'bg-brand text-white'
                   : 'text-gray-700 hover:bg-gray-100'
               )
             }
@@ -139,8 +140,14 @@ function SidebarIcon({ name }: { name: string }) {
 }
 
 export function Sidebar() {
+  const sidebarCtx = useSidebar()
+  const isCollapsed = sidebarCtx?.isCollapsed ?? false
+
   return (
-    <aside className="fixed inset-y-0 left-0 z-30 flex w-64 flex-col border-r border-gray-200 bg-[#e6e6e6]">
+    <aside className={cn(
+      "fixed inset-y-0 left-0 z-30 flex w-64 flex-col border-r border-gray-200 bg-[#e6e6e6] transition-transform duration-300 ease-in-out",
+      isCollapsed ? "-translate-x-full" : "translate-x-0"
+    )}>
       {/* Logo */}
       <div className="flex items-center gap-2 px-4 py-4">
         <div className="flex size-8 items-center justify-center rounded-lg bg-brand text-white text-xs font-bold">

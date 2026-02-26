@@ -42,7 +42,7 @@ export function FarmCard({ farm }: FarmCardProps) {
       {/* View Farm Button */}
       <Link
         to={`/farmer/farms/${farm.id}`}
-        className="mt-auto flex items-center justify-center rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+        className="mt-auto flex items-center justify-center rounded-lg border border-brand px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
       >
         View Farm
       </Link>
