@@ -21,12 +21,12 @@ export function Pagination({
   const endItem = Math.min(currentPage * itemsPerPage, totalItems)
 
   return (
-    <div className="flex items-center justify-between pt-4 text-sm text-gray-500">
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 text-sm text-gray-500">
       <span>
         Showing {startItem}-{endItem} of {totalItems} {itemLabel}
       </span>
 
-      <div className="flex items-center gap-4">
+      <div className="flex flex-wrap items-center justify-center gap-4">
         {/* Rows per page */}
         <div className="flex items-center gap-2">
           <span>Rows per page</span>

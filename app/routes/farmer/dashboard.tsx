@@ -57,7 +57,7 @@ export default function FarmerDashboard() {
       <KYCBanner />
 
       {/* Stats Row */}
-      <div className="grid grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {farmerStats.map((stat) => (
           <StatCard
             key={stat.id}
@@ -72,7 +72,7 @@ export default function FarmerDashboard() {
       </div>
 
       {/* Middle Section: Upcoming Tasks + Chart + Quick Actions */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Upcoming Tasks */}
         <div className="rounded-xl border border-gray-200 bg-white p-4">
           <div className="flex items-center gap-2 mb-3">
@@ -144,7 +144,7 @@ export default function FarmerDashboard() {
         </div>
 
         {/* Filters */}
-        <div className="mb-4 flex items-center gap-3">
+        <div className="mb-4 flex flex-wrap items-center gap-3">
           <span className="text-xs font-medium text-gray-500">Filters:</span>
           <input placeholder="Search Product ID..." className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/20" />
           <input placeholder="Search Product Name..." className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/20" />
@@ -246,7 +246,7 @@ export default function FarmerDashboard() {
               Show all {farms.length} farms →
             </button>
           </div>
-          <div className="grid grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {farms.slice(0, 8).map((farm) => (
               <div key={farm.id} className="rounded-lg border border-gray-100 bg-gray-50/50 p-3">
                 <h4 className="text-sm font-semibold text-brand">{farm.name}</h4>

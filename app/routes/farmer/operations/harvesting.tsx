@@ -31,7 +31,7 @@ export default function Harvesting() {
       organicWarning="This is an organic crop cycle."
     >
       {/* 2-column: Operator & Supervisor */}
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <label className="mb-1.5 block text-sm font-semibold text-gray-900">Operator Name</label>
           <input type="text" placeholder="Select or enter operator name" className="w-full rounded-lg border border-gray-200 px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20" />
@@ -42,7 +42,7 @@ export default function Harvesting() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <label className="mb-1.5 block text-sm font-semibold text-gray-900">Quantity Harvested</label>
           <input type="text" placeholder="Enter Quantity Harvested" className="w-full rounded-lg border border-gray-200 px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20" />
@@ -58,7 +58,7 @@ export default function Harvesting() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <label className="mb-1.5 block text-sm font-semibold text-gray-900">Is this a partial or final harvest?</label>
           <div className="relative">
@@ -79,7 +79,7 @@ export default function Harvesting() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <label className="mb-1.5 block text-sm font-semibold text-gray-900">Initial Quality Assessment</label>
           <div className="relative">
@@ -106,7 +106,7 @@ export default function Harvesting() {
         <textarea rows={3} required placeholder="Describe the harvesting operation... (e.g., Harvested maize from the northern section of the farm)" className="w-full resize-none rounded-lg border border-gray-200 px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20" />
       </div>
 
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <label className="mb-1.5 block text-sm font-semibold text-gray-900">Equipment Used</label>
           <input type="text" placeholder="e.g., Harvester, Sickle, Baskets (comma-separated)" className="w-full rounded-lg border border-gray-200 px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20" />

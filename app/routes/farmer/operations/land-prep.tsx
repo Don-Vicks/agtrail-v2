@@ -28,7 +28,7 @@ export default function LandPreparation() {
       organicWarning={cropCycle.status === 'planning' ? 'This is an organic crop cycle. Some synthetic inputs may trigger warnings.' : undefined}
     >
       {/* 2-column: Operator & Supervisor */}
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <label className="mb-1.5 block text-sm font-semibold text-gray-900">Operator Name</label>
           <input type="text" placeholder="Select or enter operator name" className="w-full rounded-lg border border-gray-200 px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20" />
@@ -60,7 +60,7 @@ export default function LandPreparation() {
       {/* Field Preparation Activities (Checkboxes) */}
       <div>
         <label className="mb-2.5 block text-sm font-semibold text-gray-900">Field Preparation Activities</label>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {['Plowing', 'Harrowing', 'Ridging', 'Leveling', 'Mulching', 'Terracing', 'Planting of Cover Crops', 'Construction of Bunds', 'Contour Farming'].map((activity) => (
             <label key={activity} className="flex cursor-pointer border border-gray-200 rounded-lg p-3 items-center gap-3 hover:bg-gray-50">
               <input type="checkbox" className="size-4 rounded border-gray-300 text-brand focus:ring-brand" />
@@ -71,7 +71,7 @@ export default function LandPreparation() {
       </div>
 
       {/* Pre-Plant Inputs */}
-      <div className="grid grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div>
           <label className="mb-1.5 block text-sm font-semibold text-gray-900">Pre-Plant Inputs Applied</label>
           <div className="relative">

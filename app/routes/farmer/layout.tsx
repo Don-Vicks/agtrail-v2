@@ -8,14 +8,28 @@ function FarmerLayoutContent() {
   const location = useLocation()
   const isDashboard = location.pathname === '/farmer' || location.pathname === '/farmer/'
   const sidebarCtx = useSidebar()
-  const isCollapsed = sidebarCtx?.isCollapsed ?? false
+  const isCollapsedDesktop = sidebarCtx?.isCollapsedDesktop ?? false
+  const isOpenMobile = sidebarCtx?.isOpenMobile ?? false
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex">
       <Sidebar />
-      <div className={cn("transition-all duration-300 ease-in-out", isCollapsed ? 'ml-0' : 'ml-64')}>
+
+      {/* Mobile Backdrop */}
+      {isOpenMobile && (
+        <div
+          className="fixed inset-0 z-20 bg-black/30 backdrop-blur-sm lg:hidden"
+          onClick={() => sidebarCtx?.closeMobile()}
+        />
+      )}
+
+      <div className={cn(
+        "flex-1 min-w-0 w-full transition-all duration-300 ease-in-out",
+        "ml-0",
+        isCollapsedDesktop ? "lg:ml-0" : "lg:ml-64"
+      )}>
         {isDashboard && <Topbar />}
-        <main className="p-6">
+        <main className="mx-auto max-w-7xl p-4 md:p-6 lg:p-8">
           <Outlet />
         </main>
       </div>

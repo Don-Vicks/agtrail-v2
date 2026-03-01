@@ -55,7 +55,7 @@ export default function FarmerFarms() {
       />
 
       {/* Page Header */}
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">ALL FARMS</h1>
           <p className="text-sm text-gray-500">View and manage all farms across the cooperative</p>
@@ -73,7 +73,7 @@ export default function FarmerFarms() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="rounded-xl border border-gray-200 bg-white p-5">
           <p className="text-sm text-gray-500 mb-1">Total Farms</p>
           <p className="text-3xl font-bold text-gray-900">{farms.length}</p>
@@ -89,7 +89,7 @@ export default function FarmerFarms() {
       </div>
 
       {/* Search + Sort */}
-      <div className="flex items-center gap-3">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
         <div className="relative flex-1 max-w-md">
           <input
             type="text"
@@ -102,10 +102,10 @@ export default function FarmerFarms() {
             className="w-full rounded-lg border border-gray-200 py-2.5 pl-3.5 pr-3 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
           />
         </div>
-        <button className="rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50">
+        <button className="rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 flex-shrink-0">
           Search
         </button>
-        <div className="ml-auto flex items-center gap-2">
+        <div className="sm:ml-auto flex items-center gap-2">
           <span className="text-sm text-gray-500">Sort by</span>
           <select className="rounded-lg border border-gray-200 px-3 py-2 text-sm">
             <option>Name</option>
@@ -116,7 +116,7 @@ export default function FarmerFarms() {
       </div>
 
       {/* Farm Cards Grid */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {paginatedFarms.map((farm) => (
           <FarmCard key={farm.id} farm={farm} />
         ))}

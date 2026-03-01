@@ -29,7 +29,11 @@ export function Breadcrumb({ items }: BreadcrumbProps) {
             <button
               onClick={(e) => {
                 e.preventDefault()
-                sidebarCtx?.toggleSidebar()
+                if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+                  sidebarCtx?.toggleMobile()
+                } else {
+                  sidebarCtx?.toggleDesktop()
+                }
               }}
               className="group flex items-center text-gray-400 hover:text-brand transition-colors cursor-pointer"
             >

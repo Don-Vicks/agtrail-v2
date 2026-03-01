@@ -40,7 +40,7 @@ export default function Planting() {
       {/* Seed Details Component Section */}
       <div className="space-y-4 pt-2">
         <h4 className="text-sm font-semibold text-gray-900 border-b border-gray-100 pb-2">Seed Details</h4>
-        <div className="grid grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="mb-1.5 block text-sm font-semibold text-gray-900">Seed Source</label>
             <div className="relative">
@@ -56,7 +56,7 @@ export default function Planting() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="mb-1.5 block text-sm font-semibold text-gray-900">Variety Name</label>
             <input type="text" placeholder="Enter variety name" className="w-full rounded-lg border border-gray-200 px-3.5 py-2.5 text-sm placeholder:text-gray-400" />
@@ -81,7 +81,7 @@ export default function Planting() {
       {/* Planting Method Section */}
       <div className="space-y-4 pt-4">
         <h4 className="text-sm font-semibold text-gray-900 border-b border-gray-100 pb-2">Planting Method & Density</h4>
-        <div className="grid grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="mb-1.5 block text-sm font-semibold text-gray-900">Planting Method</label>
             <div className="relative">

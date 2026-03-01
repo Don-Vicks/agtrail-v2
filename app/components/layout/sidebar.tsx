@@ -6,9 +6,10 @@ import { useSidebar } from './sidebar-context'
 interface NavGroupProps {
   label: string
   items: { label: string; icon: string; href: string }[]
+  onItemClick?: () => void
 }
 
-function NavGroup({ label, items }: NavGroupProps) {
+function NavGroup({ label, items, onItemClick }: NavGroupProps) {
   return (
     <div className="mb-1">
       <div className="px-4 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-gray-400">
@@ -20,6 +21,7 @@ function NavGroup({ label, items }: NavGroupProps) {
             key={item.href}
             to={item.href}
             end={item.href === '/farmer'}
+            onClick={onItemClick}
             className={({ isActive }) =>
               cn(
                 'mx-2 flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
@@ -141,12 +143,14 @@ function SidebarIcon({ name }: { name: string }) {
 
 export function Sidebar() {
   const sidebarCtx = useSidebar()
-  const isCollapsed = sidebarCtx?.isCollapsed ?? false
+  const isCollapsedDesktop = sidebarCtx?.isCollapsedDesktop ?? false
+  const isOpenMobile = sidebarCtx?.isOpenMobile ?? false
 
   return (
     <aside className={cn(
       "fixed inset-y-0 left-0 z-30 flex w-64 flex-col border-r border-gray-200 bg-[#e6e6e6] transition-transform duration-300 ease-in-out",
-      isCollapsed ? "-translate-x-full" : "translate-x-0"
+      isOpenMobile ? "translate-x-0" : "-translate-x-full",
+      isCollapsedDesktop ? "lg:-translate-x-full" : "lg:translate-x-0"
     )}>
       {/* Logo */}
       <div className="flex items-center gap-2 px-4 py-4">
@@ -175,11 +179,11 @@ export function Sidebar() {
 
       {/* Navigation */}
       <div className="flex-1 overflow-y-auto pb-4">
-        <NavGroup label="Platform" items={sidebarNavigation.platform} />
-        <NavGroup label="Operations" items={sidebarNavigation.operations} />
-        <NavGroup label="Certification" items={sidebarNavigation.certification} />
-        <NavGroup label="Finance" items={sidebarNavigation.finance} />
-        <NavGroup label="Reports" items={sidebarNavigation.reports} />
+        <NavGroup label="Platform" items={sidebarNavigation.platform} onItemClick={() => sidebarCtx?.closeMobile()} />
+        <NavGroup label="Operations" items={sidebarNavigation.operations} onItemClick={() => sidebarCtx?.closeMobile()} />
+        <NavGroup label="Certification" items={sidebarNavigation.certification} onItemClick={() => sidebarCtx?.closeMobile()} />
+        <NavGroup label="Finance" items={sidebarNavigation.finance} onItemClick={() => sidebarCtx?.closeMobile()} />
+        <NavGroup label="Reports" items={sidebarNavigation.reports} onItemClick={() => sidebarCtx?.closeMobile()} />
       </div>
 
       {/* Wallet */}
