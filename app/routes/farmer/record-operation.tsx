@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Breadcrumb } from '~/components/breadcrumb'
 import { Pagination } from '~/components/pagination'
 import { SelectOperationModal } from '~/components/select-operation-modal'
+import { ViewActivitiesModal } from '~/components/view-activities-modal'
 import { allCropCycles, type CropCycle } from '~/lib/mock-data/farmer'
 import type { Route } from './+types/record-operation'
 
@@ -14,6 +15,7 @@ export function meta({ }: Route.MetaArgs) {
 
 export default function RecordOperation() {
   const [selectedCropCycle, setSelectedCropCycle] = useState<CropCycle | null>(null)
+  const [viewActivitiesCycle, setViewActivitiesCycle] = useState<CropCycle | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [currentPage, setCurrentPage] = useState(1)
@@ -122,7 +124,10 @@ export default function RecordOperation() {
 
             {/* Actions */}
             <div className="mt-auto pt-4 space-y-2">
-              <button className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-gray-200 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors">
+              <button
+                onClick={() => setViewActivitiesCycle(cycle)}
+                className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-gray-200 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+              >
                 <svg className="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" />
                 </svg>
@@ -158,6 +163,13 @@ export default function RecordOperation() {
         isOpen={!!selectedCropCycle}
         onClose={() => setSelectedCropCycle(null)}
         cropCycle={selectedCropCycle}
+      />
+
+      {/* View Activities Modal */}
+      <ViewActivitiesModal
+        isOpen={!!viewActivitiesCycle}
+        onClose={() => setViewActivitiesCycle(null)}
+        cropCycle={viewActivitiesCycle}
       />
     </div>
   )

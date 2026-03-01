@@ -3,9 +3,11 @@ import type { Farm } from '~/lib/mock-data/farmer'
 
 interface FarmCardProps {
   farm: Farm
+  action?: 'view' | 'start-cycle'
+  onAction?: (farmId: string) => void
 }
 
-export function FarmCard({ farm }: FarmCardProps) {
+export function FarmCard({ farm, action = 'view', onAction }: FarmCardProps) {
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-5 flex flex-col gap-3 hover:shadow-md transition-shadow">
       {/* Header */}
@@ -39,13 +41,25 @@ export function FarmCard({ farm }: FarmCardProps) {
         </div>
       </div>
 
-      {/* View Farm Button */}
-      <Link
-        to={`/farmer/farms/${farm.id}`}
-        className="mt-auto flex items-center justify-center rounded-lg border border-brand px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-      >
-        View Farm
-      </Link>
+      {/* Action Button */}
+      {action === 'view' ? (
+        <Link
+          to={`/farmer/farms/${farm.id}`}
+          className="mt-auto flex items-center justify-center rounded-lg border border-brand px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+        >
+          View Farm
+        </Link>
+      ) : (
+        <button
+          onClick={() => onAction?.(farm.id)}
+          className="mt-auto flex items-center justify-center gap-1.5 rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-dark transition-colors"
+        >
+          <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+          </svg>
+          Start Crop Cycle
+        </button>
+      )}
     </div>
   )
 }

@@ -1,4 +1,5 @@
-import { NavLink } from 'react-router'
+import { NavLink, useNavigate } from 'react-router'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
 import { currentUser, sidebarNavigation } from '~/lib/mock-data/farmer'
 import { cn } from '~/lib/utils'
 import { useSidebar } from './sidebar-context'
@@ -145,6 +146,13 @@ export function Sidebar() {
   const sidebarCtx = useSidebar()
   const isCollapsedDesktop = sidebarCtx?.isCollapsedDesktop ?? false
   const isOpenMobile = sidebarCtx?.isOpenMobile ?? false
+  const navigate = useNavigate()
+
+  const handleRoleChange = (role: string) => {
+    // In a real app this would update auth context, for now we just navigate to the dashboard layout
+    const rolePath = role.toLowerCase()
+    navigate(`/${rolePath}`)
+  }
 
   return (
     <aside className={cn(
@@ -168,13 +176,19 @@ export function Sidebar() {
         <div className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-1">
           Admin Controls
         </div>
-        <div className="flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-1.5">
-          <span className="text-xs text-gray-500">View as:</span>
-          <span className="text-sm font-semibold text-gray-900">{currentUser.role}</span>
-          <svg className="ml-auto size-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <polyline points="6 9 12 15 18 9" />
-          </svg>
-        </div>
+        <Select defaultValue={currentUser.role} onValueChange={handleRoleChange}>
+          <SelectTrigger className="w-full h-auto py-1.5 px-3 rounded-lg border border-gray-200 hover:bg-gray-50 bg-[#e6e6e6] shadow-none">
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-gray-500">View as:</span>
+              <SelectValue className="text-sm font-semibold text-gray-900" />
+            </div>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="Farmer">Farmer</SelectItem>
+            <SelectItem value="Buyer">Buyer</SelectItem>
+            <SelectItem value="Admin">Admin</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Navigation */}
