@@ -98,7 +98,7 @@ export function OperationFormLayout({
           <div className="rounded-md bg-[#FDFCF6] p-5">
             <p className="mb-2 text-[10px] uppercase font-semibold tracking-wider text-gray-500">FARMER</p>
             <div className="flex items-center gap-3">
-              <div className="flex size-10 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white shadow-sm" style={{ backgroundColor: cropCycle.farmerColor || '#1B5E20' }}>
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white shadow-sm" style={{ backgroundColor: cropCycle.farmerColor || '#264d10' }}>
                 {cropCycle.farmerInitials}
               </div>
               <div>
