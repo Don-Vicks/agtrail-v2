@@ -9,16 +9,16 @@ interface FarmCardProps {
 
 export function FarmCard({ farm, action = 'view', onAction }: FarmCardProps) {
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-5 flex flex-col gap-3 hover:shadow-md transition-shadow">
+    <div className="rounded-md border border-gray-200 bg-white p-5 flex flex-col gap-3">
       {/* Header */}
       <div className="flex items-start justify-between">
-        <div className="flex size-12 items-center justify-center rounded-xl bg-brand-dark text-white">
+        <div className="flex size-12 items-center justify-center rounded-md bg-brand-dark text-white">
           <svg className="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
             <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
             <polyline points="9 22 9 12 15 12 15 22" />
           </svg>
         </div>
-        <span className="rounded-full border border-brand-accent/30 bg-brand-accent-surface px-2.5 py-0.5 text-xs font-medium text-brand-accent">
+        <span className="rounded-full border border-brand-accent/30  px-2.5 py-0.5 text-xs font-medium text-brand-accent">
           {farm.hectares} Hectares
         </span>
       </div>
@@ -28,16 +28,16 @@ export function FarmCard({ farm, action = 'view', onAction }: FarmCardProps) {
         <h3 className="text-base font-semibold text-gray-900 mb-1">{farm.name}</h3>
         <div className="flex items-center gap-1.5 mb-1">
           <div
-            className="flex size-5 items-center justify-center rounded-full text-[8px] font-bold text-white"
-            style={{ backgroundColor: farm.ownerColor }}
+            className="flex size-5 items-center justify-center rounded-full text-[8px] font-bold text-white bg-brand"
+          // style={{ backgroundColor: farm.ownerColor }}
           >
             {farm.ownerInitials}
           </div>
           <span className="text-xs text-gray-500">{farm.owner}</span>
         </div>
-        <div className="flex items-center gap-1 text-xs text-gray-400">
+        <div className="flex items-center gap-1 text-xs text-gray-600">
           <span className="truncate">{farm.location || 'No location'}</span>
-          <span>→</span>
+          <span className="text-brand">→</span>
         </div>
       </div>
 
@@ -45,14 +45,14 @@ export function FarmCard({ farm, action = 'view', onAction }: FarmCardProps) {
       {action === 'view' ? (
         <Link
           to={`/farmer/farms/${farm.id}`}
-          className="mt-auto flex items-center justify-center rounded-lg border border-brand px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+          className="mt-auto flex items-center justify-center rounded-md border border-brand px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
         >
           View Farm
         </Link>
       ) : (
         <button
           onClick={() => onAction?.(farm.id)}
-          className="mt-auto flex items-center justify-center gap-1.5 rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-dark transition-colors"
+          className="mt-auto flex items-center justify-center gap-1.5 rounded-md bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-dark transition-colors"
         >
           <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />

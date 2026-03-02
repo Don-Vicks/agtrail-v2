@@ -1,4 +1,9 @@
 import { useCallback, useState } from 'react'
+import { Button } from '~/components/ui/button'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '~/components/ui/dialog'
+import { Input } from '~/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
+import { Textarea } from '~/components/ui/textarea'
 import { cn } from '~/lib/utils'
 
 /**
@@ -61,7 +66,7 @@ function MapBoundaryPicker({
 
   if (!leafletLoaded || !mapComponents) {
     return (
-      <div className="flex h-72 items-center justify-center rounded-lg bg-gray-100 text-sm text-gray-400">
+      <div className="flex h-72 items-center justify-center rounded-md bg-gray-100 text-sm text-gray-400">
         Loading map…
       </div>
     )
@@ -82,8 +87,7 @@ function MapBoundaryPicker({
     <MapContainer
       center={[9.06, 7.49] as [number, number]}
       zoom={13}
-      className="h-72 w-full rounded-lg z-0"
-      style={{ height: '288px' }}
+      className="h-full w-full rounded-md z-0 min-h-[400px]"
     >
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
@@ -159,7 +163,7 @@ function StepIndicator({ currentStep }: { currentStep: number }) {
             </div>
             <span
               className={cn(
-                'mt-1.5 text-xs font-medium',
+                'mt-1.5 text-xs font-medium whitespace-nowrap',
                 currentStep >= s.number ? 'text-gray-900' : 'text-gray-400'
               )}
             >
@@ -226,289 +230,265 @@ export function CreateFarmModal({ isOpen, onClose }: CreateFarmModalProps) {
   const areaHectares = areaSqMeters / 10000
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={handleClose} />
-
-      {/* Modal */}
-      <div
-        className={cn(
-          'relative z-10 w-full rounded-2xl bg-white shadow-xl max-h-[90vh] overflow-y-auto',
-          step === 2 ? 'max-w-2xl' : 'max-w-lg'
-        )}
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) handleClose() }}>
+      <DialogContent
+        className="p-0 gap-0 overflow-hidden outline-none duration-200 sm:max-w-xl"
+        showCloseButton={false}
       >
-        {/* Header */}
-        <div className="flex items-start justify-between p-6 pb-4">
-          <div>
-            <h2 className="text-xl font-bold text-gray-900">
-              Create New Farm - Step {step} of 3
-            </h2>
-            <p className="mt-1 text-sm text-gray-500">
-              {step === 1 && 'Enter the basic details of your farm'}
-              {step === 2 && 'Map your farm boundaries using GPS coordinates'}
-              {step === 3 && 'Review your farm information before submitting'}
-            </p>
-          </div>
-          <button
-            onClick={handleClose}
-            className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
-          >
-            <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </button>
-        </div>
-
-        {/* Step Indicator */}
-        <StepIndicator currentStep={step} />
-
-        {/* ─── Step 1: Farm Details ─────────────────────── */}
-        {step === 1 && (
-          <div className="space-y-4 px-6">
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-gray-900">
-                Farm Name <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                placeholder="e.g., Sunshine Farm"
-                value={formData.farmName}
-                onChange={(e) => handleFieldChange('farmName', e.target.value)}
-                className="w-full rounded-lg border border-gray-200 px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
-              />
+        <div className="max-h-[90vh] overflow-y-auto">
+          {/* Header */}
+          <DialogHeader className="flex flex-row items-start justify-between p-6 pb-4">
+            <div className="text-left space-y-1">
+              <DialogTitle className="text-xl font-bold text-brand">
+                Create New Farm - Step {step} of 3
+              </DialogTitle>
+              <DialogDescription className="text-xs text-gray-500">
+                {step === 1 && 'Enter the basic details of your farm'}
+                {step === 2 && 'Map your farm boundaries using GPS coordinates'}
+                {step === 3 && 'Review your farm information before submitting'}
+              </DialogDescription>
             </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-gray-900">State</label>
-                <div className="relative">
-                  <select
-                    value={formData.state}
-                    onChange={(e) => handleFieldChange('state', e.target.value)}
-                    className="w-full appearance-none rounded-lg border border-gray-200 px-3.5 py-2.5 text-sm text-gray-500 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
-                  >
-                    <option value="">Select a State</option>
-                    <option value="Abia">Abia</option>
-                    <option value="Lagos">Lagos</option>
-                    <option value="Katsina">Katsina</option>
-                    <option value="Oyo">Oyo</option>
-                  </select>
-                  <svg className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <polyline points="6 9 12 15 18 9" />
-                  </svg>
-                </div>
-              </div>
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-gray-900">LGA</label>
-                <div className="relative">
-                  <select
-                    value={formData.lga}
-                    onChange={(e) => handleFieldChange('lga', e.target.value)}
-                    className="w-full appearance-none rounded-lg border border-gray-200 px-3.5 py-2.5 text-sm text-gray-500 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
-                    disabled={!formData.state}
-                  >
-                    <option value="">Select a state first</option>
-                    {formData.state && <option value="Arochukwu">Arochukwu</option>}
-                    {formData.state && <option value="Ikeja">Ikeja</option>}
-                  </select>
-                  <svg className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <polyline points="6 9 12 15 18 9" />
-                  </svg>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-gray-900">Farm Region</label>
-              <input
-                type="text"
-                placeholder="e.g., Ekirin"
-                value={formData.farmRegion}
-                onChange={(e) => handleFieldChange('farmRegion', e.target.value)}
-                className="w-full rounded-lg border border-gray-200 px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
-              />
-            </div>
-
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-gray-900">Address</label>
-              <textarea
-                placeholder="Enter the full address of the farm"
-                value={formData.address}
-                onChange={(e) => handleFieldChange('address', e.target.value)}
-                rows={3}
-                className="w-full resize-none rounded-lg border border-gray-200 px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
-              />
-            </div>
-          </div>
-        )}
-
-        {/* ─── Step 2: Map Boundaries ──────────────────── */}
-        {step === 2 && (
-          <div className="space-y-4 px-6">
-            {/* Instructions */}
-            <div className="rounded-lg border border-orange-200 bg-brand-accent-surface p-3">
-              <p className="text-sm">
-                <span className="font-semibold text-gray-900">Instructions:</span>{' '}
-                <span className="text-gray-600">
-                  Click on the map to add boundary points. Add at least 3 points to define your farm boundaries.
-                </span>
-              </p>
-              <p className="mt-1 text-sm font-medium text-gray-700">
-                Points Added: {boundaryPoints.length}
-              </p>
-            </div>
-
-            {/* Boundary Stats */}
-            <div className="grid grid-cols-3 gap-3">
-              <div className="rounded-xl border border-gray-200 bg-white p-3">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs font-semibold uppercase tracking-wider text-brand">Points</span>
-                  <svg className="size-4 text-brand-light" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
-                    <circle cx="12" cy="10" r="3" />
-                  </svg>
-                </div>
-                <p className="text-2xl font-bold text-gray-900">{boundaryPoints.length}</p>
-                <p className="text-xs text-gray-400">Add points to map</p>
-              </div>
-              <div className="rounded-xl border border-gray-200 bg-white p-3">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs font-semibold uppercase tracking-wider text-brand">Hectares</span>
-                  <svg className="size-4 text-brand-light" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3" />
-                  </svg>
-                </div>
-                <p className="text-2xl font-bold text-gray-900">{areaHectares.toFixed(2)}</p>
-                <p className="text-xs text-gray-400">Estimated area</p>
-              </div>
-              <div className="rounded-xl border border-gray-200 bg-brand-surface/30 p-3">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs font-semibold uppercase tracking-wider text-brand">Sq. Meters</span>
-                  <svg className="size-4 text-brand-light" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <rect x="3" y="3" width="18" height="18" rx="2" />
-                  </svg>
-                </div>
-                <p className="text-2xl font-bold text-gray-900">{Math.round(areaSqMeters)}</p>
-                <p className="text-xs text-gray-400">Total area</p>
-              </div>
-            </div>
-
-            {/* Map */}
-            <div className="overflow-hidden rounded-lg border border-gray-200">
-              <MapBoundaryPicker points={boundaryPoints} onAddPoint={handleAddPoint} />
-            </div>
-
-            {/* Point controls */}
-            {boundaryPoints.length > 0 && (
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={handleRemoveLastPoint}
-                  className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50"
-                >
-                  Undo Last Point
-                </button>
-                <button
-                  onClick={handleClearPoints}
-                  className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50"
-                >
-                  Clear All Points
-                </button>
-                <span className="ml-auto text-xs text-gray-400">
-                  {boundaryPoints.length < 3
-                    ? `Need ${3 - boundaryPoints.length} more point${3 - boundaryPoints.length > 1 ? 's' : ''}`
-                    : '✓ Boundary defined'}
-                </span>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* ─── Step 3: Review & Confirm ───────────────── */}
-        {step === 3 && (
-          <div className="space-y-4 px-6">
-            <h3 className="text-base font-semibold text-gray-900">Review Farm Information</h3>
-
-            <div className="grid grid-cols-2 gap-x-8 gap-y-4 rounded-xl border border-gray-100 bg-gray-50/50 p-5">
-              <div>
-                <p className="text-xs text-gray-400 mb-0.5">Farm Name</p>
-                <p className="text-sm font-semibold text-gray-900">{formData.farmName || '—'}</p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-400 mb-0.5">State</p>
-                <p className="text-sm font-semibold text-gray-900">{formData.state || '—'}</p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-400 mb-0.5">LGA</p>
-                <p className="text-sm font-semibold text-gray-900">{formData.lga || '—'}</p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-400 mb-0.5">Farm Region</p>
-                <p className="text-sm font-semibold text-gray-900">{formData.farmRegion || '—'}</p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-400 mb-0.5">Boundary Points</p>
-                <p className="text-sm font-semibold text-gray-900">{boundaryPoints.length} points</p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-400 mb-0.5">Calculated Area</p>
-                <p className="text-sm font-semibold text-brand-light">{areaHectares.toFixed(2)} hectares</p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-400 mb-0.5">Area (Square Meters)</p>
-                <p className="text-sm font-semibold text-gray-900">{Math.round(areaSqMeters)} m²</p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-400 mb-0.5">Address</p>
-                <p className="text-sm font-semibold text-gray-900">{formData.address || '—'}</p>
-              </div>
-            </div>
-
-            {/* Note */}
-            <div className="rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3">
-              <p className="text-sm text-gray-700">
-                <span className="font-semibold">Note:</span>{' '}
-                Please review all information carefully before creating the farm. You can go back to edit any details.
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Footer */}
-        <div className="flex items-center justify-between p-6 pt-6">
-          <button
-            onClick={() => (step > 1 ? setStep(step - 1) : handleClose())}
-            className={cn(
-              'flex items-center gap-1.5 text-sm font-medium transition-colors',
-              step === 3
-                ? 'rounded-lg border border-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-50'
-                : 'text-gray-600 hover:text-gray-900'
-            )}
-          >
-            <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <polyline points="15 18 9 12 15 6" />
-            </svg>
-            Back
-          </button>
-          <button
-            onClick={() => (step < 3 ? setStep(step + 1) : handleClose())}
-            disabled={step === 2 && boundaryPoints.length < 3}
-            className={cn(
-              'flex items-center gap-1.5 rounded-lg px-5 py-2.5 text-sm font-medium transition-colors',
-              step === 2 && boundaryPoints.length < 3
-                ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                : 'bg-brand text-white hover:bg-brand-dark'
-            )}
-          >
-            {step < 3 ? 'Next' : 'Create Farm'}
-            {step < 3 && (
-              <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <polyline points="9 18 15 12 9 6" />
+            <button
+              onClick={handleClose}
+              className="rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
+            >
+              <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
               </svg>
-            )}
-          </button>
+              <span className="sr-only">Close</span>
+            </button>
+          </DialogHeader>
+
+          {/* Step Indicator */}
+          <StepIndicator currentStep={step} />
+
+          {/* ─── Step 1: Farm Details ─────────────────────── */}
+          {step === 1 && (
+            <div className="space-y-4 px-6">
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-gray-900">
+                  Farm Name <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  placeholder="e.g., Sunshine Farm"
+                  value={formData.farmName}
+                  onChange={(e) => handleFieldChange('farmName', e.target.value)}
+                  className="py-5"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-gray-900">State</label>
+                  <Select value={formData.state} onValueChange={(val) => handleFieldChange('state', val || '')}>
+                    <SelectTrigger className="w-full py-5 text-gray-500 font-normal">
+                      <SelectValue placeholder="Select a State" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Abia">Abia</SelectItem>
+                      <SelectItem value="Lagos">Lagos</SelectItem>
+                      <SelectItem value="Katsina">Katsina</SelectItem>
+                      <SelectItem value="Oyo">Oyo</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-gray-900">LGA</label>
+                  <Select value={formData.lga} onValueChange={(val) => handleFieldChange('lga', val || '')} disabled={!formData.state}>
+                    <SelectTrigger className="w-full py-5 text-gray-500 font-normal">
+                      <SelectValue placeholder="Select a state first" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {formData.state && <SelectItem value="Arochukwu">Arochukwu</SelectItem>}
+                      {formData.state && <SelectItem value="Ikeja">Ikeja</SelectItem>}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-gray-900">Farm Region</label>
+                <Input
+                  placeholder="e.g., Ekirin"
+                  value={formData.farmRegion}
+                  onChange={(e) => handleFieldChange('farmRegion', e.target.value)}
+                  className="py-5"
+                />
+              </div>
+
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-gray-900">Address</label>
+                <Textarea
+                  placeholder="Enter the full address of the farm"
+                  value={formData.address}
+                  onChange={(e) => handleFieldChange('address', e.target.value)}
+                  rows={3}
+                  className="resize-none"
+                />
+              </div>
+            </div>
+          )}
+
+          {/* ─── Step 2: Map Boundaries ──────────────────── */}
+          {step === 2 && (
+            <div className="space-y-4 px-6 relative w-full h-full flex flex-col">
+              {/* Instructions */}
+              <div className="rounded-md bg-[#f0f6ff] p-3">
+                <p className="text-sm">
+                  <span className="font-semibold text-gray-900">Instructions:</span>{' '}
+                  <span className="text-gray-600">
+                    Click on the map to add boundary points. Add at least 3 points to define your farm boundaries.
+                  </span>
+                </p>
+                <p className="mt-1 text-sm font-medium text-gray-700">
+                  Points Added: {boundaryPoints.length}
+                </p>
+              </div>
+
+              {/* Boundary Stats */}
+              <div className="grid grid-cols-3 gap-3">
+                <div className="rounded-md border border-gray-200 bg-[#f0f6ff] p-3">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-[#1e3b8a]">Points</span>
+                    <svg className="size-4 text-[#1e3b8a]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
+                      <circle cx="12" cy="10" r="3" />
+                    </svg>
+                  </div>
+                  <p className="text-2xl font-bold text-[#1e3b8a]">{boundaryPoints.length}</p>
+                  <p className="text-xs text-gray-500">Add points to map</p>
+                </div>
+                <div className="rounded-md border border-gray-200 bg-[#e4fded] p-3">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-[#1b8341]">Hectares</span>
+                    <svg className="size-4 text-[#1b8341]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3" />
+                    </svg>
+                  </div>
+                  <p className="text-2xl font-bold text-[#1b8341]">{areaHectares.toFixed(2)}</p>
+                  <p className="text-xs text-gray-400">Estimated area</p>
+                </div>
+                <div className="rounded-md border border-gray-200 bg-brand-surface/30 p-3">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-brand">Sq. Meters</span>
+                    <svg className="size-4 text-brand-light" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <rect x="3" y="3" width="18" height="18" rx="2" />
+                    </svg>
+                  </div>
+                  <p className="text-2xl font-bold text-gray-900">{Math.round(areaSqMeters)}</p>
+                  <p className="text-xs text-gray-400">Total area</p>
+                </div>
+              </div>
+
+              {/* Map */}
+              <div className="overflow-hidden rounded-md border border-gray-200 w-full flex-grow min-h-[400px]">
+                <MapBoundaryPicker points={boundaryPoints} onAddPoint={handleAddPoint} />
+              </div>
+
+              {/* Point controls */}
+              {boundaryPoints.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleRemoveLastPoint}
+                    className="rounded-md border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50"
+                  >
+                    Undo Last Point
+                  </button>
+                  <button
+                    onClick={handleClearPoints}
+                    className="rounded-md border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50"
+                  >
+                    Clear All Points
+                  </button>
+                  <span className="ml-auto text-xs text-gray-400">
+                    {boundaryPoints.length < 3
+                      ? `Need ${3 - boundaryPoints.length} more point${3 - boundaryPoints.length > 1 ? 's' : ''}`
+                      : '✓ Boundary defined'}
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ─── Step 3: Review & Confirm ───────────────── */}
+          {step === 3 && (
+            <div className="space-y-4 px-6">
+              <h3 className="text-base font-semibold text-gray-900">Review Farm Information</h3>
+
+              <div className="grid grid-cols-2 gap-x-8 gap-y-4 rounded-md border border-gray-100 bg-gray-50/50 p-5">
+                <div>
+                  <p className="text-xs text-gray-400 mb-0.5">Farm Name</p>
+                  <p className="text-sm font-semibold text-gray-900">{formData.farmName || '—'}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-400 mb-0.5">State</p>
+                  <p className="text-sm font-semibold text-gray-900">{formData.state || '—'}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-400 mb-0.5">LGA</p>
+                  <p className="text-sm font-semibold text-gray-900">{formData.lga || '—'}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-400 mb-0.5">Farm Region</p>
+                  <p className="text-sm font-semibold text-gray-900">{formData.farmRegion || '—'}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-400 mb-0.5">Boundary Points</p>
+                  <p className="text-sm font-semibold text-gray-900">{boundaryPoints.length} points</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-400 mb-0.5">Calculated Area</p>
+                  <p className="text-sm font-semibold text-brand-light">{areaHectares.toFixed(2)} hectares</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-400 mb-0.5">Area (Square Meters)</p>
+                  <p className="text-sm font-semibold text-gray-900">{Math.round(areaSqMeters)} m²</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-400 mb-0.5">Address</p>
+                  <p className="text-sm font-semibold text-gray-900">{formData.address || '—'}</p>
+                </div>
+              </div>
+
+              {/* Note */}
+              <div className="rounded-md border border-yellow-200 bg-yellow-50 px-4 py-3">
+                <p className="text-sm text-gray-700">
+                  <span className="font-semibold">Note:</span>{' '}
+                  Please review all information carefully before creating the farm. You can go back to edit any details.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Footer */}
+          <div className="flex items-center justify-between p-6 pt-6">
+            <Button
+              variant="outline"
+              onClick={() => (step > 1 ? setStep(step - 1) : handleClose())}
+              className="flex items-center gap-1.5 text-sm font-medium transition-colors"
+            >
+              <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+              Back
+            </Button>
+
+            <Button
+              onClick={() => (step < 3 ? setStep(step + 1) : handleClose())}
+              disabled={step === 2 && boundaryPoints.length < 3}
+              className="flex items-center gap-1.5 bg-brand text-white hover:bg-brand-dark px-5"
+            >
+              {step < 3 ? 'Next' : 'Create Farm'}
+              {step < 3 && (
+                <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              )}
+            </Button>
+          </div>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   )
 }

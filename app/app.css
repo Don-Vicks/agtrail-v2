@@ -97,8 +97,9 @@ body {
   --color-brand-light: #4caf50;
   --color-brand-lighter: #81c784;
   --color-brand-surface: #e8f5e9;
-  --color-brand-accent: #f57c00;
+  --color-brand-accent: #dc2626;
   --color-brand-accent-surface: #fff3e0;
+
   --color-brand-dark: #0d3b12;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);

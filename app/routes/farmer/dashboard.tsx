@@ -74,7 +74,7 @@ export default function FarmerDashboard() {
       {/* Middle Section: Upcoming Tasks + Chart + Quick Actions */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Upcoming Tasks */}
-        <div className="rounded-xl border border-gray-200 bg-white p-4">
+        <div className="rounded-md border border-gray-200 bg-white p-4">
           <div className="flex items-center gap-2 mb-3">
             <div className="flex size-6 items-center justify-center rounded bg-brand-surface">
               <svg className="size-3.5 text-brand" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -85,14 +85,14 @@ export default function FarmerDashboard() {
           </div>
           <p className="text-xs text-gray-500 mb-3">Important reminders for your farms</p>
 
-          <div className="rounded-lg border-l-4 border-brand bg-brand-surface/50 p-3">
+          <div className="rounded-md border-l-4 border-brand bg-brand-surface/50 p-3">
             <p className="text-sm font-semibold text-gray-900">No Upcoming Harvests</p>
             <p className="text-xs text-gray-500">No harvests expected in the next 30 days.</p>
           </div>
         </div>
 
         {/* Product Category Distribution */}
-        <div className="rounded-xl border border-gray-200 bg-white p-4">
+        <div className="rounded-md border border-gray-200 bg-white p-4">
           <h3 className="text-sm font-semibold text-gray-900 mb-4">Product Category Distribution</h3>
 
           {/* Simple donut chart placeholder */}
@@ -134,7 +134,7 @@ export default function FarmerDashboard() {
       </div>
 
       {/* Your Products Table */}
-      <div className="rounded-xl border border-gray-200 bg-white p-5">
+      <div className="rounded-md border border-gray-200 bg-white p-5">
         <div className="mb-4 flex items-center justify-between">
           <div>
             <h3 className="text-lg font-semibold text-gray-900">Your Products</h3>
@@ -146,13 +146,13 @@ export default function FarmerDashboard() {
         {/* Filters */}
         <div className="mb-4 flex flex-wrap items-center gap-3">
           <span className="text-xs font-medium text-gray-500">Filters:</span>
-          <input placeholder="Search Product ID..." className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/20" />
-          <input placeholder="Search Product Name..." className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/20" />
-          <input placeholder="Search Farm Name..." className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/20" />
-          <select className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-gray-400">
+          <input placeholder="Search Product ID..." className="rounded-md border border-gray-200 px-3 py-1.5 text-xs placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/20" />
+          <input placeholder="Search Product Name..." className="rounded-md border border-gray-200 px-3 py-1.5 text-xs placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/20" />
+          <input placeholder="Search Farm Name..." className="rounded-md border border-gray-200 px-3 py-1.5 text-xs placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/20" />
+          <select className="rounded-md border border-gray-200 px-3 py-1.5 text-xs text-gray-400">
             <option>All Status</option>
           </select>
-          <select className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-gray-400">
+          <select className="rounded-md border border-gray-200 px-3 py-1.5 text-xs text-gray-400">
             <option>All Categories</option>
           </select>
         </div>
@@ -198,7 +198,7 @@ export default function FarmerDashboard() {
       </div>
 
       {/* Farm/Crops Locations */}
-      <div className="rounded-xl border border-gray-200 bg-white p-5">
+      <div className="rounded-md border border-gray-200 bg-white p-5">
         <div className="mb-3 flex items-center justify-between">
           <div>
             <h3 className="text-lg font-semibold text-gray-900">Farm/Crops Locations</h3>
@@ -207,7 +207,7 @@ export default function FarmerDashboard() {
           <div className="relative">
             <input
               placeholder="Search farms, locations, farms..."
-              className="rounded-lg border border-gray-200 pl-8 pr-3 py-1.5 text-xs placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/20"
+              className="rounded-md border border-gray-200 pl-8 pr-3 py-1.5 text-xs placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/20"
             />
             <svg className="absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <circle cx="11" cy="11" r="8" />
@@ -248,7 +248,7 @@ export default function FarmerDashboard() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {farms.slice(0, 8).map((farm) => (
-              <div key={farm.id} className="rounded-lg border border-gray-100 bg-gray-50/50 p-3">
+              <div key={farm.id} className="rounded-md border border-gray-100 bg-gray-50/50 p-3">
                 <h4 className="text-sm font-semibold text-brand">{farm.name}</h4>
                 <p className="text-xs text-gray-400">{farm.location || farm.region}</p>
                 <p className="text-xs text-gray-400">by {farm.owner}</p>
@@ -257,7 +257,7 @@ export default function FarmerDashboard() {
             ))}
           </div>
           {farms.length > 8 && (
-            <button className="mt-3 w-full rounded-lg border border-gray-200 py-2 text-xs font-medium text-gray-500 hover:bg-gray-50">
+            <button className="mt-3 w-full rounded-md border border-gray-200 py-2 text-xs font-medium text-gray-500 hover:bg-gray-50">
               +{farms.length - 8} more farms
             </button>
           )}

@@ -16,7 +16,7 @@ export function Breadcrumb({ items }: BreadcrumbProps) {
   const sidebarCtx = useSidebar()
 
   return (
-    <nav className="flex items-center gap-1.5 text-sm text-gray-500">
+    <nav className="flex flex-wrap items-center gap-1.5 text-sm text-gray-500">
       {items.map((item, index) => (
         <span key={item.label} className="flex items-center gap-1.5">
           {index > 0 && (

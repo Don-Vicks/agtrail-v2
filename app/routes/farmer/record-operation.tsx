@@ -66,18 +66,18 @@ export default function RecordOperation() {
           placeholder="Search by crop, farm, or farmer..."
           value={searchQuery}
           onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1) }}
-          className="w-72 rounded-lg border border-gray-200 px-3.5 py-2 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+          className="w-72 rounded-md border border-gray-200 px-3.5 py-2 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
         />
-        <button className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">Search</button>
+        <button className="rounded-md border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">Search</button>
         <div className="ml-auto flex items-center gap-2">
           <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1) }}
-            className="rounded-lg border border-gray-200 px-3 py-2 text-sm">
+            className="rounded-md border border-gray-200 px-3 py-2 text-sm">
             <option value="all">All Status</option>
             <option value="planning">Planning</option>
             <option value="completed">Completed</option>
           </select>
           <span className="text-sm text-gray-500">Most Recent</span>
-          <select className="rounded-lg border border-gray-200 px-2 py-2 text-sm">
+          <select className="rounded-md border border-gray-200 px-2 py-2 text-sm">
             <option>Most Recent</option><option>Name</option><option>Farm</option>
           </select>
         </div>
@@ -86,7 +86,7 @@ export default function RecordOperation() {
       {/* Crop Cycle Cards Grid */}
       <div className="grid grid-cols-3 gap-4">
         {paginatedCycles.map((cycle) => (
-          <div key={cycle.id} className="rounded-xl border border-gray-200 bg-white p-5 flex flex-col">
+          <div key={cycle.id} className="rounded-md border border-gray-200 bg-white p-5 flex flex-col">
             {/* Status + Days */}
             <div className="mb-3 flex items-center justify-between">
               <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${cycle.status === 'planning'
@@ -126,7 +126,7 @@ export default function RecordOperation() {
             <div className="mt-auto pt-4 space-y-2">
               <button
                 onClick={() => setViewActivitiesCycle(cycle)}
-                className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-gray-200 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+                className="flex w-full items-center justify-center gap-1.5 rounded-md border border-gray-200 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors"
               >
                 <svg className="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" />
@@ -135,7 +135,7 @@ export default function RecordOperation() {
               </button>
               <button
                 onClick={() => setSelectedCropCycle(cycle)}
-                className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-brand py-2 text-xs font-medium text-white hover:bg-brand-dark transition-colors"
+                className="flex w-full items-center justify-center gap-1.5 rounded-md bg-brand py-2 text-xs font-medium text-white hover:bg-brand-dark transition-colors"
               >
                 <svg className="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <rect x="8" y="2" width="8" height="4" rx="1" /><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2" />

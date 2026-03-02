@@ -79,7 +79,7 @@ These become usable as utilities:
 - `--color-primary` → `bg-primary`, `text-primary`, `border-primary`
 - `--font-mono` → `font-mono`
 - `--spacing-18` → `p-18`, `m-18`, `w-18`, `gap-18`
-- `--radius-xl` → `rounded-xl`
+- `--radius-xl` → `rounded-md`
 - `--animate-fade-in` → `animate-fade-in`
 
 ## Dark Mode

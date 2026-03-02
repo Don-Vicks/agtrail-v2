@@ -72,14 +72,14 @@ export default function FarmDetail() {
 
       {/* Crop Cycles Section */}
       <div>
-        <div className="mb-4 flex items-center justify-between">
+        <div className="mb-4 flex flex-col items-center justify-center gap-2 md:flex-row md:justify-between">
           <div>
             <h3 className="text-lg font-semibold text-gray-900">Crop Cycles</h3>
             <p className="text-sm text-gray-500">Start a new crop cycle for this farm to track operations and production</p>
           </div>
           <button
             onClick={() => setIsCropCycleModalOpen(true)}
-            className="flex items-center gap-1.5 rounded-lg bg-brand px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-dark transition-colors"
+            className="flex items-center gap-1.5 rounded-md bg-brand px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-dark transition-colors"
           >
             <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
@@ -95,24 +95,25 @@ export default function FarmDetail() {
             placeholder="Search crop cycles..."
             value={searchQuery}
             onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1) }}
-            className="w-72 rounded-lg border border-gray-200 px-3.5 py-2 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+            className="w-72 rounded-md border border-gray-200 px-3.5 py-2 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
           />
           <div className="ml-auto flex items-center gap-2">
-            <button className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">Search</button>
-            <span className="text-sm text-gray-500">Sort by Name</span>
-            <select className="rounded-lg border border-gray-200 px-2 py-2 text-sm">
-              <option>Name</option><option>Date</option><option>Status</option>
+            <button className="rounded-md border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">Search</button>
+            <select className="rounded-md border border-gray-200 px-1.5 py-2 text-sm">
+              <option>Sort by Name</option>
+              <option>Sort by Date</option>
+              <option>Sort by Status</option>
             </select>
           </div>
         </div>
 
         {/* Crop Cycle Cards */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {filteredCycles.map((cycle) => (
-            <div key={cycle.id} className="rounded-xl border border-gray-200 bg-white p-5">
+            <div key={cycle.id} className="rounded-md border border-gray-200 bg-white p-5">
               <div className="mb-3 flex items-start justify-between">
-                <div className="flex size-10 items-center justify-center rounded-full bg-brand-surface">
-                  <svg className="size-5 text-brand" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <div className="flex size-10 items-center justify-center rounded-full bg-brand">
+                  <svg className="size-5 text-brand-surface" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path d="M22 11.08V12a10 10 0 11-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
                   </svg>
                 </div>
@@ -134,7 +135,7 @@ export default function FarmDetail() {
                 <p>Season: {cycle.season}</p>
               </div>
 
-              <button className="mt-4 w-full rounded-lg border border-gray-200 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+              <button className="mt-4 w-full rounded-md border border-brand py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
                 Log Operation
               </button>
             </div>

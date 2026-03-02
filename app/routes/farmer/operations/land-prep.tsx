@@ -31,11 +31,11 @@ export default function LandPreparation() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <label className="mb-1.5 block text-sm font-semibold text-gray-900">Operator Name</label>
-          <input type="text" placeholder="Select or enter operator name" className="w-full rounded-lg border border-gray-200 px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20" />
+          <input type="text" placeholder="Select or enter operator name" className="w-full rounded-md border border-gray-200 px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20" />
         </div>
         <div>
           <label className="mb-1.5 block text-sm font-semibold text-gray-900">Supervisor Name</label>
-          <input type="text" placeholder="Select or enter supervisor name" className="w-full rounded-lg border border-gray-200 px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20" />
+          <input type="text" placeholder="Select or enter supervisor name" className="w-full rounded-md border border-gray-200 px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20" />
         </div>
       </div>
 
@@ -43,7 +43,7 @@ export default function LandPreparation() {
       <div>
         <label className="mb-1.5 block text-sm font-semibold text-gray-900">Primary Tillage Method</label>
         <div className="relative">
-          <select className="w-full appearance-none rounded-lg border border-gray-200 px-3.5 py-2.5 text-sm text-gray-700 bg-white">
+          <select className="w-full appearance-none rounded-md border border-gray-200 px-3.5 py-2.5 text-sm text-gray-700 bg-white">
             <option>Select Tillage Method</option>
             <option>Conventional Tillage</option>
             <option>Conservation Tillage</option>
@@ -62,7 +62,7 @@ export default function LandPreparation() {
         <label className="mb-2.5 block text-sm font-semibold text-gray-900">Field Preparation Activities</label>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {['Plowing', 'Harrowing', 'Ridging', 'Leveling', 'Mulching', 'Terracing', 'Planting of Cover Crops', 'Construction of Bunds', 'Contour Farming'].map((activity) => (
-            <label key={activity} className="flex cursor-pointer border border-gray-200 rounded-lg p-3 items-center gap-3 hover:bg-gray-50">
+            <label key={activity} className="flex cursor-pointer border border-gray-200 rounded-md p-3 items-center gap-3 hover:bg-gray-50">
               <input type="checkbox" className="size-4 rounded border-gray-300 text-brand focus:ring-brand" />
               <span className="text-sm font-medium text-gray-700">{activity}</span>
             </label>
@@ -75,7 +75,7 @@ export default function LandPreparation() {
         <div>
           <label className="mb-1.5 block text-sm font-semibold text-gray-900">Pre-Plant Inputs Applied</label>
           <div className="relative">
-            <select className="w-full appearance-none rounded-lg border border-gray-200 px-3.5 py-2.5 text-sm text-gray-700 bg-white">
+            <select className="w-full appearance-none rounded-md border border-gray-200 px-3.5 py-2.5 text-sm text-gray-700 bg-white">
               <option>Select Pre-plant inputs</option>
               <option>Compost</option>
               <option>Manure</option>
@@ -87,12 +87,12 @@ export default function LandPreparation() {
         </div>
         <div>
           <label className="mb-1.5 block text-sm font-semibold text-gray-900">Quantity per Hectare</label>
-          <input type="text" placeholder="Enter quantity" className="w-full rounded-lg border border-gray-200 px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20" />
+          <input type="text" placeholder="Enter quantity" className="w-full rounded-md border border-gray-200 px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20" />
         </div>
         <div>
           <label className="mb-1.5 block text-sm font-semibold text-gray-900">Unit</label>
           <div className="relative">
-            <select className="w-full appearance-none rounded-lg border border-gray-200 px-3.5 py-2.5 text-sm text-gray-700 bg-white">
+            <select className="w-full appearance-none rounded-md border border-gray-200 px-3.5 py-2.5 text-sm text-gray-700 bg-white">
               <option>Select unit</option>
               <option>kg</option>
               <option>tons</option>
@@ -108,7 +108,7 @@ export default function LandPreparation() {
       <div>
         <label className="mb-1.5 block text-sm font-semibold text-gray-900">Clearing Method</label>
         <div className="relative">
-          <select className="w-full appearance-none rounded-lg border border-gray-200 px-3.5 py-2.5 text-sm text-gray-700 bg-white">
+          <select className="w-full appearance-none rounded-md border border-gray-200 px-3.5 py-2.5 text-sm text-gray-700 bg-white">
             <option>Select Clearing Method</option>
             <option>Manual</option>
             <option>Mechanical</option>
@@ -124,7 +124,7 @@ export default function LandPreparation() {
       {/* Description */}
       <div>
         <label className="mb-1.5 block text-sm font-semibold text-gray-900">Description <span className="text-red-500">*</span></label>
-        <textarea rows={3} placeholder="Describe the land preparation... (e.g., Plowed and harrowed field for maize planting)" className="w-full resize-none rounded-lg border border-gray-200 px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20" required />
+        <textarea rows={3} placeholder="Describe the land preparation... (e.g., Plowed and harrowed field for maize planting)" className="w-full resize-none rounded-md border border-gray-200 px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20" required />
       </div>
     </OperationFormLayout>
   )

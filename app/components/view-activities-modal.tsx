@@ -1,5 +1,14 @@
-import { useEffect, useState } from 'react'
-import { createPortal } from 'react-dom'
+import {
+  CircleDollarSign,
+  FlaskConical,
+  Ruler,
+  Sprout,
+  Sun,
+  Tractor,
+  User,
+  Wheat
+} from 'lucide-react'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '~/components/ui/dialog'
 import type { CropCycle } from '~/lib/mock-data/farmer'
 
 interface ViewActivitiesModalProps {
@@ -68,47 +77,27 @@ const mockActivities: Activity[] = [
   },
 ]
 
-const activityIconMap: Record<Activity['iconType'], string> = {
-  'land-prep': '📋',
-  planting: '🌱',
-  fertilizer: '📋',
-  harvesting: '🌾',
+const activityIconMap: Record<Activity['iconType'], React.ElementType> = {
+  'land-prep': Tractor,
+  planting: Sprout,
+  fertilizer: FlaskConical,
+  harvesting: Wheat,
 }
 
 export function ViewActivitiesModal({ isOpen, onClose, cropCycle }: ViewActivitiesModalProps) {
-  const [mounted, setMounted] = useState(false)
+  if (!isOpen || !cropCycle) return null
 
-  // Wait until mounted to avoid hydration errors with portals
-  useEffect(() => {
-    setMounted(true)
-    if (isOpen) {
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = 'auto'
-    }
-    return () => {
-      document.body.style.overflow = 'auto'
-    }
-  }, [isOpen])
-
-  if (!mounted || !isOpen || !cropCycle) return null
-
-  const modalContent = (
-    <div className="fixed inset-0 z-50 flex justify-end">
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
-        onClick={onClose}
-      />
-
-      {/* Slide-over Panel */}
-      <div className="relative w-full max-w-md bg-white shadow-2xl h-full flex flex-col animate-in slide-in-from-right duration-300">
-
+  return (
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose() }}>
+      <DialogContent
+        showCloseButton={false}
+        className="fixed top-0 right-0 bottom-0 left-auto m-0 h-full w-full max-w-md translate-x-0 translate-y-0 flex-col gap-0 rounded-none border-l bg-white p-0 shadow-2xl duration-300 outline-none flex data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right sm:max-w-md"
+      >
         {/* Header Section */}
-        <div className="flex items-start bg-white z-10 p-6 flex-shrink-0 relative">
-          <div className="flex-1">
-            <h2 className="text-lg font-bold text-brand-dark mb-4">Crop Cycle Activities</h2>
-            <div className="space-y-1">
+        <DialogHeader className="flex flex-row items-start bg-white z-10 p-6 flex-shrink-0 relative border-b border-gray-100 space-y-0 text-left">
+          <div className="flex-1 space-y-4">
+            <DialogTitle className="text-lg font-bold text-brand-dark">Crop Cycle Activities</DialogTitle>
+            <DialogDescription className="space-y-1">
               <p className="font-semibold text-gray-900 text-sm">
                 {cropCycle.productName} <span className="text-gray-500 font-normal">({cropCycle.variety})</span>
               </p>
@@ -116,7 +105,7 @@ export function ViewActivitiesModal({ isOpen, onClose, cropCycle }: ViewActiviti
               <p className="text-gray-400 text-xs mt-1">
                 Planted: {cropCycle.plantedDate || 'Not specified'}
               </p>
-            </div>
+            </DialogDescription>
           </div>
 
           <button
@@ -126,8 +115,9 @@ export function ViewActivitiesModal({ isOpen, onClose, cropCycle }: ViewActiviti
             <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
+            <span className="sr-only">Close</span>
           </button>
-        </div>
+        </DialogHeader>
 
         {/* Timeline Scrollable Section */}
         <div className="flex-1 overflow-y-auto px-6 pb-6 mt-2 relative">
@@ -141,12 +131,15 @@ export function ViewActivitiesModal({ isOpen, onClose, cropCycle }: ViewActiviti
 
                 {/* Timeline Node Icon */}
                 <div className="relative z-10 flex size-9 items-center justify-center shrink-0 rounded-full bg-brand text-white shadow-sm ring-4 ring-white">
-                  <span className="text-sm">{activityIconMap[activity.iconType]}</span>
+                  {(() => {
+                    const IconComponent = activityIconMap[activity.iconType]
+                    return IconComponent ? <IconComponent size={16} strokeWidth={2.5} /> : null
+                  })()}
                 </div>
 
                 {/* Activity Card */}
                 <div className="flex-1 min-w-0 pb-4">
-                  <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm hover:shadow-md transition-shadow">
+                  <div className="rounded-md border border-gray-100 bg-white p-4 shadow-sm hover:shadow-md transition-shadow">
 
                     {/* Card Header: Title & Date */}
                     <div className="flex items-start justify-between gap-2 mb-2">
@@ -162,10 +155,10 @@ export function ViewActivitiesModal({ isOpen, onClose, cropCycle }: ViewActiviti
                     )}
 
                     {/* Metadata Grid (Operator, Area, Weather, Cost) */}
-                    <div className="grid grid-cols-1 gap-1.5 text-xs text-gray-600">
+                    <div className="grid grid-cols-1 gap-1.5 text-xs text-gray-600 mt-2">
                       {activity.operator && (
                         <div className="flex items-center gap-1.5">
-                          <span className="text-brand-light">👤</span>
+                          <User size={14} className="text-brand-light" />
                           <span className="text-gray-400 shrink-0">Operator:</span>
                           <span className="truncate">{activity.operator}</span>
                         </div>
@@ -173,7 +166,7 @@ export function ViewActivitiesModal({ isOpen, onClose, cropCycle }: ViewActiviti
 
                       {activity.area && (
                         <div className="flex items-center gap-1.5">
-                          <span className="text-brand-light">📏</span>
+                          <Ruler size={14} className="text-brand-light" />
                           <span className="text-gray-400 shrink-0">Area:</span>
                           <span className="truncate">{activity.area}</span>
                         </div>
@@ -181,7 +174,7 @@ export function ViewActivitiesModal({ isOpen, onClose, cropCycle }: ViewActiviti
 
                       {activity.weather && (
                         <div className="flex items-center gap-1.5">
-                          <span className="text-brand-light">🌤️</span>
+                          <Sun size={14} className="text-brand-light" />
                           <span className="text-gray-400 shrink-0">Weather:</span>
                           <span className="truncate">{activity.weather}</span>
                         </div>
@@ -189,7 +182,7 @@ export function ViewActivitiesModal({ isOpen, onClose, cropCycle }: ViewActiviti
 
                       {activity.cost && (
                         <div className="flex items-center gap-1.5">
-                          <span className="text-yellow-600">💰</span>
+                          <CircleDollarSign size={14} className="text-yellow-600" />
                           <span className="text-gray-400 shrink-0">Cost:</span>
                           <span className="truncate font-medium">{activity.cost}</span>
                         </div>
@@ -201,12 +194,8 @@ export function ViewActivitiesModal({ isOpen, onClose, cropCycle }: ViewActiviti
               </div>
             ))}
           </div>
-
         </div>
-
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   )
-
-  return createPortal(modalContent, document.body)
 }

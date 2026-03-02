@@ -25,7 +25,7 @@ function NavGroup({ label, items, onItemClick }: NavGroupProps) {
             onClick={onItemClick}
             className={({ isActive }) =>
               cn(
-                'mx-2 flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                'mx-2 flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors',
                 isActive
                   ? 'bg-brand text-white'
                   : 'text-gray-700 hover:bg-gray-100'
@@ -162,7 +162,7 @@ export function Sidebar() {
     )}>
       {/* Logo */}
       <div className="flex items-center gap-2 px-4 py-4">
-        <div className="flex size-8 items-center justify-center rounded-lg bg-brand text-white text-xs font-bold">
+        <div className="flex size-8 items-center justify-center rounded-md bg-brand text-white text-xs font-bold">
           ag
         </div>
         <span className="text-lg font-bold">
@@ -176,8 +176,8 @@ export function Sidebar() {
         <div className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-1">
           Admin Controls
         </div>
-        <Select defaultValue={currentUser.role} onValueChange={handleRoleChange}>
-          <SelectTrigger className="w-full h-auto py-1.5 px-3 rounded-lg border border-gray-200 hover:bg-gray-50 bg-[#e6e6e6] shadow-none">
+        <Select defaultValue={currentUser.role} onValueChange={(val) => handleRoleChange(val || '')}>
+          <SelectTrigger className="w-full h-auto py-1.5 px-3 rounded-md border border-gray-200 hover:bg-gray-50 bg-[#e6e6e6] shadow-none">
             <div className="flex items-center gap-2">
               <span className="text-xs text-gray-500">View as:</span>
               <SelectValue className="text-sm font-semibold text-gray-900" />

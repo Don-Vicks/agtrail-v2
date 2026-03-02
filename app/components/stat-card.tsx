@@ -12,11 +12,11 @@ interface StatCardProps {
 
 export function StatCard({ title, value, subtitle, description, icon, trend = 'neutral', className }: StatCardProps) {
   return (
-    <div className={cn('rounded-xl border border-gray-200 bg-white p-4', className)}>
+    <div className={cn('rounded-md border border-gray-200 bg-white p-4', className)}>
       <div className="flex items-start justify-between mb-3">
         <span className="text-sm font-medium text-gray-600">{title}</span>
         <div className="flex items-center gap-1">
-          <span className="flex size-7 items-center justify-center rounded-lg bg-brand-surface text-brand-light">
+          <span className="flex size-7 items-center justify-center rounded-md bg-brand-surface text-brand-light">
             {icon}
           </span>
           {trend === 'up' && (

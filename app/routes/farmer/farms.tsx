@@ -57,12 +57,12 @@ export default function FarmerFarms() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">ALL FARMS</h1>
-          <p className="text-sm text-gray-500">View and manage all farms across the cooperative</p>
+          <h1 className="text-2xl font-bold text-brand">ALL FARMS</h1>
+          <p className="text-sm tracking-tight text-gray-500">View and manage all farms across the cooperative</p>
         </div>
         <button
           onClick={() => setIsCreateModalOpen(true)}
-          className="flex items-center gap-1.5 rounded-lg bg-brand px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-dark transition-colors"
+          className="flex items-center gap-1.5 rounded-md bg-brand px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-dark transition-colors"
         >
           <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <line x1="12" y1="5" x2="12" y2="19" />
@@ -74,17 +74,17 @@ export default function FarmerFarms() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="rounded-xl border border-gray-200 bg-white p-5">
+        <div className="rounded-md border border-gray-200 bg-white p-5">
           <p className="text-sm text-gray-500 mb-1">Total Farms</p>
-          <p className="text-3xl font-bold text-gray-900">{farms.length}</p>
+          <p className="text-3xl font-bold text-brand">{farms.length}</p>
         </div>
-        <div className="rounded-xl border border-gray-200 bg-white p-5">
+        <div className="rounded-md border border-gray-200 bg-white p-5">
           <p className="text-sm text-gray-500 mb-1">Total Area</p>
-          <p className="text-3xl font-bold text-gray-900">{totalArea.toFixed(1)} ha</p>
+          <p className="text-3xl font-bold text-brand">{totalArea.toFixed(1)} ha</p>
         </div>
-        <div className="rounded-xl border border-gray-200 bg-white p-5">
+        <div className="rounded-md border border-gray-200 bg-white p-5">
           <p className="text-sm text-gray-500 mb-1">Active Farms</p>
-          <p className="text-3xl font-bold text-gray-900">{activeFarms}</p>
+          <p className="text-3xl font-bold text-brand">{activeFarms}</p>
         </div>
       </div>
 
@@ -99,18 +99,17 @@ export default function FarmerFarms() {
               setSearchQuery(e.target.value)
               setCurrentPage(1)
             }}
-            className="w-full rounded-lg border border-gray-200 py-2.5 pl-3.5 pr-3 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+            className="w-4/5 rounded-md border border-brand/30 py-2.5 pl-3.5 pr-3 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
           />
         </div>
-        <button className="rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 flex-shrink-0">
+        <button className="rounded-md border border-brand/30 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 flex-shrink-0">
           Search
         </button>
         <div className="sm:ml-auto flex items-center gap-2">
-          <span className="text-sm text-gray-500">Sort by</span>
-          <select className="rounded-lg border border-gray-200 px-3 py-2 text-sm">
-            <option>Name</option>
-            <option>Hectares</option>
-            <option>Location</option>
+          <select className="rounded-md border border-brand/30 px-3 py-2 text-sm">
+            <option>Sort by Name</option>
+            <option>Sort by Hectares</option>
+            <option>Sort by Location</option>
           </select>
         </div>
       </div>
