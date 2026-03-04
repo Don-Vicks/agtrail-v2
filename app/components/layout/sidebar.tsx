@@ -176,15 +176,16 @@ export function Sidebar() {
         <div className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-1">
           Admin Controls
         </div>
-        <Select defaultValue={currentUser.role} onValueChange={(val) => handleRoleChange(val || '')}>
-          <SelectTrigger className="w-full h-auto py-1.5 px-3 rounded-md border border-gray-200 hover:bg-gray-50 bg-[#e6e6e6] shadow-none">
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-500">View as:</span>
-              <SelectValue className="text-sm font-semibold text-gray-900" />
-            </div>
+        <div className="flex items-center gap-2 mb-1.5 ml-1">
+          <span className="text-xs font-semibold text-gray-500">View as:</span>
+        </div>
+        <Select defaultValue="CropFarmer" onValueChange={(val) => handleRoleChange(val || '')}>
+          <SelectTrigger className="w-full h-auto py-1.5 px-3 rounded-md border border-gray-200 hover:bg-gray-50 bg-white shadow-none transition-all cursor-pointer">
+            <SelectValue className="text-sm font-semibold text-gray-900" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="Farmer">Farmer</SelectItem>
+            <SelectItem value="CropFarmer">Crop Farmer</SelectItem>
+            <SelectItem value="LivestockFarmer">Livestock Farmer</SelectItem>
             <SelectItem value="Buyer">Buyer</SelectItem>
             <SelectItem value="Admin">Admin</SelectItem>
           </SelectContent>

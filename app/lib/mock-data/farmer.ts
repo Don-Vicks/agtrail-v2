@@ -207,14 +207,296 @@ export const farms: Farm[] = [
   },
 ]
 
-export const products = [
+export interface ProductJourneyNode {
+  title: string
+  description: string
+  date: string
+  time: string
+  details: {
+    label: string
+    value: string
+  }[]
+}
+
+export interface ProductTestResult {
+  title: string
+  description: string
+  status: 'passed' | 'failed' | 'pending'
+}
+
+export interface Product {
+  id: string
+  batchId: string
+  name: string
+  farm: string
+  status: 'planning' | 'active' | 'completed'
+  hectares: number
+  location: string
+  plantedDate: string
+  createdDate?: string
+  image: string
+  metrics: {
+    sustainabilityScore: number
+    carbonEquivalents: number
+    litersUsed: number
+    certifications: number
+    qualityScore: number
+    complianceRate: number
+  }
+  journey: ProductJourneyNode[]
+  tests: ProductTestResult[]
+  standards: ProductTestResult[]
+}
+
+export const products: Product[] = [
   {
-    id: 'BATCH-8012ea66-777007408785',
+    id: 'p-1',
+    batchId: 'BATCH-8022dd4d-1770974808765',
     name: 'Maize',
     farm: 'IITA FCI4Afric Farm',
-    status: 'planning' as const,
+    location: 'IITA Nigeria Office',
+    status: 'completed',
     hectares: 0.00036,
-    createdDate: '2/13/2025',
+    plantedDate: '3rd, January 2020',
+    // Using a placeholder that will be styled appropriately
+    image: 'tomatoes',
+    metrics: {
+      sustainabilityScore: 56,
+      carbonEquivalents: 0.0,
+      litersUsed: 0,
+      certifications: 2,
+      qualityScore: 56,
+      complianceRate: 56,
+    },
+    journey: [
+      {
+        title: 'Land Preparation',
+        description: 'Clearing and preparing the land for farming',
+        date: '20th September 2024',
+        time: '10:00 AM',
+        details: [
+          { label: 'Primary Tillage', value: 'Not applicable' },
+          { label: 'Conservation Structures', value: 'Contour Ploughing' },
+          { label: 'Preparation Techniques', value: 'Harrowing' },
+          { label: 'Clearing Method', value: 'Manual Clearing' },
+          { label: 'Equipment', value: 'Tractor' },
+        ],
+      },
+      {
+        title: 'Planting',
+        description: 'Clearing and preparing the land for farming',
+        date: '20th September 2024',
+        time: '10:00 AM',
+        details: [
+          { label: 'Primary Tillage', value: 'Not applicable' },
+          { label: 'Conservation Structures', value: 'Contour Ploughing' },
+          { label: 'Preparation Techniques', value: 'Harrowing' },
+          { label: 'Clearing Method', value: 'Manual Clearing' },
+          { label: 'Equipment', value: 'Tractor' },
+        ],
+      },
+      {
+        title: 'Certification Status',
+        description: 'Clearing and preparing the land for farming',
+        date: '20th September 2024',
+        time: '10:00 AM',
+        details: [
+          { label: 'Primary Tillage', value: 'Not applicable' },
+          { label: 'Conservation Structures', value: 'Contour Ploughing' },
+          { label: 'Preparation Techniques', value: 'Harrowing' },
+          { label: 'Clearing Method', value: 'Manual Clearing' },
+          { label: 'Equipment', value: 'Tractor' },
+        ],
+      },
+    ],
+    tests: [
+      {
+        title: 'Water Quality Test',
+        description: 'Carbon, water, biodiversity, and soil health',
+        status: 'passed',
+      },
+      {
+        title: 'Soil Health Test',
+        description: 'Carbon, water, biodiversity, and soil health',
+        status: 'passed',
+      },
+      {
+        title: 'Pesticide Residue Test',
+        description: 'Carbon, water, biodiversity, and soil health',
+        status: 'passed',
+      },
+    ],
+    standards: [
+      {
+        title: 'Water Quality Test',
+        description: 'Carbon, water, biodiversity, and soil health',
+        status: 'passed',
+      },
+      {
+        title: 'Soil Health Test',
+        description: 'Carbon, water, biodiversity, and soil health',
+        status: 'passed',
+      },
+      {
+        title: 'Pesticide Residue Test',
+        description: 'Carbon, water, biodiversity, and soil health',
+        status: 'passed',
+      },
+    ],
+  },
+  {
+    id: 'p-2',
+    batchId: 'BATCH-224ef719-1765304456948',
+    name: 'Rice',
+    farm: 'Baba Beji Farms',
+    location: '21, Yusuf Aboki Street, Abapka GRA, Oke Ado',
+    status: 'active',
+    hectares: 12.4,
+    plantedDate: '15th, March 2024',
+    image: 'rice',
+    metrics: {
+      sustainabilityScore: 78,
+      carbonEquivalents: 12.4,
+      litersUsed: 4500,
+      certifications: 1,
+      qualityScore: 82,
+      complianceRate: 90,
+    },
+    journey: [],
+    tests: [],
+    standards: [],
+  },
+  {
+    id: 'p-3',
+    batchId: 'BATCH-224ef719-1764306610258',
+    name: 'Rice',
+    farm: 'Baba Beji Farms',
+    location: '21, Yusuf Aboki Street, Abapka GRA, Oke Ado',
+    status: 'completed',
+    hectares: 14.1,
+    plantedDate: '10th, February 2024',
+    image: 'rice',
+    metrics: {
+      sustainabilityScore: 81,
+      carbonEquivalents: 11.2,
+      litersUsed: 4200,
+      certifications: 2,
+      qualityScore: 85,
+      complianceRate: 95,
+    },
+    journey: [],
+    tests: [],
+    standards: [],
+  },
+  {
+    id: 'p-4',
+    batchId: 'BATCH-224ef719-1764062213694',
+    name: 'Rice',
+    farm: 'Baba Beji Farms',
+    location: '21, Yusuf Aboki Street, Abapka GRA, Oke Ado',
+    status: 'completed',
+    hectares: 10.5,
+    plantedDate: '5th, January 2024',
+    image: 'rice',
+    metrics: {
+      sustainabilityScore: 75,
+      carbonEquivalents: 15.0,
+      litersUsed: 5000,
+      certifications: 1,
+      qualityScore: 79,
+      complianceRate: 88,
+    },
+    journey: [],
+    tests: [],
+    standards: [],
+  },
+  {
+    id: 'p-5',
+    batchId: 'BATCH-1762339741241',
+    name: 'Ginger',
+    farm: 'BABA FARM',
+    location: 'Zango Kataf',
+    status: 'active',
+    hectares: 5.2,
+    plantedDate: '22nd, April 2024',
+    image: 'ginger',
+    metrics: {
+      sustainabilityScore: 68,
+      carbonEquivalents: 5.5,
+      litersUsed: 1200,
+      certifications: 0,
+      qualityScore: 72,
+      complianceRate: 80,
+    },
+    journey: [],
+    tests: [],
+    standards: [],
+  },
+  {
+    id: 'p-6',
+    batchId: 'BATCH-1759875835858',
+    name: 'Sesame',
+    farm: 'Baba Beji Farms',
+    location: '21, Yusuf Aboki Street, Abapka GRA, Oke Ado',
+    status: 'active',
+    hectares: 8.0,
+    plantedDate: '18th, May 2024',
+    image: 'sesame',
+    metrics: {
+      sustainabilityScore: 85,
+      carbonEquivalents: 4.2,
+      litersUsed: 800,
+      certifications: 1,
+      qualityScore: 88,
+      complianceRate: 92,
+    },
+    journey: [],
+    tests: [],
+    standards: [],
+  },
+  {
+    id: 'p-7',
+    batchId: 'BATCH-1756815685637',
+    name: 'Maize',
+    farm: 'Olamide Farms',
+    location: '21, Yusuf Aboki Street, Abapka GRA,',
+    status: 'completed',
+    hectares: 22.5,
+    plantedDate: '10th, June 2023',
+    image: 'maize',
+    metrics: {
+      sustainabilityScore: 72,
+      carbonEquivalents: 20.1,
+      litersUsed: 6000,
+      certifications: 1,
+      qualityScore: 75,
+      complianceRate: 85,
+    },
+    journey: [],
+    tests: [],
+    standards: [],
+  },
+  {
+    id: 'p-8',
+    batchId: 'BATCH-1754932211915',
+    name: 'Maize',
+    farm: 'Olamide Farms',
+    location: '21, Yusuf Aboki Street, Abapka GRA,',
+    status: 'completed',
+    hectares: 25.0,
+    plantedDate: '15th, May 2023',
+    image: 'maize',
+    metrics: {
+      sustainabilityScore: 70,
+      carbonEquivalents: 22.5,
+      litersUsed: 6500,
+      certifications: 1,
+      qualityScore: 73,
+      complianceRate: 82,
+    },
+    journey: [],
+    tests: [],
+    standards: [],
   },
 ]
 

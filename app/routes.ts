@@ -15,6 +15,8 @@ export default [
       index('routes/farmer/dashboard.tsx'),
       route('farms', 'routes/farmer/farms.tsx'),
       route('crop-cycle', 'routes/farmer/crop-cycle.tsx'),
+      route('products', 'routes/farmer/products/index.tsx'),
+      route('products/:id', 'routes/farmer/products/story.tsx'),
       route('farms/:id', 'routes/farmer/farm-detail.tsx'),
       route('operations/new', 'routes/farmer/record-operation.tsx'),
       route(
