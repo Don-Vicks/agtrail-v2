@@ -525,20 +525,20 @@ export const sidebarNavigation = {
   ],
   certification: [
     {
-      label: 'Upload Product Certification',
+      label: 'Product Certification',
       icon: 'upload',
       href: '/farmer/certifications/product',
     },
     {
-      label: 'Upload Farm Certification',
+      label: 'Farm Certification',
       icon: 'upload',
       href: '/farmer/certifications/farm',
     },
-    {
-      label: 'Certification Readiness',
-      icon: 'check-circle',
-      href: '/farmer/certifications/readiness',
-    },
+    // {
+    //   label: 'Certification Readiness',
+    //   icon: 'check-circle',
+    //   href: '/farmer/certifications/readiness',
+    // },
     {
       label: 'View Certifications',
       icon: 'award',
@@ -823,15 +823,18 @@ export interface OperationType {
   description: string
   icon: string
   color: string
+  category: 'pre-harvest' | 'post-harvest'
 }
 
 export const operationTypes: OperationType[] = [
+  // --- Pre-Harvest ---
   {
     id: 'land-prep',
     name: 'Land Preparation',
     description: 'Tillage, plowing, and soil preparation',
     icon: 'tractor',
     color: '#FFF3E0',
+    category: 'pre-harvest',
   },
   {
     id: 'planting',
@@ -839,6 +842,7 @@ export const operationTypes: OperationType[] = [
     description: 'Seed sowing and transplanting',
     icon: 'sprout',
     color: '#E8F5E9',
+    category: 'pre-harvest',
   },
   {
     id: 'fertilizer',
@@ -846,6 +850,7 @@ export const operationTypes: OperationType[] = [
     description: 'Apply fertilizers and soil amendments',
     icon: 'flask-conical',
     color: '#FCE4EC',
+    category: 'pre-harvest',
   },
   {
     id: 'irrigation',
@@ -853,6 +858,7 @@ export const operationTypes: OperationType[] = [
     description: 'Water application to crops',
     icon: 'droplets',
     color: '#E3F2FD',
+    category: 'pre-harvest',
   },
   {
     id: 'weeding',
@@ -860,6 +866,7 @@ export const operationTypes: OperationType[] = [
     description: 'Remove unwanted vegetation',
     icon: 'leaf',
     color: '#E8F5E9',
+    category: 'pre-harvest',
   },
   {
     id: 'pest-control',
@@ -867,6 +874,7 @@ export const operationTypes: OperationType[] = [
     description: 'Pest and disease management',
     icon: 'bug-off',
     color: '#FFEBEE',
+    category: 'pre-harvest',
   },
   {
     id: 'pruning',
@@ -874,6 +882,7 @@ export const operationTypes: OperationType[] = [
     description: 'Trim and shape plants',
     icon: 'scissors',
     color: '#F3E5F5',
+    category: 'pre-harvest',
   },
   {
     id: 'harvesting',
@@ -881,5 +890,47 @@ export const operationTypes: OperationType[] = [
     description: 'Crop collection and post-harvest',
     icon: 'wheat',
     color: '#FFF8E1',
+    category: 'pre-harvest',
+  },
+  // --- Post-Harvest ---
+  {
+    id: 'sorting',
+    name: 'Sorting & Grading',
+    description: 'Separating crop by quality and size',
+    icon: 'filter',
+    color: '#E3F2FD',
+    category: 'post-harvest',
+  },
+  {
+    id: 'drying',
+    name: 'Cleaning & Drying',
+    description: 'Washing crop and removing moisture',
+    icon: 'sun',
+    color: '#FFF3E0',
+    category: 'post-harvest',
+  },
+  {
+    id: 'processing',
+    name: 'Processing',
+    description: 'Milling, threshing, or secondary processing',
+    icon: 'factory',
+    color: '#FCE4EC',
+    category: 'post-harvest',
+  },
+  {
+    id: 'packaging',
+    name: 'Packaging',
+    description: 'Bagging, sealing, and labeling',
+    icon: 'package',
+    color: '#E8F5E9',
+    category: 'post-harvest',
+  },
+  {
+    id: 'storage',
+    name: 'Storage',
+    description: 'Moving packed produce to inventory',
+    icon: 'warehouse',
+    color: '#F3E5F5',
+    category: 'post-harvest',
   },
 ]

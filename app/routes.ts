@@ -9,6 +9,13 @@ import {
 export default [
   index('routes/home.tsx'),
 
+  // Auth
+  layout('routes/auth/layout.tsx', [
+    route('login', 'routes/auth/login.tsx'),
+    route('forgot-password', 'routes/auth/forgot-password.tsx'),
+    route('register/farmer', 'routes/auth/farmer-registration.tsx'),
+  ]),
+
   // Farmer tenant
   layout('routes/farmer/layout.tsx', [
     ...prefix('farmer', [
@@ -50,6 +57,10 @@ export default [
       route(
         'operations/new/:cropCycleId/harvesting',
         'routes/farmer/operations/harvesting.tsx',
+      ),
+      route(
+        'certifications/product',
+        'routes/farmer/certifications/product-certification.tsx',
       ),
     ]),
   ]),

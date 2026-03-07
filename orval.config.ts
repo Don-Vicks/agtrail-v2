@@ -3,7 +3,8 @@ import { defineConfig } from 'orval'
 export default defineConfig({
   agtrail: {
     input: {
-      target: 'https://api.example.com/swagger.json', // ← replace with your real Swagger URL
+      target:
+        'https://agtrail-backend-v2-production.up.railway.app/openapi.json', // ← replace with your real Swagger URL
     },
     output: {
       mode: 'tags-split',

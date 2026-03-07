@@ -1,17 +1,22 @@
 import {
   BugOff,
   Droplets,
+  Factory,
+  Filter,
   FlaskConical,
   Leaf,
+  Package,
   Scissors,
   Sprout,
+  Sun,
   Tractor,
-  Wheat
+  Warehouse,
+  Wheat,
 } from 'lucide-react'
 import { useNavigate } from 'react-router'
-import { Button } from '~/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '~/components/ui/dialog'
-import type { CropCycle } from '~/lib/mock-data/farmer'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
+import type { CropCycle, OperationType } from '~/lib/mock-data/farmer'
 import { operationTypes } from '~/lib/mock-data/farmer'
 
 const iconMap: Record<string, React.ElementType> = {
@@ -23,6 +28,11 @@ const iconMap: Record<string, React.ElementType> = {
   'bug-off': BugOff,
   scissors: Scissors,
   wheat: Wheat,
+  filter: Filter,
+  sun: Sun,
+  factory: Factory,
+  package: Package,
+  warehouse: Warehouse,
 }
 
 interface SelectOperationModalProps {
@@ -88,42 +98,61 @@ export function SelectOperationModal({ isOpen, onClose, cropCycle }: SelectOpera
             </div>
           </div>
 
-          {/* Operation Types Grid */}
-          <div className="grid grid-cols-2 gap-3 px-6">
-            {operationTypes.map((op) => (
-              <button
-                key={op.id}
-                onClick={() => {
-                  onClose()
-                  navigate(`/farmer/operations/new/${cropCycle.id}/${op.id}`)
-                }}
-                className="group flex items-start gap-3 rounded-md border border-gray-200 p-4 text-left transition-all hover:border-brand-light hover:shadow-sm"
-              >
-                <div
-                  className="flex size-9 shrink-0 items-center justify-center rounded-md"
-                  style={{ backgroundColor: op.color, color: '#333' }}
-                >
-                  {(() => {
-                    const IconComponent = iconMap[op.icon]
-                    return IconComponent ? <IconComponent size={18} strokeWidth={2} /> : null
-                  })()}
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-gray-900 group-hover:text-brand">{op.name}</p>
-                  <p className="text-xs text-gray-500">{op.description}</p>
-                </div>
-              </button>
-            ))}
-          </div>
+          {/* Operation Tabs */}
+          <div className="px-6 pb-6">
+            <Tabs defaultValue="pre-harvest" className="w-full">
+              <TabsList className="mb-4 grid w-full grid-cols-2">
+                <TabsTrigger value="pre-harvest">Pre-Harvest</TabsTrigger>
+                <TabsTrigger value="post-harvest">Post-Harvest</TabsTrigger>
+              </TabsList>
 
-          {/* Footer */}
-          <div className="flex justify-end p-6 pt-5">
-            <Button variant="outline" onClick={onClose} className="px-5 py-2 text-sm font-medium">
-              Cancel
-            </Button>
+              {/* Pre-Harvest Tab */}
+              <TabsContent value="pre-harvest" className="mt-0">
+                <div className="grid grid-cols-2 gap-3">
+                  {operationTypes.filter((op) => op.category === 'pre-harvest').map((op) => (
+                    <OperationCard key={op.id} op={op} />
+                  ))}
+                </div>
+              </TabsContent>
+
+              {/* Post-Harvest Tab */}
+              <TabsContent value="post-harvest" className="mt-0">
+                <div className="grid grid-cols-2 gap-3">
+                  {operationTypes.filter((op) => op.category === 'post-harvest').map((op) => (
+                    <OperationCard key={op.id} op={op} />
+                  ))}
+                </div>
+              </TabsContent>
+            </Tabs>
           </div>
         </div>
       </DialogContent>
     </Dialog>
   )
+
+  function OperationCard({ op }: { op: OperationType }) {
+    return (
+      <button
+        onClick={() => {
+          onClose()
+          navigate(`/farmer/operations/new/${cropCycle!.id}/${op.id}`)
+        }}
+        className="group flex items-start gap-3 rounded-md border border-gray-200 p-4 text-left transition-all hover:border-brand-light hover:shadow-sm"
+      >
+        <div
+          className="flex size-9 shrink-0 items-center justify-center rounded-md"
+          style={{ backgroundColor: op.color, color: '#333' }}
+        >
+          {(() => {
+            const IconComponent = iconMap[op.icon]
+            return IconComponent ? <IconComponent size={18} strokeWidth={2} /> : null
+          })()}
+        </div>
+        <div>
+          <p className="text-sm font-semibold text-gray-900 group-hover:text-brand">{op.name}</p>
+          <p className="text-xs text-gray-500">{op.description}</p>
+        </div>
+      </button>
+    )
+  }
 }

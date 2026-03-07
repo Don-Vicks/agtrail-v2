@@ -39,7 +39,7 @@ const mockActivities: Activity[] = [
     operator: 'Fashola',
     area: '25 ha',
     weather: 'sunny',
-    cost: '$99999.92',
+    cost: '₦99999.92',
     iconType: 'land-prep',
   },
   {
@@ -50,7 +50,7 @@ const mockActivities: Activity[] = [
     operator: 'Fashola',
     area: '24.94 ha',
     weather: 'sunny',
-    cost: '$49999.95',
+    cost: '₦49999.95',
     iconType: 'planting',
   },
   {
@@ -61,7 +61,7 @@ const mockActivities: Activity[] = [
     operator: 'Fashola',
     area: '25 ha',
     weather: 'sunny',
-    cost: '$2999999.95',
+    cost: '₦2999999.95',
     iconType: 'fertilizer',
   },
   {
@@ -72,7 +72,7 @@ const mockActivities: Activity[] = [
     operator: 'Fashola',
     area: '50.87 ha',
     weather: 'sunny',
-    cost: '$149999.97',
+    cost: '₦149999.97',
     iconType: 'harvesting',
   },
 ]
