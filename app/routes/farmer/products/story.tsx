@@ -1,36 +1,9 @@
+import { QRCodeSVG } from 'qrcode.react'
 import { useParams } from 'react-router'
 import { Breadcrumb } from '~/components/breadcrumb'
 import { Button } from '~/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
 import { products } from '~/lib/mock-data/farmer'
-
-/* ─── Deterministic QR-like SVG seeded from a string ─── */
-function QRCode({ seed, className }: { seed: string; className?: string }) {
-  const hash = Array.from(seed).reduce((acc, c) => acc + c.charCodeAt(0), 0)
-  const S = 9
-  const cells: boolean[][] = []
-  for (let r = 0; r < S; r++) {
-    const row: boolean[] = []
-    for (let c = 0; c < S; c++) {
-      const tl = r < 3 && c < 3
-      const tr = r < 3 && c >= S - 3
-      const bl = r >= S - 3 && c < 3
-      const ctr = r === 4 && c === 4
-      row.push(tl || tr || bl || ctr || ((hash * (r + 2) * (c + 3) + r * 7 + c * 13) % 5 < 2))
-    }
-    cells.push(row)
-  }
-  return (
-    <svg viewBox={`0 0 ${S + 2} ${S + 2}`} className={className ?? 'w-full h-full'} shapeRendering="crispEdges">
-      <rect width={S + 2} height={S + 2} fill="white" />
-      {cells.map((row, r) =>
-        row.map((on, c) =>
-          on ? <rect key={`${r}-${c}`} x={c + 1} y={r + 1} width={1} height={1} fill="#1a1a1a" /> : null
-        )
-      )}
-    </svg>
-  )
-}
 
 /* ─── Score Ring ─── */
 function ScoreRing({ score, size = 140, label }: { score: number; size?: number; label: string }) {
@@ -133,7 +106,7 @@ export default function ProductStory() {
         {/* Left: QR + Product Info */}
         <div className="flex-1 rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
           <div className="w-[200px] h-[200px] mx-auto sm:mx-0 rounded-lg border border-gray-200 p-2 bg-white mb-6">
-            <QRCode seed={product.batchId} />
+            <QRCodeSVG value={product.batchId} style={{ width: '100%', height: '100%' }} />
           </div>
 
           <h1 className="text-[28px] font-extrabold text-[#2E5A27] mb-1 leading-none">{product.name.toUpperCase()}</h1>
@@ -403,8 +376,8 @@ export default function ProductStory() {
                     )}
                   </div>
                   <span className={`text-xs font-bold px-2.5 py-1 rounded flex-shrink-0 ${person.role === 'Farmer' ? 'text-[#2E5A27] bg-green-50' :
-                      person.role === 'Operator' ? 'text-gray-600 bg-gray-100' :
-                        'text-[#2E5A27] bg-green-50'
+                    person.role === 'Operator' ? 'text-gray-600 bg-gray-100' :
+                      'text-[#2E5A27] bg-green-50'
                     }`}>{person.role}</span>
                 </div>
               ))}

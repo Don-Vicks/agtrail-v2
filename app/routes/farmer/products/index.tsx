@@ -1,3 +1,4 @@
+import { QRCodeSVG } from 'qrcode.react'
 import { useState } from 'react'
 import { Link } from 'react-router'
 import { Breadcrumb } from '~/components/breadcrumb'
@@ -14,34 +15,6 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
 import { allCropCycles, products, type CropCycle, type Product } from '~/lib/mock-data/farmer'
 
-/* ─── Deterministic QR-like SVG seeded from a string ─── */
-function QRCode({ seed }: { seed: string }) {
-  const hash = Array.from(seed).reduce((acc, c) => acc + c.charCodeAt(0), 0)
-  const S = 9
-  const cells: boolean[][] = []
-  for (let r = 0; r < S; r++) {
-    const row: boolean[] = []
-    for (let c = 0; c < S; c++) {
-      const tl = r < 3 && c < 3
-      const tr = r < 3 && c >= S - 3
-      const bl = r >= S - 3 && c < 3
-      const ctr = r === 4 && c === 4
-      row.push(tl || tr || bl || ctr || ((hash * (r + 2) * (c + 3) + r * 7 + c * 13) % 5 < 2))
-    }
-    cells.push(row)
-  }
-  return (
-    <svg viewBox={`0 0 ${S + 2} ${S + 2}`} className="w-full h-full" shapeRendering="crispEdges">
-      <rect width={S + 2} height={S + 2} fill="white" />
-      {cells.map((row, r) =>
-        row.map((on, c) =>
-          on ? <rect key={`${r}-${c}`} x={c + 1} y={r + 1} width={1} height={1} fill="#1a1a1a" /> : null
-        )
-      )}
-    </svg>
-  )
-}
-
 /* ─── Product Card ─── */
 function ProductGridCard({ product }: { product: Product }) {
   return (
@@ -49,7 +22,7 @@ function ProductGridCard({ product }: { product: Product }) {
       {/* Top row: QR + Info */}
       <div className="flex gap-4 p-4 sm:p-5 pb-3">
         <div className="flex-shrink-0 w-[80px] h-[80px] sm:w-[100px] sm:h-[100px] rounded-lg border border-gray-200 bg-white p-1 overflow-hidden">
-          <QRCode seed={product.batchId} />
+          <QRCodeSVG value={product.batchId} style={{ width: '100%', height: '100%' }} />
         </div>
         <div className="flex-1 min-w-0 pt-0.5">
           <div className="mb-1.5">
@@ -272,8 +245,8 @@ function CropCycleCard({ cycle }: { cycle: CropCycle }) {
       {/* Top row: status + days to harvest */}
       <div className="flex items-center justify-between">
         <span className={`inline-block rounded px-2.5 py-[3px] text-[11px] font-bold tracking-wide ${cycle.status === 'completed'
-            ? 'bg-gray-200 text-gray-700'
-            : 'bg-[#2E5A27] text-white'
+          ? 'bg-gray-200 text-gray-700'
+          : 'bg-[#2E5A27] text-white'
           }`}>
           {cycle.status}
         </span>

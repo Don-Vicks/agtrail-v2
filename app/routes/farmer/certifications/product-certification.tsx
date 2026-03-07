@@ -1,3 +1,4 @@
+import { QRCodeSVG } from 'qrcode.react'
 import { useCallback, useMemo, useState } from 'react'
 import { Link } from 'react-router'
 
@@ -81,49 +82,6 @@ function CertBadgeIcon() {
       <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
       <polyline points="22 4 12 14.01 9 11.01" />
     </svg>
-  )
-}
-
-/* ─── QR Code placeholder ─── */
-
-function QRCodePlaceholder() {
-  return (
-    <div className="flex size-20 items-center justify-center rounded-lg bg-gray-100">
-      <svg className="size-14 text-gray-400" viewBox="0 0 100 100" fill="currentColor">
-        <rect x="5" y="5" width="30" height="30" rx="2" />
-        <rect x="10" y="10" width="8" height="8" fill="white" />
-        <rect x="22" y="10" width="8" height="8" fill="white" />
-        <rect x="10" y="22" width="8" height="8" fill="white" />
-        <rect x="65" y="5" width="30" height="30" rx="2" />
-        <rect x="70" y="10" width="8" height="8" fill="white" />
-        <rect x="82" y="10" width="8" height="8" fill="white" />
-        <rect x="70" y="22" width="8" height="8" fill="white" />
-        <rect x="5" y="65" width="30" height="30" rx="2" />
-        <rect x="10" y="70" width="8" height="8" fill="white" />
-        <rect x="22" y="70" width="8" height="8" fill="white" />
-        <rect x="10" y="82" width="8" height="8" fill="white" />
-        <rect x="40" y="5" width="8" height="8" />
-        <rect x="52" y="5" width="8" height="8" />
-        <rect x="40" y="17" width="8" height="8" />
-        <rect x="40" y="40" width="8" height="8" />
-        <rect x="52" y="40" width="8" height="8" />
-        <rect x="5" y="40" width="8" height="8" />
-        <rect x="5" y="52" width="8" height="8" />
-        <rect x="17" y="40" width="8" height="8" />
-        <rect x="65" y="40" width="8" height="8" />
-        <rect x="77" y="52" width="8" height="8" />
-        <rect x="40" y="52" width="8" height="8" />
-        <rect x="52" y="52" width="8" height="8" />
-        <rect x="65" y="65" width="8" height="8" />
-        <rect x="77" y="65" width="8" height="8" />
-        <rect x="89" y="65" width="8" height="8" />
-        <rect x="65" y="77" width="8" height="8" />
-        <rect x="89" y="77" width="8" height="8" />
-        <rect x="65" y="89" width="8" height="8" />
-        <rect x="77" y="89" width="8" height="8" />
-        <rect x="89" y="89" width="8" height="8" />
-      </svg>
-    </div>
   )
 }
 
@@ -304,7 +262,7 @@ export default function ProductCertificationPage() {
           >
             {/* Top row: QR + Batch ID */}
             <div className="flex items-start justify-between">
-              <QRCodePlaceholder />
+              <QRCodeSVG value={product.batchId} size={48} className="shrink-0 rounded-md" />
               <span className="text-xs font-semibold text-orange-600">
                 {product.batchId}
               </span>
