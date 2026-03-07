@@ -21,7 +21,7 @@ function NavGroup({ label, items, onItemClick }: NavGroupProps) {
           <NavLink
             key={item.href}
             to={item.href}
-            end={item.href === '/farmer'}
+            end={item.href === '/farmer' || item.href === '/farmer/certifications'}
             onClick={onItemClick}
             className={({ isActive }) =>
               cn(
