@@ -1,37 +1,33 @@
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
 
-export const customFetch = async <T>({
-  url,
-  method,
-  params,
-  data,
-  headers,
-  signal,
-}: {
-  url: string
-  method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'
-  params?: Record<string, string>
-  data?: unknown
-  headers?: HeadersInit
-  signal?: AbortSignal
-}): Promise<T> => {
-  const search = params ? `?${new URLSearchParams(params)}` : ''
+export const customFetch = async <T>(
+  url: string,
+  options?: RequestInit,
+): Promise<T> => {
+  // Gracefully handle slashes between the base URL and the path
+  const cleanBase = BASE_URL.replace(/\/+$/, '')
+  const cleanPath = url.replace(/^\/+/, '')
+  const fullUrl = `${cleanBase}/${cleanPath}`
 
-  const response = await fetch(`${BASE_URL}${url}${search}`, {
-    method,
+  const response = await fetch(fullUrl, {
+    ...options,
     headers: {
       'Content-Type': 'application/json',
-      ...headers,
+      ...options?.headers,
     },
-    ...(data ? { body: JSON.stringify(data) } : {}),
-    signal,
   })
 
   if (!response.ok) {
-    throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+    const errorData = await response.json().catch(() => null)
+    const err = new Error(`HTTP ${response.status}: ${response.statusText}`)
+    // Attach response context so that our onError handlers can extract it like axios
+    ;(err as any).response = { data: errorData, status: response.status }
+    throw err
   }
 
-  return response.json() as Promise<T>
+  const text = await response.text()
+  if (!text) return {} as T
+  return JSON.parse(text) as T
 }
 
 export default customFetch
