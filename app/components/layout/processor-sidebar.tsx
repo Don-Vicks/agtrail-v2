@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
-import { currentUser, sidebarNavigation } from '~/lib/mock-data/farmer'
+import { currentUser, sidebarNavigation } from '~/lib/mock-data/processor'
 import { cn } from '~/lib/utils'
 import { useSidebar } from './sidebar-context'
 
@@ -181,7 +181,7 @@ export function Sidebar() {
         <div className="flex items-center gap-2 mb-1.5 ml-1">
           <span className="text-xs font-semibold text-gray-500">View as:</span>
         </div>
-        <Select defaultValue="Crop Farmer" onValueChange={(val) => handleRoleChange(val || '')}>
+        <Select defaultValue="Processor" onValueChange={(val) => handleRoleChange(val || '')}>
           <SelectTrigger className="w-full h-auto py-1.5 px-3 rounded-md border border-gray-200 hover:bg-gray-50 bg-white shadow-none transition-all cursor-pointer">
             <SelectValue className="text-sm font-semibold text-gray-900" />
           </SelectTrigger>

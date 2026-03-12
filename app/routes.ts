@@ -5,6 +5,7 @@ import {
   prefix,
   route,
 } from '@react-router/dev/routes'
+import { processorRoutes } from './routes/processor/processor-routes'
 
 export default [
   index('routes/home.tsx'),
@@ -93,4 +94,6 @@ export default [
   //     index('routes/buyer/dashboard.tsx'),
   //   ]),
   // ]),
+
+  ...processorRoutes,
 ] satisfies RouteConfig
