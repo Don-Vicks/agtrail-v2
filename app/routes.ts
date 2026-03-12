@@ -62,6 +62,28 @@ export default [
         'certifications/product',
         'routes/farmer/certifications/product-certification.tsx',
       ),
+      route(
+        'certifications/farm',
+        'routes/farmer/certifications/farm-certification.tsx',
+      ),
+      route(
+        'certifications/view',
+        'routes/farmer/certifications/view-certifications.tsx',
+      ),
+      route(
+        'finance/record-purchase',
+        'routes/farmer/finance/record-purchase.tsx',
+      ),
+      route('finance/receivables', 'routes/farmer/finance/receivables.tsx'),
+
+      // Reports & Analytics
+      route('reports', 'routes/farmer/reports/reports-analytics.tsx'),
+
+      // Compliance Analysis
+      route('compliance', 'routes/farmer/compliance/compliance-analysis.tsx'),
+
+      // Settings
+      route('settings', 'routes/farmer/settings/settings-root.tsx'),
     ]),
   ]),
 

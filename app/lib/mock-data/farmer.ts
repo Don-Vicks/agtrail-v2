@@ -542,16 +542,21 @@ export const sidebarNavigation = {
     {
       label: 'View Certifications',
       icon: 'award',
-      href: '/farmer/certifications',
+      href: '/farmer/certifications/view',
     },
   ],
   finance: [
     {
       label: 'Record Purchase',
       icon: 'receipt',
-      href: '/farmer/purchases/new',
+      href: '/farmer/finance/record-purchase',
     },
-    { label: 'Receivables', icon: 'banknote', href: '/farmer/receivables' },
+    {
+      label: 'Receivables',
+      icon: 'banknote',
+      href: '/farmer/finance/receivables',
+    },
+    { label: 'Settings', icon: 'settings', href: '/farmer/settings' },
   ],
   reports: [
     {
@@ -559,7 +564,11 @@ export const sidebarNavigation = {
       icon: 'bar-chart-3',
       href: '/farmer/reports',
     },
-    { label: 'Settings', icon: 'settings', href: '/farmer/settings' },
+    {
+      label: 'Compliance Analysis',
+      icon: 'shield-check',
+      href: '/farmer/compliance',
+    },
   ],
 }
 
