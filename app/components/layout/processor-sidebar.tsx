@@ -22,11 +22,15 @@ function NavGroup({ label, items, onItemClick }: NavGroupProps) {
           <NavLink
             key={item.href}
             to={item.href}
-            end={item.href === '/farmer' || item.href === '/farmer/certifications'}
+            end={
+              item.href === '/processor' ||
+              item.href === '/processor/certifications' ||
+              item.href === '/processor/batches'
+            }
             onClick={onItemClick}
             className={({ isActive }) =>
               cn(
-                'mx-2 flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                'mx-2 flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-[13px] font-medium transition-colors',
                 isActive
                   ? 'bg-brand text-white'
                   : 'text-gray-700 hover:bg-gray-100'
@@ -34,7 +38,7 @@ function NavGroup({ label, items, onItemClick }: NavGroupProps) {
             }
           >
             <SidebarIcon name={item.icon} />
-            <span className="truncate">{item.label}</span>
+            <span className="truncate text-xs">{item.label}</span>
           </NavLink>
         ))}
       </nav>
@@ -163,14 +167,8 @@ export function Sidebar() {
       isCollapsedDesktop ? "lg:-translate-x-full" : "lg:translate-x-0"
     )}>
       {/* Logo */}
-      <div className="flex items-center gap-2 px-4 py-4">
-        <div className="flex size-8 items-center justify-center rounded-md bg-brand text-white text-xs font-bold">
-          ag
-        </div>
-        <span className="text-lg font-bold">
-          <span className="text-brand">agro</span>
-          <span className="text-gray-800">linking</span>
-        </span>
+      <div className="flex items-center px-4 py-4">
+        <img src="/logo.png" alt="Agrolinking" className="h-[28px] w-auto object-contain" />
       </div>
 
       {/* Role Switcher */}
@@ -178,19 +176,17 @@ export function Sidebar() {
         <div className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-1">
           Admin Controls
         </div>
-        <div className="flex items-center gap-2 mb-1.5 ml-1">
-          <span className="text-xs font-semibold text-gray-500">View as:</span>
+        <div className="flex items-center gap-2 mb-1.5 ml-1.5">
+          <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">View as:</span>
         </div>
         <Select defaultValue="Processor" onValueChange={(val) => handleRoleChange(val || '')}>
-          <SelectTrigger className="w-full h-auto py-1.5 px-3 rounded-md border border-gray-200 hover:bg-gray-50 bg-white shadow-none transition-all cursor-pointer">
+          <SelectTrigger className="w-full h-10 py-2 px-3.5 rounded-lg border border-gray-200 bg-white shadow-sm hover:bg-gray-50 transition-all cursor-pointer">
             <SelectValue className="text-sm font-semibold text-gray-900" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="Processor">Processor</SelectItem>
-            <SelectItem value="Crop Farmer">Crop Farmer</SelectItem>
-            <SelectItem value="Livestock Farmer">Livestock Farmer</SelectItem>
-            <SelectItem value="Buyer">Buyer</SelectItem>
-            <SelectItem value="Admin">Admin</SelectItem>
+            <SelectItem value="Farmer" className="focus:bg-brand/10 focus:text-brand focus-visible:bg-brand/10 focus-visible:text-brand">Farmer</SelectItem>
+            <SelectItem value="Processor" className="focus:bg-brand/10 focus:text-brand focus-visible:bg-brand/10 focus-visible:text-brand">Processor</SelectItem>
+            <SelectItem value="Cooperative" className="focus:bg-brand/10 focus:text-brand focus-visible:bg-brand/10 focus-visible:text-brand">Cooperative</SelectItem>
           </SelectContent>
         </Select>
       </div>

@@ -1,6 +1,5 @@
 import { useCallback, useMemo, useState } from 'react'
-import { Link } from 'react-router'
-
+import { Breadcrumb } from '~/components/breadcrumb'
 import { CERTIFICATION_TYPES } from '~/lib/data/certification-types'
 import { farms, products } from '~/lib/mock-data/farmer'
 import type { Route } from './+types/farm-certification'
@@ -152,19 +151,23 @@ export default function FarmCertificationPage() {
   return (
     <div>
       {/* Breadcrumb */}
-      <nav className="mb-4 flex items-center gap-2 text-sm text-gray-500">
-        <Link to="/farmer" className="flex items-center gap-1 hover:text-gray-900">
-          <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <rect x="3" y="3" width="7" height="7" rx="1" />
-            <rect x="14" y="3" width="7" height="7" rx="1" />
-            <rect x="3" y="14" width="7" height="7" rx="1" />
-            <rect x="14" y="14" width="7" height="7" rx="1" />
-          </svg>
-          Dashboard
-        </Link>
-        <span>›</span>
-        <span className="text-gray-900">Farm Certification</span>
-      </nav>
+      <div className="mb-4">
+        <Breadcrumb
+          items={[
+            {
+              label: 'Dashboard',
+              href: '/farmer',
+              icon: (
+                <svg className="size-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                  <line x1="9" y1="3" x2="9" y2="21" />
+                </svg>
+              ),
+            },
+            { label: 'Farm Certification' },
+          ]}
+        />
+      </div>
 
       {/* Header */}
       <div className="mb-6">

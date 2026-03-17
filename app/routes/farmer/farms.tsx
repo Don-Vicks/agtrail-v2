@@ -99,13 +99,13 @@ export default function FarmerFarms() {
               setSearchQuery(e.target.value)
               setCurrentPage(1)
             }}
-            className="w-4/5 rounded-md border border-brand/30 py-2.5 pl-3.5 pr-3 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+            className="w-full sm:w-4/5 rounded-md border border-brand/30 py-2.5 pl-3.5 pr-3 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
           />
         </div>
-        <button className="rounded-md border border-brand/30 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 flex-shrink-0">
-          Search
-        </button>
-        <div className="sm:ml-auto flex items-center gap-2">
+        <div className="sm:ml-auto flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+          <button className="rounded-md border border-brand/30 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 shrink-0">
+            Search
+          </button>
           <select className="rounded-md border border-brand/30 px-3 py-2 text-sm">
             <option>Sort by Name</option>
             <option>Sort by Hectares</option>

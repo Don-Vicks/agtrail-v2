@@ -69,7 +69,7 @@ export default function ProcessorMaterials() {
   const [activeTab, setActiveTab] = useState('Platform Materials')
 
   return (
-    <div className="space-y-6 max-w-[1200px] mx-auto pb-10">
+    <div className="space-y-6 pb-10">
 
       {/* Top Back Link */}
       <Link to="/processor" className="inline-flex items-center gap-2 text-brand font-medium hover:text-brand-dark transition-colors">

@@ -124,7 +124,7 @@ export default function ProcessorDashboard() {
   const wipBatches = mockBatches.filter(b => b.status === 'WIP')
 
   return (
-    <div className="space-y-6 max-w-[1200px] mx-auto pb-10">
+    <div className="space-y-6 pb-10">
       {/* Header Row */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <h1 className="text-2xl font-bold text-brand">Good morning, Agrolinking Platform</h1>

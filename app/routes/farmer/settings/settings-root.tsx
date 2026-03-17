@@ -15,7 +15,7 @@ export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<TabType>('Account')
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
+    <div className="space-y-6">
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
@@ -28,8 +28,8 @@ export default function SettingsPage() {
               key={tab}
               onClick={() => setActiveTab(tab)}
               className={`flex h-9 items-center justify-center rounded-md px-4 text-sm font-semibold transition-colors ${activeTab === tab
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
                 }`}
             >
               {tab}

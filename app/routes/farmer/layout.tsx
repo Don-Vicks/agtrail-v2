@@ -29,7 +29,7 @@ function FarmerLayoutContent() {
         isCollapsedDesktop ? "lg:ml-0" : "lg:ml-64"
       )}>
         {isDashboard && <Topbar />}
-        <main className="mx-auto max-w-7xl p-4 md:p-6 lg:p-8">
+        <main className="p-4 md:p-6 lg:p-8">
           <Outlet />
         </main>
       </div>

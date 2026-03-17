@@ -1,27 +1,11 @@
 import { Link } from 'react-router';
+import { Breadcrumb } from '~/components/breadcrumb';
 import { mockBatches, type ProcessorBatch } from '~/lib/mock-data/processor';
 import { cn } from '~/lib/utils';
 
-function Breadcrumb() {
-  return (
-    <div className="flex items-center gap-2 text-sm text-gray-500 mb-6">
-      <Link to="/processor" className="flex items-center gap-1 hover:text-gray-900 transition-colors">
-        <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M16 4v12l-4-2-4 2V4M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-        </svg>
-        Dashboard
-      </Link>
-      <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-      </svg>
-      <span className="text-gray-900 font-medium">Batches</span>
-    </div>
-  )
-}
-
 function StatItem({ value, label }: { value: number; label: string }) {
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
       <span className="text-3xl font-bold text-gray-900">{value}</span>
       <span className="text-xs text-gray-500 capitalize">{label}</span>
     </div>
@@ -127,10 +111,24 @@ function BatchCard({ batch }: { batch: ProcessorBatch }) {
 
 export default function ProcessorBatches() {
   return (
-    <div className="max-w-[1000px] mx-auto pb-10">
+    <div className="pb-10">
       {/* Header and Breadcrumb */}
-      <div className="flex items-start justify-between">
-        <Breadcrumb />
+      <div className="flex items-start justify-between mb-6">
+        <Breadcrumb
+          items={[
+            {
+              label: 'Dashboard',
+              href: '/processor',
+              icon: (
+                <svg className="size-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                  <line x1="9" y1="3" x2="9" y2="21" />
+                </svg>
+              ),
+            },
+            { label: 'Batches' },
+          ]}
+        />
         <Link
           to="/processor/batches/new"
           className="inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-[#1b4332] px-4 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-dark"
@@ -143,13 +141,10 @@ export default function ProcessorBatches() {
       </div>
 
       {/* Stats Header Block */}
-      <div className="w-full rounded-xl border border-gray-200 bg-white p-6 shadow-sm mb-6 flex items-center justify-between">
+      <div className="mb-6 grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatItem value={14} label="Batches" />
-        <div className="h-10 w-px bg-gray-200" />
         <StatItem value={0} label="Active" />
-        <div className="h-10 w-px bg-gray-200" />
         <StatItem value={8} label="Completed" />
-        <div className="h-10 w-px bg-gray-200" />
         <StatItem value={6} label="Pending" />
       </div>
 

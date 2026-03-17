@@ -1,6 +1,6 @@
-import { QRCodeSVG } from 'qrcode.react'
-import { useState } from 'react'
-import { Link } from 'react-router'
+import { QRCodeSVG } from 'qrcode.react';
+import { useState } from 'react';
+import { Breadcrumb } from '~/components/breadcrumb';
 
 // ─── Mock Data ───
 const mockProductCerts = [
@@ -9,23 +9,6 @@ const mockProductCerts = [
   { id: '3', batchId: 'BATCH-PB-1765021676170', name: 'Tomatoe', type: 'Processed Product', certCount: 0 },
   { id: '4', batchId: 'PB-1764513448874', name: 'Canned Beans', type: 'Processed Product', certCount: 0 },
 ]
-
-// ─── Shared Components ───
-
-function Breadcrumb() {
-  return (
-    <div className="flex items-center gap-2 text-sm text-gray-500 mb-6">
-      <Link to="/processor" className="flex items-center gap-1 hover:text-gray-900 transition-colors">
-        <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M16 4v12l-4-2-4 2V4M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-        </svg>
-        Dashboard
-      </Link>
-      <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
-      <span className="text-gray-900 font-medium">Product Quality Certification</span>
-    </div>
-  )
-}
 
 function UploadCertModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   if (!isOpen) return null
@@ -115,8 +98,24 @@ export default function ProductCertifications() {
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   return (
-    <div className="max-w-[1200px] mx-auto pb-10">
-      <Breadcrumb />
+    <div className="pb-10">
+      <div className="mb-6">
+        <Breadcrumb
+          items={[
+            {
+              label: 'Dashboard',
+              href: '/processor',
+              icon: (
+                <svg className="size-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                  <line x1="9" y1="3" x2="9" y2="21" />
+                </svg>
+              ),
+            },
+            { label: 'Product Quality Certification' },
+          ]}
+        />
+      </div>
 
       {/* Header */}
       <div className="mb-6">
