@@ -351,26 +351,26 @@ export default function FarmCertificationPage() {
           ═══════════════════════════════════════════ */}
       {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={closeModal} />
+          <div className="absolute inset-0 bg-black/40" onClick={closeModal} />
 
-          <div className="relative z-10 w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl">
+          <div className="relative z-10 w-full max-w-lg rounded-xl bg-white p-6 shadow-xl">
             {/* Header */}
-            <div className="mb-6 flex items-start justify-between">
+            <div className="mb-5 flex items-start justify-between">
               <div>
                 <h2 className="text-xl font-bold text-gray-900">Certificate Upload</h2>
-                <p className="mt-1 text-sm text-gray-500">Upload your farm certificate.</p>
+                <p className="mt-0.5 text-sm text-gray-500">Upload your farm certificate.</p>
               </div>
               <button
                 type="button"
                 onClick={closeModal}
-                className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
               >
                 <CloseIcon />
               </button>
             </div>
 
             {/* Form */}
-            <div className="space-y-5">
+            <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label htmlFor="cert-type" className="block text-sm font-semibold text-gray-900">
@@ -412,36 +412,44 @@ export default function FarmCertificationPage() {
                   <label htmlFor="date-issued" className="block text-sm font-semibold text-gray-900">
                     Date Issued
                   </label>
-                  <input
-                    id="date-issued"
-                    type="date"
-                    value={dateIssued}
-                    onClick={(e) => {
-                      try {
-                        e.currentTarget.showPicker()
-                      } catch (err) { }
-                    }}
-                    onChange={(e) => setDateIssued(e.target.value)}
-                    className="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
-                  />
+                  <div className="relative">
+                    <input
+                      id="date-issued"
+                      type="date"
+                      value={dateIssued}
+                      onClick={(e) => {
+                        try {
+                          e.currentTarget.showPicker()
+                        } catch (err) {
+                          // Ignore browsers that don't support showPicker
+                        }
+                      }}
+                      onChange={(e) => setDateIssued(e.target.value)}
+                      className="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-1.5">
                   <label htmlFor="date-expiry" className="block text-sm font-semibold text-gray-900">
                     Date Expiry
                   </label>
-                  <input
-                    id="date-expiry"
-                    type="date"
-                    value={dateExpiry}
-                    onClick={(e) => {
-                      try {
-                        e.currentTarget.showPicker()
-                      } catch (err) { }
-                    }}
-                    onChange={(e) => setDateExpiry(e.target.value)}
-                    className="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
-                  />
+                  <div className="relative">
+                    <input
+                      id="date-expiry"
+                      type="date"
+                      value={dateExpiry}
+                      onClick={(e) => {
+                        try {
+                          e.currentTarget.showPicker()
+                        } catch (err) {
+                          // Ignore browsers that don't support showPicker
+                        }
+                      }}
+                      onChange={(e) => setDateExpiry(e.target.value)}
+                      className="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -450,9 +458,9 @@ export default function FarmCertificationPage() {
                   Upload Document<span className="text-red-500">*</span>
                 </label>
                 <div
-                  className={`flex flex-col items-center justify-center rounded-xl border-2 border-dashed px-4 py-8 transition-colors ${dragOver
-                    ? 'border-brand bg-brand/5'
-                    : 'border-gray-300 bg-gray-50/50 hover:border-gray-400 hover:bg-gray-50'
+                  className={`flex flex-col items-center justify-center rounded-lg border-2 border-dashed px-4 py-8 transition-colors ${dragOver
+                    ? 'border-brand bg-green-50'
+                    : 'border-gray-300 bg-gray-50 hover:border-gray-400'
                     }`}
                   onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
                   onDragLeave={() => setDragOver(false)}
@@ -473,12 +481,11 @@ export default function FarmCertificationPage() {
                       </button>
                     </div>
                   ) : (
-                    <label className="flex cursor-pointer flex-col items-center gap-2 text-center">
-                      <div className="mb-2 flex size-12 items-center justify-center rounded-full bg-white shadow-sm ring-1 ring-gray-900/5">
-                        <UploadIcon />
-                      </div>
-                      <span className="text-sm font-medium text-brand hover:text-brand-light">Click to upload</span>
-                      <span className="text-xs text-gray-500">or drag and drop</span>
+                    <label className="flex cursor-pointer flex-col items-center gap-2">
+                      <UploadIcon />
+                      <span className="text-sm text-gray-500">
+                        Click to upload or drag and drop
+                      </span>
                       <input
                         type="file"
                         className="hidden"
@@ -493,7 +500,7 @@ export default function FarmCertificationPage() {
               <button
                 type="button"
                 onClick={closeModal}
-                className="mt-2 h-11 w-full rounded-lg bg-brand text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-light active:scale-[0.98]"
+                className="h-11 w-full rounded-lg bg-brand text-sm font-semibold text-white transition-colors hover:bg-brand-light"
               >
                 Save Farm Certification
               </button>

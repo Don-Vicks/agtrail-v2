@@ -1,5 +1,6 @@
 import { useParams } from 'react-router'
 import { OperationFormLayout } from '~/components/operation-form-layout'
+import { PersonField } from '~/components/person-field'
 import { allCropCycles } from '~/lib/mock-data/farmer'
 import type { Route } from './+types/harvesting'
 
@@ -32,14 +33,20 @@ export default function Harvesting() {
     >
       {/* 2-column: Operator & Supervisor */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label className="mb-1.5 block text-sm font-semibold text-gray-900">Operator Name</label>
-          <input type="text" placeholder="Select or enter operator name" className="w-full rounded-md border border-gray-200 px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20" />
-        </div>
-        <div>
-          <label className="mb-1.5 block text-sm font-semibold text-gray-900">Supervisor Name</label>
-          <input type="text" placeholder="Select or enter supervisor name" className="w-full rounded-md border border-gray-200 px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20" />
-        </div>
+        <PersonField
+          id="operator-name"
+          label="Operator Name"
+          defaultValue=""
+          placeholder="Select operator"
+          roleFilter="Operator"
+        />
+        <PersonField
+          id="supervisor-name"
+          label="Supervisor Name"
+          defaultValue=""
+          placeholder="Select supervisor"
+          roleFilter="Supervisor"
+        />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

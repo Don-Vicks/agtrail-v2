@@ -514,6 +514,8 @@ export const sidebarNavigation = {
     { label: 'Dashboard', icon: 'layout-dashboard', href: '/farmer' },
     { label: 'My Farms', icon: 'home', href: '/farmer/farms' },
     { label: 'Products', icon: 'package', href: '/farmer/products' },
+    { label: 'Inventory', icon: 'jar', href: '/farmer/inventory' },
+    { label: 'Personnel', icon: 'clipboard-list', href: '/farmer/personnel' },
   ],
   operations: [
     { label: 'Start Crop Cycle', icon: 'sprout', href: '/farmer/crop-cycle' },

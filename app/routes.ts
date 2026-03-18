@@ -1,9 +1,9 @@
 import {
-  type RouteConfig,
-  index,
-  layout,
-  prefix,
-  route,
+    type RouteConfig,
+    index,
+    layout,
+    prefix,
+    route,
 } from '@react-router/dev/routes'
 import { processorRoutes } from './routes/processor/processor-routes'
 
@@ -26,6 +26,8 @@ export default [
       route('products', 'routes/farmer/products/index.tsx'),
       route('products/:id', 'routes/farmer/products/story.tsx'),
       route('farms/:id', 'routes/farmer/farm-detail.tsx'),
+      route('inventory', 'routes/farmer/inventory.tsx'),
+      route('personnel', 'routes/farmer/personnel.tsx'),
       route('operations/new', 'routes/farmer/record-operation.tsx'),
       route(
         'operations/new/:cropCycleId/land-prep',
