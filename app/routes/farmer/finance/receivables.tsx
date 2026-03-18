@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Breadcrumb } from '~/components/breadcrumb'
+import { DatePicker } from '~/components/ui/date-picker'
 import { farms, products } from '~/lib/mock-data/farmer'
 import type { Route } from './+types/receivables'
 
@@ -73,16 +74,9 @@ export default function RecordReceivablesPage() {
               <label htmlFor="date" className="block text-sm font-bold text-gray-900">
                 Date
               </label>
-              <input
-                id="date"
-                type="date"
+              <DatePicker
                 value={date}
-                onClick={(e) => {
-                  try {
-                    e.currentTarget.showPicker()
-                  } catch (err) { }
-                }}
-                onChange={(e) => setDate(e.target.value)}
+                onChange={setDate}
                 className="h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
               />
             </div>
