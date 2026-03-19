@@ -1,6 +1,7 @@
 import { KYCBanner } from '~/components/kyc-banner'
 import { QuickActions } from '~/components/quick-actions'
 import { StatCard } from '~/components/stat-card'
+import { FarmMap } from '~/components/farm-map'
 import {
   farmerStats,
   farms,
@@ -261,6 +262,11 @@ export default function FarmerDashboard() {
               +{farms.length - 8} more farms
             </button>
           )}
+        </div>
+
+        {/* Farm Map */}
+        <div className="mb-4">
+          <FarmMap farms={farms} />
         </div>
       </div>
     </div>

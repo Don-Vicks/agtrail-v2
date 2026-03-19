@@ -80,8 +80,6 @@ export default function Fertilizer() {
           <input type="text" placeholder="Auto-filled from inventory" className="w-full rounded-md border border-gray-200 px-3.5 py-2.5 text-sm placeholder:text-gray-400 bg-gray-50" readOnly />
         </div>
       </div>
-        </div>
-      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>

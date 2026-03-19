@@ -72,6 +72,8 @@ export interface Farm {
   location: string
   region: string
   hectares: number
+  lat: number
+  lng: number
 }
 
 export const farms: Farm[] = [
@@ -84,6 +86,8 @@ export const farms: Farm[] = [
     location: '21, Yusuf Aboki Street, Abapka GRA, Oke Ado',
     region: 'Jiba',
     hectares: 0.0,
+    lat: 13.0833,
+    lng: 7.2167,
   },
   {
     id: '2',
@@ -94,6 +98,8 @@ export const farms: Farm[] = [
     location: '',
     region: 'kpsintroiointrv',
     hectares: 0.0,
+    lat: 12.9833,
+    lng: 7.6167,
   },
   {
     id: '3',
@@ -104,6 +110,8 @@ export const farms: Farm[] = [
     location: 'gjihjbdew',
     region: 'IITA Nigeria Office',
     hectares: 5274.7,
+    lat: 7.4167,
+    lng: 3.9167,
   },
   {
     id: '4',
@@ -114,6 +122,8 @@ export const farms: Farm[] = [
     location: 'Jibia, Katsina State, Nigeria',
     region: 'adbhashdasd',
     hectares: 100.9,
+    lat: 13.0833,
+    lng: 7.2167,
   },
   {
     id: '5',
@@ -124,6 +134,8 @@ export const farms: Farm[] = [
     location: 'Jibia, Katsina State, Nigeria',
     region: 'aijhjbdew',
     hectares: 100.5,
+    lat: 13.0833,
+    lng: 7.2167,
   },
   {
     id: '6',
@@ -134,6 +146,8 @@ export const farms: Farm[] = [
     location: 'sfdsgfhg,mc',
     region: 'Bagary Coconut Area',
     hectares: 7268.7,
+    lat: 12.2833,
+    lng: 4.2833,
   },
   {
     id: '7',
@@ -144,6 +158,8 @@ export const farms: Farm[] = [
     location: 'IITA Nigeria Office',
     region: 'IITA Nigeria Office',
     hectares: 1833.5,
+    lat: 7.4167,
+    lng: 3.9167,
   },
   {
     id: '8',
@@ -154,6 +170,8 @@ export const farms: Farm[] = [
     location: 'Bagary Coconut Area',
     region: 'Bagary Coconut Area',
     hectares: 0.0,
+    lat: 12.2833,
+    lng: 4.2833,
   },
   {
     id: '9',
@@ -164,6 +182,8 @@ export const farms: Farm[] = [
     location: 'Lagos express way',
     region: 'Lagos',
     hectares: 0.0,
+    lat: 6.5244,
+    lng: 3.3792,
   },
   {
     id: '10',
@@ -174,6 +194,8 @@ export const farms: Farm[] = [
     location: '21, Yusuf Aboki Street, Abapka GRA,',
     region: 'Lagos',
     hectares: 0.0,
+    lat: 6.5244,
+    lng: 3.3792,
   },
   {
     id: '11',
@@ -184,6 +206,8 @@ export const farms: Farm[] = [
     location: 'adbhashdasd',
     region: 'adbhashdasd',
     hectares: 4.7,
+    lat: 9.0765,
+    lng: 7.3986,
   },
   {
     id: '12',
@@ -194,6 +218,8 @@ export const farms: Farm[] = [
     location: 'Lagos',
     region: 'Lagos',
     hectares: 0.0,
+    lat: 6.5244,
+    lng: 3.3792,
   },
   {
     id: '13',
@@ -204,6 +230,8 @@ export const farms: Farm[] = [
     location: 'kpsintroiointrv',
     region: 'Jiba',
     hectares: 528.1,
+    lat: 13.0833,
+    lng: 7.2167,
   },
 ]
 
