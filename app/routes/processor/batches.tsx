@@ -1,5 +1,5 @@
 import { Link } from 'react-router';
-import { Breadcrumb } from '~/components/breadcrumb';
+import { PageHeader } from '~/components/page-header';
 import { mockBatches, type ProcessorBatch } from '~/lib/mock-data/processor';
 import { cn } from '~/lib/utils';
 
@@ -112,23 +112,24 @@ function BatchCard({ batch }: { batch: ProcessorBatch }) {
 export default function ProcessorBatches() {
   return (
     <div className="pb-10">
-      {/* Header and Breadcrumb */}
-      <div className="flex items-start justify-between mb-6">
-        <Breadcrumb
-          items={[
-            {
-              label: 'Dashboard',
-              href: '/processor',
-              icon: (
-                <svg className="size-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                  <line x1="9" y1="3" x2="9" y2="21" />
-                </svg>
-              ),
-            },
-            { label: 'Batches' },
-          ]}
-        />
+      <PageHeader
+        items={[
+          {
+            label: 'Dashboard',
+            href: '/processor',
+            icon: (
+              <svg className="size-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                <line x1="9" y1="3" x2="9" y2="21" />
+              </svg>
+            ),
+          },
+          { label: 'Batches' },
+        ]}
+      />
+
+      <div className="flex items-center justify-between mb-6 pt-2">
+        <h1 className="text-2xl font-bold text-gray-900">Batches</h1>
         <Link
           to="/processor/batches/new"
           className="inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-[#1b4332] px-4 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-dark"

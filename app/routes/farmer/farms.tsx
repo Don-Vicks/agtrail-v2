@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Breadcrumb } from '~/components/breadcrumb'
+import { PageHeader } from '~/components/page-header'
 import { CreateFarmModal } from '~/components/create-farm-modal'
 import { FarmCard } from '~/components/farm-card'
 import { Pagination } from '~/components/pagination'
@@ -37,8 +37,7 @@ export default function FarmerFarms() {
 
   return (
     <div className="space-y-6">
-      {/* Breadcrumb */}
-      <Breadcrumb
+      <PageHeader
         items={[
           {
             label: 'Dashboard',

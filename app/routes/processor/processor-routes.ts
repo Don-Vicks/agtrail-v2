@@ -6,7 +6,7 @@ import {
   route,
 } from '@react-router/dev/routes'
 
-export const processorRoutes: RouteConfig[] = [
+export const processorRoutes: RouteConfig = [
   layout('routes/processor/layout.tsx', [
     ...prefix('processor', [
       index('routes/processor/dashboard.tsx'),
@@ -30,6 +30,22 @@ export const processorRoutes: RouteConfig[] = [
       ),
       route('finance/purchase', 'routes/processor/finance/purchase.tsx'),
       route('finance/receivables', 'routes/processor/finance/receivables.tsx'),
+      route('operations/record', 'routes/processor/operations/record.tsx'),
+      ...prefix('operations/new/:cropCycleId', [
+        route('land-prep', 'routes/processor/operations/land-prep.tsx'),
+        route('planting', 'routes/processor/operations/planting.tsx'),
+        route('fertilizer', 'routes/processor/operations/fertilizer.tsx'),
+        route('irrigation', 'routes/processor/operations/irrigation.tsx'),
+        route('weeding', 'routes/processor/operations/weeding.tsx'),
+        route('pest-control', 'routes/processor/operations/pest-control.tsx'),
+        route('pruning', 'routes/processor/operations/pruning.tsx'),
+        route('harvesting', 'routes/processor/operations/harvesting.tsx'),
+        route('sorting', 'routes/processor/operations/sorting.tsx'),
+        route('drying', 'routes/processor/operations/drying.tsx'),
+        route('processing', 'routes/processor/operations/processing.tsx'),
+        route('packaging', 'routes/processor/operations/packaging.tsx'),
+        route('storage', 'routes/processor/operations/storage.tsx'),
+      ]),
       route('settings', 'routes/processor/settings/settings-root.tsx'),
     ]),
   ]),

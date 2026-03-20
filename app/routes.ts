@@ -63,6 +63,26 @@ export default [
         'routes/farmer/operations/harvesting.tsx',
       ),
       route(
+        'operations/new/:cropCycleId/sorting',
+        'routes/farmer/operations/sorting.tsx',
+      ),
+      route(
+        'operations/new/:cropCycleId/drying',
+        'routes/farmer/operations/drying.tsx',
+      ),
+      route(
+        'operations/new/:cropCycleId/processing',
+        'routes/farmer/operations/processing.tsx',
+      ),
+      route(
+        'operations/new/:cropCycleId/packaging',
+        'routes/farmer/operations/packaging.tsx',
+      ),
+      route(
+        'operations/new/:cropCycleId/storage',
+        'routes/farmer/operations/storage.tsx',
+      ),
+      route(
         'certifications/product',
         'routes/farmer/certifications/product-certification.tsx',
       ),

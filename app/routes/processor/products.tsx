@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { cn } from '~/lib/utils';
+import { PageHeader } from '~/components/page-header';
 
 // ─── Mock Data ───
 
@@ -134,7 +135,7 @@ function TransfersTab() {
                   "border px-2 py-0.5 text-[10px] font-bold lowercase tracking-wide rounded-md",
                   trf.payment === 'completed'
                     ? "bg-[#e8f5e9] text-[#2e7d32] border-[#c8e6c9]"
-                    : "bg-[#fff3e0] text-[#e65100] border-[#ffe0b2]"
+                    : "bg-brand-accent-surface text-[#e65100] border-[#ffe0b2]"
                 )}>
                   Payment: {trf.payment}
                 </span>
@@ -186,8 +187,24 @@ export default function ProcessorProducts() {
 
   return (
     <div className="max-w-[1000px] mx-auto pb-10">
+      <PageHeader
+        items={[
+          {
+            label: 'Dashboard',
+            href: '/processor',
+            icon: (
+              <svg className="size-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                <line x1="9" y1="3" x2="9" y2="21" />
+              </svg>
+            ),
+          },
+          { label: 'Products' },
+        ]}
+      />
+
       {/* Header Row */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pt-2">
         <div>
           <h1 className="text-2xl font-bold text-brand">Product Output</h1>
           <p className="text-sm text-gray-500 mt-1">Auto-generated products from completed batches with full traceability</p>

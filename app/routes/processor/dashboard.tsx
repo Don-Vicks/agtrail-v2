@@ -126,8 +126,7 @@ export default function ProcessorDashboard() {
   return (
     <div className="space-y-6 pb-10">
       {/* Header Row */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <h1 className="text-2xl font-bold text-brand">Good morning, Agrolinking Platform</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-end gap-4">
         <Link
           to="/processor/batches/new"
           className="inline-flex items-center justify-center gap-2 rounded-md bg-[#1b4332] px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-dark"

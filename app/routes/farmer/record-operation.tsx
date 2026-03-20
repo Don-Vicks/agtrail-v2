@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Breadcrumb } from '~/components/breadcrumb'
+import { PageHeader } from '~/components/page-header'
 import { Pagination } from '~/components/pagination'
 import { SelectOperationModal } from '~/components/select-operation-modal'
 import { ViewActivitiesModal } from '~/components/view-activities-modal'
@@ -37,7 +37,7 @@ export default function RecordOperation() {
 
   return (
     <div className="space-y-6">
-      <Breadcrumb
+      <PageHeader
         items={[
           {
             label: 'Dashboard',

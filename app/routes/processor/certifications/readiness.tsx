@@ -1,4 +1,4 @@
-import { Breadcrumb } from '~/components/breadcrumb';
+import { PageHeader } from '~/components/page-header';
 
 function StatCard({ label, value, icon, iconBg, iconColor }: { label: string; value: number | string; icon: React.ReactNode; iconBg: string; iconColor: string }) {
   return (
@@ -17,26 +17,24 @@ function StatCard({ label, value, icon, iconBg, iconColor }: { label: string; va
 export default function CertificationReadiness() {
   return (
     <div className="pb-10">
-      <div className="mb-6">
-        <Breadcrumb
-          items={[
-            {
-              label: 'Dashboard',
-              href: '/processor',
-              icon: (
-                <svg className="size-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                  <line x1="9" y1="3" x2="9" y2="21" />
-                </svg>
-              ),
-            },
-            { label: 'Certification Readiness' },
-          ]}
-        />
-      </div>
+      <PageHeader
+        items={[
+          {
+            label: 'Dashboard',
+            href: '/processor',
+            icon: (
+              <svg className="size-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                <line x1="9" y1="3" x2="9" y2="21" />
+              </svg>
+            ),
+          },
+          { label: 'Certification Readiness' },
+        ]}
+      />
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pt-2">
         <div>
           <h1 className="text-2xl font-bold text-brand">Certification Readiness</h1>
           <p className="text-sm text-gray-500 mt-1">Track your certification progress and requirements</p>

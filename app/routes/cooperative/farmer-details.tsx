@@ -1,7 +1,7 @@
 import { Link, useParams } from 'react-router'
 import { cooperativeFarmers } from '~/lib/mock-data/cooperative'
 import { Plus } from 'lucide-react'
-import { Breadcrumb } from '~/components/breadcrumb'
+import { PageHeader } from '~/components/page-header'
 import type { Route } from './+types/farmer-details'
 
 export function meta({ params }: Route.MetaArgs) {
@@ -19,7 +19,7 @@ export default function CooperativeFarmerDetails() {
   return (
     <div className="space-y-6">
       {/* Breadcrumb Header */}
-      <Breadcrumb
+      <PageHeader
         items={[
           {
             label: 'Cooperative',

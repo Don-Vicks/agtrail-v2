@@ -19,7 +19,7 @@ export const sidebarNavigation = [
   {
     title: 'Operations',
     items: [
-      { id: 'start-crop', label: 'Start Crop Cycle', href: '/cooperative/operations/start', icon: 'refresh-cw' },
+      { id: 'start-crop', label: 'Start Crop Cycle', href: '/cooperative/operations/start', icon: 'sprout' },
       { id: 'record-op', label: 'Record Operation', href: '/cooperative/operations/record', icon: 'file-text' },
       { id: 'honey-batches', label: 'Raw Honey Batches', href: '/cooperative/operations/honey', icon: 'archive' },
     ],
@@ -64,18 +64,18 @@ export const farmPerformanceSummary = [
 ]
 
 export const cooperativeFarms = [
-  { id: 'farm1', name: 'Baba Beji Farms', owner: 'Olamide Olutekunbi', location: '21, Yusuf Aboki Street, Abapka GRA, Oke Ado', hectares: 0.0, region: 'Zango Kataf' },
-  { id: 'farm2', name: 'BABA FARM', owner: 'Olamide Olutekunbi', location: 'Zango Kataf', hectares: 0.0, region: 'Zango Kataf' },
-  { id: 'farm3', name: 'Beta Agric Ventures', owner: 'Agrolinking Administrator', location: 'gjhjbdew', hectares: 5274.7, region: 'Local Govt Area' },
-  { id: 'farm4', name: 'Daura Farms', owner: 'Agrolinking Administrator', location: 'Jibia, Katsina State, Nigeria', hectares: 100.9, region: 'Jibia' },
-  { id: 'farm5', name: 'Daura Farms', owner: 'Agrolinking Administrator', location: 'Jibia, Katsina State, Nigeria', hectares: 100.5, region: 'Jibia' },
-  { id: 'farm6', name: 'Expan Farms', owner: 'Olamide Olutekunbi', location: 'hgahdkl', hectares: 2963.5, region: 'Garki' },
-  { id: 'farm7', name: 'Hense Farm', owner: 'Agrolinking Administrator', location: 'sfdsgfhg,mc', hectares: 7268.7, region: 'Sokoto' },
-  { id: 'farm8', name: 'IITA FCI4Afric Farm', owner: 'Agrolinking Administrator', location: 'IITA Nigeria Office', hectares: 1833.5, region: 'Ibadan' },
-  { id: 'farm9', name: 'Jenny Farms and Co', owner: 'Agrolinking Administrator', location: 'Bagary Coconut Area', hectares: 0.0, region: 'Lagos' },
-  { id: 'farm10', name: 'Ola', owner: 'Olamide Olutekunbi', location: 'UYeruhrwuwair', hectares: 0.1, region: 'Zango Kataf' },
-  { id: 'farm11', name: 'Olamide & Co farms', owner: 'Olamide Olutekunbi', location: 'Lagos express way', hectares: 0.0, region: 'Lagos' },
-  { id: 'farm12', name: 'Olamide Farm', owner: 'Olamide Olutekunbi', location: 'Kakuri Textile Company', hectares: 0.0, region: 'Kaduna' },
+  { id: 'farm1', name: 'Baba Beji Farms', owner: 'Olamide Olutekunbi', ownerInitials: 'OO', ownerColor: '#F57C00', location: '21, Yusuf Aboki Street, Abapka GRA, Oke Ado', hectares: 0.0, region: 'Zango Kataf', lat: 9.9, lng: 8.3 },
+  { id: 'farm2', name: 'BABA FARM', owner: 'Olamide Olutekunbi', ownerInitials: 'OO', ownerColor: '#F57C00', location: 'Zango Kataf', hectares: 0.0, region: 'Zango Kataf', lat: 10.1, lng: 8.0 },
+  { id: 'farm3', name: 'Beta Agric Ventures', owner: 'Agrolinking Administrator', ownerInitials: 'AA', ownerColor: '#2E5A27', location: 'gjhjbdew', hectares: 5274.7, region: 'Local Govt Area', lat: 9.0765, lng: 7.3986 },
+  { id: 'farm4', name: 'Daura Farms', owner: 'Agrolinking Administrator', ownerInitials: 'AA', ownerColor: '#2E5A27', location: 'Jibia, Katsina State, Nigeria', hectares: 100.9, region: 'Jibia', lat: 13.0833, lng: 7.2167 },
+  { id: 'farm5', name: 'Daura Farms', owner: 'Agrolinking Administrator', ownerInitials: 'AA', ownerColor: '#2E5A27', location: 'Jibia, Katsina State, Nigeria', hectares: 100.5, region: 'Jibia', lat: 13.0833, lng: 7.2167 },
+  { id: 'farm6', name: 'Expan Farms', owner: 'Olamide Olutekunbi', ownerInitials: 'OO', ownerColor: '#F57C00', location: 'hgahdkl', hectares: 2963.5, region: 'Garki', lat: 9.0, lng: 7.4 },
+  { id: 'farm7', name: 'Hense Farm', owner: 'Agrolinking Administrator', ownerInitials: 'AA', ownerColor: '#2E5A27', location: 'sfdsgfhg,mc', hectares: 7268.7, region: 'Sokoto', lat: 13.0, lng: 5.2 },
+  { id: 'farm8', name: 'IITA FCI4Afric Farm', owner: 'Agrolinking Administrator', ownerInitials: 'AA', ownerColor: '#2E5A27', location: 'IITA Nigeria Office', hectares: 1833.5, region: 'Ibadan', lat: 7.3, lng: 3.8 },
+  { id: 'farm9', name: 'Jenny Farms and Co', owner: 'Agrolinking Administrator', ownerInitials: 'AA', ownerColor: '#2E5A27', location: 'Bagary Coconut Area', hectares: 0.0, region: 'Lagos', lat: 6.5, lng: 3.3 },
+  { id: 'farm10', name: 'Ola', owner: 'Olamide Olutekunbi', ownerInitials: 'OO', ownerColor: '#F57C00', location: 'UYeruhrwuwair', hectares: 0.1, region: 'Zango Kataf', lat: 9.9, lng: 8.3 },
+  { id: 'farm11', name: 'Olamide & Co farms', owner: 'Olamide Olutekunbi', ownerInitials: 'OO', ownerColor: '#F57C00', location: 'Lagos express way', hectares: 0.0, region: 'Lagos', lat: 6.5, lng: 3.3 },
+  { id: 'farm12', name: 'Olamide Farm', owner: 'Olamide Olutekunbi', ownerInitials: 'OO', ownerColor: '#F57C00', location: 'Kakuri Textile Company', hectares: 0.0, region: 'Kaduna', lat: 10.5, lng: 7.4 },
 ]
 
 export const cooperativeFarmers = [

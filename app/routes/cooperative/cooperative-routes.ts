@@ -8,16 +8,26 @@ export const cooperativeRoutes: RouteConfig = [
     route('cooperative/farmers/:id/farms', 'routes/cooperative/farmer-farms.tsx'),
     route('cooperative/farms', 'routes/cooperative/farms.tsx'),
     route('cooperative/farms/:id', 'routes/cooperative/farm-details.tsx'),
+    route('cooperative/products', 'routes/cooperative/products/index.tsx'),
+    route('cooperative/products/:id', 'routes/cooperative/products/story.tsx'),
+    route('cooperative/operations/start', 'routes/cooperative/operations/start.tsx'),
     
-    // Operations mapped to reuse the core templates from farmer routes
-    route('cooperative/operations/new', 'routes/farmer/record-operation.tsx', { id: 'cooperative-record-operation' }),
-    route('cooperative/operations/new/:cropCycleId/land-prep', 'routes/farmer/operations/land-prep.tsx', { id: 'cooperative-land-prep' }),
-    route('cooperative/operations/new/:cropCycleId/planting', 'routes/farmer/operations/planting.tsx', { id: 'cooperative-planting' }),
-    route('cooperative/operations/new/:cropCycleId/fertilizer', 'routes/farmer/operations/fertilizer.tsx', { id: 'cooperative-fertilizer' }),
-    route('cooperative/operations/new/:cropCycleId/irrigation', 'routes/farmer/operations/irrigation.tsx', { id: 'cooperative-irrigation' }),
-    route('cooperative/operations/new/:cropCycleId/weeding', 'routes/farmer/operations/weeding.tsx', { id: 'cooperative-weeding' }),
-    route('cooperative/operations/new/:cropCycleId/pest-control', 'routes/farmer/operations/pest-control.tsx', { id: 'cooperative-pest-control' }),
-    route('cooperative/operations/new/:cropCycleId/pruning', 'routes/farmer/operations/pruning.tsx', { id: 'cooperative-pruning' }),
-    route('cooperative/operations/new/:cropCycleId/harvesting', 'routes/farmer/operations/harvesting.tsx', { id: 'cooperative-harvesting' }),
+    // Operations duplicated from farmer routes
+    route('cooperative/operations/record', 'routes/cooperative/operations/record.tsx'),
+    route('cooperative/operations/new/:cropCycleId/land-prep', 'routes/cooperative/operations/land-prep.tsx'),
+    route('cooperative/operations/new/:cropCycleId/planting', 'routes/cooperative/operations/planting.tsx'),
+    route('cooperative/operations/new/:cropCycleId/fertilizer', 'routes/cooperative/operations/fertilizer.tsx'),
+    route('cooperative/operations/new/:cropCycleId/irrigation', 'routes/cooperative/operations/irrigation.tsx'),
+    route('cooperative/operations/new/:cropCycleId/weeding', 'routes/cooperative/operations/weeding.tsx'),
+    route('cooperative/operations/new/:cropCycleId/pest-control', 'routes/cooperative/operations/pest-control.tsx'),
+    route('cooperative/operations/new/:cropCycleId/pruning', 'routes/cooperative/operations/pruning.tsx'),
+    route('cooperative/operations/new/:cropCycleId/harvesting', 'routes/cooperative/operations/harvesting.tsx'),
+    
+    // Post-Harvest Operations
+    route('cooperative/operations/new/:cropCycleId/sorting', 'routes/cooperative/operations/sorting.tsx'),
+    route('cooperative/operations/new/:cropCycleId/drying', 'routes/cooperative/operations/drying.tsx'),
+    route('cooperative/operations/new/:cropCycleId/processing', 'routes/cooperative/operations/processing.tsx'),
+    route('cooperative/operations/new/:cropCycleId/packaging', 'routes/cooperative/operations/packaging.tsx'),
+    route('cooperative/operations/new/:cropCycleId/storage', 'routes/cooperative/operations/storage.tsx'),
   ])
 ]

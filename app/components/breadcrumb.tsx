@@ -2,7 +2,7 @@ import { Link } from 'react-router'
 import { useSidebar } from '~/components/layout/sidebar-context'
 import { cn } from '~/lib/utils'
 
-interface BreadcrumbItem {
+export interface BreadcrumbItem {
   label: string
   href?: string
   icon?: React.ReactNode
@@ -16,7 +16,7 @@ export function Breadcrumb({ items }: BreadcrumbProps) {
   const sidebarCtx = useSidebar()
 
   return (
-    <nav className="flex flex-wrap items-center gap-1.5 text-sm text-gray-500">
+    <nav className="sticky top-0 z-20 flex h-16 w-full items-center gap-1.5 border-y border-gray-200 bg-white px-4 text-sm text-gray-500 md:px-6">
       {items.map((item, index) => (
         <span key={item.label} className="flex items-center gap-1.5">
           {index > 0 && (

@@ -1,7 +1,7 @@
 import { Plus } from 'lucide-react'
 import { useState } from 'react'
 import { useParams } from 'react-router'
-import { Breadcrumb } from '~/components/breadcrumb'
+import { PageHeader } from '~/components/page-header'
 import { CreateFarmModal } from '~/components/create-farm-modal'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
 import { cooperativeFarmers } from '~/lib/mock-data/cooperative'
@@ -23,7 +23,7 @@ export default function CooperativeFarmerFarms() {
   return (
     <div className="space-y-6">
       {/* Breadcrumb Header */}
-      <Breadcrumb
+      <PageHeader
         items={[
           {
             label: 'Cooperative',

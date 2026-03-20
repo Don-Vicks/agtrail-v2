@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams } from 'react-router'
-import { Breadcrumb } from '~/components/breadcrumb'
+import { PageHeader } from '~/components/page-header'
 import { Pagination } from '~/components/pagination'
 import { StartCropCycleModal } from '~/components/start-crop-cycle-modal'
 import { SelectOperationModal } from '~/components/select-operation-modal'
@@ -35,7 +35,7 @@ export default function CooperativeFarmDetails() {
   return (
     <div className="space-y-6">
       {/* Breadcrumb */}
-      <Breadcrumb
+      <PageHeader
         items={[
           {
             label: 'Cooperative',

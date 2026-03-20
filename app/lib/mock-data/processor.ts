@@ -20,6 +20,11 @@ export const sidebarNavigation = {
     { label: 'Personnel', icon: 'clipboard-list', href: '/processor/personnel' },
   ],
   operations: [
+    {
+      label: 'Record Operation',
+      icon: 'clipboard-list',
+      href: '/processor/operations/record',
+    },
     { label: 'Materials', icon: 'box', href: '/processor/materials' },
   ],
   certification: [

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Breadcrumb } from '~/components/breadcrumb'
+import { PageHeader } from '~/components/page-header'
 import { farms, products } from '~/lib/mock-data/farmer'
 import type { Route } from './+types/receivables'
 
@@ -44,8 +44,7 @@ export default function RecordReceivablesPage() {
 
   return (
     <div className="mx-auto max-w-5xl space-y-8">
-      {/* Breadcrumbs */}
-      <Breadcrumb
+      <PageHeader
         items={[
           {
             label: 'Dashboard',

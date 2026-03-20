@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Breadcrumb } from '~/components/breadcrumb'
+import { PageHeader } from '~/components/page-header'
 import { FarmCard } from '~/components/farm-card'
 import { Pagination } from '~/components/pagination'
 import { StartCropCycleModal } from '~/components/start-crop-cycle-modal'
@@ -43,8 +43,7 @@ export default function FarmerCropCycle() {
 
   return (
     <div className="space-y-6">
-      {/* Breadcrumb */}
-      <Breadcrumb
+      <PageHeader
         items={[
           {
             label: 'Dashboard',

@@ -34,7 +34,7 @@ function CooperativeLayoutContent() {
         "ml-0",
         isCollapsedDesktop ? "lg:ml-0" : "lg:ml-64"
       )}>
-        <Topbar />
+        {isDashboard && <Topbar />}
         <main className="p-4 md:p-6 lg:p-8">
           <Outlet />
         </main>

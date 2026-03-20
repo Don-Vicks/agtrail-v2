@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { PageHeader } from '~/components/page-header'
 import { cooperativeFarmers } from '~/lib/mock-data/cooperative'
 import type { Route } from './+types/farmers'
 import { Search, Plus, Trash2, Eye } from 'lucide-react'
@@ -31,7 +32,21 @@ export default function CooperativeFarmers() {
 
   return (
     <div className="space-y-6">
-      {/* Header section */}
+      <PageHeader
+        items={[
+          {
+            label: 'Dashboard',
+            href: '/cooperative',
+            icon: (
+              <svg className="size-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                <line x1="9" y1="3" x2="9" y2="21" />
+              </svg>
+            ),
+          },
+          { label: 'Farmers' },
+        ]}
+      />
       <div>
         <h1 className="text-xl font-bold text-[#2B5C2D] uppercase tracking-wide">FARMER TRACEABILITY</h1>
         <p className="text-sm text-gray-500 mt-1">Here are all the farmers registered in your cooperative group.</p>

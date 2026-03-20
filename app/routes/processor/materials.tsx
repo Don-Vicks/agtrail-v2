@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router'
 import { cn } from '~/lib/utils'
+import { PageHeader } from '~/components/page-header'
 import { AddMaterialModal, type NewMaterialData } from '~/components/add-material-modal'
 import {
   DropdownMenu,
@@ -110,13 +111,21 @@ export default function ProcessorMaterials() {
   return (
     <div className="space-y-6 pb-10">
 
-      {/* Top Back Link */}
-      <Link to="/processor" className="inline-flex items-center gap-2 text-brand font-medium hover:text-brand-dark transition-colors">
-        <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" /> {/* Decorative mock icon */}
-        </svg>
-        Add New Material
-      </Link>
+      <PageHeader
+        items={[
+          {
+            label: 'Dashboard',
+            href: '/processor',
+            icon: (
+              <svg className="size-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                <line x1="9" y1="3" x2="9" y2="21" />
+              </svg>
+            ),
+          },
+          { label: 'Materials' },
+        ]}
+      />
 
       {/* Main Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 pb-4">

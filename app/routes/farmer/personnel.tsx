@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useLocation } from 'react-router'
-import { Breadcrumb } from '~/components/breadcrumb'
+import { PageHeader } from '~/components/page-header'
 import { PersonField } from '~/components/person-field'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
@@ -79,9 +79,18 @@ export default function FarmerPersonnel() {
 
   return (
     <div className="space-y-6 pb-10">
-      <Breadcrumb
+      <PageHeader
         items={[
-          { label: 'Dashboard', href: basePath },
+          {
+            label: 'Dashboard',
+            href: basePath,
+            icon: (
+              <svg className="size-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                <line x1="9" y1="3" x2="9" y2="21" />
+              </svg>
+            ),
+          },
           { label: 'Personnel' },
         ]}
       />

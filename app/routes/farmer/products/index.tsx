@@ -1,7 +1,7 @@
 import { QRCodeSVG } from 'qrcode.react'
 import { useState } from 'react'
 import { Link } from 'react-router'
-import { Breadcrumb } from '~/components/breadcrumb'
+import { PageHeader } from '~/components/page-header'
 import { Pagination } from '~/components/pagination'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
@@ -67,8 +67,7 @@ export default function ProductsIndex() {
 
   return (
     <div className="space-y-6">
-      {/* Breadcrumb */}
-      <Breadcrumb
+      <PageHeader
         items={[
           {
             label: 'Dashboard',

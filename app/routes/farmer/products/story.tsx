@@ -1,5 +1,5 @@
 import { useParams } from 'react-router'
-import { Breadcrumb } from '~/components/breadcrumb'
+import { PageHeader } from '~/components/page-header'
 import { Button } from '~/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
 import { products } from '~/lib/mock-data/farmer'
@@ -200,8 +200,7 @@ export default function ProductStory() {
 
   return (
     <div className='space-y-6'>
-      {/* Breadcrumb */}
-      <Breadcrumb
+      <PageHeader
         items={[
           {
             label: 'Dashboard',
