@@ -1,5 +1,5 @@
 import { Label } from '~/components/ui/label'
-import { Select } from '~/components/ui/select'
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '~/components/ui/select'
 
 import { useCallback, useState } from 'react'
 
@@ -34,7 +34,8 @@ export function PersonField({
   const [internalValue, setInternalValue] = useState(defaultValue ?? '')
 
   const handleChange = useCallback(
-    (val: string) => {
+    (val: string | null) => {
+      if (val === null) return;
       if (onChange) {
         onChange(val)
       }
@@ -61,18 +62,17 @@ export function PersonField({
         id={id}
         value={inputValue}
         onValueChange={handleChange}
-        placeholder={placeholder}
       >
-        <Select.Trigger>
-          <Select.Value placeholder={placeholder} />
-        </Select.Trigger>
-        <Select.Content>
+        <SelectTrigger>
+          <SelectValue placeholder={placeholder} />
+        </SelectTrigger>
+        <SelectContent>
           {filteredPersonnel.map((person) => (
-            <Select.Item key={person.id} value={person.fullName}>
+            <SelectItem key={person.id} value={person.fullName}>
               {person.fullName} - {person.role}
-            </Select.Item>
+            </SelectItem>
           ))}
-        </Select.Content>
+        </SelectContent>
       </Select>
     </div>
   )

@@ -6,6 +6,7 @@ import {
     route,
 } from '@react-router/dev/routes'
 import { processorRoutes } from './routes/processor/processor-routes'
+import { cooperativeRoutes } from './routes/cooperative/cooperative-routes'
 
 export default [
   index('routes/home.tsx'),
@@ -98,4 +99,5 @@ export default [
   // ]),
 
   ...processorRoutes,
+  ...cooperativeRoutes,
 ] satisfies RouteConfig

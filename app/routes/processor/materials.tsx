@@ -1,6 +1,14 @@
 import { useState } from 'react'
 import { Link } from 'react-router'
 import { cn } from '~/lib/utils'
+import { AddMaterialModal, type NewMaterialData } from '~/components/add-material-modal'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '~/components/ui/dropdown-menu'
+import { DatePicker } from '~/components/ui/date-picker'
 
 // ─── Mock Data ───
 
@@ -67,6 +75,37 @@ function TabButton({ label, active, onClick }: { label: string; active: boolean;
 
 export default function ProcessorMaterials() {
   const [activeTab, setActiveTab] = useState('Platform Materials')
+  const [materials, setMaterials] = useState<Material[]>(mockMaterials)
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+  const [startDate, setStartDate] = useState('')
+  const [endDate, setEndDate] = useState('')
+
+  const handleAddMaterial = (data: NewMaterialData) => {
+    // Generate a quick random batch ID
+    const newBatchId = `BATCH-${Math.random().toString(36).substring(2, 10)}-${Date.now()}`
+    
+    // Convert YYYY-MM-DD to localized string mapping (or just keep as is, but our mock is MM/DD/YYYY)
+    const formatMockDate = (d: string) => {
+      if (!d) return ''
+      const parts = d.split('-')
+      if (parts.length === 3) return `${parts[1]}/${parts[2]}/${parts[0]}`
+      return d
+    }
+
+    const newMaterial: Material = {
+      id: Math.random().toString(36).substr(2, 9),
+      batchId: newBatchId,
+      material: data.material,
+      type: data.type,
+      farmerSource: 'External Vendor', // default for external materials
+      materialSource: data.materialSource,
+      quantity: data.quantity,
+      harvested: formatMockDate(data.harvested),
+      received: formatMockDate(data.received),
+    }
+
+    setMaterials(prev => [...prev, newMaterial])
+  }
 
   return (
     <div className="space-y-6 pb-10">
@@ -85,7 +124,10 @@ export default function ProcessorMaterials() {
           <h1 className="text-2xl font-bold text-brand">Materials Inventory</h1>
           <p className="text-sm text-gray-500 mt-1">Manage platform transfers and external materials in one place</p>
         </div>
-        <button className="inline-flex items-center justify-center gap-2 rounded-md bg-[#1b4332] px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-dark">
+        <button 
+          onClick={() => setIsAddModalOpen(true)}
+          className="inline-flex items-center justify-center gap-2 rounded-md bg-[#1b4332] px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-dark"
+        >
           <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
           </svg>
@@ -96,7 +138,7 @@ export default function ProcessorMaterials() {
       {/* 3 Top Stat Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <StatCard value={1} label="Platform Materials" />
-        <StatCard value={4} label="External Materials" />
+        <StatCard value={materials.length} label="External Materials" />
         <StatCard value={8} label="Pending Transfers" />
       </div>
 
@@ -139,17 +181,22 @@ export default function ProcessorMaterials() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-[500px] mb-6">
           <div>
-            <label className="text-xs font-semibold text-gray-600 mb-1.5 block">Date Range</label>
-            <div className="relative">
-              <svg className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" /></svg>
-              <input type="text" placeholder="Select a date" className="w-full rounded-md border border-gray-200 py-2 pl-9 pr-3 text-sm text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand" />
-            </div>
+            <label className="text-xs font-semibold text-gray-600 mb-1.5 block">Start Date</label>
+            <DatePicker 
+              value={startDate} 
+              onChange={setStartDate} 
+              placeholder="Select start date"
+              className="w-full text-gray-700 py-2 h-[38px] rounded-md border border-gray-200 focus:border-brand focus:ring-1 focus:ring-brand outline-none" 
+            />
           </div>
           <div>
-            <div className="mt-6 relative">
-              <svg className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" /></svg>
-              <input type="text" placeholder="Select a date" className="w-full rounded-md border border-gray-200 py-2 pl-9 pr-3 text-sm text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand" />
-            </div>
+            <label className="text-xs font-semibold text-gray-600 mb-1.5 block">End Date</label>
+            <DatePicker 
+              value={endDate} 
+              onChange={setEndDate} 
+              placeholder="Select end date"
+              className="w-full text-gray-700 py-2 h-[38px] rounded-md border border-gray-200 focus:border-brand focus:ring-1 focus:ring-brand outline-none" 
+            />
           </div>
         </div>
 
@@ -196,7 +243,7 @@ export default function ProcessorMaterials() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {mockMaterials.map((row) => (
+              {materials.map((row) => (
                 <tr key={row.id} className="hover:bg-gray-50 transition-colors">
                   <td className="py-4 font-medium text-brand">{row.batchId}</td>
                   <td className="py-4 text-brand">{row.material}</td>
@@ -207,11 +254,18 @@ export default function ProcessorMaterials() {
                   <td className="py-4 text-gray-500">{row.harvested}</td>
                   <td className="py-4 text-gray-500">{row.received}</td>
                   <td className="py-4 text-center">
-                    <button className="text-gray-400 hover:text-gray-800">
-                      <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z" />
-                      </svg>
-                    </button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger className="text-gray-400 hover:text-gray-800 outline-none cursor-pointer">
+                        <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z" />
+                        </svg>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem>
+                          View Details
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </td>
                 </tr>
               ))}
@@ -238,6 +292,12 @@ export default function ProcessorMaterials() {
           </div>
         </div>
       </div>
+
+      <AddMaterialModal 
+        isOpen={isAddModalOpen} 
+        onClose={() => setIsAddModalOpen(false)} 
+        onAdd={handleAddMaterial} 
+      />
     </div>
   )
 }

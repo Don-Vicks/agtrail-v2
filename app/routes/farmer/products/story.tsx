@@ -442,76 +442,85 @@ export default function ProductStory() {
           value='journey'
           className='m-0 border-none p-0 outline-none'
         >
-          <div className='max-w-3xl mx-auto space-y-4'>
-            {product.journey.map((node, i) => (
-              <div
-                key={i}
-                className='rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden'
-              >
-                {/* Header row */}
-                <div className='flex items-start justify-between p-5 pb-0'>
-                  <div className='flex items-center gap-3'>
-                    <span className='inline-block rounded bg-[#2E5A27] px-2.5 py-1 text-[10px] font-bold text-white tracking-wide'>
-                      Farm
-                    </span>
-                    <div>
-                      <h4 className='text-base font-bold text-gray-900'>
-                        {node.title}
-                      </h4>
-                      <p className='text-xs text-gray-500'>
-                        {node.description}
-                      </p>
-                    </div>
-                  </div>
-                  <div className='text-right flex-shrink-0 ml-4'>
-                    <p className='text-[10px] text-gray-400 font-medium uppercase tracking-wide'>
-                      Date
-                    </p>
-                    <p className='text-sm font-bold text-gray-900'>
-                      {node.date}
-                    </p>
-                    <p className='text-[10px] text-gray-400 font-medium uppercase tracking-wide mt-1'>
-                      Time
-                    </p>
-                    <p className='text-sm font-bold text-gray-900'>
-                      {node.time}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Verification icon */}
-                <div className='px-5 py-2'>
-                  <div className='size-7 rounded-full bg-[#2E5A27] flex items-center justify-center'>
+          <div className='max-w-3xl mx-auto py-2 px-4 sm:px-0'>
+            <div className='relative ml-4 sm:ml-6 pl-6 sm:pl-10 space-y-5 py-2 before:absolute before:inset-y-0 before:left-0 before:w-px before:bg-gray-200'>
+              {product.journey.map((node, i) => (
+                <div key={i} className='relative'>
+                  {/* Timeline icon */}
+                  <div className='absolute top-5 flex size-[26px] sm:size-7 items-center justify-center rounded-full bg-[#2E5A27] text-white ring-[3px] ring-[#Edf4cf] z-10 -left-[37px] sm:-left-[54px]'>
                     <svg
-                      className='size-3.5 text-white'
-                      fill='none'
-                      viewBox='0 0 24 24'
-                      stroke='currentColor'
-                      strokeWidth={3}
+                      className='size-3.5 fill-current'
+                      viewBox="0 0 24 24"
                     >
-                      <path d='M5 13l4 4L19 7' />
+                      <path d="M17 8C8 10 5.9 16.17 3.82 21.34L5.71 22L6.66 19.7C7.14 19.87 7.64 20 8 20C19 20 22 3 22 3C22 3 21 8 17 8ZM11.95 18C9.52 18 7.15 17 5.25 15.34C6.56 12.3 9.4 6 20 5C19.78 12.06 16.57 18 11.95 18Z" />
                     </svg>
                   </div>
-                </div>
 
-                {/* Details */}
-                <div className='px-5 pb-5'>
-                  <p className='text-sm font-bold text-gray-900 mb-2'>
-                    Details
-                  </p>
-                  <div className='space-y-1'>
-                    {node.details.map((detail, j) => (
-                      <p key={j} className='text-[13px] text-gray-600'>
-                        <span className='font-bold text-gray-800'>
-                          {detail.label}:
-                        </span>{' '}
-                        {detail.value}
-                      </p>
-                    ))}
+                  {/* Card Container */}
+                  <div className='rounded-[10px] border border-gray-100 bg-white shadow-sm overflow-hidden flex flex-col items-stretch'>
+                    {/* Top Header Section */}
+                    <div className='flex flex-col sm:flex-row'>
+                      {/* Left Side: Title & Description */}
+                      <div className='flex-1 p-4 sm:p-5'>
+                        <div className='flex items-center gap-2 mb-1.5'>
+                          <span className='inline-flex items-center justify-center rounded-full bg-[#2E5A27] px-2 py-0.5 text-[9px] font-bold text-white tracking-widest uppercase'>
+                            Farm
+                          </span>
+                          <h4 className='text-[16px] font-bold text-gray-900 leading-none'>
+                            {node.title}
+                          </h4>
+                        </div>
+                        <p className='text-xs text-gray-500 font-medium'>
+                          {node.description}
+                        </p>
+                      </div>
+
+                      {/* Right Side: Date & Time */}
+                      <div className='sm:w-[180px] bg-[#FAFAFA]/70 p-4 sm:p-5 sm:border-l border-gray-100 flex flex-col justify-center border-t sm:border-t-0 space-y-3.5'>
+                        <div>
+                          <p className='text-[9px] text-gray-500 font-bold mb-0.5 leading-none'>Date</p>
+                          <p className='text-xs font-black text-gray-900 leading-none'>{node.date}</p>
+                        </div>
+                        <div>
+                          <p className='text-[9px] text-gray-500 font-bold mb-0.5 leading-none'>Time</p>
+                          <p className='text-xs font-black text-gray-900 leading-none'>{node.time}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Bottom Details Section */}
+                    <div className='border-t border-gray-100 p-4 sm:p-5'>
+                      <h5 className='text-sm font-bold text-gray-900 mb-3'>Details</h5>
+                      <div className='space-y-0.5'>
+                        {node.details.map((detail, j) => {
+                          const isMaterialsUsed = detail.value === '';
+                          const isIndented = detail.label.trim().startsWith('SeedingRate') || detail.label.trim().startsWith('PlantVariety');
+                          const isLink = detail.label.toLowerCase().includes('onchain');
+
+                          return (
+                            <div key={j} className={`text-xs flex flex-wrap gap-x-1 ${isMaterialsUsed ? 'mt-3 mb-0' : ''}`}>
+                              <span className={`font-bold ${isIndented ? 'ml-4 text-gray-400' : 'text-gray-900'}`}>
+                                {isIndented ? detail.label.trim() : detail.label}{isMaterialsUsed ? '' : ':'}
+                              </span>
+                              {!isMaterialsUsed && (
+                                isLink ? (
+                                  <a href="#" className="font-semibold text-[#54A045] underline decoration-[#54A045]/30 hover:decoration-[#54A045] underline-offset-2 break-all">
+                                    {detail.value}
+                                  </a>
+                                ) : (
+                                  <span className='text-gray-700 font-medium'>{detail.value}</span>
+                                )
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
                   </div>
+
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </TabsContent>
 

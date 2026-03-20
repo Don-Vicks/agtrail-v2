@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useLocation } from 'react-router'
 import { Breadcrumb } from '~/components/breadcrumb'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
@@ -81,6 +82,12 @@ export function meta() {
 
 export default function FarmerInventory() {
   const [search, setSearch] = useState('')
+  const location = useLocation()
+  const basePath = location.pathname.startsWith('/processor') 
+    ? '/processor' 
+    : location.pathname.startsWith('/cooperative') 
+      ? '/cooperative' 
+      : '/farmer'
 
   const filtered = useMemo(() => {
     return mockInventory.filter((item) =>
@@ -94,7 +101,7 @@ export default function FarmerInventory() {
     <div className="space-y-6 pb-10">
       <Breadcrumb
         items={[
-          { label: 'Dashboard', href: '/farmer' },
+          { label: 'Dashboard', href: basePath },
           { label: 'Inventory' },
         ]}
       />

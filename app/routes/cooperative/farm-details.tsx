@@ -5,16 +5,16 @@ import { Pagination } from '~/components/pagination'
 import { StartCropCycleModal } from '~/components/start-crop-cycle-modal'
 import { SelectOperationModal } from '~/components/select-operation-modal'
 import { farmCropCycles, farms, type CropCycle } from '~/lib/mock-data/farmer'
-import type { Route } from './+types/farm-detail'
+import type { Route } from './+types/farm-details'
 
 export function meta({ }: Route.MetaArgs) {
   return [
-    { title: 'Farm Detail | Agrolinking' },
+    { title: 'Farm Detail | Agrolinking Cooperative' },
     { name: 'description', content: 'Manage crop cycles and log farm operations' },
   ]
 }
 
-export default function FarmDetail() {
+export default function CooperativeFarmDetails() {
   const params = useParams()
   const farm = farms.find((f) => f.id === params.id) ?? farms[0]
   const cropCycles = farmCropCycles.filter((c) => c.farmId === farm.id)
@@ -38,8 +38,8 @@ export default function FarmDetail() {
       <Breadcrumb
         items={[
           {
-            label: 'Dashboard',
-            href: '/farmer',
+            label: 'Cooperative',
+            href: '/cooperative',
             icon: (
               <svg className="size-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
@@ -47,16 +47,15 @@ export default function FarmDetail() {
               </svg>
             ),
           },
-          { label: farm.owner, href: '/farmer' },
-          { label: 'Farms', href: '/farmer/farms' },
+          { label: 'Farms', href: '/cooperative/farms' },
           { label: farm.name },
         ]}
       />
 
       {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-bold text-brand">RECORD FARM OPERATION</h1>
-        <p className="text-sm text-gray-500">Manage crop cycles and log farm operations</p>
+        <h1 className="text-2xl font-bold text-brand uppercase tracking-wide">RECORD FARM OPERATION</h1>
+        <p className="text-sm text-gray-500 mt-1">Manage crop cycles and log farm operations</p>
       </div>
 
       {/* Farm Owner Card */}
@@ -140,7 +139,7 @@ export default function FarmDetail() {
               <button 
                 onClick={() => setSelectedCropCycle(cycle)}
                 className="mt-4 w-full rounded-md border border-brand py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-              >
+               >
                 Log Operation
               </button>
             </div>
@@ -173,6 +172,7 @@ export default function FarmDetail() {
         isOpen={!!selectedCropCycle}
         onClose={() => setSelectedCropCycle(null)}
         cropCycle={selectedCropCycle}
+        basePath="/cooperative/operations/new"
       />
     </div>
   )

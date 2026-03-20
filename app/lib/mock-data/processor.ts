@@ -16,6 +16,8 @@ export const sidebarNavigation = {
     { label: 'Add New Batch', icon: 'plus', href: '/processor/batches/new' },
     { label: 'Batches', icon: 'layers', href: '/processor/batches' },
     { label: 'Products', icon: 'package', href: '/processor/products' },
+    { label: 'Inventory', icon: 'jar', href: '/processor/inventory' },
+    { label: 'Personnel', icon: 'clipboard-list', href: '/processor/personnel' },
   ],
   operations: [
     { label: 'Materials', icon: 'box', href: '/processor/materials' },

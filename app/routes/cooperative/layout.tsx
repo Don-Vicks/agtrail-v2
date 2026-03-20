@@ -1,21 +1,27 @@
 import { Outlet, useLocation } from 'react-router'
-import { Sidebar } from '~/components/layout/processor-sidebar'
-import { SidebarProvider, useSidebar } from '~/components/layout/sidebar-context'
+import { CooperativeSidebar } from '~/components/layout/cooperative-sidebar'
 import { Topbar } from '~/components/layout/topbar'
+import { SidebarProvider, useSidebar } from '~/components/layout/sidebar-context'
 import { cn } from '~/lib/utils'
+import type { Route } from './+types/layout'
 
-function ProcessorLayoutContent() {
+export function meta({}: Route.MetaArgs) {
+  return [
+    { title: 'Agrolinking Cooperative Platform' }
+  ]
+}
+
+function CooperativeLayoutContent() {
   const location = useLocation()
-  const isDashboard = location.pathname === '/processor' || location.pathname === '/processor/'
+  const isDashboard = location.pathname === '/cooperative' || location.pathname === '/cooperative/'
   const sidebarCtx = useSidebar()
   const isCollapsedDesktop = sidebarCtx?.isCollapsedDesktop ?? false
   const isOpenMobile = sidebarCtx?.isOpenMobile ?? false
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
-      <Sidebar />
+      <CooperativeSidebar />
 
-      {/* Mobile Backdrop */}
       {isOpenMobile && (
         <div
           className="fixed inset-0 z-20 bg-black/30 backdrop-blur-sm lg:hidden"
@@ -37,10 +43,10 @@ function ProcessorLayoutContent() {
   )
 }
 
-export default function ProcessorLayout() {
+export default function CooperativeLayout() {
   return (
     <SidebarProvider>
-      <ProcessorLayoutContent />
+      <CooperativeLayoutContent />
     </SidebarProvider>
   )
 }

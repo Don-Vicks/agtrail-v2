@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router'
+import { useNavigate, useLocation } from 'react-router'
 import { Breadcrumb } from '~/components/breadcrumb'
 import type { CropCycle } from '~/lib/mock-data/farmer'
 
@@ -22,6 +22,8 @@ export function OperationFormLayout({
   organicWarning,
 }: OperationFormLayoutProps) {
   const navigate = useNavigate()
+  const location = useLocation()
+  const basePath = location.pathname.startsWith('/cooperative') ? '/cooperative' : '/farmer'
 
   return (
     < div className="space-y-6 pb-12" >
@@ -31,7 +33,7 @@ export function OperationFormLayout({
           [
             {
               label: 'Dashboard',
-              href: '/farmer',
+              href: basePath,
               icon: (
                 <svg className="size-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                   <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
@@ -39,7 +41,7 @@ export function OperationFormLayout({
                 </svg>
               ),
             },
-            { label: 'Record Operation', href: '/farmer/operations/new' },
+            { label: 'Record Operation', href: `${basePath}/operations/new` },
             { label: breadcrumbLabel },
           ]}
       />
@@ -47,7 +49,7 @@ export function OperationFormLayout({
       {/* Back Button */}
       < div >
         <button
-          onClick={() => navigate('/farmer/operations/new')}
+          onClick={() => navigate(`${basePath}/operations/new`)}
           className="flex items-center gap-2 rounded-md border border-gray-200 bg-white px-4 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
         >
           <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

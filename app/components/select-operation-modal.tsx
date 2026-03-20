@@ -39,9 +39,10 @@ interface SelectOperationModalProps {
   isOpen: boolean
   onClose: () => void
   cropCycle: CropCycle | null
+  basePath?: string
 }
 
-export function SelectOperationModal({ isOpen, onClose, cropCycle }: SelectOperationModalProps) {
+export function SelectOperationModal({ isOpen, onClose, cropCycle, basePath = '/farmer/operations/new' }: SelectOperationModalProps) {
   const navigate = useNavigate()
 
   if (!isOpen || !cropCycle) return null
@@ -135,7 +136,7 @@ export function SelectOperationModal({ isOpen, onClose, cropCycle }: SelectOpera
       <button
         onClick={() => {
           onClose()
-          navigate(`/farmer/operations/new/${cropCycle!.id}/${op.id}`)
+          navigate(`${basePath}/${cropCycle!.id}/${op.id}`)
         }}
         className="group flex items-start gap-3 rounded-md border border-gray-200 p-4 text-left transition-all hover:border-brand-light hover:shadow-sm"
       >

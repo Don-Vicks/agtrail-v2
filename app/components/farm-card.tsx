@@ -5,9 +5,10 @@ interface FarmCardProps {
   farm: Farm
   action?: 'view' | 'start-cycle'
   onAction?: (farmId: string) => void
+  basePath?: string
 }
 
-export function FarmCard({ farm, action = 'view', onAction }: FarmCardProps) {
+export function FarmCard({ farm, action = 'view', onAction, basePath = '/farmer/farms' }: FarmCardProps) {
   return (
     <div className="rounded-md border border-gray-200 bg-white p-5 flex flex-col gap-3">
       {/* Header */}
@@ -44,7 +45,7 @@ export function FarmCard({ farm, action = 'view', onAction }: FarmCardProps) {
       {/* Action Button */}
       {action === 'view' ? (
         <Link
-          to={`/farmer/farms/${farm.id}`}
+          to={`${basePath}/${farm.id}`}
           className="mt-auto flex items-center justify-center rounded-md border border-brand px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
         >
           View Farm

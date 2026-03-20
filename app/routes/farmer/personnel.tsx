@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useLocation } from 'react-router'
 import { Breadcrumb } from '~/components/breadcrumb'
 import { PersonField } from '~/components/person-field'
 import { Badge } from '~/components/ui/badge'
@@ -62,6 +63,12 @@ export function meta() {
 export default function FarmerPersonnel() {
   const [search, setSearch] = useState('')
   const [newPerson, setNewPerson] = useState('')
+  const location = useLocation()
+  const basePath = location.pathname.startsWith('/processor') 
+    ? '/processor' 
+    : location.pathname.startsWith('/cooperative') 
+      ? '/cooperative' 
+      : '/farmer'
 
   const filtered = useMemo(() => {
     return mockPersonnel.filter((p) =>
@@ -74,7 +81,7 @@ export default function FarmerPersonnel() {
     <div className="space-y-6 pb-10">
       <Breadcrumb
         items={[
-          { label: 'Dashboard', href: '/farmer' },
+          { label: 'Dashboard', href: basePath },
           { label: 'Personnel' },
         ]}
       />

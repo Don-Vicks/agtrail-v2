@@ -10,6 +10,8 @@ export const processorRoutes: RouteConfig[] = [
   layout('routes/processor/layout.tsx', [
     ...prefix('processor', [
       index('routes/processor/dashboard.tsx'),
+      route('inventory', 'routes/farmer/inventory.tsx', { id: 'processor-inventory' }),
+      route('personnel', 'routes/farmer/personnel.tsx', { id: 'processor-personnel' }),
       route('batches', 'routes/processor/batches.tsx'),
       route('batches/new', 'routes/processor/batches/new.tsx'),
       route('materials', 'routes/processor/materials.tsx'),
