@@ -1,99 +1,194 @@
-import { useState } from 'react';
-import { PageHeader } from '~/components/page-header';
+import { useState, useCallback } from 'react'
+import { PageHeader } from '~/components/page-header'
+import { CERTIFICATION_TYPES } from '~/lib/data/certification-types'
+import { DatePicker } from '~/components/ui/date-picker'
 
 // ─── Mock Data ───
 const mockProcessorCerts = [
-  { id: '1', name: 'rainforest', desc: 'sdsd', type: 'System Certification', expires: 'Feb 25, 2026', status: 'active' },
-  { id: '2', name: 'global_gap', desc: 'w', type: 'Safety Certification', expires: 'Feb 24, 2026', status: 'active' },
-  { id: '3', name: 'ISO-233-2323', desc: 'Food Safety Certification', type: 'SON Nigeria', expires: 'Dec 12, 2026', status: 'active' },
+  { id: '1', name: 'Rainforest Alliance', desc: 'Sustainable agriculture certification', type: 'System Certification', expires: 'Feb 25, 2026', status: 'active' },
+  { id: '2', name: 'GLOBALG.A.P.', desc: 'Good Agricultural Practices', type: 'Safety Certification', expires: 'Feb 24, 2026', status: 'active' },
+  { id: '3', name: 'ISO 22000:2018', desc: 'Food Safety Management', type: 'SON Nigeria', expires: 'Dec 12, 2026', status: 'active' },
 ]
+
+/* ─── Icons ─── */
+function SearchIcon() {
+  return (
+    <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <circle cx="11" cy="11" r="8" />
+      <line x1="21" y1="21" x2="16.65" y2="16.65" />
+    </svg>
+  )
+}
+
+function SortIcon() {
+  return (
+    <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path d="M8 6l4-4 4 4M8 18l4 4 4-4" />
+      <line x1="12" y1="2" x2="12" y2="22" />
+    </svg>
+  )
+}
+
+function ChevronDown() {
+  return (
+    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+      <svg className="size-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+        <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+      </svg>
+    </div>
+  )
+}
+
+function CloseIcon() {
+  return (
+    <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <line x1="18" y1="6" x2="6" y2="18" />
+      <line x1="6" y1="6" x2="18" y2="18" />
+    </svg>
+  )
+}
+
+function CertBadgeIcon() {
+  return (
+    <svg className="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
+      <polyline points="22 4 12 14.01 9 11.01" />
+    </svg>
+  )
+}
+
+function ProcessorIcon() {
+  return (
+    <svg className="size-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15" />
+    </svg>
+  )
+}
+
 function AddCertModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+  const [dragOver, setDragOver] = useState(false)
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null)
+  const [dateIssued, setDateIssued] = useState('')
+  const [dateExpiry, setDateExpiry] = useState('')
+
+  const handleFileDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    setDragOver(false)
+    const file = e.dataTransfer.files[0]
+    if (file) setUploadedFile(file)
+  }, [])
+
+  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) setUploadedFile(file)
+  }, [])
+
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
-        onClick={onClose}
-      />
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
 
-      {/* Modal Box */}
-      <div className="relative z-10 w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl">
-        <div className="flex items-start justify-between mb-6">
-          <div>
-            <h2 className="text-xl font-bold text-gray-900">Add Certification</h2>
-            <p className="text-sm text-gray-500 mt-1">Upload a new facility or processing certification</p>
-          </div>
-          <button onClick={onClose} className="rounded-full p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors">
-            <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-          </button>
-        </div>
-
-        <div className="space-y-4">
-          <div>
-            <label className="mb-1.5 block text-sm font-semibold text-gray-900">Certification Type <span className="text-brand">*</span></label>
-            <div className="relative">
-              <select className="w-full appearance-none rounded-md border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand">
-                <option>Select type</option>
-              </select>
-              <svg className="absolute right-3 top-1/2 size-4 -translate-y-1/2 text-gray-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-            </div>
-          </div>
-
-          <div>
-            <label className="mb-1.5 block text-sm font-semibold text-gray-900">Certification Name <span className="text-brand">*</span></label>
-            <input type="text" placeholder="e.g., ISO 22000:2018" className="w-full rounded-md border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand" />
-          </div>
-
-          <div>
-            <label className="mb-1.5 block text-sm font-semibold text-gray-900">Issuing Organization <span className="text-brand">*</span></label>
-            <input type="text" placeholder="e.g., Bureau Veritas" className="w-full rounded-md border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand" />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
+      <div className="relative z-10 w-full max-w-lg overflow-hidden rounded-xl bg-white shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+        <div className="border-b border-gray-100 px-6 py-4">
+          <div className="flex items-start justify-between">
             <div>
-              <label className="mb-1.5 block text-sm font-semibold text-gray-900">Issue Date</label>
-              <div className="relative">
-                <svg className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" /></svg>
-                <input type="text" placeholder="Pick date" className="w-full rounded-md border border-gray-200 py-2.5 pl-9 pr-3 text-sm text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand" />
-              </div>
+              <h2 className="text-xl font-bold text-brand uppercase tracking-tight">Add Certification</h2>
+              <p className="mt-0.5 text-xs font-medium text-gray-500">Upload a new facility or processing certification.</p>
             </div>
-            <div>
-              <label className="mb-1.5 block text-sm font-semibold text-gray-900">Expiry Date</label>
-              <div className="relative">
-                <svg className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" /></svg>
-                <input type="text" placeholder="Pick date" className="w-full rounded-md border border-gray-200 py-2.5 pl-9 pr-3 text-sm text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand" />
-              </div>
-            </div>
-          </div>
-
-          <div className="pt-2">
-            <span className="text-sm font-semibold text-gray-900 mb-2 block">Certificate Document</span>
-            <div className="rounded-xl border border-dashed border-gray-300 bg-white p-6 text-center transition-colors hover:bg-gray-50 flex flex-col items-center justify-center">
-              <div className="flex items-center gap-3">
-                <div className="flex size-10 items-center justify-center rounded-full bg-green-50 text-[#1b4332]">
-                  <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                  </svg>
-                </div>
-                <div className="text-left flex items-center gap-2">
-                  <span className="text-sm font-bold text-gray-900">Choose File</span>
-                  <span className="text-sm text-gray-500">No file chosen</span>
-                </div>
-              </div>
-            </div>
-            <p className="mt-2 text-xs text-gray-500">PDF, JPG, or PNG (max 10MB)</p>
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
+            >
+              <CloseIcon />
+            </button>
           </div>
         </div>
 
-        <div className="mt-8 flex items-center justify-end gap-3 border-t border-gray-100 pt-5">
-          <button onClick={onClose} className="rounded-md px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100 transition-colors">
-            Cancel
-          </button>
-          <button onClick={onClose} className="rounded-md bg-[#1b4332] px-6 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#0f2e20] transition-colors">
-            Upload Certification
-          </button>
+        <div className="p-6 space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold uppercase tracking-wider text-gray-700">Certification Type <span className="text-red-500">*</span></label>
+              <div className="relative">
+                <select className="h-10 w-full appearance-none rounded-md border border-gray-200 bg-white px-3 text-sm font-bold text-gray-900 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all">
+                  <option value="">Select type</option>
+                  {CERTIFICATION_TYPES.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                </select>
+                <ChevronDown />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold uppercase tracking-wider text-gray-700">Certification Name <span className="text-red-500">*</span></label>
+              <input type="text" placeholder="e.g., ISO 22000:2018" className="h-10 w-full rounded-md border border-gray-200 bg-white px-3 text-sm font-bold text-gray-900 placeholder:text-gray-300 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all" />
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="block text-xs font-bold uppercase tracking-wider text-gray-700">Issuing Organization <span className="text-red-500">*</span></label>
+            <input type="text" placeholder="e.g., Bureau Veritas" className="h-10 w-full rounded-md border border-gray-200 bg-white px-3 text-sm font-bold text-gray-900 placeholder:text-gray-300 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all" />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold uppercase tracking-wider text-gray-700">Issue Date</label>
+              <DatePicker
+                value={dateIssued}
+                onChange={setDateIssued}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold uppercase tracking-wider text-gray-700">Expiry Date</label>
+              <DatePicker
+                value={dateExpiry}
+                onChange={setDateExpiry}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="block text-xs font-bold uppercase tracking-wider text-gray-700">Certificate Document<span className="text-red-500">*</span></label>
+            <div
+              className={`flex flex-col items-center justify-center rounded-xl border-2 border-dashed px-4 py-8 transition-all cursor-pointer ${dragOver ? 'border-brand bg-brand/5 scale-[1.01]' : 'border-gray-200 bg-gray-50/50 hover:border-gray-300 hover:bg-white'}`}
+              onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
+              onDragLeave={() => setDragOver(false)}
+              onDrop={handleFileDrop}
+            >
+              {uploadedFile ? (
+                <div className="flex flex-col items-center gap-3">
+                  <div className="rounded-full bg-green-100 p-2.5">
+                    <svg className="size-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                    </svg>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm font-bold text-gray-900">
+                    <span>{uploadedFile.name}</span>
+                    <button type="button" onClick={(e) => { e.stopPropagation(); setUploadedFile(null) }} className="text-gray-400 hover:text-red-500 transition-colors">
+                      <CloseIcon />
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <label className="flex w-full cursor-pointer flex-col items-center gap-3">
+                  <div className="rounded-full bg-white p-3 shadow-sm border border-gray-100">
+                    <svg className="size-6 text-brand" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                    </svg>
+                  </div>
+                  <div className="text-center">
+                    <span className="text-sm font-bold text-gray-900">Click to upload or drag and drop</span>
+                    <p className="text-[10px] font-medium text-gray-400 mt-0.5 uppercase tracking-widest">Max file size: 10MB (PDF, JPG, PNG)</p>
+                  </div>
+                  <input type="file" className="hidden" accept=".pdf,.jpg,.jpeg,.png" onChange={handleFileSelect} />
+                </label>
+              )}
+            </div>
+          </div>
+
+          <div className="flex items-center justify-end gap-3 border-t border-gray-100 pt-5">
+            <button onClick={onClose} className="h-11 px-6 text-sm font-bold text-gray-500 hover:bg-gray-50 rounded-md transition-colors">Cancel</button>
+            <button onClick={onClose} className="h-11 px-8 rounded-md bg-[#1b4332] text-sm font-bold text-white shadow-lg shadow-brand/10 transition-all hover:bg-brand-dark hover:-translate-y-0.5">Upload Certification</button>
+          </div>
         </div>
       </div>
     </div>
@@ -104,7 +199,7 @@ export default function ProcessorCertifications() {
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   return (
-    <div className="pb-10">
+    <div className="space-y-6 pb-10">
       <PageHeader
         items={[
           {
@@ -121,92 +216,79 @@ export default function ProcessorCertifications() {
         ]}
       />
 
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pt-2">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-brand">Processor Certifications</h1>
-          <p className="text-sm text-gray-500 mt-1">Manage your facility and processing certifications</p>
+          <h1 className="text-2xl font-bold text-brand uppercase tracking-tight">Processor Certifications</h1>
+          <p className="text-sm text-gray-500 mt-1 font-medium">Manage your facility and processing certifications</p>
         </div>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-[#1b4332] px-5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-dark"
+          className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-[#1b4332] px-6 text-sm font-bold text-white shadow-lg shadow-brand/10 hover:bg-brand-dark transition-all hover:-translate-y-0.5 active:translate-y-0"
         >
-          <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-          </svg>
+          <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
           Add Certification
         </button>
       </div>
 
-      {/* Filter Toolbar */}
-      <div className="flex flex-col sm:flex-row gap-3 mb-6">
-        <div className="flex-1 relative">
+      <div className="flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between">
+        <div className="relative w-full sm:max-w-xs">
           <input
             type="text"
             placeholder="Search certifications..."
-            className="w-full rounded-md border border-gray-200 px-4 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand shadow-sm"
+            className="h-10 w-full rounded-md border border-gray-200 bg-white px-3 text-sm font-medium placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all shadow-sm"
           />
         </div>
-        <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 rounded-md border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50">
-            <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+        <div className="flex flex-wrap items-center gap-3">
+          <button className="flex h-10 items-center justify-center gap-2 rounded-md border border-gray-200 bg-white px-4 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-colors shadow-sm">
+            <SearchIcon />
             Search
           </button>
-
           <div className="relative">
-            <select className="w-[160px] appearance-none rounded-md border border-gray-200 bg-white px-9 py-2.5 text-sm font-medium text-gray-700 shadow-sm focus:border-brand outline-none hover:bg-gray-50">
+            <select className="h-10 appearance-none rounded-md border border-gray-200 bg-white pl-4 pr-10 text-sm font-bold text-gray-900 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all font-bold">
               <option>All Types</option>
             </select>
-            <svg className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" /></svg>
-            <svg className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-gray-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+            <ChevronDown />
           </div>
-
           <div className="relative">
-            <select className="w-[160px] appearance-none rounded-md border border-gray-200 bg-white px-9 py-2.5 text-sm font-medium text-gray-700 shadow-sm focus:border-brand outline-none hover:bg-gray-50">
+            <select className="h-10 appearance-none rounded-md border border-gray-200 bg-white pl-4 pr-10 text-sm font-bold text-gray-900 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all font-bold">
               <option>All Statuses</option>
             </select>
-            <svg className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" /></svg>
-            <svg className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-gray-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+            <ChevronDown />
           </div>
         </div>
       </div>
 
-      {/* Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {mockProcessorCerts.map(cert => (
-          <div key={cert.id} className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm flex flex-col hover:shadow-md transition-shadow">
-            <div className="flex justify-between items-start mb-4">
-              <div className="flex size-10 items-center justify-center rounded-lg bg-[#f1f8e9] text-brand">
-                <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+          <div key={cert.id} className="group flex flex-col rounded-xl border border-gray-100 bg-white p-6 shadow-sm hover:shadow-md transition-all duration-200">
+            <div className="mb-5 flex items-start justify-between">
+              <div className="flex size-14 items-center justify-center rounded-lg bg-brand shadow-lg shadow-brand/10">
+                <ProcessorIcon />
               </div>
-              <span className="bg-[#e8f5e9] text-[#2e7d32] border border-[#c8e6c9] px-2.5 py-0.5 text-[11px] font-bold lowercase tracking-wide rounded-full">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-green-200 bg-green-50 px-2.5 py-1 text-[11px] font-bold text-green-700 uppercase tracking-wide">
+                <CertBadgeIcon />
                 {cert.status}
               </span>
             </div>
 
-            <h3 className="text-base font-bold text-gray-900 mb-2 truncate">{cert.name}</h3>
-
-            <div className="text-sm text-gray-500 mb-4 flex items-start gap-2 h-10">
-              <svg className="size-4 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
-              <span className="line-clamp-2">{cert.desc}</span>
+            <div className="flex-1 space-y-2">
+              <h3 className="line-clamp-1 text-xl font-bold text-gray-900 leading-none group-hover:text-brand transition-colors lowercase first-letter:uppercase">
+                {cert.name}
+              </h3>
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">{cert.type}</p>
+              <div className="flex items-start gap-2 text-sm text-gray-500 font-medium h-10 mt-1">
+                <svg className="size-4 shrink-0 mt-0.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+                <span className="line-clamp-2">{cert.desc}</span>
+              </div>
             </div>
 
-            {cert.expires && (
-              <div className="text-sm text-gray-500 mb-6 flex items-center gap-2">
-                <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                Expires: {cert.expires}
-              </div>
-            )}
-            {!cert.expires && (
-              <div className="text-sm text-gray-500 mb-6 flex items-center gap-2">
-                <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
-                {cert.type}
-              </div>
-            )}
-
-            <div className="mt-auto">
-              <button className="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 shadow-sm transition-colors hover:bg-gray-50 hover:text-gray-900">
-                <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+            <div className="mt-6 flex flex-col gap-4">
+               <div className="flex items-center gap-2 text-xs font-bold text-gray-900 border-t border-gray-50 pt-4">
+                  <svg className="size-4 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  Expires: {cert.expires}
+               </div>
+              <button className="flex h-11 w-full items-center justify-center gap-2 rounded-md border border-gray-200 bg-white text-sm font-bold text-gray-700 transition-all hover:bg-brand hover:text-white hover:border-brand shadow-sm">
+                <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                 View Document
               </button>
             </div>
@@ -214,25 +296,24 @@ export default function ProcessorCertifications() {
         ))}
       </div>
 
-      {/* Pagination Footer */}
-      <div className="border-t border-gray-100 pt-6 mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-semibold text-gray-500">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 border-t border-gray-100 mt-2 text-xs font-medium text-gray-500">
         <span>3 certification(s) total</span>
-        <div className="flex items-center gap-4">
-          <span className="flex items-center gap-2">
-            Rows per page
-            <div className="relative">
-              <select className="appearance-none border border-gray-200 rounded py-1 pl-3 pr-7 bg-white outline-none focus:border-brand shadow-sm hover:bg-gray-50">
-                <option>10</option>
-              </select>
-              <svg className="absolute right-2 top-1/2 -translate-y-1/2 size-3 text-gray-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-            </div>
-          </span>
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-3">
+             <span>Rows per page</span>
+             <div className="relative">
+               <select className="h-8 appearance-none rounded-md border border-gray-200 bg-white pl-3 pr-8 font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all font-bold outline-none">
+                 <option>10</option>
+               </select>
+               <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                 <svg className="size-3 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
+               </div>
+             </div>
+          </div>
           <span>Page 1 of 1</span>
           <div className="flex items-center gap-1">
-            <button className="p-1 border border-gray-200 rounded text-gray-400 hover:text-gray-800 bg-white shadow-sm"><svg className="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" /></svg></button>
-            <button className="p-1 border border-gray-200 rounded text-gray-400 hover:text-gray-800 bg-white shadow-sm"><svg className="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg></button>
-            <button className="p-1 border border-gray-200 rounded text-gray-400 hover:text-gray-800 bg-white shadow-sm"><svg className="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg></button>
-            <button className="p-1 border border-gray-200 rounded text-gray-400 hover:text-gray-800 bg-white shadow-sm"><svg className="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7m-8-14l7 7-7 7" /></svg></button>
+             <button className="size-7 flex items-center justify-center rounded border border-gray-200 bg-white text-gray-400 disabled:opacity-50 hover:bg-gray-50 transition-colors"><svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><polyline points="15 18 9 12 15 6" /></svg></button>
+             <button className="size-7 flex items-center justify-center rounded border border-gray-200 bg-white text-gray-400 disabled:opacity-50 hover:bg-gray-50 transition-colors"><svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><polyline points="9 18 15 12 9 6" /></svg></button>
           </div>
         </div>
       </div>

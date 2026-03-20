@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from 'react'
-import { Breadcrumb } from '~/components/breadcrumb'
+import { PageHeader } from '~/components/page-header'
 import { CERTIFICATION_TYPES } from '~/lib/data/certification-types'
+import { DatePicker } from '~/components/ui/date-picker'
 import { farms, products } from '~/lib/mock-data/farmer'
 import type { Route } from './+types/farm-certification'
 
@@ -40,17 +41,6 @@ function ChevronDown() {
   )
 }
 
-/* ─── Additional Icons ─── */
-function UploadIcon() {
-  return (
-    <svg className="size-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
-      <polyline points="17 8 12 3 7 8" />
-      <line x1="12" y1="3" x2="12" y2="15" />
-    </svg>
-  )
-}
-
 function CloseIcon() {
   return (
     <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -71,14 +61,13 @@ function CertBadgeIcon() {
 
 function HomeIcon() {
   return (
-    <svg className="size-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-      <polyline points="9 22 9 12 15 12 15 22" />
+    <svg className="size-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
     </svg>
   )
 }
 
-const ITEMS_PER_PAGE = 6
+const ITEMS_PER_PAGE = 10
 
 /* ─── Page Component ─── */
 export default function FarmCertificationPage() {
@@ -115,7 +104,8 @@ export default function FarmCertificationPage() {
   }, [searchQuery, ownerFilter])
 
   // Pagination
-  const totalPages = Math.max(1, Math.ceil(filteredFarms.length / ITEMS_PER_PAGE))
+  const totalItems = filteredFarms.length
+  const totalPages = Math.max(1, Math.ceil(totalItems / ITEMS_PER_PAGE))
   const paginatedFarms = useMemo(() => {
     const start = (currentPage - 1) * ITEMS_PER_PAGE
     return filteredFarms.slice(start, start + ITEMS_PER_PAGE)
@@ -149,39 +139,33 @@ export default function FarmCertificationPage() {
   }, [])
 
   return (
-    <div>
-      {/* Breadcrumb */}
-      <div className="mb-4">
-        <Breadcrumb
-          items={[
-            {
-              label: 'Dashboard',
-              href: '/farmer',
-              icon: (
-                <svg className="size-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                  <line x1="9" y1="3" x2="9" y2="21" />
-                </svg>
-              ),
-            },
-            { label: 'Farm Certification' },
-          ]}
-        />
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        items={[
+          {
+            label: 'Dashboard',
+            href: '/farmer',
+            icon: (
+              <svg className="size-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                <line x1="9" y1="3" x2="9" y2="21" />
+              </svg>
+            ),
+          },
+          { label: 'Farm Certification' },
+        ]}
+      />
 
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-brand">Certificate Upload</h1>
+      <div>
+        <h1 className="text-2xl font-bold text-brand uppercase tracking-tight">Certificate Upload</h1>
         <p className="mt-1 text-sm text-gray-500">Upload Certificate for farm</p>
       </div>
 
       {/* Toolbar */}
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         {/* Search input */}
-        <div className="relative flex flex-1 items-center max-w-sm">
-          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
-            <SearchIcon />
-          </div>
+        <div className="relative w-full sm:max-w-xs">
           <input
             type="text"
             placeholder="Search Farm..."
@@ -190,22 +174,16 @@ export default function FarmCertificationPage() {
               setSearchQuery(e.target.value)
               setCurrentPage(1)
             }}
-            className="h-10 w-full rounded-lg border border-gray-300 bg-white pl-10 pr-3 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+            className="h-10 w-full rounded-md border border-gray-200 bg-white px-3 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all font-bold"
           />
         </div>
 
-        <div className="flex items-center gap-3">
-          <button className="flex h-10 items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700 hover:bg-gray-50">
+        <div className="flex flex-wrap items-center gap-3">
+          <button className="flex h-10 items-center justify-center gap-2 rounded-md border border-gray-200 bg-white px-4 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors shadow-sm font-bold">
             <SearchIcon />
             Search
           </button>
 
-          {/* Settings/Sort button */}
-          <button className="flex h-10 size-10 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-600 hover:bg-gray-50">
-            <SortIcon />
-          </button>
-
-          {/* Owner Filter */}
           <div className="relative">
             <select
               value={ownerFilter}
@@ -213,7 +191,7 @@ export default function FarmCertificationPage() {
                 setOwnerFilter(e.target.value)
                 setCurrentPage(1)
               }}
-              className="h-10 appearance-none rounded-lg border border-gray-300 bg-white pl-4 pr-10 text-sm font-medium text-gray-700 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+              className="h-10 appearance-none rounded-md border border-gray-200 bg-white pl-4 pr-10 text-sm font-bold text-gray-900 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all"
             >
               <option value="">All Owners</option>
               {owners.map((ow) => (
@@ -228,59 +206,51 @@ export default function FarmCertificationPage() {
       {/* Farm Grid */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         {paginatedFarms.map((farm) => {
-          // Compute crops cultivated dynamically mapping from product mock data
-          const relatedProducts = products.filter(p => p.farm === farm.name)
-          const cropsCultivatedCount = relatedProducts.length
-
-          // Mocking certifications based on the mock data
-          const certificationsUploaded = Math.floor(farm.hectares % 2) // Just a visual mock like the screenshot 0s and 1s
+          const cropsCultivatedCount = products.filter(p => p.farm === farm.name).length
+          const certsCount = Math.floor(farm.hectares % 2)
 
           return (
             <div
               key={farm.id}
-              className="group flex flex-col rounded-xl border border-gray-200 bg-white p-5 transition-all hover:border-brand/30 hover:shadow-lg hover:shadow-brand/5"
+              className="group flex flex-col rounded-xl border border-gray-100 bg-white p-6 shadow-sm hover:shadow-md transition-all duration-200"
             >
-              {/* Header: Icon & Hectares */}
-              <div className="mb-4 flex items-start justify-between">
-                <div className="flex size-14 items-center justify-center rounded-lg bg-brand">
+              <div className="mb-5 flex items-start justify-between">
+                <div className="flex size-14 items-center justify-center rounded-lg bg-brand shadow-lg shadow-brand/10">
                   <HomeIcon />
                 </div>
-                <div className="flex flex-col items-end">
-                  <span className="text-sm font-bold text-orange-500">
-                    {farm.hectares.toFixed(1)} Hectares
-                  </span>
-                </div>
+                <span className="text-xs font-bold text-orange-600 uppercase tracking-widest">
+                  {farm.hectares.toFixed(1)} Hectares
+                </span>
               </div>
 
-              {/* Farm Title & Location */}
-              <div className="mb-4 space-y-1">
-                <h3 className="line-clamp-1 text-xl font-bold text-gray-900 group-hover:text-brand">
+              <div className="flex-1 space-y-1.5">
+                <h3 className="line-clamp-1 text-xl font-bold text-gray-900 leading-none group-hover:text-brand transition-colors">
                   {farm.name}
                 </h3>
-                <div className="flex items-center gap-1 text-sm text-gray-600">
-                  <p className="line-clamp-1 truncate">{farm.location || 'Location Not Specified'}</p>
-                  <svg className="size-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <line x1="5" y1="12" x2="19" y2="12" />
-                    <polyline points="12 5 19 12 12 19" />
+                 <button
+                  type="button"
+                  className="flex items-center gap-1.5 text-xs font-bold text-gray-900 hover:text-brand transition-colors text-left"
+                >
+                  {farm.location || 'Location Not Specified'}
+                  <svg className="size-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                   </svg>
-                </div>
+                </button>
               </div>
 
-              {/* Stats & Badge */}
-              <div className="mb-6 space-y-3">
-                <p className="text-sm text-gray-600">
+              <div className="mt-6 flex flex-col gap-3">
+                <p className="text-xs font-bold text-gray-900 uppercase tracking-wider">
                   {cropsCultivatedCount} Crops Cultivated
                 </p>
-                <div className="inline-flex items-center gap-1.5 rounded-full bg-green-50 px-2.5 py-1 text-xs font-semibold text-brand ring-1 ring-inset ring-brand/20">
+                <div className="inline-flex max-w-fit items-center gap-1.5 rounded-full border border-green-200 bg-green-50 px-2.5 py-1 text-[11px] font-bold text-green-700">
                   <CertBadgeIcon />
-                  {certificationsUploaded} Certificates Uploaded
+                  {certsCount} Certificates Uploaded
                 </div>
               </div>
 
-              {/* Upload Button */}
               <button
-                onClick={() => openModal(farm.id)}
-                className="mt-auto w-full rounded-lg border border-brand/40 bg-white py-2.5 text-sm font-semibold text-brand transition-colors hover:bg-brand hover:text-white"
+                 onClick={() => openModal(farm.id)}
+                 className="mt-8 flex h-11 w-full items-center justify-center rounded-md border border-gray-200 bg-white py-2.5 text-sm font-bold text-brand transition-all hover:bg-brand hover:text-white hover:border-brand shadow-sm shadow-gray-100"
               >
                 Upload Certificate
               </button>
@@ -289,203 +259,171 @@ export default function FarmCertificationPage() {
         })}
       </div>
 
-      {filteredFarms.length === 0 && (
-        <div className="py-20 text-center">
-          <p className="text-gray-500">No farms matched your search.</p>
-        </div>
-      )}
+       {/* Pagination Footer */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 border-t border-gray-100 mt-2">
+        <p className="text-xs font-medium text-gray-500">
+          Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1} to {Math.min(currentPage * ITEMS_PER_PAGE, totalItems)} of {totalItems} row(s) selected.
+        </p>
+        
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-3">
+             <span className="text-xs font-medium text-gray-500">Rows per page</span>
+             <div className="relative">
+               <select className="h-8 appearance-none rounded-md border border-gray-200 bg-white pl-3 pr-8 text-xs font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all font-bold">
+                 <option>10</option>
+                 <option>20</option>
+               </select>
+               <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                 <svg className="size-3 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
+               </div>
+             </div>
+          </div>
 
-      {/* Pagination Footer */}
-      {totalPages > 1 && (
-        <div className="mt-8 flex items-center justify-between border-t border-gray-100 pt-6">
-          <p className="text-sm text-gray-600">
-            {((currentPage - 1) * ITEMS_PER_PAGE) + 1}-{Math.min(currentPage * ITEMS_PER_PAGE, filteredFarms.length)} of {filteredFarms.length} item(s) selected.
-          </p>
-
-          <div className="flex items-center gap-4 text-sm">
-            <div className="flex items-center gap-2">
-              <span className="text-gray-600">Rows per page</span>
-              <div className="relative">
-                <select className="h-8 appearance-none rounded-md border border-gray-200 bg-white px-2 py-1 pr-6 focus:border-brand focus:outline-none">
-                  <option>6</option>
-                  <option>12</option>
-                </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                  <svg className="size-3 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                  </svg>
-                </div>
-              </div>
-            </div>
-
-            <span className="text-gray-600">Page {currentPage} of {totalPages}</span>
-
+          <div className="flex items-center gap-4">
+            <span className="text-xs font-medium text-gray-900">Page {currentPage} of {totalPages}</span>
             <div className="flex items-center gap-1">
               <button
-                type="button"
                 disabled={currentPage === 1}
-                onClick={() => setCurrentPage((p) => p - 1)}
-                className="flex size-8 items-center justify-center rounded-md border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-40"
+                onClick={() => setCurrentPage(p => p - 1)}
+                className="flex size-7 items-center justify-center rounded border border-gray-200 bg-white text-gray-400 hover:bg-gray-50 disabled:opacity-50 transition-colors"
               >
-                <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <polyline points="15 18 9 12 15 6" />
-                </svg>
+                <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><polyline points="15 18 9 12 15 6" /></svg>
               </button>
               <button
-                type="button"
                 disabled={currentPage === totalPages}
-                onClick={() => setCurrentPage((p) => p + 1)}
-                className="flex size-8 items-center justify-center rounded-md border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-40"
+                onClick={() => setCurrentPage(p => p + 1)}
+                className="flex size-7 items-center justify-center rounded border border-gray-200 bg-white text-gray-400 hover:bg-gray-50 disabled:opacity-50 transition-colors"
               >
-                <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <polyline points="9 18 15 12 9 6" />
-                </svg>
+                <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><polyline points="9 18 15 12 9 6" /></svg>
               </button>
             </div>
           </div>
         </div>
-      )}
+      </div>
 
-      {/* ═══════════════════════════════════════════
-          Certificate Upload Modal
-          ═══════════════════════════════════════════ */}
+      {/* Certificate Upload Modal */}
       {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/40" onClick={closeModal} />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={closeModal} />
 
-          <div className="relative z-10 w-full max-w-lg rounded-xl bg-white p-6 shadow-xl">
+          <div className="relative z-10 w-full max-w-lg overflow-hidden rounded-xl bg-white shadow-2xl animate-in fade-in zoom-in-95 duration-200">
             {/* Header */}
-            <div className="mb-5 flex items-start justify-between">
-              <div>
-                <h2 className="text-xl font-bold text-gray-900">Certificate Upload</h2>
-                <p className="mt-0.5 text-sm text-gray-500">Upload your farm certificate.</p>
+            <div className="border-b border-gray-100 px-6 py-4">
+               <div className="flex items-start justify-between">
+                <div>
+              <h2 className="text-xl font-bold text-brand uppercase tracking-tight">Add Certification</h2>
+              <p className="mt-0.5 text-xs font-medium text-gray-500">Upload a new farm certification.</p>
+            </div>
+                <button
+                  type="button"
+                  onClick={closeModal}
+                  className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
+                >
+                  <CloseIcon />
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={closeModal}
-                className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
-              >
-                <CloseIcon />
-              </button>
             </div>
 
-            {/* Form */}
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+            {/* Form Body */}
+            <div className="p-6 space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold uppercase tracking-wider text-gray-700">Certification Type <span className="text-red-500">*</span></label>
+              <div className="relative">
+                <select
+                  id="cert-type"
+                  value={certType}
+                  onChange={(e) => setCertType(e.target.value)}
+                  className="h-10 w-full appearance-none rounded-md border border-gray-200 bg-white px-3 text-sm font-bold text-gray-900 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all font-bold"
+                >
+                  <option value="">Select type</option>
+                  {CERTIFICATION_TYPES.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                </select>
+                <ChevronDown />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold uppercase tracking-wider text-gray-700">Certification Name <span className="text-red-500">*</span></label>
+              <input type="text" placeholder="e.g., GLOBALG.A.P." className="h-10 w-full rounded-md border border-gray-200 bg-white px-3 text-sm font-bold text-gray-900 placeholder:text-gray-300 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all font-bold" />
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="block text-xs font-bold uppercase tracking-wider text-gray-700">Issuing Organization <span className="text-red-500">*</span></label>
+            <input
+              id="cert-org"
+              type="text"
+              placeholder="e.g., Bureau Veritas"
+              value={certOrg}
+              onChange={(e) => setCertOrg(e.target.value)}
+              className="h-10 w-full rounded-md border border-gray-200 bg-white px-3 text-sm font-bold text-gray-900 placeholder:text-gray-300 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all font-bold"
+            />
+          </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div className="space-y-1.5">
-                  <label htmlFor="cert-type" className="block text-sm font-semibold text-gray-900">
-                    Certification Type
+                  <label htmlFor="date-issued" className="block text-xs font-bold uppercase tracking-wider text-gray-700">
+                    Date Issued
                   </label>
-                  <div className="relative">
-                    <select
-                      id="cert-type"
-                      value={certType}
-                      onChange={(e) => setCertType(e.target.value)}
-                      className="h-10 w-full appearance-none rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
-                    >
-                      <option value="">Select a Certification Type</option>
-                      {CERTIFICATION_TYPES.map((t) => (
-                        <option key={t.id} value={t.id}>{t.name}</option>
-                      ))}
-                    </select>
-                    <ChevronDown />
-                  </div>
+                  <DatePicker
+                    value={dateIssued}
+                    onChange={setDateIssued}
+                  />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label htmlFor="cert-org" className="block text-sm font-semibold text-gray-900">
-                    Certification Organisation
+                  <label htmlFor="date-expiry" className="block text-xs font-bold uppercase tracking-wider text-gray-700">
+                    Date Expiry
                   </label>
-                  <input
-                    id="cert-org"
-                    type="text"
-                    placeholder="e.g. Ekirin"
-                    value={certOrg}
-                    onChange={(e) => setCertOrg(e.target.value)}
-                    className="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+                  <DatePicker
+                    value={dateExpiry}
+                    onChange={setDateExpiry}
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label htmlFor="date-issued" className="block text-sm font-semibold text-gray-900">
-                    Date Issued
-                  </label>
-                  <div className="relative">
-                    <input
-                      id="date-issued"
-                      type="date"
-                      value={dateIssued}
-                      onClick={(e) => {
-                        try {
-                          e.currentTarget.showPicker()
-                        } catch (err) {
-                          // Ignore browsers that don't support showPicker
-                        }
-                      }}
-                      onChange={(e) => setDateIssued(e.target.value)}
-                      className="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label htmlFor="date-expiry" className="block text-sm font-semibold text-gray-900">
-                    Date Expiry
-                  </label>
-                  <div className="relative">
-                    <input
-                      id="date-expiry"
-                      type="date"
-                      value={dateExpiry}
-                      onClick={(e) => {
-                        try {
-                          e.currentTarget.showPicker()
-                        } catch (err) {
-                          // Ignore browsers that don't support showPicker
-                        }
-                      }}
-                      onChange={(e) => setDateExpiry(e.target.value)}
-                      className="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="block text-sm font-semibold text-gray-900">
+              <div className="space-y-2">
+                <label className="block text-xs font-bold uppercase tracking-wider text-gray-700">
                   Upload Document<span className="text-red-500">*</span>
                 </label>
                 <div
-                  className={`flex flex-col items-center justify-center rounded-lg border-2 border-dashed px-4 py-8 transition-colors ${dragOver
-                    ? 'border-brand bg-green-50'
-                    : 'border-gray-300 bg-gray-50 hover:border-gray-400'
+                  className={`flex flex-col items-center justify-center rounded-xl border-2 border-dashed px-4 py-10 transition-all cursor-pointer ${dragOver
+                    ? 'border-brand bg-brand/5 scale-[1.01]'
+                    : 'border-gray-200 bg-gray-50/50 hover:border-gray-300 hover:bg-white'
                     }`}
                   onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
                   onDragLeave={() => setDragOver(false)}
                   onDrop={handleFileDrop}
                 >
                   {uploadedFile ? (
-                    <div className="flex items-center gap-2 text-sm text-gray-700">
-                      <svg className="size-5 text-brand" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <span className="font-medium">{uploadedFile.name}</span>
-                      <button
-                        type="button"
-                        onClick={() => setUploadedFile(null)}
-                        className="ml-1 text-gray-400 hover:text-gray-600"
-                      >
-                        <CloseIcon />
-                      </button>
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="rounded-full bg-green-100 p-2.5">
+                        <svg className="size-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                        </svg>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm font-bold text-gray-900">
+                        <span>{uploadedFile.name}</span>
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); setUploadedFile(null) }}
+                          className="text-gray-400 hover:text-red-500 transition-colors"
+                        >
+                          <CloseIcon />
+                        </button>
+                      </div>
                     </div>
                   ) : (
-                    <label className="flex cursor-pointer flex-col items-center gap-2">
-                      <UploadIcon />
-                      <span className="text-sm text-gray-500">
-                        Click to upload or drag and drop
-                      </span>
+                    <label className="flex w-full cursor-pointer flex-col items-center gap-3">
+                      <div className="rounded-full bg-white p-3 shadow-sm border border-gray-100">
+                        <svg className="size-6 text-brand" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                        </svg>
+                      </div>
+                      <div className="text-center">
+                        <span className="text-sm font-bold text-gray-900">Click to upload or drag and drop</span>
+                        <p className="text-[10px] font-medium text-gray-400 mt-0.5 uppercase tracking-widest">Max file size: 10MB (PDF, JPG, PNG)</p>
+                      </div>
                       <input
                         type="file"
                         className="hidden"
@@ -500,7 +438,7 @@ export default function FarmCertificationPage() {
               <button
                 type="button"
                 onClick={closeModal}
-                className="h-11 w-full rounded-lg bg-brand text-sm font-semibold text-white transition-colors hover:bg-brand-light"
+                className="mt-2 flex h-12 w-full items-center justify-center rounded-md bg-[#1b4332] text-sm font-bold text-white shadow-lg shadow-brand/10 transition-all hover:bg-brand-dark hover:-translate-y-0.5 active:translate-y-0"
               >
                 Save Farm Certification
               </button>

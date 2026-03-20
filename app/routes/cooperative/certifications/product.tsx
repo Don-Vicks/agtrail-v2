@@ -3,8 +3,8 @@ import { useCallback, useMemo, useState } from 'react'
 import { PageHeader } from '~/components/page-header'
 import { CERTIFICATION_TYPES } from '~/lib/data/certification-types'
 import { DatePicker } from '~/components/ui/date-picker'
-import { products } from '~/lib/mock-data/farmer'
-import type { Route } from './+types/product-certification'
+import { farmPerformanceSummary } from '~/lib/mock-data/cooperative'
+import type { Route } from './+types/product'
 
 export function meta({ }: Route.MetaArgs) {
   return [
@@ -84,7 +84,7 @@ export default function ProductCertificationPage() {
   const [productFilter, setProductFilter] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
   const [modalOpen, setModalOpen] = useState(false)
-  const [selectedProductId, setSelectedProductId] = useState<string | null>(null)
+  const [selectedBatchId, setSelectedBatchId] = useState<string | null>(null)
 
   // Modal form state
   const [certType, setCertType] = useState('')
@@ -94,39 +94,39 @@ export default function ProductCertificationPage() {
   const [dragOver, setDragOver] = useState(false)
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
 
-  // Unique farm names from products
+  // Unique farm names from summary
   const farmNames = useMemo(() => {
-    const names = new Set(products.map((p) => p.farm))
+    const names = new Set(farmPerformanceSummary.map((p) => p.farmName))
     return Array.from(names).sort()
   }, [])
 
   // Unique product names
   const productNames = useMemo(() => {
-    const names = new Set(products.map((p) => p.name))
+    const names = new Set(farmPerformanceSummary.map((p) => p.product))
     return Array.from(names).sort()
   }, [])
 
-  // Filter products
-  const filteredProducts = useMemo(() => {
-    return products.filter((p) => {
+  // Filter batches
+  const filteredBatches = useMemo(() => {
+    return farmPerformanceSummary.filter((p) => {
       const matchesSearch =
         !searchQuery ||
-        p.farm.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.batchId.toLowerCase().includes(searchQuery.toLowerCase())
-      const matchesFarm = !farmFilter || p.farm === farmFilter
-      const matchesProduct = !productFilter || p.name === productFilter
+        p.farmName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.product.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.id.toLowerCase().includes(searchQuery.toLowerCase())
+      const matchesFarm = !farmFilter || p.farmName === farmFilter
+      const matchesProduct = !productFilter || p.product === productFilter
       return matchesSearch && matchesFarm && matchesProduct
     })
   }, [searchQuery, farmFilter, productFilter])
 
   // Pagination
-  const totalItems = filteredProducts.length
+  const totalItems = filteredBatches.length
   const totalPages = Math.max(1, Math.ceil(totalItems / ITEMS_PER_PAGE))
-  const paginatedProducts = useMemo(() => {
+  const paginatedBatches = useMemo(() => {
     const start = (currentPage - 1) * ITEMS_PER_PAGE
-    return filteredProducts.slice(start, start + ITEMS_PER_PAGE)
-  }, [filteredProducts, currentPage])
+    return filteredBatches.slice(start, start + ITEMS_PER_PAGE)
+  }, [filteredBatches, currentPage])
 
   // Reset page when filters change
   const updateFilters = useCallback((setter: (v: string) => void, value: string) => {
@@ -134,8 +134,8 @@ export default function ProductCertificationPage() {
     setCurrentPage(1)
   }, [])
 
-  const openModal = useCallback((productId: string) => {
-    setSelectedProductId(productId)
+  const openModal = useCallback((batchId: string) => {
+    setSelectedBatchId(batchId)
     setCertType('')
     setCertOrg('')
     setDateIssued('')
@@ -146,7 +146,7 @@ export default function ProductCertificationPage() {
 
   const closeModal = useCallback(() => {
     setModalOpen(false)
-    setSelectedProductId(null)
+    setSelectedBatchId(null)
   }, [])
 
   const handleFileDrop = useCallback((e: React.DragEvent) => {
@@ -167,7 +167,7 @@ export default function ProductCertificationPage() {
         items={[
           {
             label: 'Dashboard',
-            href: '/farmer',
+            href: '/cooperative',
             icon: (
               <svg className="size-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
@@ -182,7 +182,7 @@ export default function ProductCertificationPage() {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-brand uppercase tracking-tight">Certificate Upload</h1>
-        <p className="mt-1 text-sm text-gray-500">Upload Certificate for each product</p>
+        <p className="mt-1 text-sm text-gray-500">Upload certificates for each product</p>
       </div>
 
       {/* Toolbar */}
@@ -194,7 +194,7 @@ export default function ProductCertificationPage() {
             placeholder="Search Farm..."
             value={searchQuery}
             onChange={(e) => updateFilters(setSearchQuery, e.target.value)}
-            className="h-10 w-full rounded-md border border-gray-200 bg-white px-3 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all"
+            className="h-10 w-full rounded-md border border-gray-200 bg-white px-3 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
           />
         </div>
 
@@ -216,7 +216,7 @@ export default function ProductCertificationPage() {
             <select
               value={farmFilter}
               onChange={(e) => updateFilters(setFarmFilter, e.target.value)}
-              className="h-10 appearance-none rounded-md border border-gray-200 bg-white pl-9 pr-10 text-sm font-medium text-gray-700 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all font-bold"
+              className="h-10 appearance-none rounded-md border border-gray-200 bg-white pl-9 pr-10 text-sm font-medium text-gray-700 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
             >
               <option value="">All Farms</option>
               {farmNames.map((f) => (
@@ -234,7 +234,7 @@ export default function ProductCertificationPage() {
             <select
               value={productFilter}
               onChange={(e) => updateFilters(setProductFilter, e.target.value)}
-              className="h-10 appearance-none rounded-md border border-gray-200 bg-white pl-9 pr-10 text-sm font-medium text-gray-700 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all font-bold"
+              className="h-10 appearance-none rounded-md border border-gray-200 bg-white pl-9 pr-10 text-sm font-medium text-gray-700 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
             >
               <option value="">All Products</option>
               {productNames.map((p) => (
@@ -248,49 +248,48 @@ export default function ProductCertificationPage() {
 
       {/* Product card grid */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        {paginatedProducts.map((product) => (
+        {paginatedBatches.map((batch) => (
           <div
-            key={product.id}
+            key={batch.id}
             className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm hover:shadow-md transition-shadow"
           >
             {/* Top row: QR + Batch ID */}
             <div className="flex items-start justify-between">
               <div className="rounded-md border border-gray-100 p-1.5 bg-white">
-                <QRCodeSVG value={product.batchId} size={56} />
+                <QRCodeSVG value={batch.id} size={56} />
               </div>
               <span className="text-[10px] font-bold text-orange-600 uppercase tracking-widest leading-none">
-                {product.batchId}
+                {batch.id}
               </span>
             </div>
 
             {/* Product info */}
             <div className="mt-5">
-              <h3 className="text-xl font-bold text-gray-900 leading-none">{product.name}</h3>
+              <h3 className="text-xl font-bold text-gray-900 leading-none">{batch.product}</h3>
               <button
                 type="button"
                 className="mt-2.5 flex items-center gap-1.5 text-sm font-bold text-gray-900 hover:text-brand transition-colors"
-                onClick={() => {}} // Navigate to farm details if needed
               >
-                {product.farm}
+                {batch.farmName}
                 <svg className="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                 </svg>
               </button>
-              <p className="mt-1 text-xs text-gray-500 font-medium">{product.location}</p>
+              <p className="mt-1 text-xs text-gray-500 font-medium">IIYA Nigeria Office</p>
             </div>
 
             {/* Certificate badge */}
             <div className="mt-4 flex items-center gap-2">
               <div className="inline-flex items-center gap-1.5 rounded-full border border-green-200 bg-green-50 px-2.5 py-1 text-[11px] font-bold text-green-700">
                 <CertBadgeIcon />
-                {product.metrics.certifications} Certificate{product.metrics.certifications !== 1 ? 's' : ''} Uploaded
+                {batch.id.includes('8022') ? '1 Certificate Uploaded' : '0 Certificates Uploaded'}
               </div>
             </div>
 
             {/* Upload button */}
             <button
               type="button"
-              onClick={() => openModal(product.id)}
+              onClick={() => openModal(batch.id)}
               className="mt-6 flex h-11 w-full items-center justify-center rounded-md bg-[#1b4332] text-sm font-bold text-white transition-colors hover:bg-brand-dark shadow-sm"
             >
               Upload Certificate
@@ -299,7 +298,7 @@ export default function ProductCertificationPage() {
         ))}
       </div>
 
-      {filteredProducts.length === 0 && (
+      {filteredBatches.length === 0 && (
         <div className="flex flex-col items-center justify-center py-24 text-center">
           <div className="rounded-full bg-gray-50 p-6 mb-4">
              <PackageIcon className="size-10 text-gray-300" />
@@ -309,7 +308,7 @@ export default function ProductCertificationPage() {
         </div>
       )}
 
-      {/* Pagination Footer */}
+      {/* Pagination */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 border-t border-gray-100 mt-2">
         <p className="text-xs font-medium text-gray-500">
           Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1} to {Math.min(currentPage * ITEMS_PER_PAGE, totalItems)} of {totalItems} row(s) selected.
@@ -319,7 +318,7 @@ export default function ProductCertificationPage() {
           <div className="flex items-center gap-3">
              <span className="text-xs font-medium text-gray-500">Rows per page</span>
              <div className="relative">
-               <select className="h-8 appearance-none rounded-md border border-gray-200 bg-white pl-3 pr-8 text-xs font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all font-bold">
+               <select className="h-8 appearance-none rounded-md border border-gray-200 bg-white pl-3 pr-8 text-xs font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand/20">
                  <option>10</option>
                  <option>20</option>
                </select>
@@ -361,9 +360,9 @@ export default function ProductCertificationPage() {
             <div className="border-b border-gray-100 px-6 py-4">
                <div className="flex items-start justify-between">
                 <div>
-                  <h2 className="text-xl font-bold text-brand uppercase tracking-tight">Certificate Upload</h2>
-                  <p className="mt-0.5 text-xs font-medium text-gray-500">Upload your product quality certificate.</p>
-                </div>
+              <h2 className="text-xl font-bold text-brand uppercase tracking-tight">Certificate Upload</h2>
+              <p className="mt-0.5 text-xs font-medium text-gray-500">Upload your product quality certificate.</p>
+            </div>
                 <button
                   type="button"
                   onClick={closeModal}
@@ -378,14 +377,12 @@ export default function ProductCertificationPage() {
             <div className="p-6 space-y-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-700">
-                    Certification Type <span className="text-red-500">*</span>
-                  </label>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-700">Certification Type <span className="text-red-500">*</span></label>
                   <div className="relative">
                     <select
                       value={certType}
                       onChange={(e) => setCertType(e.target.value)}
-                      className="h-10 w-full appearance-none rounded-md border border-gray-200 bg-white px-3 text-sm font-medium text-gray-900 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all"
+                      className="h-10 w-full appearance-none rounded-md border border-gray-200 bg-white px-3 text-sm font-bold text-gray-900 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all font-bold"
                     >
                       <option value="">Select a Type</option>
                       {CERTIFICATION_TYPES.map((t) => (
@@ -397,15 +394,13 @@ export default function ProductCertificationPage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-700">
-                    Certification Organisation <span className="text-red-500">*</span>
-                  </label>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-700">Certification Organisation <span className="text-red-500">*</span></label>
                   <input
                     type="text"
                     placeholder="e.g., NAFDAC"
                     value={certOrg}
                     onChange={(e) => setCertOrg(e.target.value)}
-                    className="h-10 w-full rounded-md border border-gray-200 bg-white px-3 text-sm font-medium text-gray-900 placeholder:text-gray-300 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all"
+                    className="h-10 w-full rounded-md border border-gray-200 bg-white px-3 text-sm font-bold text-gray-900 placeholder:text-gray-300 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all font-bold"
                   />
                 </div>
               </div>

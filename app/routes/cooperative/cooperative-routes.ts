@@ -29,5 +29,9 @@ export const cooperativeRoutes: RouteConfig = [
     route('cooperative/operations/new/:cropCycleId/processing', 'routes/cooperative/operations/processing.tsx'),
     route('cooperative/operations/new/:cropCycleId/packaging', 'routes/cooperative/operations/packaging.tsx'),
     route('cooperative/operations/new/:cropCycleId/storage', 'routes/cooperative/operations/storage.tsx'),
+
+    // Certification
+    route('cooperative/certifications/product', 'routes/cooperative/certifications/product.tsx'),
+    route('cooperative/certifications/farm', 'routes/cooperative/certifications/farm.tsx'),
   ])
 ]
