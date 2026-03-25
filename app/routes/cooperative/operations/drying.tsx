@@ -1,7 +1,7 @@
 import { useParams } from 'react-router'
 import { OperationFormLayout } from '~/components/operation-form-layout'
 import { PersonField } from '~/components/person-field'
-import { allCropCycles } from '~/lib/mock-data/farmer'
+import { allCropCycles } from '~/lib/mock-data/cooperative'
 import type { Route } from './+types/drying'
 
 export function meta({ }: Route.MetaArgs) {

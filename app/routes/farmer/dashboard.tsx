@@ -4,11 +4,12 @@ import { StatCard } from '~/components/stat-card'
 import { FarmMap } from '~/components/farm-map'
 import {
   farmerStats,
-  farms,
-  products,
   quickActions,
   regions,
 } from '~/lib/mock-data/farmer'
+import { useGetFarms } from '~/lib/api/generated/farms/farms'
+import { useGetFarmersProducts } from '~/lib/api/generated/farm-products/farm-products'
+import { useAuth } from '~/context/auth-context'
 import type { Route } from './+types/dashboard'
 
 export function meta({ }: Route.MetaArgs) {
@@ -52,6 +53,31 @@ function StatIcon({ name }: { name: string }) {
 }
 
 export default function FarmerDashboard() {
+  const { user } = useAuth()
+  const { data: farmsResponse, isLoading: isLoadingFarms } = useGetFarms()
+  const { data: productsResponse, isLoading: isLoadingProducts } = useGetFarmersProducts()
+
+  const farms = farmsResponse?.data?.data || []
+  const products = productsResponse?.data?.data || []
+
+  // Dynamic calculations
+  const totalArea = farms.reduce((sum, f) => sum + (f.sizeHectares || 0), 0)
+  const avgArea = farms.length > 0 ? (totalArea / farms.length).toFixed(1) : '0.0'
+  const productsPerFarm = farms.length > 0 ? (products.length / farms.length).toFixed(1) : '0.0'
+
+  const mapFarms = farms.map((f: any) => {
+    const coords = f.gpsCoordinates as any
+    return {
+      id: f.id,
+      name: f.name,
+      location: f.lga || f.state || f.region || '',
+      region: f.region || '',
+      hectares: f.sizeHectares || 0,
+      lat: coords?.coordinates ? coords.coordinates[1] : 0,
+      lng: coords?.coordinates ? coords.coordinates[0] : 0,
+    }
+  })
+
   return (
     <div className="space-y-6">
       {/* KYC Banner */}
@@ -120,11 +146,11 @@ export default function FarmerDashboard() {
             <div className="grid grid-cols-2 gap-4 text-center">
               <div>
                 <p className="text-xs text-gray-500">Avg. Farm Size</p>
-                <p className="text-lg font-bold text-gray-900">1679.0 ha</p>
+                <p className="text-lg font-bold text-gray-900">{avgArea} ha</p>
               </div>
               <div>
                 <p className="text-xs text-gray-500">Products per Farm</p>
-                <p className="text-lg font-bold text-gray-900">0.0</p>
+                <p className="text-lg font-bold text-gray-900">{productsPerFarm}</p>
               </div>
             </div>
           </div>
@@ -141,7 +167,9 @@ export default function FarmerDashboard() {
             <h3 className="text-lg font-semibold text-gray-900">Your Products</h3>
             <p className="text-xs text-gray-500">Overview of all your tracked products</p>
           </div>
-          <span className="text-xs text-gray-400">Showing {products.length} of {products.length} products</span>
+          <span className="text-xs text-gray-400">
+            {isLoadingProducts ? 'Loading...' : `Showing ${products.length} of ${products.length} products`}
+          </span>
         </div>
 
         {/* Filters */}
@@ -167,24 +195,32 @@ export default function FarmerDashboard() {
                 <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Product Name ↕</th>
                 <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Farm ↕</th>
                 <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Status ↕</th>
-                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Hectares ↕</th>
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Quantity ↕</th>
                 <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Created Date ↕</th>
                 <th className="px-3 py-2 text-left text-xs font-medium text-gray-500"></th>
               </tr>
             </thead>
             <tbody>
-              {products.map((product) => (
+              {isLoadingProducts ? (
+                <tr>
+                  <td colSpan={7} className="px-3 py-6 text-center text-sm text-gray-500">Loading products...</td>
+                </tr>
+              ) : products.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="px-3 py-6 text-center text-sm text-gray-500">No products available.</td>
+                </tr>
+              ) : products.map((product) => (
                 <tr key={product.id} className="border-b border-gray-50 hover:bg-gray-50/50">
-                  <td className="px-3 py-3 text-xs font-mono text-gray-600">{product.id}</td>
-                  <td className="px-3 py-3 font-medium text-brand">{product.name}</td>
-                  <td className="px-3 py-3 text-gray-600">{product.farm}</td>
+                  <td className="px-3 py-3 text-xs font-mono text-gray-600">{product.id.slice(0, 8)}</td>
+                  <td className="px-3 py-3 font-medium text-brand">{product.productName}</td>
+                  <td className="px-3 py-3 text-gray-600">{product.farmId.slice(0, 8)}</td>
                   <td className="px-3 py-3">
                     <span className="rounded-full border border-brand-surface bg-brand-surface/50 px-2 py-0.5 text-xs text-brand">
-                      {product.status}
+                      {product.status || 'Active'}
                     </span>
                   </td>
-                  <td className="px-3 py-3 text-gray-600">{product.hectares}</td>
-                  <td className="px-3 py-3 text-gray-600">{product.createdDate}</td>
+                  <td className="px-3 py-3 text-gray-600">{product.quantityAvailable} {product.unit || 'kg'}</td>
+                  <td className="px-3 py-3 text-gray-600">{new Date(product.createdAt).toLocaleDateString()}</td>
                   <td className="px-3 py-3 text-gray-400">—</td>
                 </tr>
               ))}
@@ -203,7 +239,9 @@ export default function FarmerDashboard() {
         <div className="mb-3 flex items-center justify-between">
           <div>
             <h3 className="text-lg font-semibold text-gray-900">Farm/Crops Locations</h3>
-            <p className="text-xs text-gray-500">Showing {farms.length > 9 ? 9 : farms.length} of {farms.length} farms</p>
+            <p className="text-xs text-gray-500">
+              {isLoadingFarms ? 'Loading...' : `Showing ${farms.length > 9 ? 9 : farms.length} of ${farms.length} farms`}
+            </p>
           </div>
           <div className="relative">
             <input
@@ -248,12 +286,16 @@ export default function FarmerDashboard() {
             </button>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            {farms.slice(0, 8).map((farm) => (
+            {isLoadingFarms ? (
+              <p className="text-sm text-gray-500">Loading farms...</p>
+            ) : farms.length === 0 ? (
+              <p className="text-sm text-gray-500">No farms registered yet.</p>
+            ) : farms.slice(0, 8).map((farm) => (
               <div key={farm.id} className="rounded-md border border-gray-100 bg-gray-50/50 p-3">
                 <h4 className="text-sm font-semibold text-brand">{farm.name}</h4>
-                <p className="text-xs text-gray-400">{farm.location || farm.region}</p>
-                <p className="text-xs text-gray-400">by {farm.owner}</p>
-                <p className="mt-1 text-xs font-medium text-gray-600">{farm.hectares} ha</p>
+                <p className="text-xs text-gray-400">{farm.lga || farm.state || farm.region}</p>
+                <p className="text-xs text-gray-400">by {user?.email || 'Me'}</p>
+                <p className="mt-1 text-xs font-medium text-gray-600">{farm.sizeHectares || 0} ha</p>
               </div>
             ))}
           </div>
@@ -266,7 +308,7 @@ export default function FarmerDashboard() {
 
         {/* Farm Map */}
         <div className="mb-4">
-          <FarmMap farms={farms} />
+          <FarmMap farms={mapFarms} />
         </div>
       </div>
     </div>

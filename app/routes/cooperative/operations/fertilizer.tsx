@@ -2,7 +2,7 @@ import { useParams } from 'react-router'
 import { OperationFormLayout } from '~/components/operation-form-layout'
 import { PersonField } from '~/components/person-field'
 import { InventoryField } from '~/components/inventory-field'
-import { allCropCycles } from '~/lib/mock-data/farmer'
+import { allCropCycles } from '~/lib/mock-data/cooperative'
 import type { Route } from './+types/fertilizer'
 
 export function meta({ }: Route.MetaArgs) {

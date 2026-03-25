@@ -5,10 +5,13 @@ import { Input } from '~/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
 import { Textarea } from '~/components/ui/textarea'
 import { cn } from '~/lib/utils'
+import { usePostFarmsIdCropCycles } from '~/lib/api/generated/farms-crop-cycles/farms-crop-cycles'
+import { useQueryClient } from '@tanstack/react-query'
 
 interface StartCropCycleModalProps {
   isOpen: boolean
   onClose: () => void
+  farmId?: string
   farmName: string
   farmLocation: string
   farmerName: string
@@ -62,6 +65,7 @@ function StepIndicator({ currentStep }: { currentStep: number }) {
 export function StartCropCycleModal({
   isOpen,
   onClose,
+  farmId,
   farmName,
   farmLocation,
   farmerName,
@@ -95,6 +99,38 @@ export function StartCropCycleModal({
       hectaresPlanted: '', unit: 'Hectares', fieldIdentifiers: '',
     })
     onClose()
+  }
+
+  const queryClient = useQueryClient()
+  const { mutate: createCropCycle, isPending } = usePostFarmsIdCropCycles({
+    mutation: {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: [`/farms/${farmId}`] })
+        handleClose()
+      },
+      onError: (err: any) => {
+        console.error('Failed to create crop cycle', err)
+        alert(err.response?.data?.message || 'Failed to create crop cycle')
+      }
+    }
+  })
+
+  const handleSubmit = () => {
+    if (!farmId) {
+      alert('Farm ID is missing, cannot create crop cycle.')
+      return
+    }
+    createCropCycle({
+      id: farmId,
+      data: {
+        cropName: formData.productName,
+        variety: formData.variety || undefined,
+        season: formData.growingSeason || undefined,
+        plantingDate: new Date(formData.plantingDate).toISOString(),
+        expectedHarvestDate: formData.expectedHarvest ? new Date(formData.expectedHarvest).toISOString() : undefined,
+        areaPlantedHectares: formData.hectaresPlanted ? parseFloat(formData.hectaresPlanted) : undefined,
+      }
+    })
   }
 
   if (!isOpen) return null
@@ -317,10 +353,16 @@ export function StartCropCycleModal({
               <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><polyline points="15 18 9 12 15 6" /></svg>
               Back
             </Button>
-            <Button onClick={() => (step < 3 ? setStep(step + 1) : handleClose())}
-              className="flex items-center gap-1.5 bg-brand text-white hover:bg-brand-dark px-5">
-              {step < 3 ? 'Next' : 'Create Crop Cycle'}
-              {step < 3 && <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><polyline points="9 18 15 12 9 6" /></svg>}
+            <Button 
+              onClick={() => {
+                if (step < 3) setStep(step + 1)
+                else handleSubmit()
+              }}
+              disabled={isPending}
+              className="flex items-center gap-1.5 bg-brand text-white hover:bg-brand-dark px-5"
+            >
+              {isPending ? 'Creating...' : step < 3 ? 'Next' : 'Create Crop Cycle'}
+              {step < 3 && !isPending && <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><polyline points="9 18 15 12 9 6" /></svg>}
             </Button>
           </div>
         </div>

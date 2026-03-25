@@ -9,10 +9,13 @@ export const customFetch = async <T>(
   const cleanPath = url.replace(/^\/+/, '')
   const fullUrl = `${cleanBase}/${cleanPath}`
 
+  const token = typeof window !== 'undefined' ? localStorage.getItem('agrolinking_token') : null
+
   const response = await fetch(fullUrl, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...options?.headers,
     },
   })
@@ -26,8 +29,12 @@ export const customFetch = async <T>(
   }
 
   const text = await response.text()
-  if (!text) return {} as T
-  return JSON.parse(text) as T
+  if (!text) return { data: {}, status: response.status } as unknown as T
+  const parsed = JSON.parse(text)
+  return {
+    data: parsed,
+    status: response.status,
+  } as unknown as T
 }
 
 export default customFetch

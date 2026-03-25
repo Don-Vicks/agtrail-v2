@@ -5,6 +5,8 @@ import { Input } from '~/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
 import { Textarea } from '~/components/ui/textarea'
 import { cn } from '~/lib/utils'
+import { usePostFarms } from '~/lib/api/generated/farms/farms'
+import { useQueryClient } from '@tanstack/react-query'
 
 /**
  * Leaflet map component — loaded lazily on the client only (no SSR).
@@ -222,6 +224,56 @@ export function CreateFarmModal({ isOpen, onClose }: CreateFarmModalProps) {
     setFormData({ farmName: '', state: '', lga: '', farmRegion: '', address: '' })
     setBoundaryPoints([])
     onClose()
+  }
+
+  const queryClient = useQueryClient()
+  const { mutate: createFarm, isPending } = usePostFarms({
+    mutation: {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: [`/farms`] })
+        handleClose()
+      },
+      onError: (err: any) => {
+        console.error('Failed to create farm:', err)
+        alert(err.response?.data?.message || 'Failed to create farm')
+      }
+    }
+  })
+
+  const submitFarm = () => {
+    let boundaries = null
+    let gpsCoordinates = null
+    if (boundaryPoints.length >= 3) {
+      // GeoJSON expects [lng, lat]
+      const closedPoints = [...boundaryPoints]
+      const first = closedPoints[0]
+      const last = closedPoints[closedPoints.length - 1]
+      // Ensure the polygon refers back to the first point
+      if (first[0] !== last[0] || first[1] !== last[1]) {
+        closedPoints.push(first)
+      }
+      boundaries = {
+        type: 'Polygon',
+        coordinates: [closedPoints.map(p => [p[1], p[0]])]
+      }
+      // Set gpsCoordinates to the first point
+      gpsCoordinates = {
+        type: 'Point',
+        coordinates: [first[1], first[0]]
+      }
+    }
+
+    createFarm({
+      data: {
+        name: formData.farmName,
+        state: formData.state || undefined,
+        lga: formData.lga || undefined,
+        region: formData.farmRegion || undefined,
+        address: formData.address || undefined,
+        boundaries,
+        gpsCoordinates,
+      }
+    })
   }
 
   if (!isOpen) return null
@@ -475,12 +527,15 @@ export function CreateFarmModal({ isOpen, onClose }: CreateFarmModalProps) {
             </Button>
 
             <Button
-              onClick={() => (step < 3 ? setStep(step + 1) : handleClose())}
-              disabled={step === 2 && boundaryPoints.length < 3}
+              onClick={() => {
+                if (step < 3) setStep(step + 1)
+                else submitFarm()
+              }}
+              disabled={(step === 2 && boundaryPoints.length < 3) || isPending}
               className="flex items-center gap-1.5 bg-brand text-white hover:bg-brand-dark px-5"
             >
-              {step < 3 ? 'Next' : 'Create Farm'}
-              {step < 3 && (
+              {isPending ? 'Creating...' : step < 3 ? 'Next' : 'Create Farm'}
+              {step < 3 && !isPending && (
                 <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <polyline points="9 18 15 12 9 6" />
                 </svg>

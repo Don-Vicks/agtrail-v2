@@ -4,8 +4,10 @@ import { Breadcrumb } from '~/components/breadcrumb'
 import { Pagination } from '~/components/pagination'
 import { StartCropCycleModal } from '~/components/start-crop-cycle-modal'
 import { SelectOperationModal } from '~/components/select-operation-modal'
-import { farmCropCycles, farms, type CropCycle } from '~/lib/mock-data/farmer'
+import { farmCropCycles, type CropCycle } from '~/lib/mock-data/farmer'
 import type { Route } from './+types/farm-detail'
+import { useGetFarmsId } from '~/lib/api/generated/farms/farms'
+import { useAuth } from '~/context/auth-context'
 
 export function meta({ }: Route.MetaArgs) {
   return [
@@ -15,9 +17,13 @@ export function meta({ }: Route.MetaArgs) {
 }
 
 export default function FarmDetail() {
+  const { user } = useAuth()
   const params = useParams()
-  const farm = farms.find((f) => f.id === params.id) ?? farms[0]
-  const cropCycles = farmCropCycles.filter((c) => c.farmId === farm.id)
+  
+  const { data: farmResponse, isLoading } = useGetFarmsId(params.id as string)
+  const farm = farmResponse?.data?.data
+
+  const cropCycles = farmCropCycles.filter((c) => c.farmId === params.id) // Mock fallback for missing crop cycles endpoint
 
   const [isCropCycleModalOpen, setIsCropCycleModalOpen] = useState(false)
   const [selectedCropCycle, setSelectedCropCycle] = useState<CropCycle | null>(null)
@@ -47,9 +53,9 @@ export default function FarmDetail() {
               </svg>
             ),
           },
-          { label: farm.owner, href: '/farmer' },
+          { label: user?.email || 'Me', href: '/farmer' },
           { label: 'Farms', href: '/farmer/farms' },
-          { label: farm.name },
+          { label: farm?.name || 'Loading...' },
         ]}
       />
 
@@ -60,17 +66,22 @@ export default function FarmDetail() {
       </div>
 
       {/* Farm Owner Card */}
-      <div className="flex items-center gap-4">
-        <div className="flex size-14 items-center justify-center rounded-full bg-brand-surface text-lg font-bold text-brand">
-          {farm.ownerInitials}
+      {isLoading ? (
+        <div className="py-4 text-sm text-gray-500">Loading farm details...</div>
+      ) : farm ? (
+        <div className="flex items-center gap-4">
+          <div className="flex size-14 items-center justify-center rounded-full bg-brand-surface text-lg font-bold text-brand">
+            {user?.email ? user.email.slice(0, 2).toUpperCase() : 'ME'}
+          </div>
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">{user?.email || 'Me'}</h2>
+            <p className="text-sm text-gray-600">{farm.name}</p>
+            <p className="text-sm text-gray-400">{farm.lga || farm.state || farm.region}, Nigeria</p>
+          </div>
         </div>
-        <div>
-          <h2 className="text-lg font-semibold text-gray-900">{farm.owner}</h2>
-          <p className="text-sm text-gray-600">{farm.name}</p>
-          <p className="text-sm text-gray-400">, Nigeria</p>
-          <p className="text-sm text-gray-400">No phone number</p>
-        </div>
-      </div>
+      ) : (
+        <div className="py-4 text-sm text-gray-500">Farm not found.</div>
+      )}
 
       {/* Crop Cycles Section */}
       <div>
@@ -159,15 +170,18 @@ export default function FarmDetail() {
       </div>
 
       {/* Start Crop Cycle Modal */}
-      <StartCropCycleModal
-        isOpen={isCropCycleModalOpen}
-        onClose={() => setIsCropCycleModalOpen(false)}
-        farmName={farm.name}
-        farmLocation={farm.location || farm.region}
-        farmerName={farm.owner}
-        farmerInitials={farm.ownerInitials}
-        farmerColor={farm.ownerColor}
-      />
+      {farm && (
+        <StartCropCycleModal
+          isOpen={isCropCycleModalOpen}
+          onClose={() => setIsCropCycleModalOpen(false)}
+          farmId={farm.id}
+          farmName={farm.name}
+          farmLocation={farm.lga || farm.state || farm.region || ''}
+          farmerName={user?.email || 'Me'}
+          farmerInitials={user?.email ? user.email.slice(0, 2).toUpperCase() : 'ME'}
+          farmerColor="#4CAF50"
+        />
+      )}
 
       <SelectOperationModal
         isOpen={!!selectedCropCycle}

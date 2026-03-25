@@ -9,6 +9,7 @@ import {
 } from "react-router";
 
 import { queryClient } from "~/lib/query-client";
+import { AuthProvider } from "~/context/auth-context";
 import type { Route } from "./+types/root";
 import "./app.css";
 
@@ -45,9 +46,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <Outlet />
-    </QueryClientProvider>
+    <AuthProvider>
+      <QueryClientProvider client={queryClient}>
+        <Outlet />
+      </QueryClientProvider>
+    </AuthProvider>
   );
 }
 

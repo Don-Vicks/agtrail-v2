@@ -31,7 +31,20 @@ export const cooperativeRoutes: RouteConfig = [
     route('cooperative/operations/new/:cropCycleId/storage', 'routes/cooperative/operations/storage.tsx'),
 
     // Certification
+    route('cooperative/certifications', 'routes/cooperative/certifications/index.tsx'),
     route('cooperative/certifications/product', 'routes/cooperative/certifications/product.tsx'),
     route('cooperative/certifications/farm', 'routes/cooperative/certifications/farm.tsx'),
+    // route('cooperative/certifications/readiness', 'routes/cooperative/certifications/readiness.tsx'),
+
+    // Finance
+    route('cooperative/finance/purchase', 'routes/cooperative/finance/purchase.tsx'),
+    route('cooperative/finance/receivables', 'routes/cooperative/finance/receivables.tsx'),
+
+    // Reports & Compliance
+    route('cooperative/reports', 'routes/cooperative/reports/index.tsx'),
+    route('cooperative/compliance', 'routes/cooperative/compliance/index.tsx'),
+
+    // Settings
+    route('cooperative/settings', 'routes/cooperative/settings/settings-root.tsx'),
   ])
 ]

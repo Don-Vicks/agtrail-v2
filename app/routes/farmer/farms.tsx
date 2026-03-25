@@ -3,8 +3,9 @@ import { PageHeader } from '~/components/page-header'
 import { CreateFarmModal } from '~/components/create-farm-modal'
 import { FarmCard } from '~/components/farm-card'
 import { Pagination } from '~/components/pagination'
-import { farms } from '~/lib/mock-data/farmer'
 import type { Route } from './+types/farms'
+import { useGetFarms } from '~/lib/api/generated/farms/farms'
+import { useAuth } from '~/context/auth-context'
 
 export function meta({ }: Route.MetaArgs) {
   return [
@@ -14,13 +15,28 @@ export function meta({ }: Route.MetaArgs) {
 }
 
 export default function FarmerFarms() {
+  const { user } = useAuth()
+  const { data: farmsResponse, isLoading } = useGetFarms()
+  
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 12
   const [rowsPerPage, setRowsPerPage] = useState(itemsPerPage)
 
-  const filteredFarms = farms.filter((farm) =>
+  const farmsList = farmsResponse?.data?.data || []
+  const mappedFarms = farmsList.map((f: any) => ({
+    id: f.id,
+    name: f.name,
+    location: f.lga || f.state || f.region || '',
+    owner: user?.email || 'Me',
+    ownerInitials: user?.email ? user.email.slice(0, 2).toUpperCase() : 'ME',
+    ownerColor: '#4CAF50',
+    hectares: f.sizeHectares || 0,
+    region: f.region || '',
+  }))
+
+  const filteredFarms = mappedFarms.filter((farm: any) =>
     farm.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     farm.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
     farm.owner.toLowerCase().includes(searchQuery.toLowerCase())
@@ -32,8 +48,8 @@ export default function FarmerFarms() {
     currentPage * rowsPerPage
   )
 
-  const totalArea = farms.reduce((sum, f) => sum + f.hectares, 0)
-  const activeFarms = farms.length // all farms are active in mock data
+  const totalArea = mappedFarms.reduce((sum: number, f: any) => sum + f.hectares, 0)
+  const activeFarms = mappedFarms.length // all farms are active by default
 
   return (
     <div className="space-y-6">
@@ -75,15 +91,15 @@ export default function FarmerFarms() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="rounded-md border border-gray-200 bg-white p-5">
           <p className="text-sm text-gray-500 mb-1">Total Farms</p>
-          <p className="text-3xl font-bold text-brand">{farms.length}</p>
+          <p className="text-3xl font-bold text-brand">{isLoading ? '...' : mappedFarms.length}</p>
         </div>
         <div className="rounded-md border border-gray-200 bg-white p-5">
           <p className="text-sm text-gray-500 mb-1">Total Area</p>
-          <p className="text-3xl font-bold text-brand">{totalArea.toFixed(1)} ha</p>
+          <p className="text-3xl font-bold text-brand">{isLoading ? '...' : totalArea.toFixed(1)} ha</p>
         </div>
         <div className="rounded-md border border-gray-200 bg-white p-5">
           <p className="text-sm text-gray-500 mb-1">Active Farms</p>
-          <p className="text-3xl font-bold text-brand">{activeFarms}</p>
+          <p className="text-3xl font-bold text-brand">{isLoading ? '...' : activeFarms}</p>
         </div>
       </div>
 
@@ -114,11 +130,17 @@ export default function FarmerFarms() {
       </div>
 
       {/* Farm Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {paginatedFarms.map((farm) => (
-          <FarmCard key={farm.id} farm={farm} />
-        ))}
-      </div>
+      {isLoading ? (
+        <div className="py-8 text-center text-sm font-medium text-gray-500">Loading farms...</div>
+      ) : mappedFarms.length === 0 ? (
+        <div className="py-8 text-center text-sm font-medium text-gray-500">You don't have any farms yet.</div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {paginatedFarms.map((farm: any) => (
+            <FarmCard key={farm.id} farm={farm} />
+          ))}
+        </div>
+      )}
 
       {/* Pagination */}
       <Pagination

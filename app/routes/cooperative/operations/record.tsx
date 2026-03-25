@@ -3,7 +3,7 @@ import { PageHeader } from '~/components/page-header'
 import { Pagination } from '~/components/pagination'
 import { SelectOperationModal } from '~/components/select-operation-modal'
 import { ViewActivitiesModal } from '~/components/view-activities-modal'
-import { allCropCycles, type CropCycle } from '~/lib/mock-data/farmer'
+import { allCropCycles, type CropCycle } from '~/lib/mock-data/cooperative'
 import type { Route } from './+types/record'
 
 export function meta({ }: Route.MetaArgs) {

@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router'
 
 import { AgrolinkingLogo } from '~/components/agrolinking-logo'
 import { usePostAuthLogin } from '~/lib/api/generated/default/default'
+import { useAuth } from '~/context/auth-context'
 import type { Route } from './+types/login'
 
 export function meta({ }: Route.MetaArgs) {
@@ -17,13 +18,18 @@ export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [errorMsg, setErrorMsg] = useState('')
+  const { login: setAuth } = useAuth()
 
   const { mutate: login, isPending } = usePostAuthLogin({
     mutation: {
       onSuccess: (response) => {
-        // Here we could store tokens if needed.
-        // The API might set a cookie, or we might need to store response.data.accessToken
-        navigate('/farmer')
+        const authData = response.data?.data
+        if (authData?.user && authData?.session?.token) {
+          setAuth(authData.user, authData.session.token)
+          navigate('/farmer')
+        } else {
+          setErrorMsg('Invalid response from server. Missing user or token.')
+        }
       },
       onError: (err: any) => {
         setErrorMsg(err.response?.data?.message || 'Invalid email or password. Please try again.')

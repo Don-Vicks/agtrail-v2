@@ -23,6 +23,9 @@ const IconMap: Record<string, React.ReactNode> = {
   'dollar-sign': <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" /></svg>,
   'credit-card': <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><rect x="1" y="4" width="22" height="16" rx="2" ry="2" /><line x1="1" y1="10" x2="23" y2="10" /></svg>,
   'settings': <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z" /></svg>,
+  'sprout': <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path d="M7 20h10M10 20c5.5-2.5.8-6.4 3-10" /><path d="M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z" /><path d="M14.1 6a7 7 0 00-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z" /></svg>,
+  'bar-chart-3': <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M18 20V10M12 20V4M6 20v-6" /></svg>,
+  'shield-check': <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>,
 }
 
 function NavGroup({ title, items, isCollapsed }: { title: string; items: any[]; isCollapsed: boolean }) {
@@ -63,6 +66,7 @@ export function CooperativeSidebar() {
   const isOpenMobile = sidebarCtx?.isOpenMobile ?? false
   const closeMobile = sidebarCtx?.closeMobile
   const navigate = useNavigate()
+  const [isWalletExpanded, setIsWalletExpanded] = useState(false)
 
   return (
     <>
@@ -133,6 +137,71 @@ export function CooperativeSidebar() {
               </NavLink>
             </nav>
           </div>
+        </div>
+
+        {/* Wallet */}
+        <div className="border-t border-gray-200 px-4 py-3 pb-4">
+          <button
+            onClick={() => setIsWalletExpanded(!isWalletExpanded)}
+            className="flex w-full items-center justify-between gap-2 text-left"
+          >
+            <div className="flex items-center gap-2">
+              <svg className="size-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <rect x="2" y="4" width="20" height="16" rx="2" />
+                <path d="M22 10H2" />
+              </svg>
+              <div>
+                <div className="text-[13px] font-bold text-gray-900">Wallet</div>
+                <div className="text-[10px] text-gray-500 font-mono tracking-wide">0B5UH1...IVMA</div>
+              </div>
+            </div>
+            <svg
+              className={cn("size-3.5 text-gray-500 transition-transform", isWalletExpanded ? "rotate-180" : "rotate-0")}
+              fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          {isWalletExpanded && (
+            <div className="mt-3">
+              <div className="mb-3 border-t border-gray-200/60" />
+              <div className="space-y-2.5 px-0.5 text-[13px] font-medium">
+                <div className="flex justify-between items-center text-gray-600">
+                  <span>XLM</span>
+                  <span className="font-mono text-gray-900 font-bold">3.00</span>
+                </div>
+                <div className="flex justify-between items-center text-gray-600">
+                  <span>NGNC</span>
+                  <span className="font-mono text-gray-900 font-bold">0.00</span>
+                </div>
+                <div className="flex justify-between items-center text-gray-600">
+                  <span>AGT</span>
+                  <span className="font-mono text-gray-900 font-bold">0.00</span>
+                </div>
+
+                <div className="flex items-center gap-5 pt-3 pb-1">
+                  <button className="flex items-center gap-1.5 text-[13px] font-bold text-gray-900 hover:text-gray-600 transition-colors">
+                    <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                    Copy
+                  </button>
+                  <button className="flex items-center gap-1.5 text-[13px] font-bold text-gray-900 hover:text-gray-600 transition-colors">
+                    <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                    Explorer
+                  </button>
+                  <button className="ml-auto flex items-center justify-center text-gray-900 hover:text-gray-600 transition-colors" title="Refresh">
+                    <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* User Profile Footer */}

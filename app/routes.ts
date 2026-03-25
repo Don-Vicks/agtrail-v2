@@ -8,6 +8,8 @@ import {
 import { processorRoutes } from './routes/processor/processor-routes'
 import { cooperativeRoutes } from './routes/cooperative/cooperative-routes'
 
+// Triggering re-build for new routes
+
 export default [
   index('routes/home.tsx'),
 
