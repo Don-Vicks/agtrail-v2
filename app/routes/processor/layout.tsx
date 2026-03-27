@@ -2,6 +2,7 @@ import { Outlet, useLocation } from 'react-router'
 import { Sidebar } from '~/components/layout/processor-sidebar'
 import { SidebarProvider, useSidebar } from '~/components/layout/sidebar-context'
 import { Topbar } from '~/components/layout/topbar'
+import { AuthGuard } from '~/components/auth-guard'
 import { cn } from '~/lib/utils'
 
 function ProcessorLayoutContent() {
@@ -39,8 +40,10 @@ function ProcessorLayoutContent() {
 
 export default function ProcessorLayout() {
   return (
-    <SidebarProvider>
-      <ProcessorLayoutContent />
-    </SidebarProvider>
+    <AuthGuard>
+      <SidebarProvider>
+        <ProcessorLayoutContent />
+      </SidebarProvider>
+    </AuthGuard>
   )
 }

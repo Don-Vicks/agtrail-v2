@@ -2,6 +2,7 @@ import { Outlet, useLocation } from 'react-router'
 import { CooperativeSidebar } from '~/components/layout/cooperative-sidebar'
 import { Topbar } from '~/components/layout/topbar'
 import { SidebarProvider, useSidebar } from '~/components/layout/sidebar-context'
+import { AuthGuard } from '~/components/auth-guard'
 import { cn } from '~/lib/utils'
 import type { Route } from './+types/layout'
 
@@ -45,8 +46,10 @@ function CooperativeLayoutContent() {
 
 export default function CooperativeLayout() {
   return (
-    <SidebarProvider>
-      <CooperativeLayoutContent />
-    </SidebarProvider>
+    <AuthGuard>
+      <SidebarProvider>
+        <CooperativeLayoutContent />
+      </SidebarProvider>
+    </AuthGuard>
   )
 }

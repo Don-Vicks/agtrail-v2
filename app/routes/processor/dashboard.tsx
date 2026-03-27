@@ -1,6 +1,8 @@
 import { Link } from 'react-router';
-import { mockBatches, type ProcessorBatch } from '~/lib/mock-data/processor';
 import { cn } from '~/lib/utils';
+import { useGetProcessorsBatches } from '~/lib/api/generated/processors-batches/processors-batches';
+import { useGetProcessorsDashboardStats } from '~/lib/api/generated/processors-dashboard/processors-dashboard';
+import type { ProcessorBatch } from '~/lib/api/generated/models';
 
 /* ─── Components ─── */
 
@@ -25,19 +27,26 @@ function ActionButton({ icon, label, to }: { icon: React.ReactNode; label: strin
   )
 }
 
-function StatusBadge({ status }: { status: ProcessorBatch['complianceStatus'] }) {
+function StatusBadge({ status }: { status: string | undefined }) {
   const getBadgeStyle = () => {
-    switch (status) {
-      case 'Passed': return 'bg-green-50 text-green-700 ring-1 ring-green-600/20'
-      case 'Failed': return 'bg-red-50 text-red-700 ring-1 ring-red-600/10'
-      case 'Pending': return 'bg-yellow-50 text-yellow-800 ring-1 ring-yellow-600/20'
-      default: return 'bg-gray-50 text-gray-600 ring-1 ring-gray-500/10'
+    switch (status?.toLowerCase()) {
+      case 'completed':
+      case 'passed': 
+        return 'bg-green-50 text-green-700 ring-1 ring-green-600/20'
+      case 'cancelled':
+      case 'failed': 
+        return 'bg-red-50 text-red-700 ring-1 ring-red-600/10'
+      case 'in_progress':
+      case 'pending': 
+        return 'bg-yellow-50 text-yellow-800 ring-1 ring-yellow-600/20'
+      default: 
+        return 'bg-gray-50 text-gray-600 ring-1 ring-gray-500/10'
     }
   }
 
   return (
-    <span className={cn("inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-inset", getBadgeStyle())}>
-      {status}
+    <span className={cn("inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-inset uppercase", getBadgeStyle())}>
+      {status || 'UNKNOWN'}
     </span>
   )
 }
@@ -90,11 +99,11 @@ function BatchTable({ title, count, data, emptyMessage }: { title: string; count
             <tbody className="divide-y divide-gray-100">
               {data.map((row) => (
                 <tr key={row.id} className="hover:bg-gray-50/50 transition-colors">
-                  <td className="px-4 py-3 font-medium text-brand">{row.batchId}</td>
-                  <td className="px-4 py-3 text-brand">{row.productName}</td>
-                  <td className="px-4 py-3 text-gray-500">{row.farmName || '-'}</td>
-                  <td className="px-4 py-3 text-gray-500">{row.farmerName || '-'}</td>
-                  <td className="px-4 py-3"><StatusBadge status={row.complianceStatus} /></td>
+                  <td className="px-4 py-3 font-medium text-brand">{row.batchCode}</td>
+                  <td className="px-4 py-3 text-brand">{row.outputProductName}</td>
+                  <td className="px-4 py-3 text-gray-500">{row.facilityName || '-'}</td>
+                  <td className="px-4 py-3 text-gray-500">-</td>
+                  <td className="px-4 py-3"><StatusBadge status={row.status} /></td>
                 </tr>
               ))}
             </tbody>
@@ -119,9 +128,15 @@ function BatchTable({ title, count, data, emptyMessage }: { title: string; count
 /* ─── Main Route ─── */
 
 export default function ProcessorDashboard() {
-  const incomingBatches = mockBatches.filter(b => b.status === 'Incoming')
-  const completedBatches = mockBatches.filter(b => b.status === 'Completed')
-  const wipBatches = mockBatches.filter(b => b.status === 'WIP')
+  const { data: statsResponse, isLoading: isStatsLoading } = useGetProcessorsDashboardStats()
+  const { data: batchesResponse, isLoading: isBatchesLoading } = useGetProcessorsBatches()
+
+  const statsData: any = statsResponse?.data?.data || {}
+  const allBatches = batchesResponse?.data?.data || []
+
+  const incomingBatches = allBatches.filter((b: ProcessorBatch) => b.status === 'pending')
+  const wipBatches = allBatches.filter((b: ProcessorBatch) => b.status === 'in_progress')
+  const completedBatches = allBatches.filter((b: ProcessorBatch) => b.status === 'completed')
 
   return (
     <div className="space-y-6 pb-10">
@@ -140,18 +155,30 @@ export default function ProcessorDashboard() {
 
       {/* Stat Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard title="Finished Goods" value="8" subtitle="Batches Ready for Distribution" />
-        <StatCard title="Quality Control" value="0" subtitle="Batch on QA Hold" />
-        <StatCard title="Work In Progress (WIP)" value="0" subtitle="Batches in Production" />
-        <StatCard title="Incoming Goods" value="6" subtitle="Batches Awaiting Receipt" />
+        {isStatsLoading ? (
+          <div className="col-span-4 py-8 text-center text-sm text-gray-500 animate-pulse">Loading dashboard statistics...</div>
+        ) : (
+          <>
+            <StatCard title="Finished Goods" value={statsData.totalFinishedGoods ?? completedBatches.length} subtitle="Batches Ready for Distribution" />
+            <StatCard title="Quality Control" value={statsData.totalQcHold ?? 0} subtitle="Batch on QA Hold" />
+            <StatCard title="Work In Progress (WIP)" value={statsData.totalWip ?? wipBatches.length} subtitle="Batches in Production" />
+            <StatCard title="Incoming Goods" value={statsData.totalIncoming ?? incomingBatches.length} subtitle="Batches Awaiting Receipt" />
+          </>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column: Tables */}
         <div className="lg:col-span-2 space-y-6">
-          <BatchTable title="Incoming (Awaiting Processing)" count={6} data={incomingBatches} />
-          <BatchTable title="In Production (WIP)" count={0} data={wipBatches} emptyMessage="No batches in production" />
-          <BatchTable title="Completed (Ready for Dispatch)" count={8} data={completedBatches} />
+          {isBatchesLoading ? (
+            <div className="py-12 flex items-center justify-center text-gray-500 shadow-sm border border-gray-100 rounded-xl bg-white">Loading recent batches...</div>
+          ) : (
+            <>
+              <BatchTable title="Incoming (Awaiting Processing)" count={incomingBatches.length} data={incomingBatches} />
+              <BatchTable title="In Production (WIP)" count={wipBatches.length} data={wipBatches} emptyMessage="No batches in production" />
+              <BatchTable title="Completed (Ready for Dispatch)" count={completedBatches.length} data={completedBatches} />
+            </>
+          )}
         </div>
 
         {/* Right Column: Actions */}

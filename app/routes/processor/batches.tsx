@@ -1,7 +1,8 @@
 import { Link } from 'react-router';
 import { PageHeader } from '~/components/page-header';
-import { mockBatches, type ProcessorBatch } from '~/lib/mock-data/processor';
 import { cn } from '~/lib/utils';
+import { useGetProcessorsBatches } from '~/lib/api/generated/processors-batches/processors-batches';
+import type { ProcessorBatch } from '~/lib/api/generated/models';
 
 function StatItem({ value, label }: { value: number; label: string }) {
   return (
@@ -14,32 +15,24 @@ function StatItem({ value, label }: { value: number; label: string }) {
 
 function BatchCard({ batch }: { batch: ProcessorBatch }) {
   // Derive button based on status
+  const isCompleted = batch.status === 'completed' || batch.status === 'Passed' as any;
   let buttonLabel = 'Start Processing'
   let buttonStyle = 'bg-[#1b4332] text-white hover:bg-[#0f2e20]'
   let buttonPath = '/processor/batches/new'
 
-  if (batch.status === 'Completed') {
-    buttonLabel = batch.id === '6' || batch.id === '10' ? 'View Details' : 'View Product' // mixing based on mock visual variance
+  if (isCompleted) {
+    buttonLabel = 'View Product'
     buttonStyle = 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 hover:text-gray-900 shadow-sm'
     buttonPath = '/processor/products'
   }
 
-  // Derive extra mock data fields needed for the Batches view
   const quantity = '0kg'
-  const typeMap: Record<string, string> = {
-    'Akara': 'Processed Grains',
-    'Honey Master': 'Other',
-    'Olamide': 'Fortified Flour',
-    'Bera Flour': 'Fortified Flour',
-    'Tomatoe': 'Processed Grains',
-    'Fortified Maize Flour': 'Processed Grains',
-    'Bean Flour': 'Processed Grains',
-    'Beans Cake (Akara Special)': 'Processed Grains',
-    'Beans Cake': 'Processed Grains',
-  }
-  const type = typeMap[batch.productName] || 'Other'
-  const shelfLife = batch.status === 'Completed' ? '300 days' : '120 days'
-  const date = batch.status === 'Completed' ? 'Dec 15, 2025' : 'Mar 9, 2026'
+  const type = batch.outputProductType || 'Other'
+  const shelfLife = batch.shelfLifeDays ? `${batch.shelfLifeDays} days` : (isCompleted ? '300 days' : '120 days')
+  
+  const formattedDate = batch.createdAt ? new Date(batch.createdAt).toLocaleDateString('en-US', {
+    month: 'short', day: 'numeric', year: 'numeric'
+  }) : 'Unknown Date'
 
   return (
     <div className="flex items-center justify-between rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md">
@@ -54,16 +47,16 @@ function BatchCard({ batch }: { batch: ProcessorBatch }) {
 
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <h3 className="text-base font-bold text-gray-900">{batch.productName}</h3>
+            <h3 className="text-base font-bold text-gray-900">{batch.outputProductName || (batch as any).productName}</h3>
             <span className={cn(
               "px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-md",
-              batch.status === 'Completed' ? "bg-gray-100 text-gray-600 border border-gray-200" : "bg-brand text-white"
+              isCompleted ? "bg-gray-100 text-gray-600 border border-gray-200" : "bg-brand text-white"
             )}>
-              {batch.status === 'Completed' ? 'Completed' : 'Pending'}
+              {batch.status || 'Pending'}
             </span>
           </div>
           <div className="text-sm font-medium text-gray-500 mb-3">
-            Batch: {batch.batchId}
+            Batch: {batch.batchCode || (batch as any).batchId}
           </div>
 
           <div className="flex items-center gap-6 text-sm">
@@ -82,7 +75,7 @@ function BatchCard({ batch }: { batch: ProcessorBatch }) {
           </div>
 
           <div className="text-xs font-medium text-gray-400 mt-4">
-            Created on {date}
+            Created on {formattedDate}
           </div>
         </div>
       </div>
@@ -90,13 +83,13 @@ function BatchCard({ batch }: { batch: ProcessorBatch }) {
       {/* Action Button */}
       <div className="shrink-0 flex items-center h-full">
         <Link to={buttonPath} className={cn("inline-flex h-9 items-center justify-center gap-2 rounded-lg px-4 text-sm font-semibold transition-colors", buttonStyle)}>
-          {batch.status !== 'Completed' && (
+          {!isCompleted && (
             <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
               <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           )}
-          {batch.status === 'Completed' && (
+          {isCompleted && (
             <svg className="size-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -110,6 +103,15 @@ function BatchCard({ batch }: { batch: ProcessorBatch }) {
 }
 
 export default function ProcessorBatches() {
+  const { data: batchesRaw, isLoading } = useGetProcessorsBatches()
+  const batches: ProcessorBatch[] = batchesRaw?.data?.data || []
+
+  // Compute stats
+  const total = batches.length;
+  const active = batches.filter(b => b.status === 'in_progress').length;
+  const completed = batches.filter(b => b.status === 'completed').length;
+  const pending = batches.filter(b => b.status === 'pending').length;
+
   return (
     <div className="pb-10">
       <PageHeader
@@ -141,20 +143,28 @@ export default function ProcessorBatches() {
         </Link>
       </div>
 
-      {/* Stats Header Block */}
-      <div className="mb-6 grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatItem value={14} label="Batches" />
-        <StatItem value={0} label="Active" />
-        <StatItem value={8} label="Completed" />
-        <StatItem value={6} label="Pending" />
-      </div>
+      {isLoading ? (
+        <div className="py-20 text-center text-gray-500 animate-pulse">Loading batches...</div>
+      ) : (
+        <>
+          {/* Stats Header Block */}
+          <div className="mb-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+            <StatItem value={total} label="Batches" />
+            <StatItem value={active} label="Active" />
+            <StatItem value={completed} label="Completed" />
+            <StatItem value={pending} label="Pending" />
+          </div>
 
-      {/* Batches List */}
-      <div className="space-y-4">
-        {mockBatches.map(batch => (
-          <BatchCard key={batch.id} batch={batch} />
-        ))}
-      </div>
+          {/* Batches List */}
+          <div className="space-y-4">
+            {batches.length === 0 ? (
+              <div className="py-12 text-center text-gray-500 bg-white border border-gray-200 rounded-xl">No batches found. Start a new batch!</div>
+            ) : batches.map(batch => (
+              <BatchCard key={batch.id} batch={batch} />
+            ))}
+          </div>
+        </>
+      )}
     </div>
   )
 }

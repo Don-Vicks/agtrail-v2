@@ -2,6 +2,7 @@ import { Outlet, useLocation } from 'react-router'
 import { Sidebar } from '~/components/layout/sidebar'
 import { SidebarProvider, useSidebar } from '~/components/layout/sidebar-context'
 import { Topbar } from '~/components/layout/topbar'
+import { AuthGuard } from '~/components/auth-guard'
 import { cn } from '~/lib/utils'
 
 function FarmerLayoutContent() {
@@ -39,8 +40,10 @@ function FarmerLayoutContent() {
 
 export default function FarmerLayout() {
   return (
-    <SidebarProvider>
-      <FarmerLayoutContent />
-    </SidebarProvider>
+    <AuthGuard>
+      <SidebarProvider>
+        <FarmerLayoutContent />
+      </SidebarProvider>
+    </AuthGuard>
   )
 }
