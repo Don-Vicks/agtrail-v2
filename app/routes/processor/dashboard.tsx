@@ -156,7 +156,15 @@ export default function ProcessorDashboard() {
       {/* Stat Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {isStatsLoading ? (
-          <div className="col-span-4 py-8 text-center text-sm text-gray-500 animate-pulse">Loading dashboard statistics...</div>
+          <>
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+                <div className="h-4 w-24 bg-gray-200 rounded animate-pulse"></div>
+                <div className="mt-3 h-8 w-16 bg-gray-200 rounded animate-pulse"></div>
+                <div className="mt-2 h-3 w-32 bg-gray-200 rounded animate-pulse"></div>
+              </div>
+            ))}
+          </>
         ) : (
           <>
             <StatCard title="Finished Goods" value={statsData.totalFinishedGoods ?? completedBatches.length} subtitle="Batches Ready for Distribution" />
@@ -171,7 +179,25 @@ export default function ProcessorDashboard() {
         {/* Left Column: Tables */}
         <div className="lg:col-span-2 space-y-6">
           {isBatchesLoading ? (
-            <div className="py-12 flex items-center justify-center text-gray-500 shadow-sm border border-gray-100 rounded-xl bg-white">Loading recent batches...</div>
+            <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden flex flex-col">
+              <div className="border-b border-gray-200 p-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="size-5 rounded-full bg-gray-200 animate-pulse"></div>
+                  <div className="h-5 w-48 bg-gray-200 rounded animate-pulse"></div>
+                </div>
+                <div className="h-9 w-full bg-gray-100 rounded animate-pulse"></div>
+              </div>
+              <div className="p-4 space-y-4">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="flex gap-4">
+                    <div className="h-4 w-1/4 bg-gray-100 rounded animate-pulse"></div>
+                    <div className="h-4 w-1/4 bg-gray-100 rounded animate-pulse"></div>
+                    <div className="h-4 w-1/4 bg-gray-100 rounded animate-pulse"></div>
+                    <div className="h-4 w-1/4 bg-gray-100 rounded animate-pulse"></div>
+                  </div>
+                ))}
+              </div>
+            </div>
           ) : (
             <>
               <BatchTable title="Incoming (Awaiting Processing)" count={incomingBatches.length} data={incomingBatches} />
