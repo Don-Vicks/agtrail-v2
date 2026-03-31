@@ -1,14 +1,30 @@
 import { Link } from 'react-router'
-import type { Farm } from '~/lib/mock-data/farmer'
+import type { Farm } from '~/lib/api/generated/models'
+
+// Accept both the API Farm type and any additional mock-data shape
+type FarmLike = Farm | (Record<string, any> & { id: string; name: string })
 
 interface FarmCardProps {
-  farm: Farm
+  farm: FarmLike
   action?: 'view' | 'start-cycle'
   onAction?: (farmId: string) => void
   basePath?: string
+  ownerName?: string
 }
 
-export function FarmCard({ farm, action = 'view', onAction, basePath = '/farmer/farms' }: FarmCardProps) {
+export function FarmCard({ farm, action = 'view', onAction, basePath = '/farmer/farms', ownerName }: FarmCardProps) {
+  // Normalise fields — supports both API Farm and legacy mock shapes
+  const location = (farm as any).state || (farm as any).lga || (farm as any).region || (farm as any).location || (farm as any).address || 'No location'
+  const hectares = (farm as any).sizeHectares ?? (farm as any).hectares ?? 0
+
+  const ownerLabel = ownerName || (farm as any).contactEmail || (farm as any).owner || 'Unknown'
+  const ownerInitials = (farm as any).ownerInitials || ownerLabel
+    .split(/[@.\s]/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((s: string) => s[0]?.toUpperCase())
+    .join('')
+
   return (
     <div className="rounded-md border border-gray-200 bg-white p-5 flex flex-col gap-3">
       {/* Header */}
@@ -19,8 +35,8 @@ export function FarmCard({ farm, action = 'view', onAction, basePath = '/farmer/
             <polyline points="9 22 9 12 15 12 15 22" />
           </svg>
         </div>
-        <span className="rounded-full border border-brand-accent/30  px-2.5 py-0.5 text-xs font-medium text-brand-accent">
-          {farm.hectares} Hectares
+        <span className="rounded-full border border-brand-accent/30 px-2.5 py-0.5 text-xs font-medium text-brand-accent">
+          {hectares} Hectares
         </span>
       </div>
 
@@ -28,16 +44,13 @@ export function FarmCard({ farm, action = 'view', onAction, basePath = '/farmer/
       <div>
         <h3 className="text-base font-semibold text-gray-900 mb-1">{farm.name}</h3>
         <div className="flex items-center gap-1.5 mb-1">
-          <div
-            className="flex size-5 items-center justify-center rounded-full text-[8px] font-bold text-white bg-brand"
-          // style={{ backgroundColor: farm.ownerColor }}
-          >
-            {farm.ownerInitials}
+          <div className="flex size-5 items-center justify-center rounded-full text-[8px] font-bold text-white bg-brand">
+            {ownerInitials || '?'}
           </div>
-          <span className="text-xs text-gray-500">{farm.owner}</span>
+          <span className="text-xs text-gray-500 truncate">{ownerLabel}</span>
         </div>
         <div className="flex items-center gap-1 text-xs text-gray-600">
-          <span className="truncate">{farm.location || 'No location'}</span>
+          <span className="truncate">{location}</span>
           <span className="text-brand">→</span>
         </div>
       </div>

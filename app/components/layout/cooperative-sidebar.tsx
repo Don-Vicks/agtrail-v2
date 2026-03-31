@@ -5,6 +5,8 @@ import { currentUser, sidebarNavigation } from '~/lib/mock-data/cooperative'
 import { cn } from '~/lib/utils'
 import { LogOut } from 'lucide-react'
 import { useSidebar } from './sidebar-context'
+import { useAuth } from '~/context/auth-context'
+import { LogoutConfirmationModal } from '~/components/logout-confirmation-modal'
 
 const IconMap: Record<string, React.ReactNode> = {
   'layout-dashboard': <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></svg>,
@@ -66,7 +68,19 @@ export function CooperativeSidebar() {
   const isOpenMobile = sidebarCtx?.isOpenMobile ?? false
   const closeMobile = sidebarCtx?.closeMobile
   const navigate = useNavigate()
+  const { user, logout } = useAuth()
   const [isWalletExpanded, setIsWalletExpanded] = useState(false)
+  const [showLogoutModal, setShowLogoutModal] = useState(false)
+
+  const handleSignOut = () => {
+    setShowLogoutModal(true)
+  }
+
+  const confirmSignOut = () => {
+    setShowLogoutModal(false)
+    logout()
+    navigate('/login', { replace: true })
+  }
 
   return (
     <>
@@ -208,22 +222,30 @@ export function CooperativeSidebar() {
         <div className="border-t border-gray-200 p-4">
           <div className="flex items-center gap-3">
             <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-blue-600 text-sm font-bold text-white">
-              {currentUser.initials}
+              {user?.email ? user.email.substring(0, 2).toUpperCase() : 'AG'}
             </div>
             {!isCollapsedDesktop && (
               <div className="min-w-0 flex-1">
-                <p className="truncate text-[13px] font-bold text-gray-900">{currentUser.name}</p>
-                <p className="truncate text-[10px] text-gray-500">{currentUser.email}</p>
+                <p className="truncate text-[13px] font-bold text-gray-900">
+                  {user?.email ? user.email.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase()) : 'User'}
+                </p>
+                <p className="truncate text-[10px] text-gray-500">{user?.email || 'Not signed in'}</p>
               </div>
             )}
             {!isCollapsedDesktop && (
-              <button className="shrink-0 text-gray-400 hover:text-gray-600">
+              <button onClick={handleSignOut} className="shrink-0 text-gray-400 hover:text-gray-600">
                 <LogOut className="size-4" />
               </button>
             )}
           </div>
         </div>
       </aside>
+
+      <LogoutConfirmationModal
+        isOpen={showLogoutModal}
+        onClose={() => setShowLogoutModal(false)}
+        onConfirm={confirmSignOut}
+      />
     </>
   )
 }

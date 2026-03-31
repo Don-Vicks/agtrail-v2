@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Button } from '~/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '~/components/ui/dialog'
 import { Input } from '~/components/ui/input'
@@ -7,6 +7,7 @@ import { Textarea } from '~/components/ui/textarea'
 import { cn } from '~/lib/utils'
 import { usePostFarms } from '~/lib/api/generated/farms/farms'
 import { useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 
 /**
  * Leaflet map component — loaded lazily on the client only (no SSR).
@@ -26,18 +27,24 @@ function MapBoundaryPicker({
     Marker: typeof import('react-leaflet')['Marker']
     Polygon: typeof import('react-leaflet')['Polygon']
     useMapEvents: typeof import('react-leaflet')['useMapEvents']
+    useMap: typeof import('react-leaflet')['useMap']
   } | null>(null)
 
   const [leafletLoaded, setLeafletLoaded] = useState(false)
+  const [loadError, setLoadError] = useState(false)
 
   // Load leaflet + react-leaflet dynamically on mount
-  useState(() => {
+  useEffect(() => {
     if (typeof window === 'undefined') return
+
+    let mounted = true
 
     Promise.all([
       import('leaflet'),
       import('react-leaflet'),
     ]).then(([L, RL]) => {
+      if (!mounted) return
+
       // Fix default marker icons
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       delete (L.Icon.Default.prototype as any)._getIconUrl
@@ -61,10 +68,24 @@ function MapBoundaryPicker({
         Marker: RL.Marker,
         Polygon: RL.Polygon,
         useMapEvents: RL.useMapEvents,
+        useMap: RL.useMap,
       })
       setLeafletLoaded(true)
+    }).catch(err => {
+      console.error('Leaflet load error:', err)
+      setLoadError(true)
     })
-  })
+
+    return () => { mounted = false }
+  }, [])
+
+  if (loadError) {
+    return (
+      <div className="flex h-72 items-center justify-center rounded-md bg-red-50 text-sm text-red-500">
+        Fatal: Map library failed to load.
+      </div>
+    )
+  }
 
   if (!leafletLoaded || !mapComponents) {
     return (
@@ -74,7 +95,19 @@ function MapBoundaryPicker({
     )
   }
 
-  const { MapContainer, TileLayer, Marker, Polygon, useMapEvents } = mapComponents
+  const { MapContainer, TileLayer, Marker, Polygon, useMapEvents, useMap } = mapComponents
+
+  function MapResizeTrigger() {
+    const map = useMap()
+    useEffect(() => {
+      // Small timeout to ensure the DOM has settled (modal transitions)
+      const timer = setTimeout(() => {
+        map.invalidateSize()
+      }, 100)
+      return () => clearTimeout(timer)
+    }, [map])
+    return null
+  }
 
   function ClickHandler() {
     useMapEvents({
@@ -95,6 +128,7 @@ function MapBoundaryPicker({
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
+      <MapResizeTrigger />
       <ClickHandler />
       {points.map((point, idx) => (
         <Marker key={idx} position={point} />
@@ -231,11 +265,12 @@ export function CreateFarmModal({ isOpen, onClose }: CreateFarmModalProps) {
     mutation: {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: [`/farms`] })
+        toast.success('Farm created successfully')
         handleClose()
       },
       onError: (err: any) => {
         console.error('Failed to create farm:', err)
-        alert(err.response?.data?.message || 'Failed to create farm')
+        toast.error(err.response?.data?.message || 'Failed to create farm')
       }
     }
   })

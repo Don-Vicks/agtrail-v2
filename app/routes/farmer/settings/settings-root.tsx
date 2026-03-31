@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { PageHeader } from '~/components/page-header'
 import type { Route } from './+types/settings-root'
 
 export function meta({ }: Route.MetaArgs) {
@@ -15,7 +16,22 @@ export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<TabType>('Account')
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-10">
+      <PageHeader
+        items={[
+          {
+            label: 'Dashboard',
+            href: '/farmer',
+            icon: (
+              <svg className="size-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                <line x1="9" y1="3" x2="9" y2="21" />
+              </svg>
+            ),
+          },
+          { label: 'Settings' },
+        ]}
+      />
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Settings</h1>

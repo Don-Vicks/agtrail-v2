@@ -5,6 +5,7 @@ import { PersonField } from '~/components/person-field'
 import { allCropCycles } from '~/lib/mock-data/farmer'
 import { usePostFarmsIdOperations } from '~/lib/api/generated/farms-operations/farms-operations'
 import type { Route } from './+types/land-prep'
+import { toast } from 'sonner'
 
 export function meta({ }: Route.MetaArgs) {
   return [{ title: 'Land Preparation | Agrolinking' }]
@@ -24,10 +25,10 @@ export default function LandPreparation() {
     e.preventDefault()
     
     if (!description) {
-      alert('Description is required.')
+      toast.error('Description is required.')
       return
     }
-
+    
     try {
       await logOperation({
         id: cropCycle.farmId,
@@ -38,10 +39,10 @@ export default function LandPreparation() {
           operationDate: new Date().toISOString()
         }
       })
-      alert('Land preparation operation logged successfully!')
+      toast.success('Land preparation operation logged successfully!')
       navigate('/farmer/operations/new')
     } catch (err: any) {
-      alert(`Failed to log operation: ${err.message || 'Unknown error'}`)
+      toast.error(`Failed to log operation: ${err.message || 'Unknown error'}`)
     }
   }
 

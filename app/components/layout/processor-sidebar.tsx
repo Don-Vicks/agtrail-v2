@@ -4,6 +4,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~
 import { currentUser, sidebarNavigation } from '~/lib/mock-data/processor'
 import { cn } from '~/lib/utils'
 import { useSidebar } from './sidebar-context'
+import { useAuth } from '~/context/auth-context'
+import { LogoutConfirmationModal } from '~/components/logout-confirmation-modal'
 
 interface NavGroupProps {
   label: string
@@ -152,7 +154,19 @@ export function Sidebar() {
   const isCollapsedDesktop = sidebarCtx?.isCollapsedDesktop ?? false
   const isOpenMobile = sidebarCtx?.isOpenMobile ?? false
   const navigate = useNavigate()
+  const { user, logout } = useAuth()
   const [isWalletExpanded, setIsWalletExpanded] = useState(false)
+  const [showLogoutModal, setShowLogoutModal] = useState(false)
+
+  const handleSignOut = () => {
+    setShowLogoutModal(true)
+  }
+
+  const confirmSignOut = () => {
+    setShowLogoutModal(false)
+    logout()
+    navigate('/login', { replace: true })
+  }
 
   const handleRoleChange = (role: string) => {
     // In a real app this would update auth context, for now we just navigate to the dashboard layout
@@ -161,6 +175,7 @@ export function Sidebar() {
   }
 
   return (
+    <>
     <aside className={cn(
       "fixed inset-y-0 left-0 z-30 flex w-64 flex-col border-r border-gray-200 bg-[#e6e6e6] transition-transform duration-300 ease-in-out",
       isOpenMobile ? "translate-x-0" : "-translate-x-full",
@@ -269,13 +284,15 @@ export function Sidebar() {
       <div className="border-t border-gray-200 px-4 py-3">
         <div className="flex items-center gap-2.5">
           <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand text-[10px] font-bold text-white">
-            {currentUser.initials}
+            {user?.email ? user.email.substring(0, 2).toUpperCase() : 'AG'}
           </div>
           <div className="min-w-0 flex-1">
-            <div className="truncate text-sm font-medium text-gray-900">{currentUser.name}</div>
-            <div className="truncate text-[11px] text-gray-400">{currentUser.email}</div>
+            <div className="truncate text-sm font-medium text-gray-900">
+              {user?.email ? user.email.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : 'User'}
+            </div>
+            <div className="truncate text-[11px] text-gray-400">{user?.email || 'Not signed in'}</div>
           </div>
-          <button className="shrink-0 rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600" title="Sign out">
+          <button onClick={handleSignOut} className="shrink-0 rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600" title="Sign out">
             <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
               <polyline points="16 17 21 12 16 7" />
@@ -285,5 +302,12 @@ export function Sidebar() {
         </div>
       </div>
     </aside>
+
+      <LogoutConfirmationModal
+        isOpen={showLogoutModal}
+        onClose={() => setShowLogoutModal(false)}
+        onConfirm={confirmSignOut}
+      />
+    </>
   )
 }

@@ -39,8 +39,8 @@ export default function FarmDetail() {
   const totalPages = Math.max(1, Math.ceil(filteredCycles.length / rowsPerPage))
 
   return (
-    <div className="space-y-6">
-      {/* Breadcrumb */}
+    <div className="flex flex-col">
+      {/* Breadcrumb - Moved out of the space-y-6 container for better sticky behavior */}
       <Breadcrumb
         items={[
           {
@@ -59,7 +59,8 @@ export default function FarmDetail() {
         ]}
       />
 
-      {/* Page Header */}
+      <div className="space-y-6 p-4 md:p-6 lg:p-8">
+        {/* Page Header */}
       <div>
         <h1 className="text-2xl font-bold text-brand">RECORD FARM OPERATION</h1>
         <p className="text-sm text-gray-500">Manage crop cycles and log farm operations</p>
@@ -169,19 +170,17 @@ export default function FarmDetail() {
         />
       </div>
 
-      {/* Start Crop Cycle Modal */}
-      {farm && (
-        <StartCropCycleModal
-          isOpen={isCropCycleModalOpen}
-          onClose={() => setIsCropCycleModalOpen(false)}
-          farmId={farm.id}
-          farmName={farm.name}
-          farmLocation={farm.lga || farm.state || farm.region || ''}
-          farmerName={user?.email || 'Me'}
-          farmerInitials={user?.email ? user.email.slice(0, 2).toUpperCase() : 'ME'}
-          farmerColor="#4CAF50"
-        />
-      )}
+      {/* Start Crop Cycle Modal - Rendered outside conditional to ensure prompt trigger */}
+      <StartCropCycleModal
+        isOpen={isCropCycleModalOpen}
+        onClose={() => setIsCropCycleModalOpen(false)}
+        farmId={farm?.id}
+        farmName={farm?.name || 'Loading...'}
+        farmLocation={farm ? (farm.lga || farm.state || farm.region || '') : ''}
+        farmerName={user?.email || 'Me'}
+        farmerInitials={user?.email ? user.email.slice(0, 2).toUpperCase() : 'ME'}
+        farmerColor="#4CAF50"
+      />
 
       <SelectOperationModal
         isOpen={!!selectedCropCycle}
@@ -189,5 +188,6 @@ export default function FarmDetail() {
         cropCycle={selectedCropCycle}
       />
     </div>
+  </div>
   )
 }

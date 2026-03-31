@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Breadcrumb } from '~/components/breadcrumb'
+import { PageHeader } from '~/components/page-header'
 import type { Route } from './+types/compliance-analysis'
 
 export function meta({ }: Route.MetaArgs) {
@@ -97,10 +97,10 @@ export default function ComplianceAnalysisPage() {
   const [riskFilter, setRiskFilter] = useState('')
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-10">
       {/* Header & Breadcrumbs */}
       <div>
-        <Breadcrumb
+        <PageHeader
           items={[
             {
               label: 'Dashboard',

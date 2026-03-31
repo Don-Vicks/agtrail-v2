@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Breadcrumb } from '~/components/breadcrumb'
+import { PageHeader } from '~/components/page-header'
 import { DatePicker } from '~/components/ui/date-picker'
 import { farms } from '~/lib/mock-data/farmer'
 import type { Route } from './+types/record-purchase'
@@ -33,9 +33,9 @@ export default function RecordPurchasePage() {
   const [description, setDescription] = useState('')
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 pb-10">
       {/* Breadcrumbs */}
-      <Breadcrumb
+      <PageHeader
         items={[
           {
             label: 'Dashboard',

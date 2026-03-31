@@ -1,4 +1,5 @@
 import { cn } from '~/lib/utils'
+import { Skeleton } from '~/components/ui/skeleton'
 
 interface StatCardProps {
   title: string
@@ -8,9 +9,10 @@ interface StatCardProps {
   icon: React.ReactNode
   trend?: 'up' | 'down' | 'neutral'
   className?: string
+  isLoading?: boolean
 }
 
-export function StatCard({ title, value, subtitle, description, icon, trend = 'neutral', className }: StatCardProps) {
+export function StatCard({ title, value, subtitle, description, icon, trend = 'neutral', className, isLoading }: StatCardProps) {
   return (
     <div className={cn('rounded-md border border-gray-200 bg-white p-4', className)}>
       <div className="flex items-start justify-between mb-3">
@@ -27,11 +29,22 @@ export function StatCard({ title, value, subtitle, description, icon, trend = 'n
           )}
         </div>
       </div>
-      <div className="text-2xl font-bold text-gray-900 mb-0.5">{value}</div>
+      <div className="text-2xl font-bold text-gray-900 mb-0.5">
+        {isLoading ? <Skeleton className="h-8 w-24" /> : value}
+      </div>
       <div className="text-xs text-gray-500">
-        <span className="font-medium">{subtitle}</span>
-        <br />
-        <span className="text-gray-400">{description}</span>
+        {isLoading ? (
+          <div className="space-y-1 mt-1">
+            <Skeleton className="h-3 w-32" />
+            <Skeleton className="h-3 w-40" />
+          </div>
+        ) : (
+          <>
+            <span className="font-medium">{subtitle}</span>
+            <br />
+            <span className="text-gray-400">{description}</span>
+          </>
+        )}
       </div>
     </div>
   )

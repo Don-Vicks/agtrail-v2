@@ -1,4 +1,4 @@
-import { Breadcrumb } from '~/components/breadcrumb'
+import { PageHeader } from '~/components/page-header'
 import type { Route } from './+types/reports-analytics'
 
 export function meta({ }: Route.MetaArgs) {
@@ -93,9 +93,9 @@ function ReportCard({
 /* ─── Page Component ─── */
 export default function ReportsAnalyticsPage() {
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 pb-10">
       {/* Breadcrumbs */}
-      <Breadcrumb
+      <PageHeader
         items={[
           {
             label: 'Dashboard',

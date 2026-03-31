@@ -22,6 +22,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const storedToken = localStorage.getItem('agrolinking_token')
     const storedUser = localStorage.getItem('agrolinking_user')
 
+    console.log("Stored User", storedUser)
+
     if (storedToken && storedUser) {
       try {
         setUser(JSON.parse(storedUser))

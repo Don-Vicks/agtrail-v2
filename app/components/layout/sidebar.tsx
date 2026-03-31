@@ -4,6 +4,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~
 import { currentUser, sidebarNavigation } from '~/lib/mock-data/farmer'
 import { cn } from '~/lib/utils'
 import { useSidebar } from './sidebar-context'
+import { useAuth } from '~/context/auth-context'
+import { LogoutConfirmationModal } from '~/components/logout-confirmation-modal'
+import { useGetWalletBalance } from '~/lib/api/generated/wallet/wallet'
 
 interface NavGroupProps {
   label: string
@@ -151,7 +154,24 @@ export function Sidebar() {
   const isCollapsedDesktop = sidebarCtx?.isCollapsedDesktop ?? false
   const isOpenMobile = sidebarCtx?.isOpenMobile ?? false
   const navigate = useNavigate()
+  const { user, logout } = useAuth()
   const [isWalletExpanded, setIsWalletExpanded] = useState(false)
+  const [showLogoutModal, setShowLogoutModal] = useState(false)
+
+  // Fetch Wallet Data
+  const { data: walletResp, refetch: refetchWallet, isLoading: isLoadingWallet } = useGetWalletBalance()
+  
+  const walletData = walletResp?.data?.data
+
+  const handleSignOut = () => {
+    setShowLogoutModal(true)
+  }
+
+  const confirmSignOut = () => {
+    setShowLogoutModal(false)
+    logout()
+    navigate('/login', { replace: true })
+  }
 
   const handleRoleChange = (role: string) => {
     // In a real app this would update auth context, for now we just navigate to the dashboard layout
@@ -160,6 +180,7 @@ export function Sidebar() {
   }
 
   return (
+    <>
     <aside className={cn(
       "fixed inset-y-0 left-0 z-30 flex w-64 flex-col border-r border-gray-200 bg-[#e6e6e6] transition-transform duration-300 ease-in-out",
       isOpenMobile ? "translate-x-0" : "-translate-x-full",
@@ -212,7 +233,7 @@ export function Sidebar() {
             </svg>
             <div>
               <div className="text-[13px] font-bold text-gray-900">Wallet</div>
-              <div className="text-[10px] text-gray-500 font-mono tracking-wide">{currentUser.walletAddress}</div>
+              <div className="text-[10px] text-gray-500 font-mono tracking-wide">{isLoadingWallet ? 'Loading...' : (walletData?.id ? walletData.id.slice(0, 10) + '...' + walletData.id.slice(-4) : 'No Wallet Address')}</div>
             </div>
           </div>
           <svg
@@ -227,18 +248,27 @@ export function Sidebar() {
           <div className="mt-3">
             <div className="mb-3 border-t border-gray-200/60" />
             <div className="space-y-2.5 px-0.5 text-[13px] font-medium">
-              <div className="flex justify-between items-center text-gray-600">
-                <span>XLM</span>
-                <span className="font-mono text-gray-900 font-bold">3.00</span>
-              </div>
-              <div className="flex justify-between items-center text-gray-600">
-                <span>NGNC</span>
-                <span className="font-mono text-gray-900 font-bold">0.00</span>
-              </div>
-              <div className="flex justify-between items-center text-gray-600">
-                <span>AGT</span>
-                <span className="font-mono text-gray-900 font-bold">0.00</span>
-              </div>
+              {isLoadingWallet ? (
+                <div className="flex justify-center py-2">
+                  <span className="text-xs text-gray-500">Loading assets...</span>
+                </div>
+              ) : walletData ? (
+                <>
+                  <div className="flex justify-between items-center text-gray-600">
+                    <span>{walletData.currency}</span>
+                    <span className="font-mono text-gray-900 font-bold">{walletData.balance.toFixed(2)}</span>
+                  </div>
+                  {/* Keep AGT token for platform rewards context */}
+                  <div className="flex justify-between items-center text-gray-600">
+                    <span>AGT</span>
+                    <span className="font-mono text-gray-900 font-bold">0.00</span>
+                  </div>
+                </>
+              ) : (
+                <div className="flex justify-center py-2">
+                  <span className="text-xs text-gray-500">Could not load wallet</span>
+                </div>
+              )}
 
               <div className="flex items-center gap-5 pt-3 pb-1">
                 <button className="flex items-center gap-1.5 text-[13px] font-bold text-gray-900 hover:text-gray-600 transition-colors">
@@ -253,8 +283,8 @@ export function Sidebar() {
                   </svg>
                   Explorer
                 </button>
-                <button className="ml-auto flex items-center justify-center text-gray-900 hover:text-gray-600 transition-colors" title="Refresh">
-                  <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <button onClick={() => refetchWallet()} className="ml-auto flex items-center justify-center text-gray-900 hover:text-gray-600 transition-colors" title="Refresh">
+                  <svg className={`size-4 ${isLoadingWallet ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                   </svg>
                 </button>
@@ -268,13 +298,15 @@ export function Sidebar() {
       <div className="border-t border-gray-200 px-4 py-3">
         <div className="flex items-center gap-2.5">
           <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand text-[10px] font-bold text-white">
-            {currentUser.initials}
+            {user?.email ? user.email.substring(0, 2).toUpperCase() : 'AG'}
           </div>
           <div className="min-w-0 flex-1">
-            <div className="truncate text-sm font-medium text-gray-900">{currentUser.name}</div>
-            <div className="truncate text-[11px] text-gray-400">{currentUser.email}</div>
+            <div className="truncate text-sm font-medium text-gray-900">
+              {user?.email ? user.email.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : 'User'}
+            </div>
+            <div className="truncate text-[11px] text-gray-400">{user?.email || 'Not signed in'}</div>
           </div>
-          <button className="shrink-0 rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600" title="Sign out">
+          <button onClick={handleSignOut} className="shrink-0 rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600" title="Sign out">
             <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
               <polyline points="16 17 21 12 16 7" />
@@ -284,5 +316,12 @@ export function Sidebar() {
         </div>
       </div>
     </aside>
+
+      <LogoutConfirmationModal
+        isOpen={showLogoutModal}
+        onClose={() => setShowLogoutModal(false)}
+        onConfirm={confirmSignOut}
+      />
+    </>
   )
 }

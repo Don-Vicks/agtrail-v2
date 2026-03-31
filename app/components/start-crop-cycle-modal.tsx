@@ -4,9 +4,11 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from '~/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
 import { Textarea } from '~/components/ui/textarea'
+import { DatePicker } from '~/components/ui/date-picker'
 import { cn } from '~/lib/utils'
 import { usePostFarmsIdCropCycles } from '~/lib/api/generated/farms-crop-cycles/farms-crop-cycles'
 import { useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 
 interface StartCropCycleModalProps {
   isOpen: boolean
@@ -106,18 +108,19 @@ export function StartCropCycleModal({
     mutation: {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: [`/farms/${farmId}`] })
+        toast.success('Crop cycle started successfully')
         handleClose()
       },
       onError: (err: any) => {
         console.error('Failed to create crop cycle', err)
-        alert(err.response?.data?.message || 'Failed to create crop cycle')
+        toast.error(err.response?.data?.message || 'Failed to create crop cycle')
       }
     }
   })
 
   const handleSubmit = () => {
     if (!farmId) {
-      alert('Farm ID is missing, cannot create crop cycle.')
+      toast.error('Farm ID is missing, cannot create crop cycle.')
       return
     }
     createCropCycle({
@@ -242,13 +245,21 @@ export function StartCropCycleModal({
             <div className="space-y-4 px-6">
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-gray-900">Planting Date <span className="text-red-500">*</span></label>
-                <Input type="date" value={formData.plantingDate} onChange={(e) => handleFieldChange('plantingDate', e.target.value)}
-                  className="py-5 text-gray-500" />
+                <DatePicker 
+                  value={formData.plantingDate} 
+                  onChange={(val) => handleFieldChange('plantingDate', val)}
+                  placeholder="Select planting date"
+                  className="py-5 h-auto text-gray-500 font-normal"
+                />
               </div>
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-gray-900">Expected Harvest Date (Optional)</label>
-                <Input type="date" value={formData.expectedHarvest} onChange={(e) => handleFieldChange('expectedHarvest', e.target.value)}
-                  className="py-5 text-gray-500" />
+                <DatePicker 
+                  value={formData.expectedHarvest} 
+                  onChange={(val) => handleFieldChange('expectedHarvest', val)}
+                  placeholder="Select expected harvest date"
+                  className="py-5 h-auto text-gray-500 font-normal"
+                />
                 <p className="mt-1 text-xs text-gray-400">Estimated date when the crop will be ready for harvest</p>
               </div>
               <div>

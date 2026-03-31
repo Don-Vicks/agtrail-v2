@@ -10,6 +10,7 @@ import {
 import { Button } from '~/components/ui/button'
 import { Label } from '~/components/ui/label'
 import { Input } from '~/components/ui/input'
+import { DatePicker } from '~/components/ui/date-picker'
 import {
   Select,
   SelectContent,
@@ -17,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '~/components/ui/select'
+import { toast } from 'sonner'
 
 export interface NewMaterialData {
   material: string
@@ -60,6 +62,7 @@ export function AddMaterialModal({ isOpen, onClose, onAdd }: AddMaterialModalPro
       harvested,
       received,
     })
+    toast.success('Material added successfully')
     handleReset()
     onClose()
   }
@@ -130,22 +133,20 @@ export function AddMaterialModal({ isOpen, onClose, onAdd }: AddMaterialModalPro
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="harvested">Date Harvested</Label>
-              <Input
-                id="harvested"
-                type="date"
-                required
+              <DatePicker
                 value={harvested}
-                onChange={(e) => setHarvested(e.target.value)}
+                onChange={(val) => setHarvested(val)}
+                placeholder="Select date"
+                className="h-11"
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="received">Date Received</Label>
-              <Input
-                id="received"
-                type="date"
-                required
+              <DatePicker
                 value={received}
-                onChange={(e) => setReceived(e.target.value)}
+                onChange={(val) => setReceived(val)}
+                placeholder="Pick date"
+                className="h-11"
               />
             </div>
           </div>

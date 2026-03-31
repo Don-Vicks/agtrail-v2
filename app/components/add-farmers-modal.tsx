@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Plus, Search, Mail } from 'lucide-react'
 import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogClose } from '~/components/ui/dialog'
+import { toast } from 'sonner'
 
 interface AddFarmersModalProps {
   isOpen: boolean
@@ -90,8 +91,11 @@ export function AddFarmersModal({ isOpen, onClose }: AddFarmersModalProps) {
                       Cancel
                     </button>
                     <button
-                      className="flex items-center gap-2 rounded-md bg-[#8cb790] px-4 py-2 text-sm font-medium text-white opacity-80 cursor-not-allowed"
-                      disabled
+                      onClick={() => {
+                        toast.success('Farmers added to cooperative')
+                        onClose()
+                      }}
+                      className="flex items-center gap-2 rounded-md bg-brand px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-dark"
                     >
                       <Plus className="size-4" />
                       Add Farmers
@@ -190,7 +194,15 @@ export function AddFarmersModal({ isOpen, onClose }: AddFarmersModalProps) {
                       Cancel
                     </button>
                     <button
-                      className="flex items-center gap-2 rounded-md bg-[#8cb790] px-4 py-2 text-sm font-medium text-white transition-colors"
+                      onClick={() => {
+                        if (inviteForm.fullName && inviteForm.emailOrPhone) {
+                          toast.success(`Invitation sent to ${inviteForm.fullName}`)
+                          onClose()
+                        } else {
+                          toast.error('Please fill in all required fields')
+                        }
+                      }}
+                      className="flex items-center gap-2 rounded-md bg-brand px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-dark"
                     >
                       <Plus className="size-4" />
                       Invite Farmer
