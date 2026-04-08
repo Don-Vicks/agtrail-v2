@@ -1,13 +1,13 @@
+import { FarmMap } from '~/components/farm-map.client'
 import { KYCBanner } from '~/components/kyc-banner'
 import { QuickActions } from '~/components/quick-actions'
 import { StatCard } from '~/components/stat-card'
-import { FarmMap } from '~/components/farm-map.client'
 import {
-  farmerStats,
-  farms,
-  products,
-  quickActions,
-  regions,
+    farmerStats,
+    farms,
+    products,
+    quickActions,
+    regions,
 } from '~/lib/mock-data/farmer'
 import type { Route } from './+types/dashboard'
 
