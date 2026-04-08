@@ -3,7 +3,9 @@ import { useCallback, useMemo, useState } from 'react'
 import { PageHeader } from '~/components/page-header'
 import { CERTIFICATION_TYPES } from '~/lib/data/certification-types'
 import { DatePicker } from '~/components/ui/date-picker'
-import { products } from '~/lib/mock-data/farmer'
+import { useGetFarmersProducts } from '~/lib/api/generated/farm-products/farm-products'
+import { useGetFarms } from '~/lib/api/generated/farms/farms'
+import { usePostCertificationsUpload } from '~/lib/api/generated/certifications/certifications'
 import type { Route } from './+types/product-certification'
 
 export function meta({ }: Route.MetaArgs) {
@@ -86,6 +88,27 @@ export default function ProductCertificationPage() {
   const [modalOpen, setModalOpen] = useState(false)
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null)
 
+  const { data: farmsResp } = useGetFarms()
+  const farmsMap = useMemo(() => {
+    const map = new Map<string, any>()
+    farmsResp?.data?.data?.forEach((f: any) => map.set(f.id, f))
+    return map
+  }, [farmsResp])
+
+  const { data: productsResp, isLoading: isLoadingProducts } = useGetFarmersProducts()
+  
+  const uiProducts = useMemo(() => {
+    const apiProducts = productsResp?.data?.data || []
+    return apiProducts.map((p: any) => ({
+      id: p.id,
+      batchId: p.batchNumber || `BATCH-${p.id.slice(0,6).toUpperCase()}`,
+      name: p.productName || 'Unknown Product',
+      farm: farmsMap.get(p.farmId)?.name || 'Unknown Farm',
+      location: farmsMap.get(p.farmId)?.lga || farmsMap.get(p.farmId)?.region || 'Location Not Specified',
+      certificationsCount: 0 
+    }))
+  }, [productsResp, farmsMap])
+
   // Modal form state
   const [certType, setCertType] = useState('')
   const [certOrg, setCertOrg] = useState('')
@@ -96,19 +119,19 @@ export default function ProductCertificationPage() {
 
   // Unique farm names from products
   const farmNames = useMemo(() => {
-    const names = new Set(products.map((p) => p.farm))
+    const names = new Set(uiProducts.map((p) => p.farm))
     return Array.from(names).sort()
-  }, [])
+  }, [uiProducts])
 
   // Unique product names
   const productNames = useMemo(() => {
-    const names = new Set(products.map((p) => p.name))
+    const names = new Set(uiProducts.map((p) => p.name))
     return Array.from(names).sort()
-  }, [])
+  }, [uiProducts])
 
   // Filter products
   const filteredProducts = useMemo(() => {
-    return products.filter((p) => {
+    return uiProducts.filter((p) => {
       const matchesSearch =
         !searchQuery ||
         p.farm.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -118,7 +141,7 @@ export default function ProductCertificationPage() {
       const matchesProduct = !productFilter || p.name === productFilter
       return matchesSearch && matchesFarm && matchesProduct
     })
-  }, [searchQuery, farmFilter, productFilter])
+  }, [searchQuery, farmFilter, productFilter, uiProducts])
 
   // Pagination
   const totalItems = filteredProducts.length
@@ -148,6 +171,41 @@ export default function ProductCertificationPage() {
     setModalOpen(false)
     setSelectedProductId(null)
   }, [])
+
+  const { mutate: uploadCert, isPending: isUploading } = usePostCertificationsUpload()
+
+  const handleUpload = () => {
+    if (!selectedProductId || !certType) {
+      alert('Please fill out the required fields (Certification Type, etc.)')
+      return
+    }
+
+    const originalProduct = productsResp?.data?.data?.find((p: any) => p.id === selectedProductId)
+
+    uploadCert(
+      {
+        data: {
+          certificationTypeId: certType,
+          certifiedEntityType: 'farm_product',
+          farmId: originalProduct?.farmId,
+          farmProductId: selectedProductId,
+          certificateNumber: certOrg,
+          issueDate: dateIssued ? new Date(dateIssued).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+          expiryDate: dateExpiry ? new Date(dateExpiry).toISOString().split('T')[0] : undefined,
+          documentUrl: 'https://example.com/certificate.pdf',
+        },
+      },
+      {
+        onSuccess: () => {
+          closeModal()
+        },
+        onError: (err) => {
+          console.error(err)
+          alert('Failed to save certification')
+        }
+      }
+    )
+  }
 
   const handleFileDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
@@ -216,7 +274,7 @@ export default function ProductCertificationPage() {
             <select
               value={farmFilter}
               onChange={(e) => updateFilters(setFarmFilter, e.target.value)}
-              className="h-10 appearance-none rounded-md border border-gray-200 bg-white pl-9 pr-10 text-sm font-medium text-gray-700 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all font-bold"
+              className="h-10 appearance-none rounded-md border border-gray-200 bg-white pl-9 pr-10 text-sm font-bold text-gray-700 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all"
             >
               <option value="">All Farms</option>
               {farmNames.map((f) => (
@@ -234,7 +292,7 @@ export default function ProductCertificationPage() {
             <select
               value={productFilter}
               onChange={(e) => updateFilters(setProductFilter, e.target.value)}
-              className="h-10 appearance-none rounded-md border border-gray-200 bg-white pl-9 pr-10 text-sm font-medium text-gray-700 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all font-bold"
+              className="h-10 appearance-none rounded-md border border-gray-200 bg-white pl-9 pr-10 text-sm font-bold text-gray-700 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all"
             >
               <option value="">All Products</option>
               {productNames.map((p) => (
@@ -247,7 +305,10 @@ export default function ProductCertificationPage() {
       </div>
 
       {/* Product card grid */}
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+      {isLoadingProducts ? (
+        <div className="py-12 text-center text-sm font-medium text-gray-500">Loading products...</div>
+      ) : (
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         {paginatedProducts.map((product) => (
           <div
             key={product.id}
@@ -283,7 +344,7 @@ export default function ProductCertificationPage() {
             <div className="mt-4 flex items-center gap-2">
               <div className="inline-flex items-center gap-1.5 rounded-full border border-green-200 bg-green-50 px-2.5 py-1 text-[11px] font-bold text-green-700">
                 <CertBadgeIcon />
-                {product.metrics.certifications} Certificate{product.metrics.certifications !== 1 ? 's' : ''} Uploaded
+                {product.certificationsCount} Certificate{product.certificationsCount !== 1 ? 's' : ''} Uploaded
               </div>
             </div>
 
@@ -298,6 +359,7 @@ export default function ProductCertificationPage() {
           </div>
         ))}
       </div>
+      )}
 
       {filteredProducts.length === 0 && (
         <div className="flex flex-col items-center justify-center py-24 text-center">
@@ -319,7 +381,7 @@ export default function ProductCertificationPage() {
           <div className="flex items-center gap-3">
              <span className="text-xs font-medium text-gray-500">Rows per page</span>
              <div className="relative">
-               <select className="h-8 appearance-none rounded-md border border-gray-200 bg-white pl-3 pr-8 text-xs font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all font-bold">
+               <select className="h-8 appearance-none rounded-md border border-gray-200 bg-white pl-3 pr-8 text-xs font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all">
                  <option>10</option>
                  <option>20</option>
                </select>
@@ -487,15 +549,17 @@ export default function ProductCertificationPage() {
 
               <button
                 type="button"
-                onClick={closeModal}
-                className="mt-2 flex h-12 w-full items-center justify-center rounded-md bg-[#1b4332] text-sm font-bold text-white shadow-lg shadow-brand/10 transition-all hover:bg-brand-dark hover:-translate-y-0.5 active:translate-y-0"
+                onClick={handleUpload}
+                disabled={isUploading}
+                className="flex h-12 w-full items-center justify-center rounded-md bg-[#1b4332] text-sm font-bold text-white shadow-lg shadow-brand/10 transition-all hover:bg-brand-dark hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:pointer-events-none"
               >
-                Save Product Certification
+                {isUploading ? 'Saving...' : 'Save Certification'}
               </button>
             </div>
           </div>
         </div>
       )}
+
     </div>
   )
 }

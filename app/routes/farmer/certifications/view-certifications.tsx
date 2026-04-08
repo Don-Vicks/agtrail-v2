@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router'
-import { Breadcrumb } from '~/components/breadcrumb'
+import { PageHeader } from '~/components/page-header'
+import { useGetCertifications } from '~/lib/api/generated/certifications/certifications'
 import type { Route } from './+types/view-certifications'
 
 export function meta({ }: Route.MetaArgs) {
@@ -93,75 +94,41 @@ interface CertificationInfo {
   type: CertType;
 }
 
-const MOCK_CERTIFICATIONS: CertificationInfo[] = [
-  {
-    id: 'cert-1',
-    title: 'global_gap',
-    subtitle: 'w',
-    status: 'Active',
-    verified: false,
-    certNo: 'CERT-1771686980745',
-    issueDate: 'Feb 11, 2026',
-    expiryDate: 'Feb 24, 2026',
-    appliedTo: 'Olamide Farms',
-    type: 'Farm',
-  },
-  {
-    id: 'cert-2',
-    title: 'rainforest',
-    subtitle: 'sdsd',
-    status: 'Active',
-    verified: false,
-    certNo: 'CERT-1771687141408',
-    issueDate: 'Feb 20, 2026',
-    expiryDate: 'Feb 25, 2026',
-    appliedTo: 'Maize',
-    type: 'Product',
-  },
-  {
-    id: 'cert-3',
-    title: 'organic_eu',
-    subtitle: 'EU Organic Standard',
-    status: 'Pending',
-    verified: false,
-    certNo: 'CERT-1771690000000',
-    issueDate: 'N/A',
-    expiryDate: 'N/A',
-    appliedTo: 'Sesame',
-    type: 'Product',
-  },
-  {
-    id: 'cert-4',
-    title: 'fairtrade',
-    subtitle: 'Fairtrade International',
-    status: 'Pending',
-    verified: false,
-    certNo: 'CERT-1771691111111',
-    issueDate: 'N/A',
-    expiryDate: 'N/A',
-    appliedTo: 'Baba Beji Farms',
-    type: 'Farm',
-  }
-];
-
 /* ─── Page Component ─── */
 export default function ViewCertificationsPage() {
+  const { data: certsResp, isLoading } = useGetCertifications()
+  const apiCertifications = useMemo(() => {
+    const rawData = certsResp?.data?.data
+    if (!Array.isArray(rawData)) return []
+    return rawData.map((cert: any) => ({
+      id: cert.id || `cert-${Math.random()}`,
+      title: cert.title || cert.certificationName || cert.certificationType || 'Unknown Certification',
+      subtitle: cert.subtitle || cert.organization || cert.issuingOrganization || '',
+      status: cert.status || 'Pending',
+      verified: !!cert.verified,
+      certNo: cert.certNo || cert.certificateNumber || 'N/A',
+      issueDate: cert.issueDate || cert.issuedAt || 'N/A',
+      expiryDate: cert.expiryDate || cert.expiresAt || 'N/A',
+      appliedTo: cert.appliedTo || cert.entityName || (cert.certifiedEntityType === 'FARM' ? 'Farm' : 'Product'),
+      type: cert.type || (cert.certifiedEntityType === 'FARM' ? 'Farm' : 'Product'),
+    })) as CertificationInfo[]
+  }, [certsResp])
   const [activeTab, setActiveTab] = useState<'All' | 'Farm' | 'Product'>('All')
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
 
   // Compute stats
-  const totalCerts = MOCK_CERTIFICATIONS.length
-  const activeCerts = MOCK_CERTIFICATIONS.filter(c => c.status === 'Active').length
-  const expiredCerts = MOCK_CERTIFICATIONS.filter(c => c.status === 'Expired').length
-  const pendingCerts = MOCK_CERTIFICATIONS.filter(c => c.status === 'Pending').length
+  const totalCerts = apiCertifications.length
+  const activeCerts = apiCertifications.filter(c => c.status === 'Active').length
+  const expiredCerts = apiCertifications.filter(c => c.status === 'Expired').length
+  const pendingCerts = apiCertifications.filter(c => c.status === 'Pending').length
 
-  const farmCertsCount = MOCK_CERTIFICATIONS.filter(c => c.type === 'Farm').length
-  const productCertsCount = MOCK_CERTIFICATIONS.filter(c => c.type === 'Product').length
+  const farmCertsCount = apiCertifications.filter(c => c.type === 'Farm').length
+  const productCertsCount = apiCertifications.filter(c => c.type === 'Product').length
 
   // Filter lists
   const filteredCerts = useMemo(() => {
-    return MOCK_CERTIFICATIONS.filter(cert => {
+    return apiCertifications.filter(cert => {
       // Type Match
       if (activeTab === 'Farm' && cert.type !== 'Farm') return false;
       if (activeTab === 'Product' && cert.type !== 'Product') return false;
@@ -188,24 +155,22 @@ export default function ViewCertificationsPage() {
   return (
     <div className="space-y-6">
       {/* Header & Breadcrumbs */}
+      <PageHeader
+        items={[
+          {
+            label: 'Dashboard',
+            href: '/farmer',
+            icon: (
+              <svg className="size-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                <line x1="9" y1="3" x2="9" y2="21" />
+              </svg>
+            ),
+          },
+          { label: 'View Certifications' },
+        ]}
+      />
       <div>
-        <Breadcrumb
-          items={[
-            {
-              label: 'Dashboard',
-              href: '/farmer',
-              icon: (
-                <svg className="size-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                  <line x1="9" y1="3" x2="9" y2="21" />
-                </svg>
-              ),
-            },
-            { label: 'View Certifications' },
-          ]}
-        />
-        <div className="mt-4" />
-
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold uppercase text-brand">Certifications</h1>
@@ -344,7 +309,11 @@ export default function ViewCertificationsPage() {
 
         {/* List of Certs */}
         <div className="space-y-4">
-          {filteredCerts.length > 0 ? (
+          {isLoading ? (
+            <div className="py-12 text-center text-sm font-medium text-gray-500">
+              Loading certifications...
+            </div>
+          ) : filteredCerts.length > 0 ? (
             filteredCerts.map((cert) => (
               <div key={cert.id} className="rounded-xl border border-gray-200 bg-white p-5 transition-shadow hover:shadow-md">
                 <div className="flex flex-wrap items-start justify-between gap-4 border-b border-gray-100 pb-4">

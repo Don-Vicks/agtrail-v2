@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { Route } from './+types/settings-root'
+import { useAuth } from '~/context/auth-context'
 
 export function meta({ }: Route.MetaArgs) {
   return [
@@ -50,6 +51,7 @@ export default function SettingsPage() {
 
 /* ─── 1. Account Settings ─── */
 function AccountSettingsTab() {
+  const { user } = useAuth();
   return (
     <div className="space-y-6">
       <div>
@@ -62,7 +64,7 @@ function AccountSettingsTab() {
           <label className="block text-sm font-bold text-gray-900">Name</label>
           <input
             type="text"
-            defaultValue="Agrolinking Administrator"
+            value={user?.name}
             className="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
           />
         </div>
@@ -71,7 +73,7 @@ function AccountSettingsTab() {
           <label className="block text-sm font-bold text-gray-900">Email</label>
           <input
             type="email"
-            defaultValue="admin@agrolinking.com"
+            value={user?.email}
             className="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
           />
         </div>

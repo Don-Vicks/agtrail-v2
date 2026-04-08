@@ -4,7 +4,10 @@ import { PageHeader } from '~/components/page-header'
 import { Pagination } from '~/components/pagination'
 import { StartCropCycleModal } from '~/components/start-crop-cycle-modal'
 import { SelectOperationModal } from '~/components/select-operation-modal'
-import { farmCropCycles, farms, type CropCycle } from '~/lib/mock-data/farmer'
+import { useGetFarmsIdCropCycles } from '~/lib/api/generated/farms-crop-cycles/farms-crop-cycles'
+import { useGetFarmsId } from '~/lib/api/generated/farms/farms'
+import { useAuth } from '~/context/auth-context'
+import { farmCropCycles, farms } from '~/lib/mock-data/farmer'
 import type { Route } from './+types/farm-details'
 
 export function meta({ }: Route.MetaArgs) {
@@ -15,20 +18,56 @@ export function meta({ }: Route.MetaArgs) {
 }
 
 export default function CooperativeFarmDetails() {
+  const { user } = useAuth()
   const params = useParams()
-  const farm = farms.find((f) => f.id === params.id) ?? farms[0]
-  const cropCycles = farmCropCycles.filter((c) => c.farmId === farm.id)
+  
+  const { data: farmResponse, isLoading } = useGetFarmsId(params.id as string)
+  const farm: any = farmResponse?.data?.data || farms.find((f: any) => f.id === params.id) || farms[0]
+
+  const { data: cyclesResponse, isLoading: isLoadingCycles } = useGetFarmsIdCropCycles(params.id as string, {
+    query: { enabled: !!params.id }
+  })
+  const apiCropCycles = Array.isArray(cyclesResponse?.data?.data) ? cyclesResponse.data.data : []
+  
+  const cropCycles: any[] = apiCropCycles.map((c: any) => ({
+    ...c,
+    id: c.id,
+    productName: c.cropName || 'Unknown',
+    variety: c.variety || '',
+    plantedDate: c.plantingDate ? new Date(c.plantingDate).toLocaleDateString() : 'N/A',
+    expectedHarvest: c.expectedHarvestDate ? new Date(c.expectedHarvestDate).toLocaleDateString() : 'N/A',
+    area: c.areaPlantedHectares || 0,
+    season: 'Current',
+    status: c.status || 'planned',
+    farmName: farm?.name || '',
+    farmLocation: farm?.lga || '',
+    farmer: user?.email || '',
+    farmerInitials: user?.email ? user.email.slice(0, 2).toUpperCase() : 'ME',
+    farmerColor: "#4CAF50"
+  }))
 
   const [isCropCycleModalOpen, setIsCropCycleModalOpen] = useState(false)
-  const [selectedCropCycle, setSelectedCropCycle] = useState<CropCycle | null>(null)
+  const [selectedCropCycle, setSelectedCropCycle] = useState<any | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
+  const [sortOption, setSortOption] = useState('name')
   const [currentPage, setCurrentPage] = useState(1)
   const rowsPerPage = 10
 
   const filteredCycles = cropCycles.filter((c) =>
     c.productName.toLowerCase().includes(searchQuery.toLowerCase()) ||
     c.variety.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  ).sort((a, b) => {
+    if (sortOption === 'name') {
+      return a.productName.localeCompare(b.productName)
+    }
+    if (sortOption === 'date') {
+      return new Date(b.plantedDate === 'N/A' ? 0 : b.plantedDate).getTime() - new Date(a.plantedDate === 'N/A' ? 0 : a.plantedDate).getTime()
+    }
+    if (sortOption === 'status') {
+      return a.status.localeCompare(b.status)
+    }
+    return 0
+  })
 
   const totalPages = Math.max(1, Math.ceil(filteredCycles.length / rowsPerPage))
 
@@ -59,17 +98,28 @@ export default function CooperativeFarmDetails() {
       </div>
 
       {/* Farm Owner Card */}
-      <div className="flex items-center gap-4">
-        <div className="flex size-14 items-center justify-center rounded-full bg-brand-surface text-lg font-bold text-brand">
-          {farm.ownerInitials}
+      {isLoading ? (
+        <div className="flex items-center gap-4 animate-pulse pt-2">
+          <div className="size-14 rounded-full bg-gray-200"></div>
+          <div className="space-y-2">
+            <div className="h-4 w-24 rounded bg-gray-200"></div>
+            <div className="h-3 w-32 rounded bg-gray-200"></div>
+            <div className="h-3 w-40 rounded bg-gray-200"></div>
+          </div>
         </div>
-        <div>
-          <h2 className="text-lg font-semibold text-gray-900">{farm.owner}</h2>
-          <p className="text-sm text-gray-600">{farm.name}</p>
-          <p className="text-sm text-gray-400">, Nigeria</p>
-          <p className="text-sm text-gray-400">No phone number</p>
+      ) : (
+        <div className="flex items-center gap-4">
+          <div className="flex size-14 items-center justify-center rounded-full bg-brand-surface text-lg font-bold text-brand">
+            {farm?.ownerInitials || 'ME'}
+          </div>
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">{farm?.owner || 'Cooperative Farm'}</h2>
+            <p className="text-sm text-gray-600">{farm?.name || 'Unknown Name'}</p>
+            <p className="text-sm text-gray-400">{farm?.lga || farm?.state || ''}, Nigeria</p>
+            <p className="text-sm text-gray-400">No phone number</p>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Crop Cycles Section */}
       <div>
@@ -100,17 +150,43 @@ export default function CooperativeFarmDetails() {
           />
           <div className="ml-auto flex items-center gap-2">
             <button className="rounded-md border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">Search</button>
-            <select className="rounded-md border border-gray-200 px-1.5 py-2 text-sm">
-              <option>Sort by Name</option>
-              <option>Sort by Date</option>
-              <option>Sort by Status</option>
+            <select 
+              value={sortOption}
+              onChange={(e) => { setSortOption(e.target.value); setCurrentPage(1) }}
+              className="rounded-md border border-gray-200 px-1.5 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+            >
+              <option value="name">Sort by Name</option>
+              <option value="date">Sort by Date</option>
+              <option value="status">Sort by Status</option>
             </select>
           </div>
         </div>
 
         {/* Crop Cycle Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {filteredCycles.map((cycle) => (
+        {isLoadingCycles ? (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="h-48 rounded-md border border-gray-200 bg-white p-5 animate-pulse flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                   <div className="size-10 rounded-full bg-gray-200"></div>
+                   <div className="h-5 w-16 rounded-full bg-gray-200"></div>
+                </div>
+                <div className="h-5 w-2/3 rounded bg-gray-200 mt-2"></div>
+                <div className="space-y-1">
+                   <div className="h-3 w-1/2 rounded bg-gray-200"></div>
+                   <div className="h-3 w-2/5 rounded bg-gray-200"></div>
+                   <div className="h-3 w-1/3 rounded bg-gray-200"></div>
+                </div>
+                <div className="mt-auto h-9 w-full rounded bg-gray-200"></div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {filteredCycles.length === 0 ? (
+              <div className="col-span-3 py-6 text-center text-sm text-gray-500">No crop cycles found.</div>
+            ) : null}
+            {filteredCycles.map((cycle) => (
             <div key={cycle.id} className="rounded-md border border-gray-200 bg-white p-5">
               <div className="mb-3 flex items-start justify-between">
                 <div className="flex size-10 items-center justify-center rounded-full bg-brand">
@@ -118,16 +194,18 @@ export default function CooperativeFarmDetails() {
                     <path d="M22 11.08V12a10 10 0 11-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
                   </svg>
                 </div>
-                <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${cycle.status === 'planning'
+                <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium uppercase ${cycle.status === 'planned'
+                  ? 'border border-blue-200 bg-blue-50 text-blue-700'
+                  : cycle.status === 'active' 
                   ? 'border border-brand-surface bg-brand-surface/50 text-brand'
-                  : 'border border-brand-light/30 bg-brand-light/10 text-brand-light'
+                  : 'border border-gray-200 bg-gray-50 text-gray-500'
                   }`}>
                   {cycle.status}
                 </span>
               </div>
 
               <h4 className="text-lg font-semibold text-gray-900 mb-2">
-                {cycle.productName} - {cycle.variety}
+                {cycle.productName} {cycle.variety ? `- ${cycle.variety}` : ''}
               </h4>
               <div className="space-y-0.5 text-sm text-gray-500">
                 <p>Planted: {cycle.plantedDate}</p>
@@ -145,6 +223,7 @@ export default function CooperativeFarmDetails() {
             </div>
           ))}
         </div>
+        )}
 
         {/* Pagination */}
         <Pagination
@@ -161,11 +240,12 @@ export default function CooperativeFarmDetails() {
       <StartCropCycleModal
         isOpen={isCropCycleModalOpen}
         onClose={() => setIsCropCycleModalOpen(false)}
-        farmName={farm.name}
-        farmLocation={farm.location || farm.region}
-        farmerName={farm.owner}
-        farmerInitials={farm.ownerInitials}
-        farmerColor={farm.ownerColor}
+        farmId={farm?.id}
+        farmName={farm?.name || ''}
+        farmLocation={farm?.lga || farm?.state || ''}
+        farmerName={farm?.owner || user?.email || 'Cooperative'}
+        farmerInitials={farm?.ownerInitials || 'CO'}
+        farmerColor={farm?.ownerColor || '#4CAF50'}
       />
 
       <SelectOperationModal

@@ -1,9 +1,9 @@
 import {
-    type RouteConfig,
-    index,
-    layout,
-    prefix,
-    route,
+  type RouteConfig,
+  index,
+  layout,
+  prefix,
+  route,
 } from '@react-router/dev/routes'
 import { processorRoutes } from './routes/processor/processor-routes'
 import { cooperativeRoutes } from './routes/cooperative/cooperative-routes'
@@ -31,6 +31,8 @@ export default [
       route('farms/:id', 'routes/farmer/farm-detail.tsx'),
       route('inventory', 'routes/farmer/inventory.tsx'),
       route('personnel', 'routes/farmer/personnel.tsx'),
+
+      // Operations Routes
       route('operations/new', 'routes/farmer/record-operation.tsx'),
       route(
         'operations/new/:cropCycleId/land-prep',

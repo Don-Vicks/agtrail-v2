@@ -19,7 +19,6 @@ export default function FarmerCropCycle() {
   const { user } = useAuth()
   const { data: farmsResponse, isLoading } = useGetFarms()
   const farms = farmsResponse?.data?.data || []
-  console.log('Farms response:', farmsResponse)
 
   const [searchQuery, setSearchQuery] = useState('')
   const [currentPage, setCurrentPage] = useState(1)

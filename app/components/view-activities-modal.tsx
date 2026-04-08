@@ -9,12 +9,13 @@ import {
   Wheat
 } from 'lucide-react'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '~/components/ui/dialog'
-import type { CropCycle } from '~/lib/mock-data/farmer'
+import type { CropCycle } from '~/lib/api/generated/models'
+import type { CropCycle } from '~/lib/api/generated/models'
 
 interface ViewActivitiesModalProps {
   isOpen: boolean
   onClose: () => void
-  cropCycle: CropCycle | null
+  cropCycle: (CropCycle & Record<string, any>) | null
 }
 
 // Mock Activity Data (will be replaced by API calls later)

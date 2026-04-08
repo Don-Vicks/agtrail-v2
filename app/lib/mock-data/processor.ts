@@ -56,9 +56,7 @@ export const sidebarNavigation = {
       href: '/processor/finance/receivables',
     },
   ],
-  reports: [
-    { label: 'Settings', icon: 'settings', href: '/processor/settings' },
-  ],
+  reports: [],
 }
 
 // ─── Batches Mock Data ─────────────────────────────────────────────

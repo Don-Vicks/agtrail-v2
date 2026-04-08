@@ -2,7 +2,9 @@ import { useCallback, useMemo, useState } from 'react'
 import { PageHeader } from '~/components/page-header'
 import { CERTIFICATION_TYPES } from '~/lib/data/certification-types'
 import { DatePicker } from '~/components/ui/date-picker'
-import { farms, products } from '~/lib/mock-data/farmer'
+import { useGetFarms } from '~/lib/api/generated/farms/farms'
+import { useGetFarmersProducts } from '~/lib/api/generated/farm-products/farm-products'
+import { usePostCertificationsUpload } from '~/lib/api/generated/certifications/certifications'
 import type { Route } from './+types/farm-certification'
 
 export function meta({ }: Route.MetaArgs) {
@@ -77,6 +79,22 @@ export default function FarmCertificationPage() {
   const [modalOpen, setModalOpen] = useState(false)
   const [selectedFarmId, setSelectedFarmId] = useState<string | null>(null)
 
+  const { data: farmsResp, isLoading: isLoadingFarms } = useGetFarms()
+  const apiFarms = useMemo(() => farmsResp?.data?.data || [], [farmsResp])
+
+  const { data: productsResp } = useGetFarmersProducts()
+  const apiProducts = useMemo(() => productsResp?.data?.data || [], [productsResp])
+
+  const uiFarms = useMemo(() => {
+    return apiFarms.map((f: any) => ({
+      id: f.id,
+      name: f.name || 'Unnamed Farm',
+      owner: f.owner || 'Unknown Owner',
+      location: f.lga || f.region || 'Location Not Specified',
+      hectares: Number(f.sizeHectares) || 0,
+    }))
+  }, [apiFarms])
+
   // Modal form state
   const [certType, setCertType] = useState('')
   const [certOrg, setCertOrg] = useState('')
@@ -87,13 +105,13 @@ export default function FarmCertificationPage() {
 
   // Unique owners
   const owners = useMemo(() => {
-    const names = new Set(farms.map((f) => f.owner))
+    const names = new Set(uiFarms.map((f) => f.owner))
     return Array.from(names).sort()
-  }, [])
+  }, [uiFarms])
 
   // Filter farms
   const filteredFarms = useMemo(() => {
-    return farms.filter((f) => {
+    return uiFarms.filter((f) => {
       const matchesSearch =
         !searchQuery ||
         f.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -101,7 +119,7 @@ export default function FarmCertificationPage() {
       const matchesOwner = !ownerFilter || f.owner === ownerFilter
       return matchesSearch && matchesOwner
     })
-  }, [searchQuery, ownerFilter])
+  }, [uiFarms, searchQuery, ownerFilter])
 
   // Pagination
   const totalItems = filteredFarms.length
@@ -125,6 +143,39 @@ export default function FarmCertificationPage() {
     setModalOpen(false)
     setSelectedFarmId(null)
   }, [])
+
+  const { mutate: uploadCert, isPending: isUploading } = usePostCertificationsUpload()
+
+  const handleUpload = () => {
+    if (!selectedFarmId || !certType) {
+      alert('Please fill down required fields (Certification Type, Farm)')
+      return
+    }
+
+    uploadCert(
+      {
+        data: {
+          certificationTypeId: certType,
+          certifiedEntityType: 'farm',
+          farmId: selectedFarmId,
+          certificateNumber: certOrg, // using certOrg input temporarily for cert number/name since schema lacks both
+          issueDate: dateIssued ? new Date(dateIssued).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+          expiryDate: dateExpiry ? new Date(dateExpiry).toISOString().split('T')[0] : undefined,
+          documentUrl: 'https://example.com/certificate.pdf', // Dummy document upload string
+        },
+      },
+      {
+        onSuccess: () => {
+          closeModal()
+          // Optionally refetch certifications or show toast
+        },
+        onError: (err) => {
+          console.error('Failed to upload', err)
+          alert('Failed to upload certification')
+        }
+      }
+    )
+  }
 
   const handleFileDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
@@ -204,10 +255,13 @@ export default function FarmCertificationPage() {
       </div>
 
       {/* Farm Grid */}
+      {isLoadingFarms ? (
+        <div className="py-12 text-center text-sm font-medium text-gray-500">Loading farms...</div>
+      ) : (
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         {paginatedFarms.map((farm) => {
-          const cropsCultivatedCount = products.filter(p => p.farm === farm.name).length
-          const certsCount = Math.floor(farm.hectares % 2)
+          const cropsCultivatedCount = apiProducts.filter((p: any) => p.farmId === farm.id).length
+          const certsCount = 0 // Update when certifications model has farm linkages
 
           return (
             <div
@@ -231,7 +285,7 @@ export default function FarmCertificationPage() {
                   type="button"
                   className="flex items-center gap-1.5 text-xs font-bold text-gray-900 hover:text-brand transition-colors text-left"
                 >
-                  {farm.location || 'Location Not Specified'}
+                  {farm.location}
                   <svg className="size-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                   </svg>
@@ -258,6 +312,7 @@ export default function FarmCertificationPage() {
           )
         })}
       </div>
+      )}
 
        {/* Pagination Footer */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 border-t border-gray-100 mt-2">
@@ -269,7 +324,7 @@ export default function FarmCertificationPage() {
           <div className="flex items-center gap-3">
              <span className="text-xs font-medium text-gray-500">Rows per page</span>
              <div className="relative">
-               <select className="h-8 appearance-none rounded-md border border-gray-200 bg-white pl-3 pr-8 text-xs font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all font-bold">
+               <select className="h-8 appearance-none rounded-md border border-gray-200 bg-white pl-3 pr-8 text-xs font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all">
                  <option>10</option>
                  <option>20</option>
                </select>
@@ -334,7 +389,7 @@ export default function FarmCertificationPage() {
                   id="cert-type"
                   value={certType}
                   onChange={(e) => setCertType(e.target.value)}
-                  className="h-10 w-full appearance-none rounded-md border border-gray-200 bg-white px-3 text-sm font-bold text-gray-900 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all font-bold"
+                  className="h-10 w-full appearance-none rounded-md border border-gray-200 bg-white px-3 text-sm font-bold text-gray-900 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all"
                 >
                   <option value="">Select type</option>
                   {CERTIFICATION_TYPES.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
@@ -344,7 +399,7 @@ export default function FarmCertificationPage() {
             </div>
             <div className="space-y-1.5">
               <label className="block text-xs font-bold uppercase tracking-wider text-gray-700">Certification Name <span className="text-red-500">*</span></label>
-              <input type="text" placeholder="e.g., GLOBALG.A.P." className="h-10 w-full rounded-md border border-gray-200 bg-white px-3 text-sm font-bold text-gray-900 placeholder:text-gray-300 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all font-bold" />
+              <input type="text" placeholder="e.g., GLOBALG.A.P." className="h-10 w-full rounded-md border border-gray-200 bg-white px-3 text-sm font-bold text-gray-900 placeholder:text-gray-300 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all" />
             </div>
           </div>
 
@@ -356,7 +411,7 @@ export default function FarmCertificationPage() {
               placeholder="e.g., Bureau Veritas"
               value={certOrg}
               onChange={(e) => setCertOrg(e.target.value)}
-              className="h-10 w-full rounded-md border border-gray-200 bg-white px-3 text-sm font-bold text-gray-900 placeholder:text-gray-300 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all font-bold"
+              className="h-10 w-full rounded-md border border-gray-200 bg-white px-3 text-sm font-bold text-gray-900 placeholder:text-gray-300 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all"
             />
           </div>
 
@@ -437,10 +492,11 @@ export default function FarmCertificationPage() {
 
               <button
                 type="button"
-                onClick={closeModal}
-                className="mt-2 flex h-12 w-full items-center justify-center rounded-md bg-[#1b4332] text-sm font-bold text-white shadow-lg shadow-brand/10 transition-all hover:bg-brand-dark hover:-translate-y-0.5 active:translate-y-0"
+                onClick={handleUpload}
+                disabled={isUploading}
+                className="mt-2 flex h-12 w-full items-center justify-center rounded-md bg-[#1b4332] text-sm font-bold text-white shadow-lg shadow-brand/10 transition-all hover:bg-brand-dark hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:pointer-events-none"
               >
-                Save Farm Certification
+                {isUploading ? 'Saving...' : 'Save Farm Certification'}
               </button>
             </div>
           </div>

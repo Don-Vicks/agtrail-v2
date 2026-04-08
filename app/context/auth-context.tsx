@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
 import type { ReactNode } from 'react'
 import type { AuthResponseDataUser } from '~/lib/api/generated/models/authResponseDataUser'
-import { useNavigate } from 'react-router'
 
 interface AuthContextType {
   user: AuthResponseDataUser | null
@@ -21,8 +20,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Check for existing token and user on mount
     const storedToken = localStorage.getItem('agrolinking_token')
     const storedUser = localStorage.getItem('agrolinking_user')
-
-    console.log("Stored User", storedUser)
 
     if (storedToken && storedUser) {
       try {

@@ -6,9 +6,10 @@ import type { FarmProduct } from '~/lib/api/generated/models'
 interface ProductGridCardProps {
   product: FarmProduct
   farmName: string
+  basePath?: string
 }
 
-export function ProductGridCard({ product, farmName }: ProductGridCardProps) {
+export function ProductGridCard({ product, farmName, basePath = '/farmer/products' }: ProductGridCardProps) {
   return (
     <div className="rounded-xl border border-gray-200 bg-white shadow-sm hover:shadow-md transition-shadow relative">
       {/* Top row: QR + Info */}
@@ -56,7 +57,7 @@ export function ProductGridCard({ product, farmName }: ProductGridCardProps) {
 
       {/* Full-width button at bottom */}
       <div className="px-4 sm:px-5 pb-4 sm:pb-5 pt-3">
-        <Link to={`/farmer/products/${product.id}`} className="block">
+        <Link to={`${basePath}/${product.id}`} className="block">
           <Button className="w-full bg-[#2E5A27] hover:bg-[#1e3d1a] text-white border-none py-2.5 h-auto text-[13px] font-semibold rounded-lg shadow-none">
             View Product Story
           </Button>

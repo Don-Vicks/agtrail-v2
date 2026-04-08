@@ -1,14 +1,14 @@
 import { QuickActions } from '~/components/quick-actions'
 import { StatCard } from '~/components/stat-card'
-import { FarmMap } from '~/components/farm-map'
+import { FarmMap } from '~/components/farm-map.client'
 import { FileText, Map, Users, Hexagon, Package, ArrowUpRight, CheckCircle2 } from 'lucide-react'
 import {
-  cooperativeDashboardStats,
   farmPerformanceSummary,
   quickActions,
   mapFarms,
   cooperativeFarms
 } from '~/lib/mock-data/cooperative'
+import { useGetCooperativesDashboard } from '~/lib/api/generated/cooperatives/cooperatives'
 import type { Route } from './+types/dashboard'
 import { Link } from 'react-router'
 import { cn } from '~/lib/utils'
@@ -23,6 +23,17 @@ export function meta({ }: Route.MetaArgs) {
 
 export default function CooperativeDashboard() {
   const [hoveredCategory, setHoveredCategory] = useState<number | null>(null);
+  
+  const { data: dashboardResponse, isLoading: isDashboardLoading } = useGetCooperativesDashboard()
+  const dashboardData: any = dashboardResponse?.data?.data || {}
+  
+  const {
+    totalMembers = 0,
+    totalFarms = 0,
+    totalArea = 0,
+    trackedProducts = 0,
+    totalHarvests = 0
+  } = dashboardData
 
   const categoryDetails = [
     { name: "Agricultural Products", desc: "Broad agricultural distribution across cooperative", count: 3, percent: 30, color: "#62C265" },
@@ -35,35 +46,35 @@ export default function CooperativeDashboard() {
   const stats = [
     {
       title: 'Total Members',
-      value: cooperativeDashboardStats.totalMembers.toString(),
+      value: totalMembers.toString(),
       subtitle: 'Farmers in cooperative',
       description: 'Active registered members',
       icon: <Users className="size-4 text-brand" />,
     },
     {
       title: 'Total Farms',
-      value: cooperativeDashboardStats.totalFarms.toString(),
+      value: totalFarms.toString(),
       subtitle: 'Registered farm locations',
       description: 'Across all members',
       icon: <Map className="size-4 text-brand" />,
     },
     {
       title: 'Total Land Area',
-      value: `${cooperativeDashboardStats.totalArea} ha`,
+      value: `${totalArea} ha`,
       subtitle: 'Combined farmland',
       description: 'Total cultivated area',
       icon: <Hexagon className="size-4 text-brand" />,
     },
     {
       title: 'Tracked Products',
-      value: cooperativeDashboardStats.trackedProducts.toString(),
+      value: trackedProducts.toString(),
       subtitle: 'Products in system',
       description: 'Total products being tracked',
       icon: <CheckCircle2 className="size-4 text-brand" />,
     },
     {
       title: 'Total Harvests',
-      value: cooperativeDashboardStats.totalHarvests.toString(),
+      value: totalHarvests.toString(),
       subtitle: 'Completed harvests',
       description: 'Recorded harvest events',
       icon: <Package className="size-4 text-brand" />,

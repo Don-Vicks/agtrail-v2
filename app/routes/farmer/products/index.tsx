@@ -13,8 +13,9 @@ import {
   SelectValue,
 } from '~/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
-import { useGetFarmersProducts } from '~/lib/api/generated/farm-products/farm-products'
+import { useGetFarmersProducts, usePostFarmersProducts } from '~/lib/api/generated/farm-products/farm-products'
 import { useGetFarms } from '~/lib/api/generated/farms/farms'
+import { DatePicker } from '~/components/ui/date-picker'
 
 /* ─── Page ─── */
 export default function ProductsIndex() {
@@ -23,6 +24,55 @@ export default function ProductsIndex() {
   const [search, setSearch] = useState('')
   const [farmFilter, setFarmFilter] = useState('all')
   const [productFilter, setProductFilter] = useState('all')
+
+  const [addProductModalOpen, setAddProductModalOpen] = useState(false)
+  const [newProductFarmId, setNewProductFarmId] = useState('')
+  const [newProductName, setNewProductName] = useState('')
+  const [newProductCategory, setNewProductCategory] = useState('')
+  const [newProductQty, setNewProductQty] = useState('')
+  const [newProductUnit, setNewProductUnit] = useState('kg')
+  const [newProductDate, setNewProductDate] = useState('')
+
+  const { mutate: createProduct, isPending: isCreatingProduct } = usePostFarmersProducts()
+
+  const handleCreateProduct = () => {
+    if (!newProductFarmId || !newProductName || !newProductQty) {
+      alert('Please fill out required fields (Farm, Name, Quantity)')
+      return
+    }
+
+    const payload = {
+      farmId: newProductFarmId,
+      cropCycleId: "00000000-0000-0000-0000-000000000000", // Required by backend
+      harvestOperationId: "00000000-0000-0000-0000-000000000000", // Required by backend
+      productName: newProductName,
+      category: newProductCategory || 'crop',
+      quantityHarvested: Number(newProductQty),
+      unit: newProductUnit || 'kg',
+      harvestDate: newProductDate ? new Date(newProductDate).toISOString() : new Date().toISOString()
+    }
+
+    console.log('Sending Product Payload:', payload)
+
+    createProduct(
+      {
+        data: payload as any
+      },
+      {
+        onSuccess: () => {
+          setAddProductModalOpen(false)
+          setNewProductName('')
+          setNewProductQty('')
+          setNewProductDate('')
+          // you could also refetch here
+        },
+        onError: (err: any) => {
+          console.error(err)
+          alert(`Failed to create product: ${err.response?.data?.message || err.response?.data?.error || 'Unknown error'}`)
+        }
+      }
+    )
+  }
 
   // Live data
   const { data: productsResponse, isLoading: isLoadingProducts } = useGetFarmersProducts()
@@ -115,9 +165,17 @@ export default function ProductsIndex() {
       />
 
       {/* Page Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">My Products</h1>
-        <p className="text-sm text-gray-500">View and manage all products you have created</p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">My Products</h1>
+          <p className="text-sm text-gray-500">View and manage all products you have created</p>
+        </div>
+        <Button onClick={() => setAddProductModalOpen(true)} className="bg-brand hover:bg-brand-light text-white font-bold h-10 px-4 gap-2 rounded-lg">
+          <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+          </svg>
+          Add Product
+        </Button>
       </div>
 
       {/* Tabs */}
@@ -274,6 +332,124 @@ export default function ProductsIndex() {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Add Product Modal */}
+      {addProductModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setAddProductModalOpen(false)} />
+
+          <div className="relative z-10 w-full max-w-md overflow-hidden rounded-xl bg-white shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            {/* Header */}
+            <div className="border-b border-gray-100 px-6 py-4">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h2 className="text-xl font-bold text-brand uppercase tracking-tight">Add New Product</h2>
+                  <p className="mt-0.5 text-xs font-medium text-gray-500">Create a new product.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setAddProductModalOpen(false)}
+                  className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
+                >
+                  <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            {/* Form Body */}
+            <div className="p-6 space-y-5">
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold uppercase tracking-wider text-gray-700">Farm <span className="text-red-500">*</span></label>
+                <div className="relative">
+                  <select
+                    value={newProductFarmId}
+                    onChange={(e) => setNewProductFarmId(e.target.value)}
+                    className="h-10 w-full appearance-none rounded-md border border-gray-200 bg-white px-3 text-sm font-medium text-gray-900 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all"
+                  >
+                    <option value="">Select a Farm</option>
+                    {farms.map((f: any) => (
+                      <option key={f.id} value={f.id}>{f.name}</option>
+                    ))}
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400">
+                    <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold uppercase tracking-wider text-gray-700">Product Name <span className="text-red-500">*</span></label>
+                <input
+                  type="text"
+                  placeholder="e.g., Maize Seedlings"
+                  value={newProductName}
+                  onChange={(e) => setNewProductName(e.target.value)}
+                  className="h-10 w-full rounded-md border border-gray-200 bg-white px-3 text-sm font-medium text-gray-900 placeholder:text-gray-300 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-700">Quantity <span className="text-red-500">*</span></label>
+                  <div className="flex gap-2">
+                    <input
+                      type="number"
+                      placeholder="100"
+                      value={newProductQty}
+                      onChange={(e) => setNewProductQty(e.target.value)}
+                      className="h-10 w-full rounded-md border border-gray-200 bg-white px-3 text-sm font-medium text-gray-900 placeholder:text-gray-300 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all"
+                    />
+                    <select
+                      value={newProductUnit}
+                      onChange={(e) => setNewProductUnit(e.target.value)}
+                      className="h-10 w-24 rounded-md border border-gray-200 bg-white px-3 text-sm font-medium text-gray-900 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all"
+                    >
+                      <option value="kg">kg</option>
+                      <option value="tonnes">ton</option>
+                      <option value="boxes">box</option>
+                      <option value="bags">bag</option>
+                      <option value="pieces">pcs</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-700">Category</label>
+                  <input
+                    type="text"
+                    placeholder="crop"
+                    value={newProductCategory}
+                    onChange={(e) => setNewProductCategory(e.target.value)}
+                    className="h-10 w-full rounded-md border border-gray-200 bg-white px-3 text-sm font-medium text-gray-900 placeholder:text-gray-300 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold uppercase tracking-wider text-gray-700">Harvest Date</label>
+                <DatePicker
+                  value={newProductDate}
+                  onChange={setNewProductDate}
+                />
+              </div>
+
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={handleCreateProduct}
+                  disabled={isCreatingProduct}
+                  className="flex h-12 w-full items-center justify-center rounded-md bg-[#1b4332] text-sm font-bold text-white shadow-lg shadow-brand/10 transition-all hover:bg-brand-dark hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:pointer-events-none"
+                >
+                  {isCreatingProduct ? 'Creating...' : 'Create Product'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -1,12 +1,13 @@
-import { useState } from 'react'
-import { NavLink, useNavigate } from 'react-router'
+import { useState, useEffect } from 'react'
+import { NavLink, useLocation, useNavigate } from 'react-router'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
-import { currentUser, sidebarNavigation } from '~/lib/mock-data/farmer'
+import { sidebarNavigation } from '~/lib/mock-data/farmer'
 import { cn } from '~/lib/utils'
 import { useSidebar } from './sidebar-context'
 import { useAuth } from '~/context/auth-context'
 import { LogoutConfirmationModal } from '~/components/logout-confirmation-modal'
-import { useGetWalletBalance } from '~/lib/api/generated/wallet/wallet'
+import { useGetWalletBalance, usePostWalletCreate } from '~/lib/api/generated/wallet/wallet'
+import { getTenantFromPathname, getTenantSelectValue, getUserDisplayName, getUserInitials } from '~/lib/tenant'
 
 interface NavGroupProps {
   label: string
@@ -154,14 +155,32 @@ export function Sidebar() {
   const isCollapsedDesktop = sidebarCtx?.isCollapsedDesktop ?? false
   const isOpenMobile = sidebarCtx?.isOpenMobile ?? false
   const navigate = useNavigate()
+  const location = useLocation()
   const { user, logout } = useAuth()
   const [isWalletExpanded, setIsWalletExpanded] = useState(false)
   const [showLogoutModal, setShowLogoutModal] = useState(false)
 
   // Fetch Wallet Data
   const { data: walletResp, refetch: refetchWallet, isLoading: isLoadingWallet } = useGetWalletBalance()
-  
+  const { mutate: createWallet, isPending: isCreatingWallet } = usePostWalletCreate({
+    mutation: {
+      onSuccess: () => {
+        refetchWallet()
+      }
+    }
+  })
+
+  // Auto-create wallet if not found
+  useEffect(() => {
+    if (walletResp && !walletResp.data?.data && (walletResp.data as any)?.message?.toLowerCase().includes('not found')) {
+      createWallet()
+    }
+  }, [walletResp, createWallet])
+
   const walletData = walletResp?.data?.data
+  const activeRole = getTenantFromPathname(location.pathname)
+  const displayName = getUserDisplayName(user)
+  const initials = getUserInitials(user)
 
   const handleSignOut = () => {
     setShowLogoutModal(true)
@@ -199,7 +218,7 @@ export function Sidebar() {
         <div className="flex items-center gap-2 mb-1.5 ml-1.5">
           <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">View as:</span>
         </div>
-        <Select defaultValue="Farmer" onValueChange={(val) => handleRoleChange(val || '')}>
+        <Select value={getTenantSelectValue(activeRole)} onValueChange={(val) => handleRoleChange(val || '')}>
           <SelectTrigger className="w-full h-10 py-2 px-3.5 rounded-lg border border-gray-200 bg-white shadow-sm hover:bg-gray-50 transition-all cursor-pointer">
             <SelectValue className="text-sm font-semibold text-gray-900" />
           </SelectTrigger>
@@ -211,13 +230,29 @@ export function Sidebar() {
         </Select>
       </div>
 
-      {/* Navigation */}
       <div className="flex-1 overflow-y-auto pb-4">
         <NavGroup label="Platform" items={sidebarNavigation.platform} onItemClick={() => sidebarCtx?.closeMobile()} />
         <NavGroup label="Operations" items={sidebarNavigation.operations} onItemClick={() => sidebarCtx?.closeMobile()} />
         <NavGroup label="Certification" items={sidebarNavigation.certification} onItemClick={() => sidebarCtx?.closeMobile()} />
         <NavGroup label="Finance" items={sidebarNavigation.finance} onItemClick={() => sidebarCtx?.closeMobile()} />
         <NavGroup label="Reports" items={sidebarNavigation.reports} onItemClick={() => sidebarCtx?.closeMobile()} />
+
+        {/* Settings Group */}
+        <div className="mt-4">
+          <nav className="flex flex-col gap-0.5">
+            <NavLink
+              to="/farmer/settings"
+              onClick={() => sidebarCtx?.closeMobile()}
+              className={({ isActive }) => cn(
+                'mx-2 flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-[13px] font-medium transition-colors',
+                isActive ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100'
+              )}
+            >
+              <SidebarIcon name="settings" />
+              <span className="truncate text-xs">Settings</span>
+            </NavLink>
+          </nav>
+        </div>
       </div>
 
       {/* Wallet */}
@@ -296,13 +331,13 @@ export function Sidebar() {
 
       {/* User Info */}
       <div className="border-t border-gray-200 px-4 py-3">
-        <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2.5">
           <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand text-[10px] font-bold text-white">
-            {user?.email ? user.email.substring(0, 2).toUpperCase() : 'AG'}
+            {initials}
           </div>
           <div className="min-w-0 flex-1">
             <div className="truncate text-sm font-medium text-gray-900">
-              {user?.email ? user.email.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : 'User'}
+              {displayName}
             </div>
             <div className="truncate text-[11px] text-gray-400">{user?.email || 'Not signed in'}</div>
           </div>

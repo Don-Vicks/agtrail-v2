@@ -16,7 +16,8 @@ import {
 import { useNavigate } from 'react-router'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '~/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
-import type { CropCycle, OperationType } from '~/lib/mock-data/farmer'
+import type { OperationType } from '~/lib/mock-data/farmer'
+import type { CropCycle } from '~/lib/api/generated/models'
 import { operationTypes } from '~/lib/mock-data/farmer'
 
 const iconMap: Record<string, React.ElementType> = {
@@ -38,7 +39,7 @@ const iconMap: Record<string, React.ElementType> = {
 interface SelectOperationModalProps {
   isOpen: boolean
   onClose: () => void
-  cropCycle: CropCycle | null
+  cropCycle: (CropCycle & Record<string, any>) | null
   basePath?: string
 }
 
