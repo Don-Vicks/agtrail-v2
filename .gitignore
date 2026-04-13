@@ -6,5 +6,5 @@
 /.react-router/
 /build/
 
-# Generated API SDK (regenerate with `pnpm generate:api`)
-/app/lib/api/generated/
+# Generated API SDK (Keep committed for CI/CD stability)
+# /app/lib/api/generated/
