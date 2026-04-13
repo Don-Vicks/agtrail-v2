@@ -1,13 +1,29 @@
 import { FarmMap } from '~/components/farm-map.client'
 import { KYCBanner } from '~/components/kyc-banner'
-import { QuickActions } from '~/components/quick-actions'
 import { StatCard } from '~/components/stat-card'
+import { PageHeader } from '~/components/page-header'
+import { Button } from '~/components/ui/button'
+import { Badge } from '~/components/ui/badge'
 import {
-    farmerStats,
-    farms,
-    products,
-    quickActions,
-    regions,
+  Package,
+  Activity,
+  MapPin,
+  Maximize,
+  Wallet,
+  Search,
+  Filter,
+  ChevronDown,
+  Plus,
+  ArrowRight,
+  ClipboardList,
+  LayoutDashboard
+} from 'lucide-react'
+import { useGetFarmersProducts } from '~/lib/api/generated/farm-products/farm-products'
+import { useGetFarms, useGetFarmsStatsDashboard } from '~/lib/api/generated/farms/farms'
+import { useGetWalletBalance } from '~/lib/api/generated/wallet/wallet'
+import { QuickActions } from '~/components/quick-actions'
+import {
+  quickActions as MOCK_QUICK_ACTIONS
 } from '~/lib/mock-data/farmer'
 import type { Route } from './+types/dashboard'
 
@@ -18,255 +34,393 @@ export function meta({ }: Route.MetaArgs) {
   ]
 }
 
-function StatIcon({ name }: { name: string }) {
-  const icons: Record<string, React.ReactNode> = {
-    'package': (
-      <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z" />
-      </svg>
-    ),
-    'activity': (
-      <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-      </svg>
-    ),
-    'map-pin': (
-      <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
-        <circle cx="12" cy="10" r="3" />
-      </svg>
-    ),
-    'maximize': (
-      <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3" />
-      </svg>
-    ),
-    'link': (
-      <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" />
-        <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" />
-      </svg>
-    ),
-  }
-  return icons[name] ?? null
-}
+// StatIcon removed in favor of consistent lucide-react usage in StatCard components
 
 export default function FarmerDashboard() {
+  // API hooks for real data
+  const { data: walletResponse, isLoading: isWalletLoading } = useGetWalletBalance()
+  const { data: farmsResponse, isLoading: isFarmsLoading } = useGetFarms()
+  const { data: productsResponse, isLoading: isProductsLoading } = useGetFarmersProducts()
+  const { data: farmersStatsResponse, isLoading: isStatsLoading } = useGetFarmsStatsDashboard()
+
+  // Extract real data
+  const walletData = walletResponse?.data?.data
+  const farmsData = farmsResponse?.data?.data || []
+  const productsData = productsResponse?.data?.data || []
+
+  // Calculate real stats
+  const totalFarms = farmsData.length
+  const totalProducts = productsData.length
+  const totalLandArea = farmsData.reduce((sum, farm) => sum + (farm.sizeHectares || 0), 0)
+
+  // Calculate regions from real farm data
+  const regions = isFarmsLoading ? [] : farmsData.reduce((acc, farm) => {
+    const regionName = farm.region || farm.state || 'Unknown'
+    const existing = acc.find(r => r.name === regionName)
+    if (existing) {
+      existing.count++
+    } else {
+      acc.push({
+        name: regionName,
+        count: 1,
+        color: '#e8f5e9' // Default green color
+      })
+    }
+    return acc
+  }, [] as Array<{ name: string, count: number, color: string }>)
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-10 px-1">
+
+      {/* Page Title Section */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 uppercase tracking-tight">Farmer Dashboard</h1>
+          <p className="text-sm text-gray-500 mt-1">Overview of your farming operations, production, and farms</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button className="bg-[#1d3d1e] hover:bg-black text-white flex items-center gap-2 h-11 px-6 shadow-sm">
+            <Plus className="size-4" />
+            <span className="font-bold uppercase tracking-wide text-xs">Add Farm</span>
+          </Button>
+        </div>
+      </div>
+
       {/* KYC Banner */}
       <KYCBanner />
 
       {/* Stats Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-        {farmerStats.map((stat) => (
-          <StatCard
-            key={stat.id}
-            title={stat.title}
-            value={stat.value}
-            subtitle={stat.subtitle}
-            description={stat.description}
-            icon={<StatIcon name={stat.icon} />}
-            trend={stat.trend}
-          />
-        ))}
+        <StatCard
+          title="Wallet Balance"
+          value={isWalletLoading ? '...' : `${walletData?.balance?.toLocaleString() || '0'} ${walletData?.currency || 'NGN'}`}
+          subtitle="Available funds"
+          description="Current wallet balance"
+          icon={<Wallet className="size-4" />}
+          trend="neutral"
+        />
+        <StatCard
+          title="Active Products"
+          value={isProductsLoading ? '...' : totalProducts.toString()}
+          subtitle="Production unit"
+          description="Currently tracked items"
+          icon={<Package className="size-4" />}
+          trend="neutral"
+        />
+        <StatCard
+          title="Operations"
+          value={isStatsLoading ? '...' : (farmersStatsResponse?.data?.data as any)?.operationsLast30Days || '0'}
+          subtitle="Recent activity"
+          description="Logged in last 30 days"
+          icon={<Activity className="size-4" />}
+          trend="up"
+        />
+        <StatCard
+          title="Total Farms"
+          value={isFarmsLoading ? '...' : totalFarms.toString()}
+          subtitle="Registered farms"
+          description="Verified farm locations"
+          icon={<MapPin className="size-4" />}
+          trend="neutral"
+        />
+        <StatCard
+          title="Total Land Area"
+          value={isFarmsLoading ? '...' : `${totalLandArea.toFixed(1)} ha`}
+          subtitle="Cultivated area"
+          description="Combined farmland size"
+          icon={<Maximize className="size-4" />}
+          trend="up"
+        />
       </div>
 
       {/* Middle Section: Upcoming Tasks + Chart + Quick Actions */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Upcoming Tasks */}
-        <div className="rounded-md border border-gray-200 bg-white p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <div className="flex size-6 items-center justify-center rounded bg-brand-surface">
-              <svg className="size-3.5 text-brand" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
-              </svg>
+        <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="flex items-center gap-2 mb-6">
+            <div className="flex size-8 items-center justify-center rounded-lg bg-red-50 text-red-500">
+              <ClipboardList className="size-4" />
             </div>
-            <h3 className="text-sm font-semibold text-gray-900">Upcoming Tasks</h3>
+            <div>
+              <h3 className="text-sm font-bold text-gray-900 uppercase tracking-tight">Upcoming Tasks</h3>
+              <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">Scheduled activities</p>
+            </div>
           </div>
-          <p className="text-xs text-gray-500 mb-3">Important reminders for your farms</p>
 
-          <div className="rounded-md border-l-4 border-brand bg-brand-surface/50 p-3">
-            <p className="text-sm font-semibold text-gray-900">No Upcoming Harvests</p>
-            <p className="text-xs text-gray-500">No harvests expected in the next 30 days.</p>
+          <div className="rounded-xl border-l-4 border-amber-400 bg-amber-50/50 p-4">
+            <p className="text-sm font-bold text-gray-900 uppercase tracking-tight mb-1">No Upcoming Harvests</p>
+            <p className="text-xs text-gray-500 leading-relaxed font-medium">Your current production cycles do not have any harvests scheduled for the next 30 days.</p>
           </div>
         </div>
 
         {/* Product Category Distribution */}
-        <div className="rounded-md border border-gray-200 bg-white p-4">
-          <h3 className="text-sm font-semibold text-gray-900 mb-4">Product Category Distribution</h3>
+        <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+          <h3 className="text-sm font-bold text-gray-900 uppercase tracking-tight mb-6">Products</h3>
 
           {/* Simple donut chart placeholder */}
-          <div className="flex items-center justify-center gap-6">
+          <div className="flex items-center justify-center gap-6 mb-8">
             <div className="relative size-32">
               <svg viewBox="0 0 36 36" className="size-full -rotate-90">
-                <circle cx="18" cy="18" r="15.9" fill="none" stroke="#E8F5E9" strokeWidth="3" />
-                <circle cx="18" cy="18" r="15.9" fill="none" stroke="#4CAF50" strokeWidth="3"
+                <circle cx="18" cy="18" r="15.9" fill="none" stroke="#F5F5F5" strokeWidth="4" />
+                <circle cx="18" cy="18" r="15.9" fill="none" stroke="#1B4332" strokeWidth="4"
                   strokeDasharray="100" strokeDashoffset="0" />
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-xs text-brand-light">product: 1</span>
+                <span className="text-xs font-bold text-brand uppercase tracking-widest text-[10px]">Active</span>
+                <span className="text-lg font-bold text-gray-900">100%</span>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="size-3 rounded-full bg-brand-light" />
-              <span className="text-xs text-gray-600">Agricultural Pro... 1</span>
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <div className="size-2 rounded-full bg-brand" />
+                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Agri Products</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="size-2 rounded-full bg-gray-200" />
+                <span className="text-[10px] font-bold text-gray-300 uppercase tracking-widest">Other</span>
+              </div>
             </div>
           </div>
 
           {/* Quick Summary */}
-          <div className="mt-4 border-t border-gray-100 pt-4">
-            <h4 className="text-sm font-semibold text-gray-900 mb-2">Quick Summary</h4>
-            <div className="grid grid-cols-2 gap-4 text-center">
+          <div className="mt-4 border-t border-gray-50 pt-6">
+            <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4">Farm Performance</h4>
+            <div className="grid grid-cols-2 gap-6 text-center">
               <div>
-                <p className="text-xs text-gray-500">Avg. Farm Size</p>
-                <p className="text-lg font-bold text-gray-900">1679.0 ha</p>
+                <p className="text-xl font-bold text-gray-900 tracking-tight">
+                  {isFarmsLoading ? '...' : totalFarms > 0 ? (totalLandArea / totalFarms).toFixed(1) : '0.0'} ha
+                </p>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Avg. Size</p>
               </div>
               <div>
-                <p className="text-xs text-gray-500">Products per Farm</p>
-                <p className="text-lg font-bold text-gray-900">0.0</p>
+                <p className="text-xl font-bold text-gray-900 tracking-tight">
+                  {isFarmsLoading || isProductsLoading ? '...' : totalFarms > 0 ? (totalProducts / totalFarms).toFixed(1) : '0.0'}
+                </p>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Prod / Farm</p>
               </div>
             </div>
           </div>
         </div>
 
         {/* Quick Actions */}
-        <QuickActions actions={quickActions} />
+        <QuickActions actions={MOCK_QUICK_ACTIONS} />
       </div>
 
-      {/* Your Products Table */}
-      <div className="rounded-md border border-gray-200 bg-white p-5">
-        <div className="mb-4 flex items-center justify-between">
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900">Your Products</h3>
-            <p className="text-xs text-gray-500">Overview of all your tracked products</p>
+      {/* Your Products Table Block */}
+      <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden flex flex-col">
+        <div className="p-6 bg-white border-b border-gray-100">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <div>
+              <h2 className="text-base font-bold text-gray-900 uppercase tracking-tight">Products</h2>
+              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Overview of your crops</p>
+            </div>
+            <div className="relative w-full sm:w-[320px]">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search products by identity or name..."
+                className="w-full rounded-lg border border-gray-200 pl-10 pr-4 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white transition-all shadow-sm"
+              />
+            </div>
           </div>
-          <span className="text-xs text-gray-400">Showing {products.length} of {products.length} products</span>
+
+          {/* High Density Filters */}
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Filter By:</span>
+              <div className="relative">
+                <select className="h-9 rounded-lg border border-gray-200 pl-3 pr-8 text-[11px] font-bold uppercase tracking-wider text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand bg-gray-50/50 appearance-none">
+                  <option>All Farms</option>
+                </select>
+                <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 size-3 text-gray-400" />
+              </div>
+              <div className="relative">
+                <select className="h-9 rounded-lg border border-gray-200 pl-3 pr-8 text-[11px] font-bold uppercase tracking-wider text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand bg-gray-50/50 appearance-none">
+                  <option>Production Status</option>
+                </select>
+                <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 size-3 text-gray-400" />
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* Filters */}
-        <div className="mb-4 flex flex-wrap items-center gap-3">
-          <span className="text-xs font-medium text-gray-500">Filters:</span>
-          <input placeholder="Search Product ID..." className="rounded-md border border-gray-200 px-3 py-1.5 text-xs placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/20" />
-          <input placeholder="Search Product Name..." className="rounded-md border border-gray-200 px-3 py-1.5 text-xs placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/20" />
-          <input placeholder="Search Farm Name..." className="rounded-md border border-gray-200 px-3 py-1.5 text-xs placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/20" />
-          <select className="rounded-md border border-gray-200 px-3 py-1.5 text-xs text-gray-400">
-            <option>All Status</option>
-          </select>
-          <select className="rounded-md border border-gray-200 px-3 py-1.5 text-xs text-gray-400">
-            <option>All Categories</option>
-          </select>
-        </div>
-
-        {/* Table */}
+        {/* Table Content */}
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-100">
-                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Product ID ↕</th>
-                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Product Name ↕</th>
-                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Farm ↕</th>
-                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Status ↕</th>
-                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Hectares ↕</th>
-                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Created Date ↕</th>
-                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500"></th>
+          <table className="w-full text-left text-sm">
+            <thead className="border-b border-gray-50 bg-gray-50/50">
+              <tr>
+                <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-wider text-gray-500">Product ID</th>
+                <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-wider text-gray-500">Product Name</th>
+                <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-wider text-gray-500">Farm Context</th>
+                <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-wider text-gray-500">Status</th>
+                <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-wider text-gray-500">Inventory</th>
+                <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-wider text-gray-500">Harvest Date</th>
+                <th className="px-6 py-4"></th>
               </tr>
             </thead>
-            <tbody>
-              {products.map((product) => (
-                <tr key={product.id} className="border-b border-gray-50 hover:bg-gray-50/50">
-                  <td className="px-3 py-3 text-xs font-mono text-gray-600">{product.id}</td>
-                  <td className="px-3 py-3 font-medium text-brand">{product.name}</td>
-                  <td className="px-3 py-3 text-gray-600">{product.farm}</td>
-                  <td className="px-3 py-3">
-                    <span className="rounded-full border border-brand-surface bg-brand-surface/50 px-2 py-0.5 text-xs text-brand">
-                      {product.status}
-                    </span>
+            <tbody className="divide-y divide-gray-50 bg-white">
+              {isProductsLoading ? (
+                <tr>
+                  <td colSpan={7} className="px-6 py-12 text-center text-sm text-gray-500">
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="animate-spin size-6 border-2 border-brand border-t-transparent rounded-full" />
+                      <span className="font-bold uppercase tracking-widest text-[10px] text-gray-400">Loading Product Catalog...</span>
+                    </div>
                   </td>
-                  <td className="px-3 py-3 text-gray-600">{product.hectares}</td>
-                  <td className="px-3 py-3 text-gray-600">{product.createdDate}</td>
-                  <td className="px-3 py-3 text-gray-400">—</td>
                 </tr>
-              ))}
+              ) : productsData.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="px-6 py-12 text-center text-sm text-gray-500 font-bold uppercase tracking-widest text-[10px]">
+                    No associated products found
+                  </td>
+                </tr>
+              ) : (
+                productsData.slice(0, 10).map((product) => (
+                  <tr key={product.id} className="hover:bg-gray-50/50 transition-colors group">
+                    <td className="px-6 py-4 text-[11px] font-bold text-gray-400 tracking-widest uppercase">#{product.id.slice(0, 8)}</td>
+                    <td className="px-6 py-4 font-bold text-gray-900 tracking-tight">{product.productName}</td>
+                    <td className="px-6 py-4 text-xs font-bold text-brand italic">
+                      {farmsData.find(f => f.id === product.farmId)?.name || 'Central Collective'}
+                    </td>
+                    <td className="px-6 py-4">
+                      <Badge
+                        variant="outline"
+                        className="text-[10px] font-bold uppercase tracking-wider px-2 py-0 bg-[#e8f5e9] text-[#1b4332] border-[#b7e4c7]"
+                      >
+                        {product.status || 'Active'}
+                      </Badge>
+                    </td>
+                    <td className="px-6 py-4 font-bold text-gray-900 tracking-tight">
+                      {product.quantityAvailable || product.quantityHarvested || 0} {product.unit || 'KG'}
+                    </td>
+                    <td className="px-6 py-4 text-xs font-medium text-gray-500 italic">
+                      {new Date(product.harvestDate).toLocaleDateString()}
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <Button variant="ghost" size="icon" className="size-8 text-gray-300 hover:text-gray-900 transition-colors">
+                        <MoreHorizontal className="size-4" />
+                      </Button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
 
-        <div className="mt-3 flex items-center justify-between text-xs text-gray-400">
-          <span>Showing 1 to {products.length} of {products.length} products</span>
-          <span>Rows per page 10 · Page 1 of 1</span>
+        <div className="border-t border-gray-100 px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-gray-400 font-bold uppercase tracking-tight bg-gray-50/20">
+          <div className="flex items-center gap-2">
+            <span className="text-gray-300">Total:</span>
+            <span className="text-gray-900">{productsData.length} Products</span>
+          </div>
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-2">
+              <span className="text-gray-300">Show</span>
+              <select className="bg-transparent border-none outline-none text-gray-900 font-bold">
+                <option>10</option>
+                <option>25</option>
+              </select>
+            </div>
+            <div className="flex items-center gap-4">
+              <span className="text-gray-300">Page 1 / 1</span>
+              <div className="flex items-center gap-1">
+                <Button variant="ghost" size="icon" className="size-7 text-gray-300" disabled>
+                  <ArrowRight className="size-3.5 rotate-180" />
+                </Button>
+                <Button variant="ghost" size="icon" className="size-7 text-gray-400 hover:text-brand">
+                  <ArrowRight className="size-3.5" />
+                </Button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Farm/Crops Locations */}
-      <div className="rounded-md border border-gray-200 bg-white p-5">
-        <div className="mb-3 flex items-center justify-between">
+      {/* Farm/Crops Locations Block */}
+      <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">Farm/Crops Locations</h3>
-            <p className="text-xs text-gray-500">Showing {farms.length > 9 ? 9 : farms.length} of {farms.length} farms</p>
+            <h2 className="text-base font-bold text-gray-900 uppercase tracking-tight">Farm Locations</h2>
+            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">See where your farms are located</p>
           </div>
-          <div className="relative">
+          <div className="relative w-full sm:w-[320px]">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
             <input
-              placeholder="Search farms, locations, farms..."
-              className="rounded-md border border-gray-200 pl-8 pr-3 py-1.5 text-xs placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/20"
+              placeholder="Search farms..."
+              className="w-full rounded-lg border border-gray-200 pl-10 pr-4 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white transition-all shadow-sm"
             />
-            <svg className="absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <circle cx="11" cy="11" r="8" />
-              <line x1="21" y1="21" x2="16.65" y2="16.65" />
-            </svg>
           </div>
         </div>
 
         {/* Region Tags */}
-        <div className="mb-4">
-          <p className="mb-2 text-xs font-medium text-gray-500">Farm Concentration by Region</p>
+        <div className="mb-8">
+          <p className="mb-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Farms by Region</p>
           <div className="flex flex-wrap gap-2">
-            {regions.map((region) => (
-              <span
+            {regions.slice(0, 3).map((region) => (
+              <Badge
                 key={region.name}
-                className="flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium"
-                style={{ backgroundColor: region.color, color: '#333' }}
+                variant="outline"
+                className="flex items-center gap-2 rounded-lg px-4 py-1.5 font-bold uppercase tracking-tight text-[11px] border-gray-100 bg-gray-50/50 text-gray-700"
               >
                 {region.name}
-                <span className="flex size-4 items-center justify-center rounded-full bg-black/10 text-[10px]">
+                <span className="flex size-5 items-center justify-center rounded-md bg-white border border-gray-100 text-[10px] text-brand shadow-sm">
                   {region.count}
                 </span>
-              </span>
+              </Badge>
             ))}
-            <span className="flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-500">
-              +2 more regions
-            </span>
+            {regions.length > 3 && (
+              <Badge variant="ghost" className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">+ {regions.length - 3} MORE</Badge>
+            )}
           </div>
         </div>
 
         {/* Farm Map */}
-        <div className="mb-4">
-          <FarmMap farms={farms} />
+        <div className="mb-8 rounded-xl overflow-hidden border border-gray-100">
+          <FarmMap farms={farmsData.map(farm => ({
+            id: farm.id,
+            name: farm.name,
+            location: farm.state || farm.region || 'Unknown',
+            region: farm.region || farm.state || 'Unknown',
+            hectares: farm.sizeHectares || 0,
+            lat: farm.gpsCoordinates ? (farm.gpsCoordinates as any).coordinates[1] : 9.0820,
+            lng: farm.gpsCoordinates ? (farm.gpsCoordinates as any).coordinates[0] : 8.6753,
+          }))} />
         </div>
 
-        {/* Farm Cards Grid */}
-        <div>
-          <div className="mb-2 flex items-center justify-between">
-            <p className="text-sm font-medium text-gray-700">Farm List</p>
-            <button className="text-xs font-medium text-brand hover:underline">
-              Show all {farms.length} farms →
-            </button>
+        {/* Farm List Section */}
+        <div className="mt-8 pt-8 border-t border-gray-50">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-sm font-bold text-gray-900 uppercase tracking-tight">Your Farms</h3>
+            <Button variant="link" className="text-xs font-bold uppercase tracking-widest text-brand p-0 h-auto">
+              View All Farms ({isFarmsLoading ? '...' : farmsData.length}) <ArrowRight className="ms-1 size-3" />
+            </Button>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            {farms.slice(0, 8).map((farm) => (
-              <div key={farm.id} className="rounded-md border border-gray-100 bg-gray-50/50 p-3">
-                <h4 className="text-sm font-semibold text-brand">{farm.name}</h4>
-                <p className="text-xs text-gray-400">{farm.location || farm.region}</p>
-                <p className="text-xs text-gray-400">by {farm.owner}</p>
-                <p className="mt-1 text-xs font-medium text-gray-600">{farm.hectares} ha</p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {isFarmsLoading ? (
+              Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="rounded-xl border border-gray-100 bg-gray-50/30 p-4 animate-pulse h-24" />
+              ))
+            ) : farmsData.length === 0 ? (
+              <div className="col-span-full py-8 text-center text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                No farms registered yet
               </div>
-            ))}
+            ) : (
+              farmsData.slice(0, 4).map((farm) => (
+                <div key={farm.id} className="rounded-xl border border-gray-100 bg-gray-50/30 p-5 group hover:bg-white hover:shadow-md transition-all">
+                  <h4 className="text-sm font-bold text-gray-900 tracking-tight uppercase mb-1">{farm.name}</h4>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-1">
+                    <MapPin className="size-3 text-red-400" />
+                    {farm.state || farm.region || 'Unknown Location'}
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-lg font-bold text-brand tracking-tight">{farm.sizeHectares || 0} ha</p>
+                    <Badge variant="ghost" className="text-[9px] font-bold text-gray-300 uppercase tracking-widest p-0">#{farm.id.slice(0, 8)}</Badge>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
-          {farms.length > 8 && (
-            <button className="mt-3 w-full rounded-md border border-gray-200 py-2 text-xs font-medium text-gray-500 hover:bg-gray-50">
-              +{farms.length - 8} more farms
-            </button>
-          )}
         </div>
       </div>
     </div>

@@ -4,7 +4,7 @@ import type { Route } from './+types/index'
 export function meta({ }: Route.MetaArgs) {
   return [
     { title: 'Reports & Analytics | Agtrail' },
-    { name: 'description', content: 'Access your farm insights and documentation' },
+    { name: 'description', content: 'Operational reports and analytics' },
   ]
 }
 
@@ -12,7 +12,7 @@ export function meta({ }: Route.MetaArgs) {
 function SeedlingIcon() {
   return (
     <svg className="size-5 text-brand" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" /> {/* Approximate icon for crop */}
+      <path strokeLinecap="round" strokeLinejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
     </svg>
   )
 }
@@ -93,7 +93,7 @@ function ReportCard({
 /* ─── Page Component ─── */
 export default function ReportsAnalyticsPage() {
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 pb-10">
       {/* Breadcrumbs */}
       <PageHeader
         items={[
@@ -114,7 +114,7 @@ export default function ReportsAnalyticsPage() {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold uppercase text-brand">Reports & Analytics</h1>
-        <p className="mt-1 text-sm text-gray-500">Access your farm insights and documentation</p>
+        <p className="mt-1 text-sm text-gray-500">Operational summaries and deep performance insights</p>
       </div>
 
       {/* Production Reports */}
@@ -129,7 +129,7 @@ export default function ReportsAnalyticsPage() {
           <ReportCard
             icon={<TrendingUpIcon />}
             title="Harvest & Sales Report"
-            description="All harvests, sales, payments, and buyer information"
+            description="Detailed record of all harvests, sales transformations, and buyer data"
           />
           <ReportCard
             icon={<BarChartIcon />}

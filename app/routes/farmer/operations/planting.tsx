@@ -1,7 +1,10 @@
-import { useParams } from 'react-router'
+import { useState } from 'react'
+import { useNavigate, useParams } from 'react-router'
+import { toast } from 'sonner'
 import { InventoryField } from '~/components/inventory-field'
 import { OperationFormLayout } from '~/components/operation-form-layout'
 import { PersonField } from '~/components/person-field'
+import { usePostFarmsIdOperations } from '~/lib/api/generated/farms-operations/farms-operations'
 import { allCropCycles } from '~/lib/mock-data/farmer'
 import type { Route } from './+types/planting'
 
@@ -11,11 +14,37 @@ export function meta({ }: Route.MetaArgs) {
 
 export default function Planting() {
   const { cropCycleId } = useParams()
+  const navigate = useNavigate()
+  
+  // In a real app, fetch the cycle by ID. Here we mock it so we have the farmId string available.
   const cropCycle = allCropCycles.find((c) => c.id === cropCycleId) || allCropCycles[0]
+  
+  const [description, setDescription] = useState('')
+  const { mutateAsync: logOperation, isPending } = usePostFarmsIdOperations()
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log('Submitted Planting')
+    
+    if (!description) {
+      toast.error('Description is required.')
+      return
+    }
+    
+    try {
+      await logOperation({
+        id: cropCycle.farmId,
+        data: {
+          cropCycleId: cropCycle.id,
+          operationType: 'planting',
+          description: description,
+          operationDate: new Date().toISOString()
+        }
+      })
+      toast.success('Planting operation logged successfully!')
+      navigate('/farmer/operations/new')
+    } catch (err: any) {
+      toast.error(`Failed to log operation: ${err.message || 'Unknown error'}`)
+    }
   }
 
   return (
@@ -120,7 +149,14 @@ export default function Planting() {
       {/* Description */}
       <div>
         <label className="mb-1.5 block text-sm font-semibold text-gray-900">Description <span className="text-red-500">*</span></label>
-        <textarea rows={3} required placeholder="Describe the planting operation... (e.g., Planted maize seeds using manual broadcasting method)" className="w-full resize-none rounded-md border border-gray-200 px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20" />
+        <textarea 
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          rows={3} 
+          required 
+          placeholder="Describe the planting operation... (e.g., Planted maize seeds using manual broadcasting method)" 
+          className="w-full resize-none rounded-md border border-gray-200 px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20" 
+        />
       </div>
     </OperationFormLayout>
   )

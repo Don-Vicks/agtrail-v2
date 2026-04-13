@@ -1,6 +1,6 @@
 import { useState } from 'react'
+import { PageHeader } from '~/components/page-header'
 import type { Route } from './+types/settings-root'
-import { useAuth } from '~/context/auth-context'
 
 export function meta({ }: Route.MetaArgs) {
   return [
@@ -16,7 +16,22 @@ export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<TabType>('Account')
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-10">
+      <PageHeader
+        items={[
+          {
+            label: 'Dashboard',
+            href: '/cooperative',
+            icon: (
+              <svg className="size-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                <line x1="9" y1="3" x2="9" y2="21" />
+              </svg>
+            ),
+          },
+          { label: 'Settings' },
+        ]}
+      />
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
@@ -51,7 +66,6 @@ export default function SettingsPage() {
 
 /* ─── 1. Account Settings ─── */
 function AccountSettingsTab() {
-  const { user } = useAuth();
   return (
     <div className="space-y-6">
       <div>
@@ -64,7 +78,7 @@ function AccountSettingsTab() {
           <label className="block text-sm font-bold text-gray-900">Name</label>
           <input
             type="text"
-            value={user?.name}
+            defaultValue="Agrolinking Administrator"
             className="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
           />
         </div>
@@ -73,7 +87,7 @@ function AccountSettingsTab() {
           <label className="block text-sm font-bold text-gray-900">Email</label>
           <input
             type="email"
-            value={user?.email}
+            defaultValue="admin@agrolinking.com"
             className="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
           />
         </div>

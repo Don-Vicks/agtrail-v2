@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Breadcrumb } from '~/components/breadcrumb'
+import { PageHeader } from '~/components/page-header'
 import type { Route } from './+types/settings-root'
 
 export function meta({ }: Route.MetaArgs) {
@@ -16,8 +16,8 @@ export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<TabType>('Account')
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
-      <Breadcrumb
+    <div className="space-y-6 pb-10">
+      <PageHeader
         items={[
           {
             label: 'Dashboard',

@@ -1,5 +1,4 @@
 import { PageHeader } from '~/components/page-header'
-import { Breadcrumb } from '~/components/breadcrumb'
 
 export default function CertificationReadiness() {
   const breadcrumbs = [

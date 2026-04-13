@@ -1,7 +1,10 @@
-import { useParams } from 'react-router'
+import { useState } from 'react'
+import { useNavigate, useParams } from 'react-router'
+import { toast } from 'sonner'
 import { InventoryField } from '~/components/inventory-field'
 import { OperationFormLayout } from '~/components/operation-form-layout'
 import { PersonField } from '~/components/person-field'
+import { usePostFarmsIdOperations } from '~/lib/api/generated/farms-operations/farms-operations'
 import { allCropCycles } from '~/lib/mock-data/farmer'
 import type { Route } from './+types/pest-control'
 
@@ -11,11 +14,35 @@ export function meta({ }: Route.MetaArgs) {
 
 export default function PestControl() {
   const { cropCycleId } = useParams()
+  const navigate = useNavigate()
   const cropCycle = allCropCycles.find((c) => c.id === cropCycleId) || allCropCycles[0]
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [description, setDescription] = useState('')
+  const { mutateAsync: logOperation } = usePostFarmsIdOperations()
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log('Submitted Pest Control')
+
+    if (!description) {
+      toast.error('Description is required.')
+      return
+    }
+
+    try {
+      await logOperation({
+        id: cropCycle.farmId,
+        data: {
+          cropCycleId: cropCycle.id,
+          operationType: 'pesticide_application',
+          description,
+          operationDate: new Date().toISOString(),
+        },
+      })
+      toast.success('Pest control operation logged successfully!')
+      navigate('/farmer/operations/new')
+    } catch (err: any) {
+      toast.error(`Failed to log operation: ${err.message || 'Unknown error'}`)
+    }
   }
 
   return (
@@ -95,7 +122,14 @@ export default function PestControl() {
       {/* Description */}
       <div>
         <label className="mb-1.5 block text-sm font-semibold text-gray-900">Description <span className="text-red-500">*</span></label>
-        <textarea rows={3} required placeholder="Describe the pest control operation... (e.g., Applied organic pesticide to control aphids)" className="w-full resize-none rounded-md border border-gray-200 px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20" />
+        <textarea
+          rows={3}
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          required
+          placeholder="Describe the pest control operation... (e.g., Applied organic pesticide to control aphids)"
+          className="w-full resize-none rounded-md border border-gray-200 px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+        />
       </div>
     </OperationFormLayout>
   )

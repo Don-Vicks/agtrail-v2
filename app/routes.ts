@@ -122,6 +122,6 @@ export default [
   //   ]),
   // ]),
 
-  ...processorRoutes,
-  ...cooperativeRoutes,
+  ...processorRoutes as any,
+  ...cooperativeRoutes as any,
 ] satisfies RouteConfig

@@ -1,20 +1,12 @@
 import { useState } from 'react'
-import { PageHeader } from '~/components/page-header'
 import { FarmCard } from '~/components/farm-card'
+import { PageHeader } from '~/components/page-header'
 import { Pagination } from '~/components/pagination'
 import { StartCropCycleModal } from '~/components/start-crop-cycle-modal'
-import { cooperativeFarms as farms } from '~/lib/mock-data/cooperative'
-import type { Farm } from '~/lib/mock-data/farmer'
-import type { Route } from './+types/start'
+import { useGetFarms } from '~/lib/api/generated/farms/farms'
+import type { Farm } from '~/lib/api/generated/models'
 
-export function meta({ }: Route.MetaArgs) {
-  return [
-    { title: 'Start Crop Cycle | Agrolinking' },
-    { name: 'description', content: 'Select a farm to start a new crop cycle' },
-  ]
-}
-
-export default function FarmerCropCycle() {
+export default function ProcessorStartCropCycle() {
   const [searchQuery, setSearchQuery] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 12
@@ -23,10 +15,14 @@ export default function FarmerCropCycle() {
   // State for the modal
   const [selectedFarm, setSelectedFarm] = useState<Farm | null>(null)
 
+  // Fetch real farm data
+  const { data: farmsResponse, isLoading } = useGetFarms()
+  const farms = farmsResponse?.data?.data || []
+
   const filteredFarms = farms.filter((farm) =>
-    farm.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    farm.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    farm.owner.toLowerCase().includes(searchQuery.toLowerCase())
+    farm.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    farm.address?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    farm.state?.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
   const totalPages = Math.ceil(filteredFarms.length / rowsPerPage)
@@ -95,16 +91,31 @@ export default function FarmerCropCycle() {
       </div>
 
       {/* Farm Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {paginatedFarms.map((farm) => (
-          <FarmCard
-            key={farm.id}
-            farm={farm}
-            action="start-cycle"
-            onAction={handleStartCycle}
-          />
-        ))}
-      </div>
+      {isLoading ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+              <div className="animate-pulse">
+                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                <div className="h-3 bg-gray-200 rounded w-1/2 mb-4"></div>
+                <div className="h-20 bg-gray-200 rounded mb-4"></div>
+                <div className="h-8 bg-gray-200 rounded"></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {paginatedFarms.map((farm) => (
+            <FarmCard
+              key={farm.id}
+              farm={farm}
+              action="start-cycle"
+              onAction={handleStartCycle}
+            />
+          ))}
+        </div>
+      )}
 
       {/* Pagination */}
       <Pagination
@@ -125,10 +136,10 @@ export default function FarmerCropCycle() {
         isOpen={!!selectedFarm}
         onClose={() => setSelectedFarm(null)}
         farmName={selectedFarm?.name || ''}
-        farmLocation={selectedFarm?.location || ''}
-        farmerName={selectedFarm?.owner || ''}
-        farmerInitials={selectedFarm?.ownerInitials || ''}
-        farmerColor={selectedFarm?.ownerColor || ''}
+        farmLocation={selectedFarm?.address || selectedFarm?.state || ''}
+        farmerName={selectedFarm?.ownerId || ''}
+        farmerInitials={(selectedFarm?.ownerId || '').substring(0, 2).toUpperCase()}
+        farmerColor="#2e7d32"
       />
     </div>
   )

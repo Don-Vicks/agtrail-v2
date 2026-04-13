@@ -151,4 +151,9 @@ body {
   html {
     @apply font-sans;
   }
+  input:focus,
+  textarea:focus,
+  select:focus {
+    @apply bg-white;
+  }
 }

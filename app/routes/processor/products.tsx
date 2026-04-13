@@ -1,6 +1,36 @@
 import { useState } from 'react';
 import { cn } from '~/lib/utils';
 import { PageHeader } from '~/components/page-header';
+import { StatCard } from '~/components/stat-card';
+import {
+  Search,
+  Plus,
+  Send,
+  Package,
+  CheckCircle,
+  Clock,
+  Trash2,
+  QrCode,
+  Eye,
+  ArrowRight,
+  Filter,
+  ChevronDown,
+  Activity,
+  LayoutDashboard,
+  Boxes as BoxesIcon
+} from 'lucide-react';
+import { Button } from '~/components/ui/button';
+import { Badge } from '~/components/ui/badge';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '~/components/ui/dropdown-menu';
+import { MoreVertical } from 'lucide-react';
+import type { Route } from './+types/products';
+
+export function meta({ }: Route.MetaArgs) {
+  return [
+    { title: 'Product Output | Agtrail' },
+    { name: 'description', content: 'Traceable products generated from verified processing batches' },
+  ]
+}
 
 // ─── Mock Data ───
 
@@ -22,88 +52,100 @@ const mockTransfers = [
 
 // ─── Components ───
 
-function StatCard({ icon, value, label }: { icon: React.ReactNode; value: number | string; label: string }) {
-  return (
-    <div className="flex items-center gap-4 rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-      <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#f1f8e9] text-brand">
-        {icon}
-      </div>
-      <div>
-        <div className="text-2xl font-bold text-gray-900 leading-tight">{value}</div>
-        <div className="text-xs font-medium text-gray-500">{label}</div>
-      </div>
-    </div>
-  )
-}
-
 function InventoryTab() {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <StatCard
-          icon={<svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>}
-          value={4}
           label="Total Products"
+          value="4"
+          icon={<BoxesIcon className="size-5 text-blue-500" />}
+          trend={{ value: 'Active', isPositive: true }}
         />
         <StatCard
-          icon={<svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
-          value={4}
-          label="Active Products"
+          label="Available"
+          value="4"
+          icon={<CheckCircle className="size-5 text-emerald-500" />}
+          trend={{ value: 'Verified', isPositive: true }}
         />
         <StatCard
-          icon={<svg className="size-5 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>}
-          value={0}
-          label="Created"
+          label="Pending"
+          value="0"
+          icon={<Clock className="size-5 text-amber-500" />}
+          trend={{ value: 'Stable', isPositive: true }}
         />
       </div>
 
-      <div className="relative">
-        <svg className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-        </svg>
-        <input
-          type="text"
-          placeholder="Search products by name or batch code..."
-          className="w-full rounded-xl border border-gray-200 pl-9 pr-4 py-3 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand shadow-sm"
-        />
+      {/* Advanced Toolbar */}
+      <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="relative w-full sm:max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search products by name or batch identity..."
+            className="w-full h-11 rounded-xl border border-gray-100 bg-gray-50/50 pl-10 pr-4 py-2 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white transition-all shadow-none"
+          />
+        </div>
+        <Button variant="outline" className="h-11 px-4 border-gray-100 text-gray-400 gap-2 font-bold uppercase tracking-widest text-[10px]">
+          <Filter className="size-4" />
+          Filter
+        </Button>
       </div>
 
-      <div>
-        <h2 className="text-lg font-bold text-gray-900 mb-4">Generated Products</h2>
-        <div className="space-y-4">
-          {mockInventory.map(item => (
-            <div key={item.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl border border-gray-200 bg-white p-5 shadow-sm hover:shadow-md transition-shadow">
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <h3 className="text-base font-bold text-gray-900">{item.name}</h3>
-                  <span className="bg-[#e8f5e9] text-[#2e7d32] border border-[#c8e6c9] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-md">
-                    active
-                  </span>
-                </div>
-                <div className="text-sm text-gray-500 space-y-1">
-                  <div>Batch: {item.batch}</div>
-                  <div>Category: {item.category}</div>
-                  <div>Quantity: {item.qty}</div>
-                  <div>Created: {item.created}</div>
-                </div>
+      <div className="space-y-4">
+        {mockInventory.map(item => (
+          <div key={item.id} className="group relative rounded-2xl border border-gray-100 bg-white p-6 transition-all hover:border-brand/30 hover:shadow-lg overflow-hidden flex flex-col sm:flex-row sm:items-center gap-6 shadow-sm">
+            <div className="absolute top-0 right-0 p-4 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity pointer-events-none">
+              <Package className="size-20" />
+            </div>
+
+            <div className="flex-shrink-0 size-14 rounded-2xl bg-brand/5 border border-brand/10 flex items-center justify-center text-brand transition-transform group-hover:scale-110">
+              <Package className="size-7" />
+            </div>
+
+            <div className="flex-1 min-w-0 relative z-10 space-y-1">
+              <div className="flex items-center gap-3 mb-1">
+                <h3 className="text-lg font-bold text-gray-900 uppercase tracking-tight group-hover:text-brand transition-colors">{item.name}</h3>
+                <Badge className="px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-widest border border-green-200 bg-green-50 text-emerald-600 shadow-none">
+                  active
+                </Badge>
               </div>
-              <div className="flex items-center gap-3 shrink-0">
-                <button className="flex items-center gap-1.5 text-sm font-semibold text-gray-700 hover:text-gray-900 py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors border border-gray-200 shadow-sm bg-white">
-                  <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                  View Story
-                </button>
-                <button className="flex items-center gap-1.5 text-sm font-semibold text-gray-700 hover:text-gray-900 py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors border border-gray-200 shadow-sm bg-white">
-                  <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm14 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" /></svg>
-                  QR Code
-                </button>
-                <button className="flex items-center gap-1.5 text-sm font-semibold text-white bg-brand hover:bg-brand-dark transition-colors py-2 px-4 rounded-lg shadow-sm">
-                  <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
-                  Transfer
-                </button>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest italic pt-2 border-t border-gray-50">
+                <div className="space-y-1">
+                  <span className="text-gray-300 block">Batch ID</span>
+                  <span className="text-gray-900 block truncate">{item.batch}</span>
+                </div>
+                <div className="space-y-1">
+                  <span className="text-gray-300 block">Category</span>
+                  <span className="text-gray-900 block">{item.category}</span>
+                </div>
+                <div className="space-y-1">
+                  <span className="text-gray-300 block">Quantity</span>
+                  <span className="text-gray-900 block">{item.qty}</span>
+                </div>
+                <div className="space-y-1">
+                  <span className="text-gray-300 block">Date</span>
+                  <span className="text-gray-900 block">{item.created}</span>
+                </div>
               </div>
             </div>
-          ))}
-        </div>
+
+            <div className="relative z-10 flex items-center gap-2">
+              <Button variant="ghost" size="sm" className="h-10 px-3 text-[10px] font-bold uppercase tracking-widest text-brand hover:bg-brand/5 gap-2">
+                <Eye className="size-3.5" />
+                View Story
+              </Button>
+              <Button variant="ghost" size="sm" className="h-10 px-3 text-[10px] font-bold uppercase tracking-widest text-brand hover:bg-brand/5 gap-2">
+                <QrCode className="size-3.5" />
+                Identity Card
+              </Button>
+              <Button size="sm" className="bg-[#1b3d1e] hover:bg-black text-white h-10 px-5 font-bold uppercase tracking-widest text-[10px] gap-2 shadow-sm">
+                <Send className="size-3.5" />
+                Dispatch
+              </Button>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   )
@@ -111,73 +153,66 @@ function InventoryTab() {
 
 function TransfersTab() {
   return (
-    <div className="space-y-4">
-      <div className="mb-2">
-        <h2 className="text-lg flex items-center gap-2 font-bold text-gray-900">
-          <svg className="size-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
-          Outgoing Transfers to Distributors
-        </h2>
-        <p className="text-xs text-gray-500 mt-0.5">Track your product transfers and payment status</p>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-4 text-left">
+          <div className="size-10 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600">
+            <Activity className="size-5" />
+          </div>
+          <div>
+            <h2 className="text-base font-bold text-gray-900 uppercase tracking-tight">Outgoing Transfers to Distributors</h2>
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Track your product transfers and payment status</p>
+          </div>
+        </div>
       </div>
 
       <div className="space-y-3">
         {mockTransfers.map(trf => (
-          <div key={trf.id} className="flex flex-col md:flex-row items-start md:items-center justify-between p-5 bg-white border border-gray-200 rounded-xl shadow-sm hover:border-gray-300 transition-colors">
-
-            {/* Left Block */}
-            <div className="flex-1 w-full md:w-auto mb-4 md:mb-0">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="font-bold text-gray-900 text-sm">{trf.ref}</span>
-                <span className="bg-[#fff8e1] text-[#f57f17] border border-[#ffecb3] px-2 py-0.5 text-[10px] font-bold lowercase tracking-wide rounded-md">
-                  {trf.status}
-                </span>
-                <span className={cn(
-                  "border px-2 py-0.5 text-[10px] font-bold lowercase tracking-wide rounded-md",
-                  trf.payment === 'completed'
-                    ? "bg-[#e8f5e9] text-[#2e7d32] border-[#c8e6c9]"
-                    : "bg-brand-accent-surface text-[#e65100] border-[#ffe0b2]"
-                )}>
-                  Payment: {trf.payment}
-                </span>
+          <div key={trf.id} className="flex flex-col md:flex-row items-start md:items-center justify-between p-6 bg-white border border-gray-100 rounded-2xl shadow-sm hover:border-brand/20 transition-all group gap-6">
+            <div className="flex-1 w-full md:w-auto">
+              <div className="flex items-center gap-3 mb-3">
+                <span className="text-xs font-bold text-gray-900 uppercase tracking-tight">{trf.ref}</span>
+                <Badge className="bg-amber-50 text-amber-600 border-amber-100 text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 shadow-none">
+                  {trf.status} status
+                </Badge>
+                <Badge
+                  className={cn(
+                    "text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 shadow-none border",
+                    trf.payment === 'completed'
+                      ? "bg-emerald-50 text-emerald-600 border-emerald-100"
+                      : "bg-orange-50 text-orange-600 border-orange-100"
+                  )}
+                >
+                  payment {trf.payment}
+                </Badge>
               </div>
-              <div className="flex items-center text-sm mb-2 text-gray-500">
-                <span className="w-16 block font-medium">Product:</span>
-                <span className="text-gray-900 font-bold">{trf.product}</span>
-              </div>
-              <div className="flex items-center gap-1.5 text-xs text-gray-500">
-                <svg className="size-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                Awaiting payment from distributor
+              <div className="space-y-1">
+                <span className="text-[10px] text-gray-300 font-bold uppercase tracking-widest block">Category</span>
+                <span className="text-sm font-bold text-gray-900 block uppercase tracking-tight group-hover:text-brand transition-colors">{trf.product}</span>
               </div>
             </div>
 
-            {/* Middle Block */}
-            <div className="flex-1 flex w-full md:w-auto items-center justify-between md:justify-around text-sm mb-4 md:mb-0">
-              <div className="flex flex-col">
-                <span className="text-gray-500 font-medium mb-1">Quantity</span>
-                <span className="text-gray-900 font-bold">{trf.qty}</span>
+            <div className="flex-1 flex w-full md:w-auto items-center justify-between md:justify-around text-sm py-4 md:py-0 border-y md:border-y-0 border-gray-50">
+              <div className="space-y-1">
+                <span className="text-[10px] text-gray-300 font-bold uppercase tracking-widest block">Quantity</span>
+                <span className="text-sm font-bold text-gray-900 block">{trf.qty}</span>
               </div>
-              <div className="flex flex-col">
-                <span className="text-gray-500 font-medium mb-1">Price</span>
-                <span className="text-gray-900 font-bold">{trf.price}</span>
+              <div className="space-y-1">
+                <span className="text-[10px] text-gray-300 font-bold uppercase tracking-widest block">Price</span>
+                <span className="text-sm font-bold text-gray-900 block">{trf.price}</span>
               </div>
             </div>
 
-            {/* Right Block */}
-            <div className="flex-1 flex w-full md:w-auto flex-row-reverse md:flex-col items-center md:items-end justify-between md:justify-center text-sm">
-              <span className="text-gray-500 font-medium md:mb-2">{trf.date}</span>
+            <div className="flex-1 flex w-full md:w-auto flex-row-reverse md:flex-col items-center md:items-end justify-between md:justify-center">
+              <span className="text-[10px] font-bold text-gray-300 mb-2 uppercase tracking-widest italic">{trf.date}</span>
               <div className="flex flex-col md:items-end">
-                <span className="text-gray-500 font-medium text-xs mb-0.5">To</span>
-                <span className="text-gray-900 font-bold">{trf.to}</span>
+                <span className="text-[10px] text-gray-300 font-bold uppercase tracking-widest mb-0.5">Recipient</span>
+                <span className="text-xs font-bold text-gray-900 uppercase tracking-tight">{trf.to}</span>
               </div>
             </div>
-
           </div>
         ))}
       </div>
-
-      <button className="w-full py-3 mt-4 text-sm font-semibold text-gray-500 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors shadow-sm">
-        Refresh
-      </button>
     </div>
   )
 }
@@ -186,66 +221,58 @@ export default function ProcessorProducts() {
   const [activeTab, setActiveTab] = useState<'inventory' | 'transfers'>('inventory')
 
   return (
-    <div className="max-w-[1000px] mx-auto pb-10">
+    <>
       <PageHeader
         items={[
           {
             label: 'Dashboard',
             href: '/processor',
-            icon: (
-              <svg className="size-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                <line x1="9" y1="3" x2="9" y2="21" />
-              </svg>
-            ),
+            icon: <LayoutDashboard className="size-4 text-gray-400" />,
           },
+          { label: 'Inventory' },
           { label: 'Products' },
         ]}
       />
-
-      {/* Header Row */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pt-2">
+      <div className="space-y-6 pb-10 px-1 text-left w-full overflow-x-hidden">
+        {/* Header Row */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 text-left">
         <div>
-          <h1 className="text-2xl font-bold text-brand">Product Output</h1>
-          <p className="text-sm text-gray-500 mt-1">Auto-generated products from completed batches with full traceability</p>
+          <h1 className="text-2xl font-bold text-gray-900 uppercase tracking-tight">Products</h1>
+          <p className="text-sm text-gray-500 mt-1">Manage your processed products and inventory</p>
         </div>
-        <button className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-[#1b4332] px-5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-dark">
-          <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-          </svg>
-          New Transfer to Exporter
-        </button>
-      </div>
 
-      {/* Tabs */}
-      <div className="flex items-center gap-2 mb-6">
-        <button
-          onClick={() => setActiveTab('inventory')}
-          className={cn(
-            "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors border",
-            activeTab === 'inventory'
-              ? "bg-white text-gray-900 border-gray-200 shadow-sm"
-              : "bg-transparent text-gray-500 border-transparent hover:bg-gray-100"
-          )}
-        >
-          <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
-          Inventory
-        </button>
-        <button
-          onClick={() => setActiveTab('transfers')}
-          className={cn(
-            "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors border",
-            activeTab === 'transfers'
-              ? "bg-white text-gray-900 border-gray-200 shadow-sm"
-              : "bg-transparent text-gray-500 border-transparent hover:bg-gray-100"
-          )}
-        >
-          <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
-          Outgoing Transfers
-        </button>
+        <div className="flex flex-wrap items-center gap-4">
+          {/* Tabs */}
+          <div className="inline-flex rounded-xl bg-gray-50/80 p-1 border border-gray-100 shadow-sm">
+            <button
+              onClick={() => setActiveTab('inventory')}
+              className={cn(
+                "flex h-9 items-center justify-center rounded-lg px-6 text-[10px] font-bold uppercase tracking-widest transition-all",
+                activeTab === 'inventory' ? "bg-white text-gray-900 shadow-sm font-bold" : "text-gray-400 hover:text-gray-600"
+              )}
+            >
+              Inventory
+            </button>
+            <button
+              onClick={() => setActiveTab('transfers')}
+              className={cn(
+                "flex h-9 items-center justify-center rounded-lg px-6 text-[10px] font-bold uppercase tracking-widest transition-all",
+                activeTab === 'transfers' ? "bg-white text-gray-900 shadow-sm font-bold" : "text-gray-400 hover:text-gray-600"
+              )}
+            >
+              Outgoing Transfers
+            </button>
+          </div>
+
+          <Button className="bg-[#1b3d1e] hover:bg-black text-white h-11 px-6 font-bold uppercase tracking-widest text-[10px] gap-2 shadow-sm ml-auto sm:ml-0">
+            <Plus className="size-4" />
+            New Transfer to Exporter
+          </Button>
+        </div>
       </div>
 
       {activeTab === 'inventory' ? <InventoryTab /> : <TransfersTab />}
     </div>
+    </>
   )
 }

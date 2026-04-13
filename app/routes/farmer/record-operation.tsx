@@ -80,7 +80,7 @@ export default function RecordOperation() {
 
       return {
         ...c,
-        productName: c.cropName || 'Unknown Crop',
+        productName: c.productName || 'Unknown Crop',
         farmName: farmConf?.name || 'Unknown Farm',
         farmLocation: location,
         farmer: farmerName,
@@ -88,7 +88,7 @@ export default function RecordOperation() {
         farmerColor: '#2E5A27', // Default brand color
         plantedDate: c.plantingDate ? new Date(c.plantingDate).toLocaleDateString() : null,
         area: c.areaPlantedHectares ? `${c.areaPlantedHectares} ha` : null,
-        daysToHarvest: days
+        daysToHarvest: days,
       }
     })
   }, [cropCycles, farms, user])
@@ -183,7 +183,7 @@ export default function RecordOperation() {
                   ? 'border border-gray-200 bg-gray-50 text-gray-500'
                   : 'border border-brand-surface bg-brand-surface/50 text-brand'
                   }`}>
-                  {cycle.status || 'planning'}
+                  {cycle.status?.toUpperCase() || 'Planning'}
                 </span>
                 {cycle.daysToHarvest !== null && (
                   <span className="text-xs text-gray-500 font-medium">{cycle.daysToHarvest} days to harvest</span>

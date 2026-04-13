@@ -1,78 +1,31 @@
 import { useState } from 'react'
 import { PageHeader } from '~/components/page-header'
+import { StatCard } from '~/components/stat-card'
+import { Button } from '~/components/ui/button'
+import { Badge } from '~/components/ui/badge'
+import { 
+  ShieldCheck, 
+  AlertCircle, 
+  TrendingUp, 
+  CheckCircle, 
+  Search, 
+  ChevronDown, 
+  FileText, 
+  Download,
+  LayoutDashboard,
+  ShieldAlert,
+  Activity,
+  Filter,
+  ArrowRight
+} from 'lucide-react'
+import { cn } from '~/lib/utils'
 import type { Route } from './+types/index'
 
 export function meta({ }: Route.MetaArgs) {
   return [
-    { title: 'Compliance Analysis | Agtrail' },
-    { name: 'description', content: 'Risk assessment and compliance status across your products' },
+    { title: 'Compliance | Agtrail' },
+    { name: 'description', content: 'Monitor compliance and risks across your products' },
   ]
-}
-
-/* ─── Icons ─── */
-function ShieldCheck() {
-  return (
-    <svg className="size-6 text-[#3b82f6]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-    </svg>
-  )
-}
-
-function AlertCircle() {
-  return (
-    <svg className="size-6 text-[#ef4444]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-  )
-}
-
-function TrendUp() {
-  return (
-    <svg className="size-6 text-[#eab308]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-    </svg>
-  )
-}
-
-function CheckCircle() {
-  return (
-    <svg className="size-6 text-[#22c55e]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-  )
-}
-
-function SearchIcon() {
-  return (
-    <svg className="size-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <circle cx="11" cy="11" r="8" />
-      <line x1="21" y1="21" x2="16.65" y2="16.65" />
-    </svg>
-  )
-}
-
-function ChevronDown() {
-  return (
-    <svg className="size-4 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
-      <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-    </svg>
-  )
-}
-
-function DocumentIcon() {
-  return (
-    <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-    </svg>
-  )
-}
-
-function DownloadIcon() {
-  return (
-    <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-    </svg>
-  )
 }
 
 /* ─── Mock Data ─── */
@@ -91,195 +44,179 @@ const COMPLIANCE_DATA = [
   }
 ]
 
-/* ─── Page Component ─── */
 export default function ComplianceAnalysisPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [riskFilter, setRiskFilter] = useState('')
 
   return (
-    <div className="space-y-6">
-      {/* Header & Breadcrumbs */}
-      <div>
-        <PageHeader
-          items={[
-            {
-              label: 'Dashboard',
-              href: '/cooperative',
-              icon: (
-                <svg className="size-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                  <line x1="9" y1="3" x2="9" y2="21" />
-                </svg>
-              ),
-            },
-            { label: 'Compliance Analysis' },
-          ]}
-        />
+    <div className="space-y-6 pb-10 px-1">
+      <PageHeader
+        items={[
+          {
+            label: 'Dashboard',
+            href: '/cooperative',
+            icon: <LayoutDashboard className="size-4 text-gray-400" />,
+          },
+          { label: 'Compliance' },
+          { label: 'Analysis' },
+        ]}
+      />
 
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-[#2e7d32]">Compliance Analysis</h1>
-            <p className="mt-1 text-sm text-gray-500">Risk assessment and compliance status across your products</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <button className="flex h-10 items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm transition-colors hover:bg-gray-50">
-              <DocumentIcon />
-              Export CSV
-            </button>
-            <button className="flex h-10 items-center justify-center gap-2 rounded-lg bg-[#2e7d32] px-4 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#1b5e20]">
-              <DownloadIcon />
-              Export PDF
-            </button>
-          </div>
+      {/* Page Title Section */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-left">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 uppercase tracking-tight">Compliance</h1>
+          <p className="text-sm text-gray-500 mt-1">Monitor standard adherence and risk levels across your products</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <Button variant="outline" className="flex items-center gap-2 h-11 px-4 text-[11px] font-bold uppercase tracking-wider text-gray-600 border-gray-200">
+            <FileText className="size-4" />
+            <span className="hidden sm:inline">Export CSV</span>
+          </Button>
+          <Button className="bg-[#1d3d1e] hover:bg-black text-white flex items-center gap-2 h-11 px-6 shadow-sm">
+            <Download className="size-4" />
+            <span className="font-bold uppercase tracking-wide text-[11px]">Export PDF</span>
+          </Button>
         </div>
       </div>
 
-      {/* 4 Summary Cards */}
+      {/* High Density Stats Row */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {/* Overall Compliance */}
-        <div className="flex flex-col justify-between rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-          <div className="flex items-start justify-between">
+        <StatCard
+          label="Compliance Score"
+          value="0%"
+          icon={<ShieldCheck className="size-5 text-blue-500" />}
+          trend={{ value: 'Critical Gap', isPositive: false }}
+        />
+        <StatCard
+          label="High Risk"
+          value="0"
+          icon={<ShieldAlert className="size-5 text-red-500" />}
+          trend={{ value: 'Stable', isPositive: true }}
+        />
+        <StatCard
+          label="Under Review"
+          value="1"
+          icon={<Activity className="size-5 text-amber-500" />}
+          trend={{ value: '1 Pending', isPositive: false }}
+        />
+        <StatCard
+          label="Verified"
+          value="0"
+          icon={<CheckCircle className="size-5 text-emerald-500" />}
+          trend={{ value: 'Baseline', isPositive: true }}
+        />
+      </div>
+
+      {/* Main Monitoring Section */}
+      <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden flex flex-col">
+        {/* Filters */}
+        <div className="p-6 border-b border-gray-50 flex flex-col lg:flex-row lg:items-center justify-between bg-white text-left gap-6">
+          <div className="flex items-center gap-4">
+            <div className="size-11 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-400">
+              <ShieldCheck className="size-5" />
+            </div>
             <div>
-              <p className="text-sm font-medium text-gray-500">Overall Compliance</p>
-              <p className="mt-1 text-3xl font-bold text-gray-900">0%</p>
-            </div>
-            <div className="flex size-10 items-center justify-center rounded-lg bg-blue-50">
-              <ShieldCheck />
+              <h2 className="text-base font-bold text-gray-900 uppercase tracking-tight">Compliance Check</h2>
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">List of all compliance checks</p>
             </div>
           </div>
-          {/* Progress bar */}
-          <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-gray-100">
-            <div className="h-full w-12 rounded-full bg-[#8d6e63]"></div>
+          
+          <div className="flex flex-col sm:flex-row items-center gap-4">
+            <div className="relative w-full sm:w-80">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search products, batches..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full h-11 rounded-xl border border-gray-100 bg-gray-50/50 pl-10 pr-4 py-2 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white transition-all shadow-none"
+              />
+            </div>
+            <div className="relative">
+              <select
+                value={riskFilter}
+                onChange={(e) => setRiskFilter(e.target.value)}
+                className="h-11 rounded-xl border border-gray-100 bg-gray-50/50 pl-4 pr-10 text-[11px] font-bold uppercase tracking-widest text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand appearance-none min-w-[160px]"
+              >
+                <option value="">All Risk Levels</option>
+                <option value="High">High Risk</option>
+                <option value="Medium">Medium Risk</option>
+                <option value="Low">Low Risk</option>
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 size-3.5 text-gray-400 pointer-events-none" />
+            </div>
           </div>
         </div>
 
-        {/* High Risk */}
-        <div className="flex items-center justify-between rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-          <div>
-            <p className="text-sm font-medium text-gray-500">High Risk</p>
-            <p className="mt-1 text-3xl font-bold text-[#ef4444]">0</p>
-            <p className="mt-1 text-xs text-gray-500">Products need attention</p>
-          </div>
-          <div className="flex size-10 items-center justify-center rounded-lg bg-red-50">
-            <AlertCircle />
-          </div>
-        </div>
-
-        {/* Medium Risk */}
-        <div className="flex items-center justify-between rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-          <div>
-            <p className="text-sm font-medium text-gray-500">Medium Risk</p>
-            <p className="mt-1 text-3xl font-bold text-[#f59e0b]">1</p>
-            <p className="mt-1 text-xs text-gray-500">Under review</p>
-          </div>
-          <div className="flex size-10 items-center justify-center rounded-lg bg-yellow-50">
-            <TrendUp />
-          </div>
-        </div>
-
-        {/* Low Risk */}
-        <div className="flex items-center justify-between rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-          <div>
-            <p className="text-sm font-medium text-gray-500">Low Risk</p>
-            <p className="mt-1 text-3xl font-bold text-[#22c55e]">0</p>
-            <p className="mt-1 text-xs text-gray-500">Compliant</p>
-          </div>
-          <div className="flex size-10 items-center justify-center rounded-lg bg-green-50">
-            <CheckCircle />
-          </div>
-        </div>
-      </div>
-
-      {/* Toolbar */}
-      <div className="flex items-center gap-3">
-        <div className="relative flex-1 sm:max-w-xs">
-          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-            <SearchIcon />
-          </div>
-          <input
-            type="text"
-            placeholder="Search products..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="h-10 w-full rounded-lg border border-gray-300 bg-white pl-10 pr-3 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
-          />
-        </div>
-        <div className="relative">
-          <select
-            value={riskFilter}
-            onChange={(e) => setRiskFilter(e.target.value)}
-            className="h-10 appearance-none rounded-lg border border-gray-300 bg-white pl-4 pr-10 text-sm font-medium text-gray-700 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
-          >
-            <option value="">All Risk Levels</option>
-            <option value="High">High</option>
-            <option value="Medium">Medium</option>
-            <option value="Low">Low</option>
-          </select>
-          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-            <ChevronDown />
-          </div>
-        </div>
-      </div>
-
-      {/* Main Table */}
-      <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-        <div className="mb-6">
-          <h2 className="text-xl font-bold text-gray-900">Product Compliance Overview</h2>
-          <p className="text-sm text-gray-500">Real-time compliance status across your products</p>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-gray-600">
-            <thead className="border-b border-gray-100">
-              <tr>
-                <th className="px-4 py-3 font-semibold text-gray-500">Product</th>
-                <th className="px-4 py-3 font-semibold text-gray-500">Category</th>
-                <th className="px-4 py-3 font-semibold text-gray-500">Origin</th>
-                <th className="px-4 py-3 font-semibold text-gray-500">Risk Level</th>
-                <th className="px-4 py-3 font-semibold text-gray-500">Compliance Score</th>
-                <th className="px-4 py-3 font-semibold text-gray-500">Certifications</th>
-                <th className="px-4 py-3 font-semibold text-gray-500">Alerts</th>
-                <th className="px-4 py-3 font-semibold text-gray-500">Last Audit</th>
+        {/* Compliance List */}
+        <div className="overflow-x-auto min-h-[400px]">
+          <table className="w-full text-left text-sm border-collapse">
+            <thead>
+              <tr className="bg-gray-50/50 border-b border-gray-100">
+                <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-gray-400">Product</th>
+                <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-gray-400">Category</th>
+                <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-gray-400">Origin</th>
+                <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-gray-400">Risk</th>
+                <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-gray-400 text-center">Score</th>
+                <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-gray-400 text-center">Certs</th>
+                <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-gray-400 text-right pr-6">Last Checked</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-gray-50">
               {COMPLIANCE_DATA.map((row) => (
-                <tr key={row.id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/30">
-                  <td className="px-4 py-4">
-                    <div className="font-bold text-gray-900">{row.product}</div>
-                    <div className="text-xs text-gray-400">{row.batchId}</div>
+                <tr key={row.id} className="hover:bg-gray-50/50 transition-colors group">
+                  <td className="px-6 py-6">
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-gray-900 uppercase tracking-tight group-hover:text-brand transition-colors">{row.product}</span>
+                      <span className="text-[9px] font-mono text-gray-400 mt-1 uppercase tracking-tighter">{row.batchId}</span>
+                    </div>
                   </td>
-                  <td className="px-4 py-4 font-medium">{row.category}</td>
-                  <td className="px-4 py-4 font-bold text-gray-900">{row.origin}</td>
-                  <td className="px-4 py-4">
+                  <td className="px-6 py-6 font-bold text-[10px] uppercase text-gray-500 tracking-wider">
+                    {row.category}
+                  </td>
+                  <td className="px-6 py-6">
+                    <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 border-gray-200 text-gray-400 shadow-none">
+                      {row.origin}
+                    </Badge>
+                  </td>
+                  <td className="px-6 py-6">
                     {row.riskLevel === 'Medium' && (
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-yellow-50 px-2.5 py-1 text-xs font-medium text-yellow-800 border border-yellow-200/60">
-                        <svg className="size-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                        </svg>
+                      <Badge className="bg-amber-50 text-amber-600 border-amber-100 text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 shadow-none flex items-center gap-1.5 w-fit">
+                        <Activity className="size-3" />
                         {row.riskLevel}
-                      </span>
+                      </Badge>
                     )}
-                    {/* Add other risk levels if mock data requires */}
                   </td>
-                  <td className="px-4 py-4">
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-gray-900">{row.complianceScore}%</span>
-                      <div className="h-1.5 w-16 overflow-hidden rounded-full bg-gray-200">
+                  <td className="px-6 py-6">
+                    <div className="flex flex-col items-center gap-2">
+                      <span className="text-[11px] font-bold text-gray-900">{row.complianceScore}%</span>
+                      <div className="h-1.5 w-16 overflow-hidden rounded-full bg-gray-100 border border-gray-50">
                         <div
-                          className="h-full bg-[#8d6e63]"
-                          style={{ width: '40%' /* visually approximating the screenshot */ }}
+                          className="h-full bg-brand/30"
+                          style={{ width: `${row.complianceScore}%` }}
                         />
                       </div>
                     </div>
                   </td>
-                  <td className="px-4 py-4 font-semibold text-[#22c55e]">{row.certifications}</td>
-                  <td className="px-4 py-4 text-gray-500">{row.alerts}</td>
-                  <td className="px-4 py-4 text-gray-500">{row.lastAudit}</td>
+                  <td className="px-6 py-6 text-center">
+                    <span className="text-xs font-bold text-gray-400">{row.certifications}</span>
+                  </td>
+                  <td className="px-6 py-6 text-right pr-6">
+                    <span className="text-xs font-bold text-gray-400 uppercase tracking-tight italic">{row.lastAudit}</span>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
+          
+          {COMPLIANCE_DATA.length === 0 && (
+            <div className="py-20 flex flex-col items-center justify-center text-center">
+              <ShieldCheck className="size-12 text-gray-100 mb-4" />
+              <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest italic">No Data Found</h3>
+              <p className="text-[10px] text-gray-300 uppercase tracking-tight">No compliance data available...</p>
+            </div>
+          )}
         </div>
       </div>
     </div>

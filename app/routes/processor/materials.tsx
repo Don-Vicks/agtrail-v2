@@ -1,15 +1,21 @@
 import { useState } from 'react'
-import { Link } from 'react-router'
-import { cn } from '~/lib/utils'
-import { PageHeader } from '~/components/page-header'
 import { AddMaterialModal, type NewMaterialData } from '~/components/add-material-modal'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '~/components/ui/dropdown-menu'
+import { PageHeader } from '~/components/page-header'
+import { StatCard } from '~/components/stat-card'
 import { DatePicker } from '~/components/ui/date-picker'
+import { Button } from '~/components/ui/button'
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '~/components/ui/dropdown-menu'
+import { cn } from '~/lib/utils'
+import { Plus, Search, Filter, Download, MoreHorizontal, Package, ClipboardList, Layers, Clock, ArrowRight, ChevronDown, LayoutDashboard } from 'lucide-react'
+import { EmptyState } from '~/components/empty-state'
+import { Badge } from '~/components/ui/badge'
+// TODO: Add API integration when GET /processors/materials endpoint becomes available
+// import { useGetProcessorsMaterials } from '~/lib/api/generated/processors-materials/processors-materials'
 
 // ─── Mock Data ───
 
@@ -39,39 +45,9 @@ const mockMaterials: Material[] = [
   }
 ]
 
-// ─── Shared Components ───
+// ─── Shared Components moved to central directory ───
 
-function StatCard({ value, label }: { value: number | string; label: string }) {
-  return (
-    <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm hover:shadow-md transition-shadow">
-      <div className="text-3xl font-bold text-gray-900 mb-1">{value}</div>
-      <div className="text-sm font-medium text-gray-500">{label}</div>
-    </div>
-  )
-}
-
-function MiniStat({ value, label }: { value: number | string; label: string }) {
-  return (
-    <div className="rounded-lg bg-gray-50 p-4 border border-gray-100 flex flex-col items-center justify-center">
-      <div className="text-2xl font-bold text-gray-900">{value}</div>
-      <div className="text-xs text-gray-500 font-medium text-center leading-snug">{label}</div>
-    </div>
-  )
-}
-
-function TabButton({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
-  return (
-    <button
-      onClick={onClick}
-      className={cn(
-        "flex-1 py-2.5 text-sm font-semibold rounded-md transition-colors",
-        active ? "bg-white text-brand shadow-sm border border-gray-200/60" : "text-gray-500 hover:text-gray-700 hover:bg-gray-100/50"
-      )}
-    >
-      {label}
-    </button>
-  )
-}
+// MiniStat and TabButton removed to use global standards
 
 
 export default function ProcessorMaterials() {
@@ -109,165 +85,234 @@ export default function ProcessorMaterials() {
   }
 
   return (
-    <div className="space-y-6 pb-10">
-
+    <div className="space-y-6 pb-10 px-1 text-left w-full overflow-x-hidden">
       <PageHeader
         items={[
           {
             label: 'Dashboard',
             href: '/processor',
-            icon: (
-              <svg className="size-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                <line x1="9" y1="3" x2="9" y2="21" />
-              </svg>
-            ),
+            icon: <LayoutDashboard className="size-4 text-gray-400" />,
           },
-          { label: 'Materials' },
+          { label: 'Operations' },
+          { label: 'Raw Materials' },
         ]}
       />
 
       {/* Main Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-brand">Materials Inventory</h1>
-          <p className="text-sm text-gray-500 mt-1">Manage platform transfers and external materials in one place</p>
+          <h1 className="text-2xl font-bold text-gray-900 uppercase tracking-tight">Raw Materials</h1>
+          <p className="text-sm text-gray-500 mt-1">Manage your raw material intake and inventory</p>
         </div>
-        <button 
-          onClick={() => setIsAddModalOpen(true)}
-          className="inline-flex items-center justify-center gap-2 rounded-md bg-[#1b4332] px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-dark"
-        >
-          <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-          </svg>
-          Add External Material
-        </button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" className="flex items-center gap-2 h-11 text-gray-600 font-bold uppercase tracking-tight text-xs border-gray-200">
+            <Download className="size-4" />
+            <span>Export List</span>
+          </Button>
+          <Button 
+            onClick={() => setIsAddModalOpen(true)}
+            className="bg-[#1d3d1e] hover:bg-black text-white flex items-center gap-2 h-11 px-6 shadow-sm"
+          >
+            <Plus className="size-4" />
+            <span className="font-bold uppercase tracking-wide text-xs">Add Material</span>
+          </Button>
+        </div>
       </div>
 
       {/* 3 Top Stat Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <StatCard value={1} label="Platform Materials" />
-        <StatCard value={materials.length} label="External Materials" />
-        <StatCard value={8} label="Pending Transfers" />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <StatCard 
+          title="Cooperatives" 
+          value="1" 
+          subtitle="From App"
+          description="Verified cooperative transfers"
+          icon={<Package className="size-4" />}
+        />
+        <StatCard 
+          title="Manual Entry" 
+          value={materials.length.toString()} 
+          subtitle="Offline"
+          description="Manually added materials"
+          icon={<ClipboardList className="size-4" />}
+        />
+        <StatCard 
+          title="In Transit" 
+          value="8" 
+          subtitle="Pending receipt"
+          description="Incoming from cooperatives"
+          icon={<Clock className="size-4" />}
+          trend="neutral"
+        />
       </div>
 
       {/* Material Sources Panel */}
-      <div>
-        <h2 className="text-base font-bold text-gray-900">Material Sources</h2>
-        <p className="text-xs text-gray-500 mb-3">System-wide issues requiring attention</p>
-        <div className="flex p-1 bg-gray-50 border border-gray-200 rounded-lg">
-          <TabButton label="Platform Materials" active={activeTab === 'Platform Materials'} onClick={() => setActiveTab('Platform Materials')} />
-          <TabButton label="External Material" active={activeTab === 'External Material'} onClick={() => setActiveTab('External Material')} />
-          <TabButton label="Incoming Materials" active={activeTab === 'Incoming Materials'} onClick={() => setActiveTab('Incoming Materials')} />
+      <div className="rounded-xl border border-gray-200 bg-white p-1.5 shadow-sm inline-flex w-fit">
+        <div className="flex flex-wrap gap-1">
+          <button
+            onClick={() => setActiveTab('Platform Materials')}
+            className={cn(
+              "px-5 py-2.5 text-xs font-bold uppercase tracking-wider rounded-lg transition-all",
+              activeTab === 'Platform Materials'
+                ? "bg-brand text-white shadow-sm"
+                : "text-gray-500 hover:bg-gray-50"
+            )}
+          >
+            Cooperatives
+          </button>
+          <button
+            onClick={() => setActiveTab('External Material')}
+            className={cn(
+              "px-5 py-2.5 text-xs font-bold uppercase tracking-wider rounded-lg transition-all",
+              activeTab === 'External Material'
+                ? "bg-brand text-white shadow-sm"
+                : "text-gray-500 hover:bg-gray-50"
+            )}
+          >
+            Manual Entry
+          </button>
+          <button
+            onClick={() => setActiveTab('Incoming Materials')}
+            className={cn(
+              "px-5 py-2.5 text-xs font-bold uppercase tracking-wider rounded-lg transition-all",
+              activeTab === 'Incoming Materials'
+                ? "bg-brand text-white shadow-sm"
+                : "text-gray-500 hover:bg-gray-50"
+            )}
+          >
+            In Transit
+          </button>
         </div>
       </div>
 
-      {/* Raw Materials Inventory Filter Panel */}
-      <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-        <h2 className="text-base font-bold text-gray-900">Raw Materials Inventory</h2>
-        <p className="text-xs text-gray-500 mb-5">Track available raw materials received from farmers for processing</p>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-          <div>
-            <label className="text-xs font-semibold text-gray-600 mb-1.5 block">Source Name</label>
-            <select className="w-full rounded-md border border-gray-200 py-2 px-3 text-sm text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand">
-              <option>All Sources</option>
-            </select>
+      {/* Filter Panel */}
+      <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div className="flex items-center gap-2 mb-6">
+          <div className="size-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-500">
+            <Filter className="size-4" />
           </div>
           <div>
-            <label className="text-xs font-semibold text-gray-600 mb-1.5 block">Select Material Source</label>
-            <select className="w-full rounded-md border border-gray-200 py-2 px-3 text-sm text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand">
-              <option>All Sources</option>
-            </select>
-          </div>
-          <div>
-            <label className="text-xs font-semibold text-gray-600 mb-1.5 block">Select Material</label>
-            <select className="w-full rounded-md border border-gray-200 py-2 px-3 text-sm text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand">
-              <option>All Materials</option>
-            </select>
+            <h2 className="text-base font-bold text-gray-900 uppercase tracking-tight">Filters</h2>
+            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Filter raw material records</p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-[500px] mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div>
-            <label className="text-xs font-semibold text-gray-600 mb-1.5 block">Start Date</label>
+            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 block">Source Farmer</label>
+            <div className="relative">
+              <select className="w-full h-11 rounded-lg border border-gray-200 pl-3 pr-10 text-xs font-bold uppercase tracking-wider text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand bg-white appearance-none">
+                <option>All System Farmers</option>
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-gray-400 pointer-events-none" />
+            </div>
+          </div>
+          <div>
+            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 block">Source</label>
+            <div className="relative">
+              <select className="w-full h-11 rounded-lg border border-gray-200 pl-3 pr-10 text-xs font-bold uppercase tracking-wider text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand bg-white appearance-none">
+                <option>All Sources</option>
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-gray-400 pointer-events-none" />
+            </div>
+          </div>
+          <div>
+            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 block">Material</label>
+            <div className="relative">
+              <select className="w-full h-11 rounded-lg border border-gray-200 pl-3 pr-10 text-xs font-bold uppercase tracking-wider text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand bg-white appearance-none">
+                <option>All Materials</option>
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-gray-400 pointer-events-none" />
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-[500px] mb-8">
+          <div>
+            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 block text-brand/70 font-mono">Start Date</label>
             <DatePicker 
               value={startDate} 
               onChange={setStartDate} 
-              placeholder="Select start date"
-              className="w-full text-gray-700 py-2 h-[38px] rounded-md border border-gray-200 focus:border-brand focus:ring-1 focus:ring-brand outline-none" 
+              placeholder="Start range"
+              className="w-full text-xs font-bold uppercase tracking-wider text-gray-700 h-11 rounded-lg border border-gray-200 focus:border-brand focus:ring-1 focus:ring-brand outline-none" 
             />
           </div>
           <div>
-            <label className="text-xs font-semibold text-gray-600 mb-1.5 block">End Date</label>
+            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 block text-brand/70 font-mono">End Date</label>
             <DatePicker 
               value={endDate} 
               onChange={setEndDate} 
-              placeholder="Select end date"
-              className="w-full text-gray-700 py-2 h-[38px] rounded-md border border-gray-200 focus:border-brand focus:ring-1 focus:ring-brand outline-none" 
+              placeholder="End range"
+              className="w-full text-xs font-bold uppercase tracking-wider text-gray-700 h-11 rounded-lg border border-gray-200 focus:border-brand focus:ring-1 focus:ring-brand outline-none" 
             />
           </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <MiniStat value={1} label="Total Products" />
-          <MiniStat value="0 kg" label="Platform Materials" />
-          <MiniStat value={0} label="In Stock" />
-          <MiniStat value={0} label="Low Stock" />
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-8 pt-8 border-t border-gray-50">
+          {[
+            { label: 'Total Materials', value: '1' },
+            { label: 'Cooperatives', value: '0 kg' },
+            { label: 'Total Stock', value: '0' },
+            { label: 'Alerts', value: '0' }
+          ].map((stat, i) => (
+            <div key={i} className="bg-gray-50/50 rounded-xl p-4 border border-gray-100/50">
+              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">{stat.label}</p>
+              <p className="text-xl font-bold text-gray-900">{stat.value}</p>
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* Data Table block */}
-      <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm overflow-hidden flex flex-col">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
-          <div>
-            <h2 className="text-base font-bold text-gray-900">Available Raw Materials</h2>
-            <p className="text-xs text-gray-500 mt-1">Materials ready for batch processing</p>
-          </div>
-          <div className="relative w-full sm:w-[250px]">
-            <svg className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            <input
-              type="text"
-              placeholder="Search materials..."
-              className="w-full rounded-md border border-gray-200 pl-9 pr-4 py-2 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
-            />
+      {/* Available Raw Materials */}
+      <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden flex flex-col">
+        <div className="p-6 bg-white border-b border-gray-100">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <div>
+              <h2 className="text-base font-bold text-gray-900 uppercase tracking-tight">Materials</h2>
+              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">List of available raw materials</p>
+            </div>
+            <div className="relative w-full sm:w-[320px]">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search materials by batch ID or source..."
+                className="w-full rounded-lg border border-gray-200 pl-10 pr-4 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white transition-all shadow-sm"
+              />
+            </div>
           </div>
         </div>
 
-        <div className="overflow-x-auto -mx-5 px-5">
-          <table className="w-full text-left text-sm text-gray-600 min-w-[900px]">
-            <thead className="border-b border-gray-100 text-xs font-semibold text-brand">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm">
+            <thead className="border-b border-gray-50 bg-gray-50/50">
               <tr>
-                <th className="py-3 font-medium">Batch ID</th>
-                <th className="py-3 font-medium flex items-center gap-1">Material <svg className="size-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" /></svg></th>
-                <th className="py-3 font-medium">Type</th>
-                <th className="py-3 font-medium">Farmer/Source</th>
-                <th className="py-3 font-medium">Material Source</th>
-                <th className="py-3 font-medium flex items-center gap-1">Quantity <svg className="size-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" /></svg></th>
-                <th className="py-3 font-medium">Harvested</th>
-                <th className="py-3 font-medium">Received</th>
-                <th className="py-3 font-medium"></th>
+                <th className="px-5 py-4 text-[10px] font-bold uppercase tracking-wider text-gray-500">Batch ID</th>
+                <th className="px-5 py-4 text-[10px] font-bold uppercase tracking-wider text-gray-500">Material</th>
+                <th className="px-5 py-4 text-[10px] font-bold uppercase tracking-wider text-gray-500">Type</th>
+                <th className="px-5 py-4 text-[10px] font-bold uppercase tracking-wider text-gray-500">Farmer Source</th>
+                <th className="px-5 py-4 text-[10px] font-bold uppercase tracking-wider text-gray-500">Material Source</th>
+                <th className="px-5 py-4 text-[10px] font-bold uppercase tracking-wider text-gray-500">Quantity</th>
+                <th className="px-5 py-4 text-[10px] font-bold uppercase tracking-wider text-gray-500">Harvest Date</th>
+                <th className="px-5 py-4 text-[10px] font-bold uppercase tracking-wider text-gray-500">Date Received</th>
+                <th className="px-5 py-4"></th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-gray-50 bg-white">
               {materials.map((row) => (
-                <tr key={row.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="py-4 font-medium text-brand">{row.batchId}</td>
-                  <td className="py-4 text-brand">{row.material}</td>
-                  <td className="py-4 text-brand font-medium max-w-[120px]">{row.type}</td>
-                  <td className="py-4 text-brand max-w-[120px]">{row.farmerSource}</td>
-                  <td className="py-4 text-brand max-w-[120px]">{row.materialSource}</td>
-                  <td className="py-4 text-brand font-bold">{row.quantity}</td>
-                  <td className="py-4 text-gray-500">{row.harvested}</td>
-                  <td className="py-4 text-gray-500">{row.received}</td>
-                  <td className="py-4 text-center">
+                <tr key={row.id} className="hover:bg-gray-50/50 transition-colors group">
+                  <td className="px-5 py-4 font-bold text-gray-900 tracking-tight">{row.batchId}</td>
+                  <td className="px-5 py-4 font-bold text-gray-700">{row.material}</td>
+                  <td className="px-5 py-4 text-xs font-medium text-gray-500 truncate max-w-[150px]">{row.type}</td>
+                  <td className="px-5 py-4 text-xs font-bold text-gray-900 italic">{row.farmerSource}</td>
+                  <td className="px-5 py-4 text-xs font-medium text-gray-500">{row.materialSource}</td>
+                  <td className="px-5 py-4 font-bold text-gray-900 tracking-tight">{row.quantity}</td>
+                  <td className="px-5 py-4 text-xs font-medium text-gray-500">{row.harvested}</td>
+                  <td className="px-5 py-4 text-xs font-medium text-gray-500">{row.received}</td>
+                  <td className="px-5 py-4 text-right">
                     <DropdownMenu>
-                      <DropdownMenuTrigger className="text-gray-400 hover:text-gray-800 outline-none cursor-pointer">
-                        <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z" />
-                        </svg>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="size-8 text-gray-400 hover:text-gray-900">
+                          <MoreHorizontal className="size-4" />
+                        </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem>
@@ -280,23 +325,42 @@ export default function ProcessorMaterials() {
               ))}
             </tbody>
           </table>
+          {materials.length === 0 && (
+            <EmptyState
+              icon={<Package className="size-10" />}
+              title="No materials found"
+              description="No raw materials have been added to your inventory yet."
+              action={{
+                label: "Add External Material",
+                onClick: () => setIsAddModalOpen(true)
+              }}
+            />
+          )}
         </div>
 
-        <div className="border-t border-gray-100 pt-3 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-500 mt-2">
-          <span>0 of 1 row(s) selected.</span>
-          <div className="flex items-center gap-4">
-            <span className="flex items-center gap-2">
-              Rows per page
-              <select className="border-none bg-transparent outline-none font-medium">
+        <div className="border-t border-gray-100 px-5 py-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-gray-400 font-bold uppercase tracking-tight bg-gray-50/20">
+          <div className="flex items-center gap-2">
+            <span className="text-gray-300">Total Records:</span>
+            <span className="text-gray-900">{materials.length} Material Records</span>
+          </div>
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-2">
+              <span className="text-gray-300">Show</span>
+              <select className="bg-transparent border-none outline-none text-gray-900 font-bold">
                 <option>10</option>
+                <option>25</option>
               </select>
-            </span>
-            <span>Page 1 of 1</span>
-            <div className="flex items-center gap-1">
-              <button className="p-1 border border-gray-200 rounded text-gray-400 hover:text-gray-800"><svg className="size-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" /></svg></button>
-              <button className="p-1 border border-gray-200 rounded text-gray-400 hover:text-gray-800"><svg className="size-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg></button>
-              <button className="p-1 border border-gray-200 rounded text-gray-400 hover:text-gray-800"><svg className="size-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg></button>
-              <button className="p-1 border border-gray-200 rounded text-gray-400 hover:text-gray-800"><svg className="size-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7m-8-14l7 7-7 7" /></svg></button>
+            </div>
+            <div className="flex items-center gap-4">
+              <span className="text-gray-300">Page 1 / 1</span>
+              <div className="flex items-center gap-1">
+                <Button variant="ghost" size="icon" className="size-7 text-gray-300" disabled>
+                  <ArrowRight className="size-3.5 rotate-180" />
+                </Button>
+                <Button variant="ghost" size="icon" className="size-7 text-gray-400 hover:text-brand">
+                  <ArrowRight className="size-3.5" />
+                </Button>
+              </div>
             </div>
           </div>
         </div>

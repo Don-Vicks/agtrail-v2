@@ -1,49 +1,79 @@
 import { cn } from '~/lib/utils'
 import { Skeleton } from '~/components/ui/skeleton'
+import { TrendingUp, TrendingDown } from 'lucide-react'
 
 interface StatCardProps {
-  title: string
+  title?: string // Backward compatibility
+  label?: string // High density naming
   value: string
-  subtitle: string
-  description: string
+  subtitle?: string
+  description?: string
   icon: React.ReactNode
-  trend?: 'up' | 'down' | 'neutral'
+  trend?: 'up' | 'down' | 'neutral' | { value: string; isPositive: boolean }
   className?: string
   isLoading?: boolean
 }
 
-export function StatCard({ title, value, subtitle, description, icon, trend = 'neutral', className, isLoading }: StatCardProps) {
+export function StatCard({ 
+  title, 
+  label, 
+  value, 
+  subtitle, 
+  description, 
+  icon, 
+  trend = 'neutral', 
+  className, 
+  isLoading 
+}: StatCardProps) {
+  const displayLabel = label || title
+  
   return (
-    <div className={cn('rounded-md border border-gray-200 bg-white p-4', className)}>
-      <div className="flex items-start justify-between mb-3">
-        <span className="text-sm font-medium text-gray-600">{title}</span>
-        <div className="flex items-center gap-1">
-          <span className="flex size-7 items-center justify-center rounded-md bg-brand-surface text-brand-light">
-            {icon}
+    <div className={cn(
+      'rounded-xl border border-gray-100 bg-white p-5 shadow-sm hover:shadow-md transition-all group flex flex-col justify-between h-full',
+      className
+    )}>
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex flex-col">
+          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 group-hover:text-brand transition-colors">
+            {displayLabel}
           </span>
-          {trend === 'up' && (
-            <svg className="size-4 text-brand-light" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
-              <polyline points="17 6 23 6 23 12" />
-            </svg>
-          )}
+          <div className="text-2xl font-bold text-gray-900 tracking-tight">
+            {isLoading ? <Skeleton className="h-8 w-24" /> : value}
+          </div>
+        </div>
+        <div className="flex size-10 items-center justify-center rounded-xl bg-gray-50 border border-gray-100 text-gray-400 group-hover:text-brand transition-colors">
+          {icon}
         </div>
       </div>
-      <div className="text-2xl font-bold text-gray-900 mb-0.5">
-        {isLoading ? <Skeleton className="h-8 w-24" /> : value}
-      </div>
-      <div className="text-xs text-gray-500">
-        {isLoading ? (
-          <div className="space-y-1 mt-1">
+
+      <div className="flex items-center justify-between pt-4 border-t border-gray-50/50 mt-auto">
+        <div className="flex flex-col">
+          {isLoading ? (
             <Skeleton className="h-3 w-32" />
-            <Skeleton className="h-3 w-40" />
+          ) : (
+            <>
+              {subtitle && <span className="text-[10px] font-bold text-gray-900 uppercase tracking-tight">{subtitle}</span>}
+              {description && <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">{description}</span>}
+            </>
+          )}
+        </div>
+
+        {trend && typeof trend === 'object' ? (
+          <div className={cn(
+            "flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest",
+            trend.isPositive ? "text-emerald-500" : "text-amber-500"
+          )}>
+            {trend.isPositive ? <TrendingUp className="size-3" /> : <TrendingDown className="size-3" />}
+            {trend.value}
           </div>
-        ) : (
-          <>
-            <span className="font-medium">{subtitle}</span>
-            <br />
-            <span className="text-gray-400">{description}</span>
-          </>
+        ) : trend !== 'neutral' && (
+          <div className={cn(
+            "flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest",
+            trend === 'up' ? "text-emerald-500" : "text-amber-500"
+          )}>
+            {trend === 'up' ? <TrendingUp className="size-3" /> : <TrendingDown className="size-3" />}
+            {trend === 'up' ? 'Increase' : 'Decrease'}
+          </div>
         )}
       </div>
     </div>

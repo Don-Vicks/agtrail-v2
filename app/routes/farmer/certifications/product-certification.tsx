@@ -6,6 +6,8 @@ import { DatePicker } from '~/components/ui/date-picker'
 import { useGetFarmersProducts } from '~/lib/api/generated/farm-products/farm-products'
 import { useGetFarms } from '~/lib/api/generated/farms/farms'
 import { usePostCertificationsUpload } from '~/lib/api/generated/certifications/certifications'
+import { EmptyState } from '~/components/empty-state'
+import { Package, Search } from 'lucide-react'
 import type { Route } from './+types/product-certification'
 
 export function meta({ }: Route.MetaArgs) {
@@ -306,70 +308,79 @@ export default function ProductCertificationPage() {
 
       {/* Product card grid */}
       {isLoadingProducts ? (
-        <div className="py-12 text-center text-sm font-medium text-gray-500">Loading products...</div>
-      ) : (
+        <div className="py-12 flex flex-col items-center justify-center gap-4">
+          <div className="size-10 border-4 border-brand/20 border-t-brand rounded-full animate-spin" />
+          <p className="text-sm font-medium text-gray-500">Loading products...</p>
+        </div>
+      ) : filteredProducts.length > 0 ? (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        {paginatedProducts.map((product) => (
-          <div
-            key={product.id}
-            className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm hover:shadow-md transition-shadow"
-          >
-            {/* Top row: QR + Batch ID */}
-            <div className="flex items-start justify-between">
-              <div className="rounded-md border border-gray-100 p-1.5 bg-white">
-                <QRCodeSVG value={product.batchId} size={56} />
+          {paginatedProducts.map((product) => (
+            <div
+              key={product.id}
+              className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm hover:shadow-md transition-shadow"
+            >
+              {/* Top row: QR + Batch ID */}
+              <div className="flex items-start justify-between">
+                <div className="rounded-md border border-gray-100 p-1.5 bg-white">
+                  <QRCodeSVG value={product.batchId} size={56} />
+                </div>
+                <span className="text-[10px] font-bold text-orange-600 uppercase tracking-widest leading-none">
+                  {product.batchId}
+                </span>
               </div>
-              <span className="text-[10px] font-bold text-orange-600 uppercase tracking-widest leading-none">
-                {product.batchId}
-              </span>
-            </div>
 
-            {/* Product info */}
-            <div className="mt-5">
-              <h3 className="text-xl font-bold text-gray-900 leading-none">{product.name}</h3>
+              {/* Product info */}
+              <div className="mt-5">
+                <h3 className="text-xl font-bold text-gray-900 leading-none">{product.name}</h3>
+                <button
+                  type="button"
+                  className="mt-2.5 flex items-center gap-1.5 text-sm font-bold text-gray-900 hover:text-brand transition-colors"
+                  onClick={() => {}} // Navigate to farm details if needed
+                >
+                  {product.farm}
+                  <svg className="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                  </svg>
+                </button>
+                <p className="mt-1 text-xs text-gray-500 font-medium">{product.location}</p>
+              </div>
+
+              {/* Certificate badge */}
+              <div className="mt-4 flex items-center gap-2">
+                <div className="inline-flex items-center gap-1.5 rounded-full border border-green-200 bg-green-50 px-2.5 py-1 text-[11px] font-bold text-green-700">
+                  <CertBadgeIcon />
+                  {product.certificationsCount} Certificate{product.certificationsCount !== 1 ? 's' : ''} Uploaded
+                </div>
+              </div>
+
+              {/* Upload button */}
               <button
                 type="button"
-                className="mt-2.5 flex items-center gap-1.5 text-sm font-bold text-gray-900 hover:text-brand transition-colors"
-                onClick={() => {}} // Navigate to farm details if needed
+                onClick={() => openModal(product.id)}
+                className="mt-6 flex h-11 w-full items-center justify-center rounded-md bg-[#1b4332] text-sm font-bold text-white transition-colors hover:bg-brand-dark shadow-sm"
               >
-                {product.farm}
-                <svg className="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-                </svg>
+                Upload Certificate
               </button>
-              <p className="mt-1 text-xs text-gray-500 font-medium">{product.location}</p>
             </div>
-
-            {/* Certificate badge */}
-            <div className="mt-4 flex items-center gap-2">
-              <div className="inline-flex items-center gap-1.5 rounded-full border border-green-200 bg-green-50 px-2.5 py-1 text-[11px] font-bold text-green-700">
-                <CertBadgeIcon />
-                {product.certificationsCount} Certificate{product.certificationsCount !== 1 ? 's' : ''} Uploaded
-              </div>
-            </div>
-
-            {/* Upload button */}
-            <button
-              type="button"
-              onClick={() => openModal(product.id)}
-              className="mt-6 flex h-11 w-full items-center justify-center rounded-md bg-[#1b4332] text-sm font-bold text-white transition-colors hover:bg-brand-dark shadow-sm"
-            >
-              Upload Certificate
-            </button>
-          </div>
-        ))}
-      </div>
-      )}
-
-      {filteredProducts.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-24 text-center">
-          <div className="rounded-full bg-gray-50 p-6 mb-4">
-             <PackageIcon className="size-10 text-gray-300" />
-          </div>
-          <h3 className="text-lg font-bold text-gray-900">No products found</h3>
-          <p className="mt-1 text-sm text-gray-500">Try adjusting your search or filters to find what you're looking for.</p>
+          ))}
         </div>
+      ) : (
+        <EmptyState
+          icon={<Package className="size-10" />}
+          title="No products found"
+          description="Try adjusting your search or filters to find what you're looking for."
+          action={{
+            label: "Clear all filters",
+            onClick: () => {
+              setSearchQuery('')
+              setFarmFilter('')
+              setProductFilter('')
+            }
+          }}
+        />
       )}
+
+
 
       {/* Pagination Footer */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 border-t border-gray-100 mt-2">
@@ -564,10 +575,4 @@ export default function ProductCertificationPage() {
   )
 }
 
-function PackageIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-    </svg>
-  )
-}
+

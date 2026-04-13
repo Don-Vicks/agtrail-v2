@@ -1,9 +1,21 @@
 import { useState } from 'react'
 import { useParams } from 'react-router'
-import { PageHeader } from '~/components/page-header'
-import { Pagination } from '~/components/pagination'
-import { StartCropCycleModal } from '~/components/start-crop-cycle-modal'
-import { SelectOperationModal } from '~/components/select-operation-modal'
+import { 
+  Plus, 
+  Search, 
+  Filter, 
+  LayoutDashboard, 
+  MapPin, 
+  Leaf, 
+  ArrowRight,
+  ClipboardList,
+  Calendar,
+  Layers,
+  MoreHorizontal,
+  ChevronDown
+} from 'lucide-react'
+import { Button } from '~/components/ui/button'
+import { Badge } from '~/components/ui/badge'
 import { useGetFarmsIdCropCycles } from '~/lib/api/generated/farms-crop-cycles/farms-crop-cycles'
 import { farmCropCycles, type CropCycle } from '~/lib/mock-data/farmer'
 import type { Route } from './+types/farm-detail'
@@ -73,168 +85,215 @@ export default function FarmDetail() {
   const totalPages = Math.max(1, Math.ceil(filteredCycles.length / rowsPerPage))
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-10 px-1">
       <PageHeader
         items={[
           {
             label: 'Dashboard',
             href: '/farmer',
-            icon: (
-              <svg className="size-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                <line x1="9" y1="3" x2="9" y2="21" />
-              </svg>
-            ),
+            icon: <LayoutDashboard className="size-4 text-gray-400" />,
           },
           { label: 'Farms', href: '/farmer/farms' },
-          { label: farm?.name || 'Loading...' },
+          { label: farm?.name || 'Farm Details' },
         ]}
       />
 
-      {/* Page Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-brand">RECORD FARM OPERATION</h1>
-        <p className="text-sm text-gray-500">Manage crop cycles and log farm operations</p>
+      {/* Operation Header Section */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 uppercase tracking-tight">Farm Operations</h1>
+          <p className="text-sm text-gray-500 mt-1">Manage your crops and log activities for this farm</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button 
+            onClick={() => setIsCropCycleModalOpen(true)}
+            className="bg-[#1d3d1e] hover:bg-black text-white flex items-center gap-2 h-11 px-6 shadow-sm"
+          >
+            <Plus className="size-4" />
+            <span className="font-bold uppercase tracking-wide text-xs">Start New Cycle</span>
+          </Button>
+        </div>
       </div>
 
-      {/* Farm Owner Card */}
-      {isLoading ? (
-        <div className="flex items-center gap-4 animate-pulse pt-2">
-          <div className="size-14 rounded-full bg-gray-200"></div>
-          <div className="space-y-2">
-            <div className="h-4 w-24 rounded bg-gray-200"></div>
-            <div className="h-3 w-32 rounded bg-gray-200"></div>
-            <div className="h-3 w-40 rounded bg-gray-200"></div>
+      {/* Farm Information */}
+      <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        {isLoading ? (
+          <div className="flex items-center gap-6 animate-pulse">
+            <div className="size-16 rounded-xl bg-gray-50"></div>
+            <div className="space-y-3 flex-1">
+              <div className="h-4 w-32 bg-gray-100 rounded"></div>
+              <div className="h-3 w-64 bg-gray-50 rounded"></div>
+            </div>
           </div>
-        </div>
-      ) : farm ? (
-        <div className="flex items-center gap-4">
-          <div className="flex size-14 items-center justify-center rounded-full bg-brand-surface text-lg font-bold text-brand">
-            {user?.email ? user.email.slice(0, 2).toUpperCase() : 'ME'}
-          </div>
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900">{user?.email || 'Me'}</h2>
-            <p className="text-sm text-gray-600">{farm.name}</p>
-            <p className="text-sm text-gray-400">{farm.lga || farm.state || farm.region}, Nigeria</p>
-          </div>
-        </div>
-      ) : (
-        <div className="py-4 text-sm text-gray-500">Farm not found.</div>
-      )}
-
-      {/* Crop Cycles Section */}
-      <div>
-        <div className="mb-4 flex flex-col items-center justify-center gap-2 md:flex-row md:justify-between">
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900">Crop Cycles</h3>
-            <p className="text-sm text-gray-500">Start a new crop cycle for this farm to track operations and production</p>
-          </div>
-          <button
-            onClick={() => setIsCropCycleModalOpen(true)}
-            className="flex items-center gap-1.5 rounded-md bg-brand px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-dark transition-colors"
-          >
-            <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
-            </svg>
-            Start New Crop Cycle
-          </button>
-        </div>
-
-        {/* Search + Sort */}
-        <div className="mb-4 flex items-center gap-3">
-          <input
-            type="text"
-            placeholder="Search crop cycles..."
-            value={searchQuery}
-            onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1) }}
-            className="w-72 rounded-md border border-gray-200 px-3.5 py-2 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
-          />
-          <div className="ml-auto flex items-center gap-2">
-            {/* <button className="rounded-md border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">Search</button> */}
-            <select
-              value={sortOption}
-              onChange={(e) => { setSortOption(e.target.value); setCurrentPage(1) }}
-              className="rounded-md border border-gray-200 px-1.5 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
-            >
-              <option value="name">Sort by Name</option>
-              <option value="date">Sort by Date</option>
-              <option value="status">Sort by Status</option>
-            </select>
-          </div>
-        </div>
-
-        {/* Crop Cycle Cards */}
-        {isLoadingCycles ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="h-48 rounded-md border border-gray-200 bg-white p-5 animate-pulse flex flex-col gap-3">
-                <div className="flex items-center justify-between">
-                  <div className="size-10 rounded-full bg-gray-200"></div>
-                  <div className="h-5 w-16 rounded-full bg-gray-200"></div>
-                </div>
-                <div className="h-5 w-2/3 rounded bg-gray-200 mt-2"></div>
-                <div className="space-y-1">
-                  <div className="h-3 w-1/2 rounded bg-gray-200"></div>
-                  <div className="h-3 w-2/5 rounded bg-gray-200"></div>
-                  <div className="h-3 w-1/3 rounded bg-gray-200"></div>
-                </div>
-                <div className="mt-auto h-9 w-full rounded bg-gray-200"></div>
+        ) : farm ? (
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="flex items-center gap-6">
+              <div className="flex size-16 items-center justify-center rounded-xl bg-brand/5 border border-brand/10 text-xl font-bold text-brand shadow-inner">
+                {farm.name.slice(0, 2).toUpperCase()}
               </div>
-            ))}
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <h2 className="text-lg font-bold text-gray-900 uppercase tracking-tight">{farm.name}</h2>
+                  <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-widest border-brand/20 text-brand bg-brand/5">#{farm.id.slice(0, 8)}</Badge>
+                </div>
+                <div className="flex flex-wrap items-center gap-y-1 gap-x-4">
+                  <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
+                    <MapPin className="size-3 text-red-400" />
+                    {farm.lga || farm.state || farm.region}, Nigeria
+                  </p>
+                  <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
+                    <Layers className="size-3 text-brand/60" />
+                    {farm.sizeHectares || 0} Gross Hectares
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-4 border-t md:border-t-0 md:border-l border-gray-100 pt-4 md:pt-0 md:pl-8">
+              <div className="text-right hidden sm:block">
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Authenticated Holder</p>
+                <p className="text-xs font-bold text-gray-700">{user?.email || 'System Authority'}</p>
+              </div>
+              <div className="flex size-10 items-center justify-center rounded-full bg-gray-900 text-[10px] font-bold text-white shadow-lg border-2 border-white">
+                {user?.email ? user.email.slice(0, 2).toUpperCase() : 'AG'}
+              </div>
+            </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {filteredCycles.length === 0 ? (
-              <div className="col-span-3 py-6 text-center text-sm text-gray-500">No crop cycles found.</div>
-            ) : null}
-            {filteredCycles.map((cycle) => (
-              <div key={cycle.id} className="rounded-md border border-gray-200 bg-white p-5">
-                <div className="mb-3 flex items-start justify-between">
-                  <div className="flex size-10 items-center justify-center rounded-full bg-brand">
-                    <svg className="size-5 text-brand-surface" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path d="M22 11.08V12a10 10 0 11-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
-                    </svg>
-                  </div>
-                  <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium uppercase ${cycle.status === 'planned'
-                    ? 'border border-blue-200 bg-blue-50 text-blue-700'
-                    : cycle.status === 'active'
-                      ? 'border border-brand-surface bg-brand-surface/50 text-brand'
-                      : 'border border-gray-200 bg-gray-50 text-gray-500'
-                    }`}>
-                    {cycle.status}
-                  </span>
-                </div>
-
-                <h4 className="text-lg font-semibold text-gray-900 mb-2">
-                  {cycle.productName} {cycle.variety ? `- ${cycle.variety}` : ''}
-                </h4>
-                <div className="space-y-0.5 text-sm text-gray-500">
-                  <p>Planted: {cycle.plantedDate}</p>
-                  <p>Expected Harvest: {cycle.expectedHarvest}</p>
-                  <p>Area: {cycle.area} hectares</p>
-                  <p>Season: {cycle.season}</p>
-                </div>
-
-                <button
-                  onClick={() => setSelectedCropCycle(cycle)}
-                  className="mt-4 w-full rounded-md border border-brand py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-                >
-                  Log Operation
-                </button>
-              </div>
-            ))}
+          <div className="py-8 text-center bg-gray-50/50 rounded-xl border border-dashed border-gray-200">
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Farm details not found</p>
           </div>
         )}
+      </div>
 
-        {/* Pagination */}
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          totalItems={filteredCycles.length}
-          itemsPerPage={rowsPerPage}
-          onPageChange={setCurrentPage}
-          itemLabel="crop cycle(s)"
-        />
+      {/* Crop Cycles */}
+      <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8">
+          <div>
+            <h2 className="text-base font-bold text-gray-900 uppercase tracking-tight">Crops</h2>
+            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Current crop cycles and activities</p>
+          </div>
+          
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+            <div className="relative w-full sm:min-w-[300px]">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search cycles by product or variety..."
+                value={searchQuery}
+                onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1) }}
+                className="w-full rounded-lg border border-gray-200 pl-10 pr-4 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white transition-all shadow-sm"
+              />
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest px-1 shrink-0">Sort By</span>
+              <div className="relative">
+                <select 
+                  value={sortOption}
+                  onChange={(e) => { setSortOption(e.target.value); setCurrentPage(1) }}
+                  className="h-10 rounded-lg border border-gray-200 pl-3 pr-8 text-[11px] font-bold uppercase tracking-wider text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand bg-gray-50/50 appearance-none min-w-[120px]"
+                >
+                  <option value="name">Product Name</option>
+                  <option value="date">Date Planted</option>
+                  <option value="status">Status</option>
+                </select>
+                <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 size-3 text-gray-400 pointer-events-none" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* High Density Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {isLoadingCycles ? (
+            Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="h-64 rounded-xl border border-gray-100 bg-gray-50/50 animate-pulse" />
+            ))
+          ) : filteredCycles.length === 0 ? (
+            <div className="col-span-full py-16 text-center rounded-xl border border-dashed border-gray-100 italic font-bold uppercase tracking-widest text-[10px] text-gray-400">
+              No crop cycles found
+            </div>
+          ) : (
+            filteredCycles.map((cycle) => (
+              <div key={cycle.id} className="rounded-xl border border-gray-200 bg-white p-5 group hover:border-brand/40 hover:shadow-md transition-all flex flex-col">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="size-10 rounded-lg bg-green-50 flex items-center justify-center text-brand">
+                    <Leaf className="size-5" />
+                  </div>
+                  <Badge 
+                    className={cn(
+                      "text-[10px] font-bold uppercase tracking-widest px-2 py-0 border-none",
+                      cycle.status === 'active' ? "bg-brand text-white" : "bg-gray-100 text-gray-500"
+                    )}
+                  >
+                    {cycle.status}
+                  </Badge>
+                </div>
+
+                <div className="mb-4">
+                  <h4 className="text-base font-bold text-gray-900 tracking-tight uppercase">
+                    {cycle.productName}
+                  </h4>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">{cycle.variety || 'Standard Variety'}</p>
+                </div>
+
+                <div className="space-y-3 pt-4 border-t border-gray-50">
+                  <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-tight">
+                    <span className="text-gray-400 flex items-center gap-1.5"><Calendar className="size-3" /> Planted</span>
+                    <span className="text-gray-700">{cycle.plantedDate}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-tight">
+                    <span className="text-gray-400 flex items-center gap-1.5"><Activity className="size-3 rotate-45" /> Expected Harvest</span>
+                    <span className="text-gray-700">{cycle.expectedHarvest}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-tight">
+                    <span className="text-gray-400 flex items-center gap-1.5"><Maximize className="size-3" /> Area</span>
+                    <span className="text-gray-700">{cycle.area} HA</span>
+                  </div>
+                </div>
+
+                <Button 
+                  onClick={() => setSelectedCropCycle(cycle)}
+                  className="mt-6 w-full bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 h-10 font-bold uppercase tracking-widest text-[10px]"
+                >
+                  Record Activity
+                </Button>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Standardized Table Footer */}
+        <div className="mt-8 border-t border-gray-100 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-gray-400 font-bold uppercase tracking-tight">
+          <div className="flex items-center gap-2">
+            <span className="text-gray-300">Total Crops:</span>
+            <span className="text-gray-900">{filteredCycles.length} Crop Cycles</span>
+          </div>
+          <div className="flex items-center gap-4">
+            <span className="text-gray-300">Page {currentPage} / {totalPages}</span>
+            <div className="flex items-center gap-1">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="size-7 text-gray-300" 
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              >
+                <ArrowRight className="size-3.5 rotate-180" />
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="size-7 text-gray-400 hover:text-brand"
+                disabled={currentPage >= totalPages}
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              >
+                <ArrowRight className="size-3.5" />
+              </Button>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Start Crop Cycle Modal - Rendered outside conditional to ensure prompt trigger */}
@@ -252,7 +311,7 @@ export default function FarmDetail() {
       <SelectOperationModal
         isOpen={!!selectedCropCycle}
         onClose={() => setSelectedCropCycle(null)}
-        cropCycle={selectedCropCycle}
+        cropCycle={selectedCropCycle as any}
       />
     </div>
   )

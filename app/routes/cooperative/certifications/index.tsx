@@ -1,79 +1,34 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router'
 import { PageHeader } from '~/components/page-header'
+import { StatCard } from '~/components/stat-card'
+import { Button } from '~/components/ui/button'
+import { Badge } from '~/components/ui/badge'
+import { 
+  Plus, 
+  Search, 
+  Filter, 
+  LayoutDashboard, 
+  Award, 
+  CheckCircle2, 
+  Clock, 
+  AlertCircle, 
+  ChevronDown, 
+  ExternalLink,
+  ShieldCheck,
+  Package,
+  MapPin,
+  ClipboardList,
+  FileText
+} from 'lucide-react'
+import { cn } from '~/lib/utils'
 import type { Route } from './+types/index'
 
 export function meta({ }: Route.MetaArgs) {
   return [
     { title: 'Certifications | Agtrail' },
-    { name: 'description', content: 'View and manage all your farm and product certifications' },
+    { name: 'description', content: 'Monitor compliance and certifications' },
   ]
-}
-
-/* ─── Icons ─── */
-function SearchIcon() {
-  return (
-    <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <circle cx="11" cy="11" r="8" />
-      <line x1="21" y1="21" x2="16.65" y2="16.65" />
-    </svg>
-  )
-}
-
-function ChevronDown() {
-  return (
-    <svg className="size-4 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
-      <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-    </svg>
-  )
-}
-
-function CertRibbonIcon() {
-  return (
-    <svg className="size-5 text-[#3b82f6]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-    </svg>
-  )
-}
-
-function ActiveCertIcon() {
-  return (
-    <svg className="size-5 text-[#22c55e]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-  )
-}
-
-function ExpiredCertIcon() {
-  return (
-    <svg className="size-5 text-[#ef4444]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-  )
-}
-
-function PendingCertIcon() {
-  return (
-    <svg className="size-5 text-[#eab308]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-  )
-}
-
-function ListBadgeIcon() {
-  return (
-    <svg className="size-5 text-brand" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-    </svg>
-  )
-}
-
-function ExternalLinkIcon() {
-  return (
-    <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-    </svg>
-  )
 }
 
 /* ─── Mock Data ─── */
@@ -97,7 +52,7 @@ const MOCK_CERTIFICATIONS: CertificationInfo[] = [
   {
     id: 'cert-1',
     title: 'global_gap',
-    subtitle: 'w',
+    subtitle: 'W-Standard Governance',
     status: 'Active',
     verified: false,
     certNo: 'CERT-1771686980745',
@@ -108,8 +63,8 @@ const MOCK_CERTIFICATIONS: CertificationInfo[] = [
   },
   {
     id: 'cert-2',
-    title: 'rainforest',
-    subtitle: 'sdsd',
+    title: 'rainforest_alliance',
+    subtitle: 'Ecological Sustainability',
     status: 'Active',
     verified: false,
     certNo: 'CERT-1771687141408',
@@ -144,7 +99,6 @@ const MOCK_CERTIFICATIONS: CertificationInfo[] = [
   }
 ];
 
-/* ─── Page Component ─── */
 export default function ViewCertificationsPage() {
   const [activeTab, setActiveTab] = useState<'All' | 'Farm' | 'Product'>('All')
   const [searchQuery, setSearchQuery] = useState('')
@@ -186,140 +140,100 @@ export default function ViewCertificationsPage() {
   }, [activeTab, searchQuery, statusFilter])
 
   return (
-    <div className="space-y-6">
-      {/* Header & Breadcrumbs */}
-      <div>
-        <PageHeader
-          items={[
-            {
-              label: 'Dashboard',
-              href: '/cooperative',
-              icon: (
-                <svg className="size-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                  <line x1="9" y1="3" x2="9" y2="21" />
-                </svg>
-              ),
-            },
-            { label: 'View Certifications' },
-          ]}
-        />
+    <div className="space-y-6 pb-10 px-1">
+      <PageHeader
+        items={[
+          {
+            label: 'Dashboard',
+            href: '/cooperative',
+            icon: <LayoutDashboard className="size-4 text-gray-400" />,
+          },
+          { label: 'Compliance' },
+        ]}
+      />
 
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold uppercase text-brand">Certifications</h1>
-            <p className="mt-1 text-sm text-gray-500">View and manage all your farm and product certifications</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <Link
-              to="/cooperative/certifications/farm"
-              className="flex h-10 items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 transition-colors"
-            >
-              <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                <polyline points="9 22 9 12 15 12 15 22" />
-              </svg>
-              Upload Farm Cert
-            </Link>
-            <Link
-              to="/cooperative/certifications/product"
-              className="flex h-10 items-center justify-center gap-2 rounded-lg bg-brand px-4 text-sm font-semibold text-white shadow-sm hover:bg-brand-light transition-colors"
-            >
-              <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-              </svg>
-              Upload Product Cert
-            </Link>
-          </div>
+      {/* Page Title Section */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-left">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 uppercase tracking-tight">Certifications</h1>
+          <p className="text-sm text-gray-500 mt-1">Manage compliance standards and certifications</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <Link to="/cooperative/certifications/farm">
+            <Button variant="outline" className="flex items-center gap-2 h-11 px-4 text-[11px] font-bold uppercase tracking-wider text-gray-600 border-gray-200">
+              <ClipboardList className="size-4" />
+              Upload Farm Audit
+            </Button>
+          </Link>
+          <Link to="/cooperative/certifications/product">
+            <Button className="bg-[#1d3d1e] hover:bg-black text-white flex items-center gap-2 h-11 px-6 shadow-sm">
+              <Plus className="size-4" />
+              <span className="font-bold uppercase tracking-wide text-[11px]">Register Product Cert</span>
+            </Button>
+          </Link>
         </div>
       </div>
 
-      {/* 4 Summary Cards */}
+      {/* High Density Stats Row */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {/* Total */}
-        <div className="flex items-center gap-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-          <div className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-blue-50/80">
-            <CertRibbonIcon />
-          </div>
-          <div>
-            <div className="text-2xl font-bold text-gray-900">{totalCerts}</div>
-            <div className="text-sm text-gray-500">Total Certifications</div>
-          </div>
-        </div>
-        {/* Active */}
-        <div className="flex items-center gap-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-          <div className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-green-50/80">
-            <ActiveCertIcon />
-          </div>
-          <div>
-            <div className="text-2xl font-bold text-gray-900">{activeCerts}</div>
-            <div className="text-sm text-gray-500">Active</div>
-          </div>
-        </div>
-        {/* Expired */}
-        <div className="flex items-center gap-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-          <div className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-red-50/80">
-            <ExpiredCertIcon />
-          </div>
-          <div>
-            <div className="text-2xl font-bold text-gray-900">{expiredCerts}</div>
-            <div className="text-sm text-gray-500">Expired</div>
-          </div>
-        </div>
-        {/* Pending */}
-        <div className="flex items-center gap-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-          <div className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-yellow-50/80">
-            <PendingCertIcon />
-          </div>
-          <div>
-            <div className="text-2xl font-bold text-gray-900">{pendingCerts}</div>
-            <div className="text-sm text-gray-500">Pending</div>
-          </div>
-        </div>
+        <StatCard
+          label="Total Certs"
+          value={totalCerts.toString()}
+          icon={<Award className="size-5 text-blue-500" />}
+          trend={{ value: '2 Updated', isPositive: true }}
+        />
+        <StatCard
+          label="Active Standards"
+          value={activeCerts.toString()}
+          icon={<CheckCircle2 className="size-5 text-emerald-500" />}
+          trend={{ value: 'Verified', isPositive: true }}
+        />
+        <StatCard
+          label="Critical Expired"
+          value={expiredCerts.toString()}
+          icon={<AlertCircle className="size-5 text-red-500" />}
+          trend={{ value: 'High Priority', isPositive: false }}
+        />
+        <StatCard
+          label="Audit Pending"
+          value={pendingCerts.toString()}
+          icon={<Clock className="size-5 text-amber-500" />}
+          trend={{ value: 'In Review', isPositive: true }}
+        />
       </div>
 
-      {/* Main List Section */}
-      <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-        {/* Toolbar */}
-        <div className="mb-6 flex flex-col justify-between gap-4 border-b border-gray-100 pb-4 sm:flex-row sm:items-center">
-
-          {/* Segmented Control / Tabs */}
-          <div className="inline-flex rounded-lg bg-gray-100 p-1">
-            <button
-              onClick={() => setActiveTab('All')}
-              className={`flex h-8 items-center justify-center rounded-md px-4 text-sm font-medium transition-colors ${activeTab === 'All' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
-                }`}
-            >
-              All ({totalCerts})
-            </button>
-            <button
-              onClick={() => setActiveTab('Farm')}
-              className={`flex h-8 items-center justify-center rounded-md px-4 text-sm font-medium transition-colors ${activeTab === 'Farm' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
-                }`}
-            >
-              Farm ({farmCertsCount})
-            </button>
-            <button
-              onClick={() => setActiveTab('Product')}
-              className={`flex h-8 items-center justify-center rounded-md px-4 text-sm font-medium transition-colors ${activeTab === 'Product' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
-                }`}
-            >
-              Product ({productCertsCount})
-            </button>
+      {/* Main Registry Section */}
+      <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm overflow-hidden flex flex-col">
+        {/* Filters */}
+        <div className="mb-8 flex flex-col lg:flex-row lg:items-center justify-between gap-6 border-b border-gray-50 pb-6">
+          <div className="inline-flex rounded-xl bg-gray-50/80 p-1 border border-gray-100">
+            {[
+              { id: 'All', label: 'All', count: totalCerts },
+              { id: 'Farm', label: 'Farm Units', count: farmCertsCount },
+              { id: 'Product', label: 'Products', count: productCertsCount }
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as any)}
+                className={cn(
+                  "flex h-9 items-center justify-center rounded-lg px-6 text-[10px] font-bold uppercase tracking-widest transition-all",
+                  activeTab === tab.id ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400 hover:text-gray-600'
+                )}
+              >
+                {tab.label} <span className="ml-2 opacity-40">({tab.count})</span>
+              </button>
+            ))}
           </div>
 
-          {/* Filters */}
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
-                <SearchIcon />
-              </div>
+          <div className="flex flex-col sm:flex-row items-center gap-4">
+            <div className="relative w-full sm:w-80">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search certifications..."
+                placeholder="Search standards, serials..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="h-10 w-64 rounded-lg border border-gray-300 bg-white pl-10 pr-3 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+                className="w-full h-11 rounded-xl border border-gray-100 bg-gray-50/50 pl-10 pr-4 py-2 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white transition-all shadow-none"
               />
             </div>
 
@@ -327,101 +241,89 @@ export default function ViewCertificationsPage() {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="h-10 appearance-none rounded-lg border border-gray-300 bg-white pl-4 pr-10 text-sm font-medium text-gray-700 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+                className="h-11 rounded-xl border border-gray-100 bg-gray-50/50 pl-4 pr-10 text-[11px] font-bold uppercase tracking-wider text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand appearance-none min-w-[140px]"
               >
-                <option value="">All Status</option>
-                <option value="Active">Active</option>
-                <option value="Pending">Pending</option>
-                <option value="Expired">Expired</option>
+                <option value="">Status: All</option>
+                <option value="Active">Active Only</option>
+                <option value="Pending">In Review</option>
+                <option value="Expired">Archived</option>
               </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                <ChevronDown />
-              </div>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 size-3.5 text-gray-400 pointer-events-none" />
             </div>
           </div>
         </div>
 
-        {/* List of Certs */}
-        <div className="space-y-4">
+        {/* Certification Registry Grid */}
+        <div className="grid grid-cols-1 gap-6">
           {filteredCerts.length > 0 ? (
             filteredCerts.map((cert) => (
-              <div key={cert.id} className="rounded-xl border border-gray-200 bg-white p-5 transition-shadow hover:shadow-md">
-                <div className="flex flex-wrap items-start justify-between gap-4 border-b border-gray-100 pb-4">
-                  <div className="flex items-start gap-4">
-                    <div className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-[#e8f5e9]">
-                      <ListBadgeIcon />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-bold text-gray-900">{cert.title}</h3>
-                      <p className="text-sm text-gray-500">{cert.subtitle}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col items-end gap-2">
-                    {cert.status === 'Active' && (
-                      <div className="inline-flex rounded-full bg-[#e8f5e9] px-2.5 py-1 text-xs font-bold text-[#1b5e20]">
-                        active
-                      </div>
-                    )}
-                    {cert.status === 'Pending' && (
-                      <div className="inline-flex rounded-full bg-yellow-50 px-2.5 py-1 text-xs font-bold text-yellow-800">
-                        pending
-                      </div>
-                    )}
-                    {cert.status === 'Expired' && (
-                      <div className="inline-flex rounded-full bg-red-50 px-2.5 py-1 text-xs font-bold text-red-800">
-                        expired
-                      </div>
-                    )}
-
-                    <div className="inline-flex rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600">
-                      {cert.verified ? 'Verified' : 'Unverified'}
-                    </div>
-                  </div>
+              <div key={cert.id} className="group relative rounded-2xl border border-gray-100 bg-white p-6 transition-all hover:border-brand/30 hover:shadow-lg overflow-hidden flex flex-col sm:flex-row sm:items-center gap-8 shadow-sm">
+                <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none transition-opacity group-hover:opacity-20 scale-125">
+                  <ShieldCheck className="size-20 text-brand" />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 pt-4 sm:grid-cols-4 lg:grid-cols-5">
-                  <div>
-                    <p className="mb-1 text-xs font-medium text-gray-500">Certificate No.</p>
-                    <p className="text-sm font-semibold text-gray-900">{cert.certNo}</p>
-                  </div>
-                  <div>
-                    <p className="mb-1 text-xs font-medium text-gray-500">Issue Date</p>
-                    <p className="text-sm font-semibold text-gray-900">{cert.issueDate}</p>
-                  </div>
-                  <div>
-                    <p className="mb-1 text-xs font-medium text-gray-500">Expiry Date</p>
-                    <p className="text-sm font-semibold text-gray-900">{cert.expiryDate}</p>
-                  </div>
-                  <div>
-                    <p className="mb-1 text-xs font-medium text-gray-500">Applied To</p>
-                    <p className="flex items-center gap-1.5 text-sm font-semibold text-gray-900">
-                      {cert.type === 'Farm' ? (
-                        <svg className="size-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                          <polyline points="9 22 9 12 15 12 15 22" />
-                        </svg>
-                      ) : (
-                        <svg className="size-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                        </svg>
-                      )}
-                      {cert.appliedTo}
-                    </p>
+                <div className="flex-shrink-0 size-16 rounded-2xl bg-brand/5 border border-brand/10 flex items-center justify-center text-brand relative z-10">
+                  <Award className="size-8" />
+                </div>
+
+                <div className="flex-1 min-w-0 relative z-10 space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3 className="text-lg font-bold text-gray-900 uppercase tracking-tight truncate max-w-[280px]" title={cert.title}>
+                          {cert.title.replace('_', ' ')}
+                        </h3>
+                        <Badge className={cn(
+                          "px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-widest border shadow-none",
+                          cert.status === 'Active' ? 'bg-green-50 text-emerald-600 border-green-100' : 
+                          cert.status === 'Pending' ? 'bg-amber-50 text-amber-600 border-amber-100' : 
+                          'bg-red-50 text-red-600 border-red-100'
+                        )}>
+                          {cert.status}
+                        </Badge>
+                      </div>
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest italic">{cert.subtitle}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button variant="ghost" className="h-10 gap-2 text-[11px] font-bold uppercase tracking-wider text-brand hover:bg-brand/5">
+                        <ExternalLink className="size-3.5" />
+                        Verify Asset
+                      </Button>
+                    </div>
                   </div>
 
-                  <div className="flex items-end justify-end sm:col-span-4 lg:col-span-1">
-                    <button className="flex items-center gap-2 text-sm font-bold text-brand hover:text-brand-light">
-                      <ExternalLinkIcon />
-                      View Document
-                    </button>
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 pt-6 border-t border-gray-50 uppercase font-bold tracking-tight text-[10px] text-gray-400">
+                    <div className="space-y-1">
+                      <span className="flex items-center gap-2 italic text-gray-300"><ClipboardList className="size-3" /> Serial ID</span>
+                      <span className="text-gray-900 block truncate">{cert.certNo}</span>
+                    </div>
+                    <div className="space-y-1">
+                      <span className="flex items-center gap-2 italic text-gray-300"><Clock className="size-3" /> Expiry</span>
+                      <span className="text-gray-900 block">{cert.expiryDate}</span>
+                    </div>
+                    <div className="space-y-1">
+                      <span className="flex items-center gap-2 italic text-gray-300">
+                        {cert.type === 'Farm' ? <MapPin className="size-3" /> : <Package className="size-3" />} 
+                        Target
+                      </span>
+                      <span className="text-brand block truncate lowercase">{cert.appliedTo}</span>
+                    </div>
+                    <div className="space-y-1">
+                      <span className="flex items-center gap-2 italic text-gray-300"><FileText className="size-3" /> Standard</span>
+                      <span className="text-gray-900 block">{cert.type} Unit</span>
+                    </div>
                   </div>
                 </div>
               </div>
             ))
           ) : (
-            <div className="py-12 text-center text-sm text-gray-500">
-              No certifications found.
+            <div className="rounded-2xl border-2 border-dashed border-gray-100 p-20 flex flex-col items-center justify-center text-center">
+              <div className="size-16 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center mb-6">
+                <Search className="size-8 text-gray-200" />
+              </div>
+              <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-2 italic">No Certifications Found</h3>
+              <p className="text-[10px] text-gray-300 uppercase tracking-tight mb-8">No certifications match your current filters</p>
+              <Button variant="outline" onClick={() => { setSearchQuery(''); setStatusFilter('') }} className="text-[10px] font-bold uppercase h-10 px-6 border-gray-100 hover:bg-gray-50">Reset Global Filters</Button>
             </div>
           )}
         </div>

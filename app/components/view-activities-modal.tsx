@@ -10,7 +10,6 @@ import {
 } from 'lucide-react'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '~/components/ui/dialog'
 import type { CropCycle } from '~/lib/api/generated/models'
-import type { CropCycle } from '~/lib/api/generated/models'
 
 interface ViewActivitiesModalProps {
   isOpen: boolean

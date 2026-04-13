@@ -1,11 +1,23 @@
-import { Plus } from 'lucide-react'
+import { 
+  Plus, 
+  Search, 
+  MapPin, 
+  User, 
+  LayoutDashboard, 
+  Users, 
+  ChevronDown,
+  Activity,
+  Maximize
+} from 'lucide-react'
 import { useState } from 'react'
 import { useParams } from 'react-router'
 import { PageHeader } from '~/components/page-header'
 import { CreateFarmModal } from '~/components/create-farm-modal'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
+import { Button } from '~/components/ui/button'
+import { Badge } from '~/components/ui/badge'
 import { cooperativeFarmers } from '~/lib/mock-data/cooperative'
 import type { Route } from './+types/farmer-farms'
+import { cn } from '~/lib/utils'
 
 export function meta({ params }: Route.MetaArgs) {
   const farmer = cooperativeFarmers.find((f) => f.id === params.id)
@@ -21,46 +33,60 @@ export default function CooperativeFarmerFarms() {
   const [isCreateFarmOpen, setIsCreateFarmOpen] = useState(false)
 
   return (
-    <div className="space-y-6">
-      {/* Breadcrumb Header */}
+    <div className="space-y-6 pb-10 px-1">
       <PageHeader
         items={[
           {
-            label: 'Cooperative',
+            label: 'Dashboard',
             href: '/cooperative',
-            icon: (
-              <svg className="size-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                <line x1="9" y1="3" x2="9" y2="21" />
-              </svg>
-            ),
+            icon: <LayoutDashboard className="size-4 text-gray-400" />,
           },
-          { label: 'Farmers', href: '/cooperative/farmers' },
+          { label: 'Farmers', href: '/cooperative/farmers', icon: <Users className="size-4 text-gray-400" /> },
           { label: farmer.name, href: `/cooperative/farmers/${farmer.id}` },
           { label: 'Farms' }
         ]}
       />
 
-      {/* Page Header */}
-      <div>
-        <h1 className="text-lg font-bold text-[#18421A] uppercase tracking-wide">RECORD FARM OPERATION</h1>
-        <p className="text-xs text-gray-500 mt-1">Select a farm to record operations and track farm activities</p>
+      {/* Page Title Section */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 uppercase tracking-tight">Farms</h1>
+          <p className="text-sm text-gray-500 mt-1">Select or add farms for {farmer.name}</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button 
+            onClick={() => setIsCreateFarmOpen(true)}
+            className="bg-[#1d3d1e] hover:bg-black text-white flex items-center gap-2 h-11 px-6 shadow-sm"
+          >
+            <Plus className="size-4" />
+            <span className="font-bold uppercase tracking-wide text-xs">Add New Farm</span>
+          </Button>
+        </div>
       </div>
 
-      {/* Mini Profile Summary */}
-      <div className="flex items-center gap-3">
-        <img
-          src={farmer.avatar}
-          alt={farmer.name}
-          className="size-10 rounded-full object-cover bg-gray-100"
-          onError={(e) => {
-            (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(farmer.name)}&background=random`
-          }}
-        />
-        <div>
-          <h2 className="text-base font-bold text-gray-900 leading-tight">{farmer.name}</h2>
-          <p className="text-xs text-gray-600 leading-snug">adasd, MDs</p>
-          <p className="text-xs text-gray-500 leading-snug">{farmer.phone || '+2348232313123'}</p>
+      {/* High Density Farmer Summary */}
+      <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div className="flex items-center gap-5">
+          <div className="size-14 rounded-2xl overflow-hidden bg-gray-50 border-2 border-white shadow-sm ring-1 ring-gray-100">
+            <img
+              src={farmer.avatar}
+              alt={farmer.name}
+              className="size-full object-cover"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(farmer.name)}&background=random&color=fff`
+              }}
+            />
+          </div>
+          <div>
+            <div className="flex items-center gap-3 mb-1">
+              <h2 className="text-base font-bold text-gray-900 uppercase tracking-tight">{farmer.name}</h2>
+              <Badge variant="ghost" className="text-[9px] font-bold uppercase tracking-widest text-gray-400 border border-gray-100 px-2">Registered Member</Badge>
+            </div>
+            <div className="flex flex-wrap items-center gap-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest italic">
+              <span className="flex items-center gap-1.5"><MapPin className="size-3 text-red-400" /> Nigeria (Ogun State)</span>
+              <span className="flex items-center gap-1.5"><User className="size-3 text-gray-300" /> ID: MEM-{farmer.id.slice(0, 4)}</span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -80,42 +106,48 @@ export default function CooperativeFarmerFarms() {
           </button>
         </div>
 
-        {/* Search Toolbar */}
-        <div className="flex flex-col sm:flex-row gap-3 mb-6">
-          <div className="flex-1">
+      {/* Search & Discovery Toolbar */}
+      <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <div className="relative w-full lg:max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
             <input
               type="text"
-              placeholder="Search Farm..."
-              className="h-9 w-full rounded-md border border-gray-200 px-3 text-xs placeholder:text-gray-400 focus:border-brand focus:ring-1 focus:ring-brand focus:outline-none"
+              placeholder="Search by farm name, area, or location..."
+              className="w-full rounded-lg border border-gray-200 pl-10 pr-4 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white transition-all shadow-sm"
             />
           </div>
-          <button className="flex h-9 items-center justify-center gap-2 rounded-md border border-gray-200 bg-white px-5 text-xs font-medium text-gray-700 hover:bg-gray-50">
-            Search
-          </button>
 
-          <div className="w-full sm:w-40">
-            <Select defaultValue="name">
-              <SelectTrigger className="h-9 w-full bg-white text-gray-700 text-xs">
-                <SelectValue placeholder="Sort" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="name" className="text-xs">Sort by Name</SelectItem>
-                <SelectItem value="newest" className="text-xs">Newest First</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest px-1">Sort Metric</span>
+              <div className="relative">
+                <select className="h-10 rounded-lg border border-gray-200 pl-3 pr-8 text-[11px] font-bold uppercase tracking-wider text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand bg-gray-50/50 appearance-none min-w-[140px]">
+                  <option>Name (A-Z)</option>
+                  <option>Area Size</option>
+                  <option>Location</option>
+                </select>
+                <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 size-3 text-gray-400 pointer-events-none" />
+              </div>
+            </div>
           </div>
         </div>
+      </div>
 
-        {/* Empty State / Farm Grid Area */}
-        <div className="rounded-lg border border-gray-200 bg-white p-10 flex flex-col items-center justify-center text-center shadow-xs min-h-[260px]">
-          <p className="text-xs font-bold text-gray-500 mb-4">No farms found</p>
-          <button
+        {/* Empty State Discovery */}
+        <div className="rounded-xl border border-gray-200 bg-white p-20 flex flex-col items-center justify-center text-center shadow-sm min-h-[360px]">
+          <div className="size-16 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center mb-6">
+            <MapPin className="size-8 text-gray-200" />
+          </div>
+          <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-2 italic">No Farms Registered</h3>
+          <p className="text-[10px] text-gray-300 uppercase tracking-tight mb-8">This member has no linked farms for cultivation</p>
+          <Button
             onClick={() => setIsCreateFarmOpen(true)}
-            className="flex items-center justify-center gap-1.5 rounded-md bg-[#2B5C2D] px-5 py-2 text-xs font-medium text-white transition-colors hover:bg-black shadow-sm"
+            className="bg-brand/5 text-brand hover:bg-brand hover:text-white border border-brand/10 shadow-none font-bold uppercase tracking-wider text-[11px] h-11 px-8"
           >
-            <Plus className="size-3.5" />
-            Create Your First Farm
-          </button>
+            <Plus className="size-4 me-2" />
+            Add New Farm
+          </Button>
         </div>
       </div>
 
