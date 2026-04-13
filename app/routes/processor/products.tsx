@@ -21,8 +21,6 @@ import {
 } from 'lucide-react';
 import { Button } from '~/components/ui/button';
 import { Badge } from '~/components/ui/badge';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '~/components/ui/dropdown-menu';
-import { MoreVertical } from 'lucide-react';
 import type { Route } from './+types/products';
 
 export function meta({ }: Route.MetaArgs) {
