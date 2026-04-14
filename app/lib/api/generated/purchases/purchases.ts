@@ -16,7 +16,7 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
-  PostPurchases201,
+  CreatePurchaseResponse,
   PostPurchasesBody
 } from '.././models';
 
@@ -31,7 +31,7 @@ type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
  * @summary Create a new purchase / product transfer
  */
 export type postPurchasesResponse201 = {
-  data: PostPurchases201
+  data: CreatePurchaseResponse
   status: 201
 }
 

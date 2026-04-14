@@ -9,6 +9,7 @@ import { usePostPurchases } from '~/lib/api/generated/purchases/purchases'
 import { EmptyState } from '~/components/empty-state'
 import { Button } from '~/components/ui/button'
 import { Badge } from '~/components/ui/badge'
+import { Input } from '~/components/ui/input'
 import { 
   ShoppingCart, 
   Plus, 

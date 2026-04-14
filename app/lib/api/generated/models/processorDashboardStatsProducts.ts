@@ -6,7 +6,6 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type GetAdminOnboardingStats200 = {
-  success: boolean;
-  data?: unknown | null;
+export type ProcessorDashboardStatsProducts = {
+  total: number;
 };

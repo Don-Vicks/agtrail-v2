@@ -6,7 +6,10 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type PostPurchases201 = {
-  success: boolean;
-  data?: unknown | null;
+export type GetFarmerDashboardStats200DataUpcomingTasksItem = {
+  title: string;
+  /** @nullable */
+  date: string | null;
+  /** @nullable */
+  farmId: string | null;
 };

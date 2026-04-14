@@ -5,8 +5,9 @@
  * API Documentation for AgTrail Backend V2
  * OpenAPI spec version: 1.0.0
  */
+import type { ProcessorDashboardStats } from './processorDashboardStats';
 
 export type GetProcessorsDashboardStats200 = {
   success: boolean;
-  data?: unknown | null;
+  data: ProcessorDashboardStats;
 };

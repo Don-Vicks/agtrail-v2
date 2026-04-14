@@ -21,10 +21,12 @@ import { PageHeader } from '~/components/page-header'
 import { Button } from '~/components/ui/button'
 import { ProductGridCard } from '~/components/product-grid-card'
 import { ProductCardSkeleton } from '~/components/product-card-skeleton'
+import { CreateProductModal } from '~/components/create-product-modal'
 import { cn } from '~/lib/utils'
 
 /* ─── Page ─── */
 export default function ProductsIndex() {
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   const [rowsPerPage, setRowsPerPage] = useState(10)
   const [activeTab, setActiveTab] = useState<'products' | 'ongoing'>('products')
@@ -126,7 +128,10 @@ export default function ProductsIndex() {
           <p className="text-sm text-gray-500 mt-1">Manage your crops and harvested products</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button className="bg-[#1d3d1e] hover:bg-black text-white flex items-center gap-2 h-11 px-6 shadow-sm">
+          <Button 
+            onClick={() => setIsCreateModalOpen(true)}
+            className="bg-[#1d3d1e] hover:bg-black text-white flex items-center gap-2 h-11 px-6 shadow-sm"
+          >
             <Plus className="size-4" />
             <span className="font-bold uppercase tracking-wide text-xs">Add Product</span>
           </Button>
@@ -327,7 +332,10 @@ export default function ProductsIndex() {
         </>
       )}
 
-
+      <CreateProductModal 
+        isOpen={isCreateModalOpen} 
+        onClose={() => setIsCreateModalOpen(false)} 
+      />
     </div>
   )
 }

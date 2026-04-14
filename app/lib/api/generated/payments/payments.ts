@@ -26,9 +26,9 @@ import type {
 
 import type {
   GetPaymentsBanks200,
-  GetPaymentsReceivables200,
   InitializePaymentRequest,
   PostPaymentsInitialize200,
+  ReceivablesResponse,
   VerifyPaymentResponse
 } from '.././models';
 
@@ -345,7 +345,7 @@ export function useGetPaymentsBanks<TData = Awaited<ReturnType<typeof getPayment
  * @summary Get user receivables
  */
 export type getPaymentsReceivablesResponse200 = {
-  data: GetPaymentsReceivables200
+  data: ReceivablesResponse
   status: 200
 }
 

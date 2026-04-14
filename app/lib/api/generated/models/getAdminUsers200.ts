@@ -5,8 +5,12 @@
  * API Documentation for AgTrail Backend V2
  * OpenAPI spec version: 1.0.0
  */
+import type { GetAdminUsers200DataItem } from './getAdminUsers200DataItem';
+import type { GetAdminUsers200Pagination } from './getAdminUsers200Pagination';
 
 export type GetAdminUsers200 = {
   success: boolean;
-  data: (unknown | null)[];
+  /** Paginated user list */
+  data: GetAdminUsers200DataItem[];
+  pagination?: GetAdminUsers200Pagination;
 };

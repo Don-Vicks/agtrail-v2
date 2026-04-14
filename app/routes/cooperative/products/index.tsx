@@ -4,7 +4,7 @@ import { Link } from 'react-router'
 import { PageHeader } from '~/components/page-header'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
-import { useGetFarmersProducts } from '~/lib/api/generated/farm-products/farm-products'
+import { useGetCooperativesProducts } from '~/lib/api/generated/cooperatives/cooperatives'
 import type { FarmProduct } from '~/lib/api/generated/models'
 import { allCropCycles, type CropCycle } from '~/lib/mock-data/farmer'
 import { 
@@ -79,8 +79,8 @@ export default function ProductsIndex() {
   const [rowsPerPage, setRowsPerPage] = useState(10)
   const [searchQuery, setSearchQuery] = useState('')
 
-  const { data: productsResponse, isLoading, error } = useGetFarmersProducts()
-  const allProducts = productsResponse?.data?.data || []
+  const { data: productsResponse, isLoading, error } = useGetCooperativesProducts()
+  const allProducts = (productsResponse?.data?.data as unknown as FarmProduct[]) || []
 
   const filteredProducts = allProducts.filter((product) =>
     product.productName.toLowerCase().includes(searchQuery.toLowerCase()) ||

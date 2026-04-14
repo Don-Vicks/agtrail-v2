@@ -5,8 +5,9 @@
  * API Documentation for AgTrail Backend V2
  * OpenAPI spec version: 1.0.0
  */
+import type { ComplianceMetrics } from './complianceMetrics';
 
 export type GetAnalyticsCompliance200 = {
   success: boolean;
-  data?: unknown | null;
+  data: ComplianceMetrics;
 };

@@ -6,8 +6,11 @@ import { cn } from '~/lib/utils'
 import { useSidebar } from './sidebar-context'
 import { useAuth } from '~/context/auth-context'
 import { LogoutConfirmationModal } from '~/components/logout-confirmation-modal'
-import { useGetWalletBalance, usePostWalletCreate } from '~/lib/api/generated/wallet/wallet'
+import { useGetWalletBalance } from '~/lib/api/generated/wallet/wallet'
 import { getTenantFromPathname, getTenantSelectValue, getUserDisplayName, getUserInitials } from '~/lib/tenant'
+import { generateStellarKeypair, saveWalletLocal } from '~/lib/stellar/wallet'
+import { useMutation } from '@tanstack/react-query'
+import { customFetch } from '~/lib/api/custom-fetch'
 
 interface NavGroupProps {
   label: string
@@ -161,22 +164,34 @@ export function Sidebar() {
   const [isWalletExpanded, setIsWalletExpanded] = useState(false)
   const [showLogoutModal, setShowLogoutModal] = useState(false)
   const { data: walletResp, refetch: refetchWallet, isLoading: isLoadingWallet } = useGetWalletBalance()
-  const { mutate: createWallet, isPending: isCreatingWallet } = usePostWalletCreate({
-    mutation: {
-      onSuccess: () => {
-        refetchWallet()
-      }
+  const { mutate: createWallet, isPending: isCreatingWallet } = useMutation({
+    mutationFn: async (payload: { publicKey: string, encryptedSecretKey: string }) => {
+      return customFetch('/wallet/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+    },
+    onSuccess: () => {
+      refetchWallet()
     }
   })
 
-  // Auto-create wallet if not found
-  useEffect(() => {
-    if (walletResp && !walletResp.data?.data && (walletResp.data as any)?.message?.toLowerCase().includes('not found')) {
-      createWallet()
+  const handleCreateWallet = async () => {
+    try {
+      const keyPair = generateStellarKeypair()
+      saveWalletLocal(keyPair)
+      createWallet({
+        publicKey: keyPair.publicKey,
+        encryptedSecretKey: keyPair.secretKey // Ideally encrypt this in production
+      })
+    } catch (error) {
+      console.error('Failed to create wallet locally', error)
     }
-  }, [walletResp, createWallet])
+  }
 
-  const walletData = walletResp?.data?.data
+  const walletData = walletResp?.data?.data as any
+  const walletAddress = walletData?.id || walletData?.publicKey || walletData?.address || walletData?.accountId
   const activeRole = getTenantFromPathname(location.pathname)
   const displayName = getUserDisplayName(user)
   const initials = getUserInitials(user)
@@ -270,7 +285,7 @@ export function Sidebar() {
             <div>
               <div className="text-[13px] font-bold text-gray-900">Wallet</div>
               <div className="text-[10px] text-gray-500 font-mono tracking-wide">
-                {isLoadingWallet ? 'Loading...' : (walletData?.id ? `${walletData.id.slice(0, 10)}...${walletData.id.slice(-4)}` : 'No Wallet Address')}
+                {isLoadingWallet ? 'Loading...' : (walletAddress ? `${walletAddress.slice(0, 10)}...${walletAddress.slice(-4)}` : 'No Wallet Address')}
               </div>
             </div>
           </div>
@@ -290,11 +305,11 @@ export function Sidebar() {
                 <div className="flex justify-center py-2">
                   <span className="text-xs text-gray-500">Loading assets...</span>
                 </div>
-              ) : walletData ? (
+              ) : walletAddress ? (
                 <>
                   <div className="flex justify-between items-center text-gray-600">
-                    <span>{walletData.currency}</span>
-                    <span className="font-mono text-gray-900 font-bold">{walletData.balance.toFixed(2)}</span>
+                    <span>{walletData?.currency || 'NGN'}</span>
+                    <span className="font-mono text-gray-900 font-bold">{Number(walletData?.balance || 0).toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between items-center text-gray-600">
                     <span>AGT</span>
@@ -302,8 +317,15 @@ export function Sidebar() {
                   </div>
                 </>
               ) : (
-                <div className="flex justify-center py-2">
-                  <span className="text-xs text-gray-500">Could not load wallet</span>
+                <div className="flex flex-col items-center justify-center py-4 gap-3">
+                  <span className="text-xs text-gray-500 text-center">No wallet found for this account.</span>
+                  <button
+                    onClick={handleCreateWallet}
+                    disabled={isCreatingWallet}
+                    className="flex w-full items-center justify-center rounded-lg bg-brand px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-white hover:bg-black transition-colors disabled:opacity-50 gap-2 shadow-sm"
+                  >
+                    {isCreatingWallet ? 'Creating...' : 'Create a Wallet'}
+                  </button>
                 </div>
               )}
 

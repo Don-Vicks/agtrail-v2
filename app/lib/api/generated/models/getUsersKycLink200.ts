@@ -6,7 +6,7 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type GetPaymentsReceivables200 = {
+export type GetUsersKycLink200 = {
   success: boolean;
-  data?: unknown | null;
+  link: string;
 };

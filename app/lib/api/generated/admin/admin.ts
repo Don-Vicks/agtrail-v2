@@ -25,7 +25,6 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
-  GetAdminOnboardingStats200,
   GetAdminOrganizations200,
   GetAdminStats200,
   GetAdminUsers200,
@@ -542,7 +541,7 @@ export const usePutAdminOrganizationsIdStatus = <TError = unknown,
  * @summary Get onboarding analytics statistics
  */
 export type getAdminOnboardingStatsResponse200 = {
-  data: GetAdminOnboardingStats200
+  data: string
   status: 200
 }
 

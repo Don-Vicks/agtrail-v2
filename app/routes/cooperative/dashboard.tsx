@@ -1,3 +1,4 @@
+import { FarmMap } from '~/components/farm-map.client'
 import {
   Users,
   Map,
@@ -23,9 +24,6 @@ import { PageHeader } from '~/components/page-header'
 import { Button } from '~/components/ui/button'
 import { Badge } from '~/components/ui/badge'
 import { useGetCooperativesDashboard } from '~/lib/api/generated/cooperatives/cooperatives'
-import { useGetFarmersProducts } from '~/lib/api/generated/farm-products/farm-products'
-import { useGetFarms } from '~/lib/api/generated/farms/farms'
-import type { Farm, FarmProduct } from '~/lib/api/generated/models'
 import { cn } from '~/lib/utils'
 import type { Route } from './+types/dashboard'
 
@@ -39,90 +37,65 @@ export function meta({ }: Route.MetaArgs) {
 export default function CooperativeDashboard() {
   const [hoveredCategory, setHoveredCategory] = useState<number | null>(null)
 
-  // Fetch real data from APIs
-  const { data: dashboardResponse, isLoading: isDashboardLoading } = useGetCooperativesDashboard()
-  const { data: farmsResponse, isLoading: isFarmsLoading } = useGetFarms()
-  const { data: productsResponse, isLoading: isProductsLoading } = useGetFarmersProducts()
+  // Single API hook for consolidated cooperative dashboard data
+  const { data: dashboardResponse, isLoading } = useGetCooperativesDashboard()
 
-  const dashboardData: any = dashboardResponse?.data?.data || {}
-  const farms = farmsResponse?.data?.data || []
-  const products = productsResponse?.data?.data || []
+  // Extract data layers
+  const dashboardData = dashboardResponse?.data?.data
+  const metrics = dashboardData?.metrics
+  const insights = dashboardData?.insights
+  const productCategories = dashboardData?.productCategories || []
+  const activeProducts = dashboardData?.activeProducts || []
+  const farmsByRegion = dashboardData?.farmsByRegion || []
 
-  // Calculate stats from real data
-  const {
-    totalMembers = 0,
-    totalFarms: apiTotalFarms = 0,
-    totalArea: apiTotalArea = 0,
-    trackedProducts: apiTrackedProducts = 0,
-    totalHarvests = 0
-  } = dashboardData
+  // Flatten farms from region groups for mapping and counts
+  const farmsData = farmsByRegion.flatMap(region => region.farms.map(farm => ({
+    ...farm,
+    // Add defaults for missing fields in aggregated schema
+    sizeHectares: 0,
+    region: region.region
+  })))
 
-  // Use API values if available, otherwise calculate from fetched data
-  const statsdata = {
-    totalMembers,
-    totalFarms: apiTotalFarms || farms.length,
-    totalArea: apiTotalArea || farms.reduce((sum: number, f: Farm) => sum + (f.sizeHectares || 0), 0),
-    trackedProducts: apiTrackedProducts || products.length,
-    totalHarvests
-  }
-
-  // Calculate product categories from real data
-  const categoryMap: { [key: string]: { name: string; count: number; percent: number; color: string; desc: string } } = {}
-  products.forEach((product: FarmProduct) => {
-    const category = product.category || 'Other'
-    if (!categoryMap[category]) {
-      categoryMap[category] = {
-        name: category,
-        count: 0,
-        percent: 0,
-        color: generateCategoryColor(category),
-        desc: `${category} products`
-      }
-    }
-    categoryMap[category].count++
-  })
-
-  // Calculate percentages
-  const totalProducts = Object.values(categoryMap).reduce((sum, cat) => sum + cat.count, 0)
-  Object.values(categoryMap).forEach((cat) => {
-    cat.percent = totalProducts > 0 ? Math.round((cat.count / totalProducts) * 100) : 0
-  })
-
-  const categoryDetails = Object.values(categoryMap)
+  // Formatting regions for badges
+  const formattedRegions = farmsByRegion.map(r => ({
+    name: r.region,
+    count: r.count,
+    color: '#e8f5e9' // Default branding green
+  }))
 
   // Generate farm performance summary from real data
   const stats = [
     {
       title: 'Total Members',
-      value: statsdata.totalMembers.toString(),
+      value: metrics?.totalMembers?.toString() || '0',
       subtitle: 'Farmers in cooperative',
       description: 'Active registered members',
       icon: <Users className="size-4 text-brand" />,
     },
     {
       title: 'Total Farms',
-      value: statsdata.totalFarms.toString(),
+      value: metrics?.totalFarms?.toString() || '0',
       subtitle: 'Registered farm locations',
       description: 'Across all members',
       icon: <Map className="size-4 text-brand" />,
     },
     {
       title: 'Total Land Area',
-      value: `${statsdata.totalArea.toFixed(1)} ha`,
+      value: `${metrics?.totalArea?.toFixed(1) || '0.0'} ha`,
       subtitle: 'Combined farmland',
       description: 'Total cultivated area',
       icon: <Hexagon className="size-4 text-brand" />,
     },
     {
       title: 'Tracked Products',
-      value: statsdata.trackedProducts.toString(),
+      value: metrics?.totalProducts?.toString() || '0',
       subtitle: 'Products in system',
       description: 'Total products being tracked',
       icon: <CheckCircle2 className="size-4 text-brand" />,
     },
     {
       title: 'Total Harvests',
-      value: statsdata.totalHarvests.toString(),
+      value: metrics?.totalHarvests?.toString() || '0',
       subtitle: 'Completed harvests',
       description: 'Recorded harvest events',
       icon: <Package className="size-4 text-brand" />,
@@ -141,7 +114,7 @@ export default function CooperativeDashboard() {
 
   return (
     <div className="space-y-6 pb-10 px-1">
-      <PageHeader
+      {/* <PageHeader
         items={[
           {
             label: 'Dashboard',
@@ -149,7 +122,7 @@ export default function CooperativeDashboard() {
             icon: <LayoutDashboard className="size-4 text-gray-400" />,
           },
         ]}
-      />
+      /> */}
 
       {/* Page Title Section */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -169,7 +142,7 @@ export default function CooperativeDashboard() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <StatCard
           title="Total Members"
-          value={isDashboardLoading ? '...' : statsdata.totalMembers.toString()}
+          value={isLoading ? '...' : metrics?.totalMembers?.toString() || '0'}
           subtitle="Registered farmers"
           description="Active cooperative workforce"
           icon={<Users className="size-4" />}
@@ -177,7 +150,7 @@ export default function CooperativeDashboard() {
         />
         <StatCard
           title="Total Farms"
-          value={isFarmsLoading ? '...' : statsdata.totalFarms.toString()}
+          value={isLoading ? '...' : metrics?.totalFarms?.toString() || '0'}
           subtitle="Registered locations"
           description="Verified farm locations"
           icon={<MapPin className="size-4" />}
@@ -185,7 +158,7 @@ export default function CooperativeDashboard() {
         />
         <StatCard
           title="Total Area"
-          value={isFarmsLoading ? '...' : `${statsdata.totalArea.toFixed(1)} ha`}
+          value={isLoading ? '...' : `${metrics?.totalArea?.toFixed(1) || '0.0'} ha`}
           subtitle="Cultivation volume"
           description="Combined productive land"
           icon={<Maximize className="size-4" />}
@@ -193,7 +166,7 @@ export default function CooperativeDashboard() {
         />
         <StatCard
           title="Products"
-          value={isProductsLoading ? '...' : statsdata.trackedProducts.toString()}
+          value={isLoading ? '...' : metrics?.totalProducts?.toString() || '0'}
           subtitle="Tracked items"
           description="Total products in system"
           icon={<Package className="size-4" />}
@@ -201,7 +174,7 @@ export default function CooperativeDashboard() {
         />
         <StatCard
           title="Harvests"
-          value={isDashboardLoading ? '...' : statsdata.totalHarvests.toString()}
+          value={isLoading ? '...' : metrics?.totalHarvests?.toString() || '0'}
           subtitle="Logged harvests"
           description="Completed production cycles"
           icon={<Activity className="size-4" />}
@@ -245,27 +218,23 @@ export default function CooperativeDashboard() {
               </div>
 
               <div className="flex flex-col gap-3 flex-1">
-                <div className="flex items-center justify-between group cursor-pointer border-b border-gray-50 pb-1.5">
-                  <div className="flex items-center gap-2">
-                    <div className="size-2 rounded-full bg-[#2D5A27]" />
-                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Grains</span>
+                {productCategories.length > 0 ? (
+                  productCategories.map((cat, idx) => (
+                    <div key={idx} className="flex items-center justify-between group cursor-pointer border-b border-gray-50 pb-1.5">
+                      <div className="flex items-center gap-2">
+                        <div className="size-2 rounded-full bg-[#2D5A27]" />
+                        <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{cat.name} ({cat.percentage}%)</span>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="flex items-center justify-between group cursor-pointer border-b border-gray-50 pb-1.5">
+                    <div className="flex items-center gap-2">
+                      <div className="size-2 rounded-full bg-[#2D5A27]" />
+                      <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">No Products Found</span>
+                    </div>
                   </div>
-                  <span className="text-xs font-bold text-gray-900">60%</span>
-                </div>
-                <div className="flex items-center justify-between group cursor-pointer border-b border-gray-50 pb-1.5">
-                  <div className="flex items-center gap-2">
-                    <div className="size-2 rounded-full bg-[#4CAF50]" />
-                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Vegetables</span>
-                  </div>
-                  <span className="text-xs font-bold text-gray-900">25%</span>
-                </div>
-                <div className="flex items-center justify-between group cursor-pointer border-b border-gray-50 pb-1.5">
-                  <div className="flex items-center gap-2">
-                    <div className="size-2 rounded-full bg-[#A5D6A7]" />
-                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Other</span>
-                  </div>
-                  <span className="text-xs font-bold text-gray-900">15%</span>
-                </div>
+                )}
               </div>
             </div>
           </div>
@@ -274,11 +243,15 @@ export default function CooperativeDashboard() {
             <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4">Key Metrics</h4>
             <div className="grid grid-cols-2 gap-6 text-center">
               <div>
-                <p className="text-xl font-bold text-gray-900 tracking-tight">423.4 ha</p>
+                <p className="text-xl font-bold text-gray-900 tracking-tight">
+                  {isLoading ? '...' : `${insights?.avgFarmSize?.toFixed(1) || '0.0'} ha`}
+                </p>
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Avg. Farm Size</p>
               </div>
               <div>
-                <p className="text-xl font-bold text-gray-900 tracking-tight">1.0</p>
+                <p className="text-xl font-bold text-gray-900 tracking-tight">
+                  {isLoading ? '...' : `${insights?.avgYield?.toFixed(1) || '0.0'}`}
+                </p>
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Avg. Yield</p>
               </div>
             </div>
@@ -380,26 +353,40 @@ export default function CooperativeDashboard() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50 bg-white">
-              {products.slice(0, 10).map((product: FarmProduct, idx: number) => {
-                const farm = farms.find((f: Farm) => f.id === product.farmId)
-                return (
-                  <tr key={`${product.id}-${idx}`} className="hover:bg-gray-50/50 transition-colors group">
-                    <td className="px-6 py-4 text-[11px] font-bold text-gray-400 tracking-widest uppercase">#{product.batchNumber?.slice(0, 8) || product.id.slice(0, 8)}</td>
-                    <td className="px-6 py-4 font-bold text-gray-900 tracking-tight">{product.productName}</td>
-                    <td className="px-6 py-4 text-xs font-bold text-brand italic">{farm?.name || 'Collective'}</td>
-                    <td className="px-6 py-4 text-xs font-medium text-gray-500">{product.createdBy || 'Authorized Tech'}</td>
+              {isLoading ? (
+                <tr>
+                  <td colSpan={8} className="px-6 py-12 text-center text-sm text-gray-500">
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="animate-spin size-6 border-2 border-brand border-t-transparent rounded-full" />
+                      <span className="font-bold uppercase tracking-widest text-[10px] text-gray-400">Loading Records...</span>
+                    </div>
+                  </td>
+                </tr>
+              ) : activeProducts.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="px-6 py-12 text-center text-sm text-gray-500 font-bold uppercase tracking-widest text-[10px]">
+                    No production records found
+                  </td>
+                </tr>
+              ) : (
+                activeProducts.slice(0, 10).map((product, idx) => (
+                  <tr key={product.batchId || idx} className="hover:bg-gray-50/50 transition-colors group">
+                    <td className="px-6 py-4 text-[11px] font-bold text-gray-400 tracking-widest uppercase">#{product.batchId?.slice(0, 8) || 'N/A'}</td>
+                    <td className="px-6 py-4 font-bold text-gray-900 tracking-tight">{product.product}</td>
+                    <td className="px-6 py-4 text-xs font-bold text-brand italic">{product.farm}</td>
+                    <td className="px-6 py-4 text-xs font-medium text-gray-500">{product.farmer || 'N/A'}</td>
                     <td className="px-6 py-4">
                       <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-wider px-2 py-0 border-brand/20 bg-brand/5 text-brand">
                         {product.status || 'Active'}
                       </Badge>
                     </td>
                     <td className="px-6 py-4 font-mono text-[11px] font-bold text-gray-900 text-right">
-                      {product.quantityHarvested ? (product.quantityHarvested / 1000).toFixed(2) : '0.00'}
+                      {product.yield ? (product.yield / 1000).toFixed(2) : '0.00'}
                     </td>
                     <td className="px-6 py-4">
                       <Badge variant="ghost" className="text-[10px] font-bold uppercase tracking-widest p-0 text-orange-400 flex items-center gap-1.5">
                         <div className="size-1.5 rounded-full bg-orange-400" />
-                        {product.qualityGrade || 'Pending'}
+                        {product.quality || 'Pending'}
                       </Badge>
                     </td>
                     <td className="px-6 py-4 text-right">
@@ -408,8 +395,8 @@ export default function CooperativeDashboard() {
                       </Button>
                     </td>
                   </tr>
-                )
-              })}
+                )))
+              }
             </tbody>
           </table>
         </div>
@@ -417,7 +404,7 @@ export default function CooperativeDashboard() {
         <div className="border-t border-gray-100 px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-gray-400 font-bold uppercase tracking-tight bg-gray-50/20">
           <div className="flex items-center gap-2">
             <span className="text-gray-300">Total Context:</span>
-            <span className="text-gray-900">{products.length} Production Records</span>
+            <span className="text-gray-900">{activeProducts.length} Production Records</span>
           </div>
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-2">
@@ -461,27 +448,32 @@ export default function CooperativeDashboard() {
         <div className="mb-8">
           <p className="mb-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Farms by Region</p>
           <div className="flex flex-wrap gap-2">
-            {farms.slice(0, 4).map((farm: Farm) => (
+            {formattedRegions.slice(0, 4).map((region, idx) => (
               <Badge
-                key={farm.id}
+                key={idx}
                 variant="outline"
                 className="flex items-center gap-2 rounded-lg px-4 py-1.5 font-bold uppercase tracking-tight text-[11px] border-gray-100 bg-gray-50/50 text-gray-700"
               >
-                {farm.state || 'Unknown'}
+                {region.name}
                 <span className="flex size-5 items-center justify-center rounded-md bg-white border border-gray-100 text-[10px] text-brand shadow-sm">
-                  1
+                  {region.count}
                 </span>
               </Badge>
             ))}
           </div>
         </div>
 
-        {/* Global Map Placeholder */}
-        <div className="mb-8 h-64 rounded-xl overflow-hidden border border-gray-100 bg-gray-50/30 flex items-center justify-center">
-          <div className="text-center">
-            <Map className="size-8 text-gray-200 mx-auto mb-2" />
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Synchronizing Spatial Data...</p>
-          </div>
+        {/* GPS Mapping */}
+        <div className="mb-8 rounded-xl overflow-hidden border border-gray-100 h-64">
+          <FarmMap farms={farmsData.map(farm => ({
+            id: farm.id,
+            name: farm.name,
+            location: farm.state || 'Unknown',
+            region: farm.region || 'Unknown',
+            hectares: 0,
+            lat: farm.coordinates ? (farm.coordinates as any).coordinates[1] : 9.0820,
+            lng: farm.coordinates ? (farm.coordinates as any).coordinates[0] : 8.6753,
+          }))} />
         </div>
 
         {/* Inventory Slice */}
@@ -489,21 +481,21 @@ export default function CooperativeDashboard() {
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-sm font-bold text-gray-900 uppercase tracking-tight">Recent Farms</h3>
             <Button variant="link" className="text-xs font-bold uppercase tracking-widest text-brand p-0 h-auto">
-              View All ({farms.length}) <ArrowRight className="ms-1 size-3" />
+              View All ({farmsData.length}) <ArrowRight className="ms-1 size-3" />
             </Button>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {isFarmsLoading ? (
+            {isLoading ? (
               Array.from({ length: 4 }).map((_, i) => (
                 <div key={i} className="rounded-xl border border-gray-100 bg-gray-50/30 p-4 animate-pulse h-24" />
               ))
-            ) : farms.length === 0 ? (
+            ) : farmsData.length === 0 ? (
               <div className="col-span-full py-8 text-center text-[10px] font-bold text-gray-400 uppercase tracking-widest">
                 No farms registered yet
               </div>
             ) : (
-              farms.slice(0, 4).map((farm: Farm) => (
+              farmsData.slice(0, 4).map((farm) => (
                 <div key={farm.id} className="rounded-xl border border-gray-100 bg-gray-50/30 p-5 group hover:bg-white hover:shadow-md transition-all">
                   <h4 className="text-sm font-bold text-gray-900 tracking-tight uppercase mb-1 truncate">{farm.name}</h4>
                   <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-1">
@@ -511,7 +503,9 @@ export default function CooperativeDashboard() {
                     {farm.state || 'Unknown Location'}
                   </p>
                   <div className="flex items-center justify-between">
-                    <p className="text-lg font-bold text-brand tracking-tight">{farm.sizeHectares?.toFixed(1) || '0.0'} ha</p>
+                    <p className="text-lg font-bold text-brand tracking-tight">
+                      {insights?.avgFarmSize ? `${insights.avgFarmSize.toFixed(1)} ha` : '0.0 ha'}
+                    </p>
                     <Badge variant="ghost" className="text-[9px] font-bold text-gray-300 uppercase tracking-widest p-0">#{farm.id.slice(0, 8)}</Badge>
                   </div>
                 </div>

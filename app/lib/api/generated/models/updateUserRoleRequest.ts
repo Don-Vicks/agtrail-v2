@@ -5,8 +5,8 @@
  * API Documentation for AgTrail Backend V2
  * OpenAPI spec version: 1.0.0
  */
-import type { UpdateUserRoleRequestRole } from './updateUserRoleRequestRole';
+import type { UpdateUserRoleRequestSystemRole } from './updateUserRoleRequestSystemRole';
 
 export interface UpdateUserRoleRequest {
-  role: UpdateUserRoleRequestRole;
+  systemRole: UpdateUserRoleRequestSystemRole;
 }

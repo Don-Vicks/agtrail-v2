@@ -5,8 +5,10 @@
  * API Documentation for AgTrail Backend V2
  * OpenAPI spec version: 1.0.0
  */
+import type { GetAdminOrganizations200DataItem } from './getAdminOrganizations200DataItem';
 
 export type GetAdminOrganizations200 = {
   success: boolean;
-  data: (unknown | null)[];
+  /** Paginated orgs list */
+  data: GetAdminOrganizations200DataItem[];
 };

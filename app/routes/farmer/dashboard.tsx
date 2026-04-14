@@ -16,11 +16,10 @@ import {
   Plus,
   ArrowRight,
   ClipboardList,
-  LayoutDashboard
+  LayoutDashboard,
+  MoreHorizontal
 } from 'lucide-react'
-import { useGetFarmersProducts } from '~/lib/api/generated/farm-products/farm-products'
-import { useGetFarms, useGetFarmsStatsDashboard } from '~/lib/api/generated/farms/farms'
-import { useGetWalletBalance } from '~/lib/api/generated/wallet/wallet'
+import { useGetFarmerDashboardStats } from '~/lib/api/generated/farmers/farmers'
 import { QuickActions } from '~/components/quick-actions'
 import {
   quickActions as MOCK_QUICK_ACTIONS
@@ -37,37 +36,31 @@ export function meta({ }: Route.MetaArgs) {
 // StatIcon removed in favor of consistent lucide-react usage in StatCard components
 
 export default function FarmerDashboard() {
-  // API hooks for real data
-  const { data: walletResponse, isLoading: isWalletLoading } = useGetWalletBalance()
-  const { data: farmsResponse, isLoading: isFarmsLoading } = useGetFarms()
-  const { data: productsResponse, isLoading: isProductsLoading } = useGetFarmersProducts()
-  const { data: farmersStatsResponse, isLoading: isStatsLoading } = useGetFarmsStatsDashboard()
+  // Single API hook for consolidated dashboard data
+  const { data: dashboardResponse, isLoading } = useGetFarmerDashboardStats()
 
-  // Extract real data
-  const walletData = walletResponse?.data?.data
-  const farmsData = farmsResponse?.data?.data || []
-  const productsData = productsResponse?.data?.data || []
+  // Extract real data layers
+  const statsData = dashboardResponse?.data?.data
+  const metrics = statsData?.metrics
+  const insights = statsData?.insights
+  const activeProducts = statsData?.activeProducts || []
+  const upcomingTasks = statsData?.upcomingTasks || []
+  const farmsByRegion = statsData?.farmsByRegion || []
 
-  // Calculate real stats
-  const totalFarms = farmsData.length
-  const totalProducts = productsData.length
-  const totalLandArea = farmsData.reduce((sum, farm) => sum + (farm.sizeHectares || 0), 0)
+  // Flatten farms from region groups for mapping and counts
+  const farmsData = farmsByRegion.flatMap(region => region.farms.map(farm => ({
+    ...farm,
+    // Add defaults for missing fields in aggregated schema
+    sizeHectares: 0, 
+    region: region.region
+  })))
 
-  // Calculate regions from real farm data
-  const regions = isFarmsLoading ? [] : farmsData.reduce((acc, farm) => {
-    const regionName = farm.region || farm.state || 'Unknown'
-    const existing = acc.find(r => r.name === regionName)
-    if (existing) {
-      existing.count++
-    } else {
-      acc.push({
-        name: regionName,
-        count: 1,
-        color: '#e8f5e9' // Default green color
-      })
-    }
-    return acc
-  }, [] as Array<{ name: string, count: number, color: string }>)
+  // Formatting regions for badges
+  const formattedRegions = farmsByRegion.map(r => ({
+    name: r.region,
+    count: r.count,
+    color: '#e8f5e9' // Default branding green
+  }))
 
   return (
     <div className="space-y-6 pb-10 px-1">
@@ -93,7 +86,7 @@ export default function FarmerDashboard() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <StatCard
           title="Wallet Balance"
-          value={isWalletLoading ? '...' : `${walletData?.balance?.toLocaleString() || '0'} ${walletData?.currency || 'NGN'}`}
+          value={isLoading ? '...' : metrics?.walletBalance || '0 NGN'}
           subtitle="Available funds"
           description="Current wallet balance"
           icon={<Wallet className="size-4" />}
@@ -101,7 +94,7 @@ export default function FarmerDashboard() {
         />
         <StatCard
           title="Active Products"
-          value={isProductsLoading ? '...' : totalProducts.toString()}
+          value={isLoading ? '...' : (metrics?.activeProducts || 0).toString()}
           subtitle="Production unit"
           description="Currently tracked items"
           icon={<Package className="size-4" />}
@@ -109,7 +102,7 @@ export default function FarmerDashboard() {
         />
         <StatCard
           title="Operations"
-          value={isStatsLoading ? '...' : (farmersStatsResponse?.data?.data as any)?.operationsLast30Days || '0'}
+          value={isLoading ? '...' : (metrics?.operationsLast30Days || 0).toString()}
           subtitle="Recent activity"
           description="Logged in last 30 days"
           icon={<Activity className="size-4" />}
@@ -117,7 +110,7 @@ export default function FarmerDashboard() {
         />
         <StatCard
           title="Total Farms"
-          value={isFarmsLoading ? '...' : totalFarms.toString()}
+          value={isLoading ? '...' : (metrics?.totalFarms || 0).toString()}
           subtitle="Registered farms"
           description="Verified farm locations"
           icon={<MapPin className="size-4" />}
@@ -125,7 +118,7 @@ export default function FarmerDashboard() {
         />
         <StatCard
           title="Total Land Area"
-          value={isFarmsLoading ? '...' : `${totalLandArea.toFixed(1)} ha`}
+          value={isLoading ? '...' : `${metrics?.totalLandArea?.toFixed(1) || '0.0'} ha`}
           subtitle="Cultivated area"
           description="Combined farmland size"
           icon={<Maximize className="size-4" />}
@@ -147,9 +140,24 @@ export default function FarmerDashboard() {
             </div>
           </div>
 
-          <div className="rounded-xl border-l-4 border-amber-400 bg-amber-50/50 p-4">
-            <p className="text-sm font-bold text-gray-900 uppercase tracking-tight mb-1">No Upcoming Harvests</p>
-            <p className="text-xs text-gray-500 leading-relaxed font-medium">Your current production cycles do not have any harvests scheduled for the next 30 days.</p>
+          <div className="space-y-3">
+            {isLoading ? (
+              <div className="rounded-xl border-l-4 border-gray-100 bg-gray-50/50 p-4 animate-pulse h-20" />
+            ) : upcomingTasks.length > 0 ? (
+              upcomingTasks.map((task, idx) => (
+                <div key={idx} className="rounded-xl border-l-4 border-amber-400 bg-amber-50/50 p-4">
+                  <p className="text-sm font-bold text-gray-900 uppercase tracking-tight mb-1">{task.title}</p>
+                  <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">
+                    {task.date ? new Date(task.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : 'No date set'}
+                  </p>
+                </div>
+              )))
+            : (
+              <div className="rounded-xl border-l-4 border-amber-400 bg-amber-50/50 p-4">
+                <p className="text-sm font-bold text-gray-900 uppercase tracking-tight mb-1">No Upcoming Tasks</p>
+                <p className="text-xs text-gray-500 leading-relaxed font-medium">Your current production cycles do not have any tasks scheduled for the next 30 days.</p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -171,14 +179,19 @@ export default function FarmerDashboard() {
               </div>
             </div>
             <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <div className="size-2 rounded-full bg-brand" />
-                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Agri Products</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="size-2 rounded-full bg-gray-200" />
-                <span className="text-[10px] font-bold text-gray-300 uppercase tracking-widest">Other</span>
-              </div>
+              {(statsData?.productCategories || []).length > 0 ? (
+                statsData?.productCategories.map((cat, idx) => (
+                  <div key={idx} className="flex items-center gap-2">
+                    <div className="size-2 rounded-full bg-brand" />
+                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{cat.name} ({cat.percentage}%)</span>
+                  </div>
+                ))
+              ) : (
+                <div className="flex items-center gap-2">
+                  <div className="size-2 rounded-full bg-brand" />
+                  <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Agri Products</span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -188,15 +201,15 @@ export default function FarmerDashboard() {
             <div className="grid grid-cols-2 gap-6 text-center">
               <div>
                 <p className="text-xl font-bold text-gray-900 tracking-tight">
-                  {isFarmsLoading ? '...' : totalFarms > 0 ? (totalLandArea / totalFarms).toFixed(1) : '0.0'} ha
+                  {isLoading ? '...' : `${insights?.avgFarmSize?.toFixed(1) || '0.0'} ha`}
                 </p>
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Avg. Size</p>
               </div>
               <div>
                 <p className="text-xl font-bold text-gray-900 tracking-tight">
-                  {isFarmsLoading || isProductsLoading ? '...' : totalFarms > 0 ? (totalProducts / totalFarms).toFixed(1) : '0.0'}
+                  {isLoading ? '...' : `${insights?.avgYield?.toFixed(1) || '0.0'}`}
                 </p>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Prod / Farm</p>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Avg. Yield</p>
               </div>
             </div>
           </div>
@@ -259,7 +272,7 @@ export default function FarmerDashboard() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50 bg-white">
-              {isProductsLoading ? (
+              {isLoading ? (
                 <tr>
                   <td colSpan={7} className="px-6 py-12 text-center text-sm text-gray-500">
                     <div className="flex flex-col items-center gap-2">
@@ -268,19 +281,19 @@ export default function FarmerDashboard() {
                     </div>
                   </td>
                 </tr>
-              ) : productsData.length === 0 ? (
+              ) : activeProducts.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="px-6 py-12 text-center text-sm text-gray-500 font-bold uppercase tracking-widest text-[10px]">
                     No associated products found
                   </td>
                 </tr>
               ) : (
-                productsData.slice(0, 10).map((product) => (
-                  <tr key={product.id} className="hover:bg-gray-50/50 transition-colors group">
-                    <td className="px-6 py-4 text-[11px] font-bold text-gray-400 tracking-widest uppercase">#{product.id.slice(0, 8)}</td>
-                    <td className="px-6 py-4 font-bold text-gray-900 tracking-tight">{product.productName}</td>
+                activeProducts.slice(0, 10).map((product, idx) => (
+                  <tr key={product.batchId || idx} className="hover:bg-gray-50/50 transition-colors group">
+                    <td className="px-6 py-4 text-[11px] font-bold text-gray-400 tracking-widest uppercase">#{product.batchId?.slice(0, 8) || 'N/A'}</td>
+                    <td className="px-6 py-4 font-bold text-gray-900 tracking-tight">{product.product}</td>
                     <td className="px-6 py-4 text-xs font-bold text-brand italic">
-                      {farmsData.find(f => f.id === product.farmId)?.name || 'Central Collective'}
+                      {product.farm}
                     </td>
                     <td className="px-6 py-4">
                       <Badge
@@ -291,10 +304,10 @@ export default function FarmerDashboard() {
                       </Badge>
                     </td>
                     <td className="px-6 py-4 font-bold text-gray-900 tracking-tight">
-                      {product.quantityAvailable || product.quantityHarvested || 0} {product.unit || 'KG'}
+                      {product.yield || 0} KG
                     </td>
                     <td className="px-6 py-4 text-xs font-medium text-gray-500 italic">
-                      {new Date(product.harvestDate).toLocaleDateString()}
+                      {product.harvestDate ? new Date(product.harvestDate).toLocaleDateString() : 'N/A'}
                     </td>
                     <td className="px-6 py-4 text-right">
                       <Button variant="ghost" size="icon" className="size-8 text-gray-300 hover:text-gray-900 transition-colors">
@@ -302,8 +315,8 @@ export default function FarmerDashboard() {
                       </Button>
                     </td>
                   </tr>
-                ))
-              )}
+                )))
+              }
             </tbody>
           </table>
         </div>
@@ -311,7 +324,7 @@ export default function FarmerDashboard() {
         <div className="border-t border-gray-100 px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-gray-400 font-bold uppercase tracking-tight bg-gray-50/20">
           <div className="flex items-center gap-2">
             <span className="text-gray-300">Total:</span>
-            <span className="text-gray-900">{productsData.length} Products</span>
+            <span className="text-gray-900">{activeProducts.length} Products</span>
           </div>
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-2">
@@ -356,7 +369,7 @@ export default function FarmerDashboard() {
         <div className="mb-8">
           <p className="mb-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Farms by Region</p>
           <div className="flex flex-wrap gap-2">
-            {regions.slice(0, 3).map((region) => (
+            {formattedRegions.slice(0, 3).map((region) => (
               <Badge
                 key={region.name}
                 variant="outline"
@@ -368,8 +381,8 @@ export default function FarmerDashboard() {
                 </span>
               </Badge>
             ))}
-            {regions.length > 3 && (
-              <Badge variant="ghost" className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">+ {regions.length - 3} MORE</Badge>
+            {formattedRegions.length > 3 && (
+              <Badge variant="ghost" className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">+ {formattedRegions.length - 3} MORE</Badge>
             )}
           </div>
         </div>
@@ -379,11 +392,11 @@ export default function FarmerDashboard() {
           <FarmMap farms={farmsData.map(farm => ({
             id: farm.id,
             name: farm.name,
-            location: farm.state || farm.region || 'Unknown',
-            region: farm.region || farm.state || 'Unknown',
-            hectares: farm.sizeHectares || 0,
-            lat: farm.gpsCoordinates ? (farm.gpsCoordinates as any).coordinates[1] : 9.0820,
-            lng: farm.gpsCoordinates ? (farm.gpsCoordinates as any).coordinates[0] : 8.6753,
+            location: farm.state || 'Unknown',
+            region: farm.region || 'Unknown',
+            hectares: 0,
+            lat: farm.coordinates ? (farm.coordinates as any).coordinates[1] : 9.0820,
+            lng: farm.coordinates ? (farm.coordinates as any).coordinates[0] : 8.6753,
           }))} />
         </div>
 
@@ -392,12 +405,12 @@ export default function FarmerDashboard() {
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-sm font-bold text-gray-900 uppercase tracking-tight">Your Farms</h3>
             <Button variant="link" className="text-xs font-bold uppercase tracking-widest text-brand p-0 h-auto">
-              View All Farms ({isFarmsLoading ? '...' : farmsData.length}) <ArrowRight className="ms-1 size-3" />
+              View All Farms ({isLoading ? '...' : farmsData.length}) <ArrowRight className="ms-1 size-3" />
             </Button>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {isFarmsLoading ? (
+            {isLoading ? (
               Array.from({ length: 4 }).map((_, i) => (
                 <div key={i} className="rounded-xl border border-gray-100 bg-gray-50/30 p-4 animate-pulse h-24" />
               ))
@@ -411,10 +424,12 @@ export default function FarmerDashboard() {
                   <h4 className="text-sm font-bold text-gray-900 tracking-tight uppercase mb-1">{farm.name}</h4>
                   <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-1">
                     <MapPin className="size-3 text-red-400" />
-                    {farm.state || farm.region || 'Unknown Location'}
+                    {farm.state || 'Unknown Location'}
                   </p>
                   <div className="flex items-center justify-between">
-                    <p className="text-lg font-bold text-brand tracking-tight">{farm.sizeHectares || 0} ha</p>
+                    <p className="text-lg font-bold text-brand tracking-tight">
+                      {insights?.avgFarmSize ? `${insights.avgFarmSize.toFixed(1)} ha` : 'N/A'}
+                    </p>
                     <Badge variant="ghost" className="text-[9px] font-bold text-gray-300 uppercase tracking-widest p-0">#{farm.id.slice(0, 8)}</Badge>
                   </div>
                 </div>

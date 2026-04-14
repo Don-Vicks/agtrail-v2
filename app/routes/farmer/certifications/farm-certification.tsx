@@ -235,7 +235,7 @@ export default function FarmCertificationPage() {
             Search
           </button>
 
-          <div className="relative">
+          {/* <div className="relative">
             <select
               value={ownerFilter}
               onChange={(e) => {
@@ -250,7 +250,7 @@ export default function FarmCertificationPage() {
               ))}
             </select>
             <ChevronDown />
-          </div>
+          </div> */}
         </div>
       </div>
 
@@ -258,80 +258,80 @@ export default function FarmCertificationPage() {
       {isLoadingFarms ? (
         <div className="py-12 text-center text-sm font-medium text-gray-500">Loading farms...</div>
       ) : (
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {paginatedFarms.map((farm) => {
-          const cropsCultivatedCount = apiProducts.filter((p: any) => p.farmId === farm.id).length
-          const certsCount = 0 // Update when certifications model has farm linkages
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {paginatedFarms.map((farm) => {
+            const cropsCultivatedCount = apiProducts.filter((p: any) => p.farmId === farm.id).length
+            const certsCount = 0 // Update when certifications model has farm linkages
 
-          return (
-            <div
-              key={farm.id}
-              className="group flex flex-col rounded-xl border border-gray-100 bg-white p-6 shadow-sm hover:shadow-md transition-all duration-200"
-            >
-              <div className="mb-5 flex items-start justify-between">
-                <div className="flex size-14 items-center justify-center rounded-lg bg-brand shadow-lg shadow-brand/10">
-                  <HomeIcon />
+            return (
+              <div
+                key={farm.id}
+                className="group flex flex-col rounded-xl border border-gray-100 bg-white p-6 shadow-sm hover:shadow-md transition-all duration-200"
+              >
+                <div className="mb-5 flex items-start justify-between">
+                  <div className="flex size-14 items-center justify-center rounded-lg bg-brand shadow-lg shadow-brand/10">
+                    <HomeIcon />
+                  </div>
+                  <span className="text-xs font-bold text-orange-600 uppercase tracking-widest">
+                    {farm.hectares.toFixed(1)} Hectares
+                  </span>
                 </div>
-                <span className="text-xs font-bold text-orange-600 uppercase tracking-widest">
-                  {farm.hectares.toFixed(1)} Hectares
-                </span>
-              </div>
 
-              <div className="flex-1 space-y-1.5">
-                <h3 className="line-clamp-1 text-xl font-bold text-gray-900 leading-none group-hover:text-brand transition-colors">
-                  {farm.name}
-                </h3>
-                 <button
-                  type="button"
-                  className="flex items-center gap-1.5 text-xs font-bold text-gray-900 hover:text-brand transition-colors text-left"
+                <div className="flex-1 space-y-1.5">
+                  <h3 className="line-clamp-1 text-xl font-bold text-gray-900 leading-none group-hover:text-brand transition-colors">
+                    {farm.name}
+                  </h3>
+                  <button
+                    type="button"
+                    className="flex items-center gap-1.5 text-xs font-bold text-gray-900 hover:text-brand transition-colors text-left"
+                  >
+                    {farm.location}
+                    <svg className="size-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                    </svg>
+                  </button>
+                </div>
+
+                <div className="mt-6 flex flex-col gap-3">
+                  <p className="text-xs font-bold text-gray-900 uppercase tracking-wider">
+                    {cropsCultivatedCount} Crops Cultivated
+                  </p>
+                  <div className="inline-flex max-w-fit items-center gap-1.5 rounded-full border border-green-200 bg-green-50 px-2.5 py-1 text-[11px] font-bold text-green-700">
+                    <CertBadgeIcon />
+                    {certsCount} Certificates Uploaded
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => openModal(farm.id)}
+                  className="mt-8 flex h-11 w-full items-center justify-center rounded-md border border-gray-200 bg-white py-2.5 text-sm font-bold text-brand transition-all hover:bg-brand hover:text-white hover:border-brand shadow-sm shadow-gray-100"
                 >
-                  {farm.location}
-                  <svg className="size-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-                  </svg>
+                  Upload Certificate
                 </button>
               </div>
-
-              <div className="mt-6 flex flex-col gap-3">
-                <p className="text-xs font-bold text-gray-900 uppercase tracking-wider">
-                  {cropsCultivatedCount} Crops Cultivated
-                </p>
-                <div className="inline-flex max-w-fit items-center gap-1.5 rounded-full border border-green-200 bg-green-50 px-2.5 py-1 text-[11px] font-bold text-green-700">
-                  <CertBadgeIcon />
-                  {certsCount} Certificates Uploaded
-                </div>
-              </div>
-
-              <button
-                 onClick={() => openModal(farm.id)}
-                 className="mt-8 flex h-11 w-full items-center justify-center rounded-md border border-gray-200 bg-white py-2.5 text-sm font-bold text-brand transition-all hover:bg-brand hover:text-white hover:border-brand shadow-sm shadow-gray-100"
-              >
-                Upload Certificate
-              </button>
-            </div>
-          )
-        })}
-      </div>
+            )
+          })}
+        </div>
       )}
 
-       {/* Pagination Footer */}
+      {/* Pagination Footer */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 border-t border-gray-100 mt-2">
         <p className="text-xs font-medium text-gray-500">
           Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1} to {Math.min(currentPage * ITEMS_PER_PAGE, totalItems)} of {totalItems} row(s) selected.
         </p>
-        
+
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-3">
-             <span className="text-xs font-medium text-gray-500">Rows per page</span>
-             <div className="relative">
-               <select className="h-8 appearance-none rounded-md border border-gray-200 bg-white pl-3 pr-8 text-xs font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all">
-                 <option>10</option>
-                 <option>20</option>
-               </select>
-               <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                 <svg className="size-3 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
-               </div>
-             </div>
+            <span className="text-xs font-medium text-gray-500">Rows per page</span>
+            <div className="relative">
+              <select className="h-8 appearance-none rounded-md border border-gray-200 bg-white pl-3 pr-8 text-xs font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all">
+                <option>10</option>
+                <option>20</option>
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                <svg className="size-3 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
+              </div>
+            </div>
           </div>
 
           <div className="flex items-center gap-4">
@@ -364,11 +364,11 @@ export default function FarmCertificationPage() {
           <div className="relative z-10 w-full max-w-lg overflow-hidden rounded-xl bg-white shadow-2xl animate-in fade-in zoom-in-95 duration-200">
             {/* Header */}
             <div className="border-b border-gray-100 px-6 py-4">
-               <div className="flex items-start justify-between">
+              <div className="flex items-start justify-between">
                 <div>
-              <h2 className="text-xl font-bold text-brand uppercase tracking-tight">Add Certification</h2>
-              <p className="mt-0.5 text-xs font-medium text-gray-500">Upload a new farm certification.</p>
-            </div>
+                  <h2 className="text-xl font-bold text-brand uppercase tracking-tight">Add Certification</h2>
+                  <p className="mt-0.5 text-xs font-medium text-gray-500">Upload a new farm certification.</p>
+                </div>
                 <button
                   type="button"
                   onClick={closeModal}
@@ -381,39 +381,39 @@ export default function FarmCertificationPage() {
 
             {/* Form Body */}
             <div className="p-6 space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <div className="space-y-1.5">
-              <label className="block text-xs font-bold uppercase tracking-wider text-gray-700">Certification Type <span className="text-red-500">*</span></label>
-              <div className="relative">
-                <select
-                  id="cert-type"
-                  value={certType}
-                  onChange={(e) => setCertType(e.target.value)}
-                  className="h-10 w-full appearance-none rounded-md border border-gray-200 bg-white px-3 text-sm font-bold text-gray-900 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all"
-                >
-                  <option value="">Select type</option>
-                  {CERTIFICATION_TYPES.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-                </select>
-                <ChevronDown />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-700">Certification Type <span className="text-red-500">*</span></label>
+                  <div className="relative">
+                    <select
+                      id="cert-type"
+                      value={certType}
+                      onChange={(e) => setCertType(e.target.value)}
+                      className="h-10 w-full appearance-none rounded-md border border-gray-200 bg-white px-3 text-sm font-bold text-gray-900 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all"
+                    >
+                      <option value="">Select type</option>
+                      {CERTIFICATION_TYPES.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                    </select>
+                    <ChevronDown />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-700">Certification Name <span className="text-red-500">*</span></label>
+                  <input type="text" placeholder="e.g., GLOBALG.A.P." className="h-10 w-full rounded-md border border-gray-200 bg-white px-3 text-sm font-bold text-gray-900 placeholder:text-gray-300 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all" />
+                </div>
               </div>
-            </div>
-            <div className="space-y-1.5">
-              <label className="block text-xs font-bold uppercase tracking-wider text-gray-700">Certification Name <span className="text-red-500">*</span></label>
-              <input type="text" placeholder="e.g., GLOBALG.A.P." className="h-10 w-full rounded-md border border-gray-200 bg-white px-3 text-sm font-bold text-gray-900 placeholder:text-gray-300 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all" />
-            </div>
-          </div>
 
-          <div className="space-y-1.5">
-            <label className="block text-xs font-bold uppercase tracking-wider text-gray-700">Issuing Organization <span className="text-red-500">*</span></label>
-            <input
-              id="cert-org"
-              type="text"
-              placeholder="e.g., Bureau Veritas"
-              value={certOrg}
-              onChange={(e) => setCertOrg(e.target.value)}
-              className="h-10 w-full rounded-md border border-gray-200 bg-white px-3 text-sm font-bold text-gray-900 placeholder:text-gray-300 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all"
-            />
-          </div>
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold uppercase tracking-wider text-gray-700">Issuing Organization <span className="text-red-500">*</span></label>
+                <input
+                  id="cert-org"
+                  type="text"
+                  placeholder="e.g., Bureau Veritas"
+                  value={certOrg}
+                  onChange={(e) => setCertOrg(e.target.value)}
+                  className="h-10 w-full rounded-md border border-gray-200 bg-white px-3 text-sm font-bold text-gray-900 placeholder:text-gray-300 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all"
+                />
+              </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div className="space-y-1.5">

@@ -6,16 +6,27 @@
  * OpenAPI spec version: 1.0.0
  */
 import {
-  useMutation
+  useMutation,
+  useQuery
 } from '@tanstack/react-query';
 import type {
+  DataTag,
+  DefinedInitialDataOptions,
+  DefinedUseQueryResult,
   MutationFunction,
   QueryClient,
+  QueryFunction,
+  QueryKey,
+  UndefinedInitialDataOptions,
   UseMutationOptions,
-  UseMutationResult
+  UseMutationResult,
+  UseQueryOptions,
+  UseQueryResult
 } from '@tanstack/react-query';
 
 import type {
+  GetUsersKycLink200,
+  GetUsersProfile200,
   PostUsersKyc200,
   PostUsersKycBody,
   PutUsersProfile200,
@@ -26,6 +37,116 @@ import { customFetch } from '../../custom-fetch';
 
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
+
+
+
+/**
+ * @summary Get current user profile
+ */
+export type getUsersProfileResponse200 = {
+  data: GetUsersProfile200
+  status: 200
+}
+
+export type getUsersProfileResponseSuccess = (getUsersProfileResponse200) & {
+  headers: Headers;
+};
+;
+
+export type getUsersProfileResponse = (getUsersProfileResponseSuccess)
+
+export const getGetUsersProfileUrl = () => {
+
+
+  
+
+  return `/users/profile`
+}
+
+export const getUsersProfile = async ( options?: RequestInit): Promise<getUsersProfileResponse> => {
+  
+  return customFetch<getUsersProfileResponse>(getGetUsersProfileUrl(),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+  
+
+
+
+
+export const getGetUsersProfileQueryKey = () => {
+    return [
+    `/users/profile`
+    ] as const;
+    }
+
+    
+export const getGetUsersProfileQueryOptions = <TData = Awaited<ReturnType<typeof getUsersProfile>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUsersProfile>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetUsersProfileQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getUsersProfile>>> = ({ signal }) => getUsersProfile({ signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getUsersProfile>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetUsersProfileQueryResult = NonNullable<Awaited<ReturnType<typeof getUsersProfile>>>
+export type GetUsersProfileQueryError = unknown
+
+
+export function useGetUsersProfile<TData = Awaited<ReturnType<typeof getUsersProfile>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUsersProfile>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getUsersProfile>>,
+          TError,
+          Awaited<ReturnType<typeof getUsersProfile>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetUsersProfile<TData = Awaited<ReturnType<typeof getUsersProfile>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUsersProfile>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getUsersProfile>>,
+          TError,
+          Awaited<ReturnType<typeof getUsersProfile>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetUsersProfile<TData = Awaited<ReturnType<typeof getUsersProfile>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUsersProfile>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Get current user profile
+ */
+
+export function useGetUsersProfile<TData = Awaited<ReturnType<typeof getUsersProfile>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUsersProfile>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetUsersProfileQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
 
 
 
@@ -193,4 +314,113 @@ export const usePostUsersKyc = <TError = unknown,
       > => {
       return useMutation(getPostUsersKycMutationOptions(options), queryClient);
     }
+    /**
+ * @summary Generate Dojah KYC Link
+ */
+export type getUsersKycLinkResponse200 = {
+  data: GetUsersKycLink200
+  status: 200
+}
+
+export type getUsersKycLinkResponseSuccess = (getUsersKycLinkResponse200) & {
+  headers: Headers;
+};
+;
+
+export type getUsersKycLinkResponse = (getUsersKycLinkResponseSuccess)
+
+export const getGetUsersKycLinkUrl = () => {
+
+
+  
+
+  return `/users/kyc/link`
+}
+
+export const getUsersKycLink = async ( options?: RequestInit): Promise<getUsersKycLinkResponse> => {
+  
+  return customFetch<getUsersKycLinkResponse>(getGetUsersKycLinkUrl(),
+  {      
+    ...options,
+    method: 'GET'
     
+    
+  }
+);}
+  
+
+
+
+
+export const getGetUsersKycLinkQueryKey = () => {
+    return [
+    `/users/kyc/link`
+    ] as const;
+    }
+
+    
+export const getGetUsersKycLinkQueryOptions = <TData = Awaited<ReturnType<typeof getUsersKycLink>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUsersKycLink>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetUsersKycLinkQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getUsersKycLink>>> = ({ signal }) => getUsersKycLink({ signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getUsersKycLink>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetUsersKycLinkQueryResult = NonNullable<Awaited<ReturnType<typeof getUsersKycLink>>>
+export type GetUsersKycLinkQueryError = unknown
+
+
+export function useGetUsersKycLink<TData = Awaited<ReturnType<typeof getUsersKycLink>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUsersKycLink>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getUsersKycLink>>,
+          TError,
+          Awaited<ReturnType<typeof getUsersKycLink>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetUsersKycLink<TData = Awaited<ReturnType<typeof getUsersKycLink>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUsersKycLink>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getUsersKycLink>>,
+          TError,
+          Awaited<ReturnType<typeof getUsersKycLink>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetUsersKycLink<TData = Awaited<ReturnType<typeof getUsersKycLink>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUsersKycLink>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Generate Dojah KYC Link
+ */
+
+export function useGetUsersKycLink<TData = Awaited<ReturnType<typeof getUsersKycLink>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUsersKycLink>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetUsersKycLinkQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+

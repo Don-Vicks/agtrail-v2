@@ -6,10 +6,10 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type UpdateUserRoleRequestRole = typeof UpdateUserRoleRequestRole[keyof typeof UpdateUserRoleRequestRole];
+export type UpdateUserRoleRequestSystemRole = typeof UpdateUserRoleRequestSystemRole[keyof typeof UpdateUserRoleRequestSystemRole];
 
 
-export const UpdateUserRoleRequestRole = {
+export const UpdateUserRoleRequestSystemRole = {
   consumer: 'consumer',
   farmer: 'farmer',
   processor: 'processor',
@@ -17,4 +17,5 @@ export const UpdateUserRoleRequestRole = {
   retailer: 'retailer',
   agronomic_advisor: 'agronomic_advisor',
   admin: 'admin',
+  cooperative: 'cooperative',
 } as const;

@@ -7,7 +7,11 @@ import { LogOut } from 'lucide-react'
 import { useSidebar } from './sidebar-context'
 import { useAuth } from '~/context/auth-context'
 import { LogoutConfirmationModal } from '~/components/logout-confirmation-modal'
-import { useGetWalletBalance, usePostWalletCreate } from '~/lib/api/generated/wallet/wallet'
+import { useGetWalletBalance } from '~/lib/api/generated/wallet/wallet'
+import { generateStellarKeypair, saveWalletLocal } from '~/lib/stellar/wallet'
+import { useMutation } from '@tanstack/react-query'
+import { customFetch } from '~/lib/api/custom-fetch'
+import { getTenantFromPathname, getTenantSelectValue, getUserDisplayName, getUserInitials } from '~/lib/tenant'
 
 const IconMap: Record<string, React.ReactNode> = {
   'layout-dashboard': <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></svg>,
@@ -75,22 +79,37 @@ export function CooperativeSidebar() {
 
   // Fetch Wallet Data
   const { data: walletResp, refetch: refetchWallet, isLoading: isLoadingWallet } = useGetWalletBalance()
-  const { mutate: createWallet, isPending: isCreatingWallet } = usePostWalletCreate({
-    mutation: {
-      onSuccess: () => {
-        refetchWallet()
-      }
+  const { mutate: createWallet, isPending: isCreatingWallet } = useMutation({
+    mutationFn: async (payload: { publicKey: string, encryptedSecretKey: string }) => {
+      return customFetch('/wallet/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+    },
+    onSuccess: () => {
+      refetchWallet()
     }
   })
 
-  // Auto-create wallet if not found
-  useEffect(() => {
-    if (walletResp && !walletResp.data?.data && (walletResp.data as any)?.message?.toLowerCase().includes('not found')) {
-      createWallet()
+  const handleCreateWallet = async () => {
+    try {
+      const keyPair = generateStellarKeypair()
+      saveWalletLocal(keyPair)
+      createWallet({
+        publicKey: keyPair.publicKey,
+        encryptedSecretKey: keyPair.secretKey // Ideally encrypt this in production
+      })
+    } catch (error) {
+      console.error('Failed to create wallet locally', error)
     }
-  }, [walletResp, createWallet])
+  }
 
-  const walletData = walletResp?.data?.data
+  const walletData = walletResp?.data?.data as any
+  const walletAddress = walletData?.id || walletData?.publicKey || walletData?.address || walletData?.accountId
+
+  const displayName = getUserDisplayName(user)
+  const initials = getUserInitials(user)
 
   const handleSignOut = () => {
     setShowLogoutModal(true)
@@ -188,7 +207,7 @@ export function CooperativeSidebar() {
               <div>
                 <div className="text-[13px] font-bold text-gray-900">Wallet</div>
                 <div className="text-[10px] text-gray-500 font-mono tracking-wide">
-                  {isLoadingWallet ? 'Loading...' : (walletData?.id ? `${walletData.id.slice(0, 10)}...${walletData.id.slice(-4)}` : 'No Wallet Address')}
+                  {isLoadingWallet ? 'Loading...' : (walletAddress ? `${walletAddress.slice(0, 10)}...${walletAddress.slice(-4)}` : 'No Wallet Address')}
                 </div>
               </div>
             </div>
@@ -208,11 +227,11 @@ export function CooperativeSidebar() {
                   <div className="flex justify-center py-2">
                     <span className="text-xs text-gray-500">Loading assets...</span>
                   </div>
-                ) : walletData ? (
+                ) : walletAddress ? (
                   <>
                     <div className="flex justify-between items-center text-gray-600">
-                      <span>{walletData.currency}</span>
-                      <span className="font-mono text-gray-900 font-bold">{walletData.balance.toFixed(2)}</span>
+                      <span>{walletData?.currency || 'NGN'}</span>
+                      <span className="font-mono text-gray-900 font-bold">{Number(walletData?.balance || 0).toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between items-center text-gray-600">
                       <span>AGT</span>
@@ -220,8 +239,15 @@ export function CooperativeSidebar() {
                     </div>
                   </>
                 ) : (
-                  <div className="flex justify-center py-2">
-                    <span className="text-xs text-gray-500">Could not load wallet</span>
+                  <div className="flex flex-col items-center justify-center py-4 gap-3">
+                    <span className="text-xs text-gray-500 text-center">No wallet found for this account.</span>
+                    <button
+                      onClick={handleCreateWallet}
+                      disabled={isCreatingWallet}
+                      className="flex w-full items-center justify-center rounded-lg bg-brand px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-white hover:bg-black transition-colors disabled:opacity-50 gap-2 shadow-sm"
+                    >
+                      {isCreatingWallet ? 'Creating...' : 'Create a Wallet'}
+                    </button>
                   </div>
                 )}
 
@@ -252,13 +278,13 @@ export function CooperativeSidebar() {
         {/* User Profile Footer */}
         <div className="border-t border-gray-200 p-4">
           <div className="flex items-center gap-3">
-            <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-blue-600 text-sm font-bold text-white">
-              {user?.email ? user.email.substring(0, 2).toUpperCase() : 'AG'}
+            <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand text-sm font-bold text-white">
+              {initials}
             </div>
             {!isCollapsedDesktop && (
               <div className="min-w-0 flex-1">
                 <p className="truncate text-[13px] font-bold text-gray-900">
-                  {user?.email ? user.email.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase()) : 'User'}
+                  {displayName}
                 </p>
                 <p className="truncate text-[10px] text-gray-500">{user?.email || 'Not signed in'}</p>
               </div>

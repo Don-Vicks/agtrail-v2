@@ -5,8 +5,7 @@
  * API Documentation for AgTrail Backend V2
  * OpenAPI spec version: 1.0.0
  */
-import type { UpdateOrgStatusRequestStatus } from './updateOrgStatusRequestStatus';
 
 export interface UpdateOrgStatusRequest {
-  status: UpdateOrgStatusRequestStatus;
+  isActive: boolean;
 }

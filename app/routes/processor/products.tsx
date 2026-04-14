@@ -22,6 +22,8 @@ import {
 import { Button } from '~/components/ui/button';
 import { Badge } from '~/components/ui/badge';
 import type { Route } from './+types/products';
+import { useGetProcessorsBatches } from '~/lib/api/generated/processors-batches/processors-batches';
+import type { ProcessorBatch } from '~/lib/api/generated/models';
 
 export function meta({ }: Route.MetaArgs) {
   return [
@@ -32,12 +34,6 @@ export function meta({ }: Route.MetaArgs) {
 
 // ─── Mock Data ───
 
-const mockInventory = [
-  { id: '1', name: 'Bera Flour', batch: 'BATCH-PB-20260120-0011', category: 'Fortified Flour', qty: 0, created: '1/20/2026' },
-  { id: '2', name: 'Tomatoe', batch: 'BATCH-PB-20251215-0010', category: 'Processed Grains', qty: 0, created: '1/6/2026' },
-  { id: '3', name: 'Tomatoe', batch: 'BATCH-PB-1765021676170', category: 'Other', qty: 0, created: '12/20/2025' },
-  { id: '4', name: 'Canned Beans', batch: 'PB-1764513448874', category: 'Processed Grains', qty: '100 kg', created: '11/30/2025' },
-]
 
 const mockTransfers = [
   { id: '1', ref: 'TRF-2026-058-0002', status: 'initiated', payment: 'pending', product: 'Unknown', qty: '90 kg', price: '₦89.00', to: 'Agro Proc', date: '3/9/2026' },
@@ -51,24 +47,27 @@ const mockTransfers = [
 // ─── Components ───
 
 function InventoryTab() {
+  const { data: batchesResp, isLoading } = useGetProcessorsBatches()
+  const batches = batchesResp?.data?.data || []
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <StatCard
-          label="Total Products"
-          value="4"
+          label="Total Batches"
+          value={isLoading ? '...' : batches.length.toString()}
           icon={<BoxesIcon className="size-5 text-blue-500" />}
           trend={{ value: 'Active', isPositive: true }}
         />
         <StatCard
           label="Available"
-          value="4"
+          value={isLoading ? '...' : batches.filter(b => b.status?.toLowerCase() === 'completed').length.toString()}
           icon={<CheckCircle className="size-5 text-emerald-500" />}
           trend={{ value: 'Verified', isPositive: true }}
         />
         <StatCard
           label="Pending"
-          value="0"
+          value={isLoading ? '...' : batches.filter(b => b.status?.toLowerCase() !== 'completed').length.toString()}
           icon={<Clock className="size-5 text-amber-500" />}
           trend={{ value: 'Stable', isPositive: true }}
         />
@@ -91,7 +90,12 @@ function InventoryTab() {
       </div>
 
       <div className="space-y-4">
-        {mockInventory.map(item => (
+        {isLoading && (
+          <div className="flex justify-center p-8">
+            <span className="text-gray-400 text-sm animate-pulse">Loading batches...</span>
+          </div>
+        )}
+        {!isLoading && batches.map(item => (
           <div key={item.id} className="group relative rounded-2xl border border-gray-100 bg-white p-6 transition-all hover:border-brand/30 hover:shadow-lg overflow-hidden flex flex-col sm:flex-row sm:items-center gap-6 shadow-sm">
             <div className="absolute top-0 right-0 p-4 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity pointer-events-none">
               <Package className="size-20" />
@@ -103,27 +107,30 @@ function InventoryTab() {
 
             <div className="flex-1 min-w-0 relative z-10 space-y-1">
               <div className="flex items-center gap-3 mb-1">
-                <h3 className="text-lg font-bold text-gray-900 uppercase tracking-tight group-hover:text-brand transition-colors">{item.name}</h3>
-                <Badge className="px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-widest border border-green-200 bg-green-50 text-emerald-600 shadow-none">
-                  active
+                <h3 className="text-lg font-bold text-gray-900 uppercase tracking-tight group-hover:text-brand transition-colors">{item.outputProductName}</h3>
+                <Badge className={cn(
+                  "px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-widest border shadow-none",
+                  item.status?.toLowerCase() === 'completed' ? "border-green-200 bg-green-50 text-emerald-600" : "border-amber-200 bg-amber-50 text-amber-600"
+                )}>
+                  {item.status || 'Draft'}
                 </Badge>
               </div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest italic pt-2 border-t border-gray-50">
                 <div className="space-y-1">
                   <span className="text-gray-300 block">Batch ID</span>
-                  <span className="text-gray-900 block truncate">{item.batch}</span>
+                  <span className="text-gray-900 block truncate">{item.batchCode}</span>
                 </div>
                 <div className="space-y-1">
                   <span className="text-gray-300 block">Category</span>
-                  <span className="text-gray-900 block">{item.category}</span>
+                  <span className="text-gray-900 block">{item.outputProductType}</span>
                 </div>
                 <div className="space-y-1">
                   <span className="text-gray-300 block">Quantity</span>
-                  <span className="text-gray-900 block">{item.qty}</span>
+                  <span className="text-gray-900 block italic opacity-50">N/A</span>
                 </div>
                 <div className="space-y-1">
                   <span className="text-gray-300 block">Date</span>
-                  <span className="text-gray-900 block">{item.created}</span>
+                  <span className="text-gray-900 block">{new Date(item.createdAt).toLocaleDateString()}</span>
                 </div>
               </div>
             </div>
