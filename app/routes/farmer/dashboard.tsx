@@ -19,7 +19,7 @@ import {
   LayoutDashboard,
   MoreHorizontal
 } from 'lucide-react'
-import { useGetFarmerDashboardStats } from '~/lib/api/generated/farmers/farmers'
+import { useGetFarmersDashboardStats } from '~/lib/api/generated/farmers/farmers'
 import { QuickActions } from '~/components/quick-actions'
 import {
   quickActions as MOCK_QUICK_ACTIONS
@@ -37,7 +37,7 @@ export function meta({ }: Route.MetaArgs) {
 
 export default function FarmerDashboard() {
   // Single API hook for consolidated dashboard data
-  const { data: dashboardResponse, isLoading } = useGetFarmerDashboardStats()
+  const { data: dashboardResponse, isLoading } = useGetFarmersDashboardStats()
 
   // Extract real data layers
   const statsData = dashboardResponse?.data?.data
