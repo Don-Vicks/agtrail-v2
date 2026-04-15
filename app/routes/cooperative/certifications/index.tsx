@@ -4,6 +4,7 @@ import { PageHeader } from '~/components/page-header'
 import { StatCard } from '~/components/stat-card'
 import { Button } from '~/components/ui/button'
 import { Badge } from '~/components/ui/badge'
+import { useGetCertifications } from '~/lib/api/generated/certifications/certifications'
 import { 
   Plus, 
   Search, 
@@ -48,74 +49,67 @@ interface CertificationInfo {
   type: CertType;
 }
 
-const MOCK_CERTIFICATIONS: CertificationInfo[] = [
-  {
-    id: 'cert-1',
-    title: 'global_gap',
-    subtitle: 'W-Standard Governance',
-    status: 'Active',
-    verified: false,
-    certNo: 'CERT-1771686980745',
-    issueDate: 'Feb 11, 2026',
-    expiryDate: 'Feb 24, 2026',
-    appliedTo: 'Olamide Farms',
-    type: 'Farm',
-  },
-  {
-    id: 'cert-2',
-    title: 'rainforest_alliance',
-    subtitle: 'Ecological Sustainability',
-    status: 'Active',
-    verified: false,
-    certNo: 'CERT-1771687141408',
-    issueDate: 'Feb 20, 2026',
-    expiryDate: 'Feb 25, 2026',
-    appliedTo: 'Maize',
-    type: 'Product',
-  },
-  {
-    id: 'cert-3',
-    title: 'organic_eu',
-    subtitle: 'EU Organic Standard',
-    status: 'Pending',
-    verified: false,
-    certNo: 'CERT-1771690000000',
-    issueDate: 'N/A',
-    expiryDate: 'N/A',
-    appliedTo: 'Sesame',
-    type: 'Product',
-  },
-  {
-    id: 'cert-4',
-    title: 'fairtrade',
-    subtitle: 'Fairtrade International',
-    status: 'Pending',
-    verified: false,
-    certNo: 'CERT-1771691111111',
-    issueDate: 'N/A',
-    expiryDate: 'N/A',
-    appliedTo: 'Baba Beji Farms',
-    type: 'Farm',
-  }
-];
-
 export default function ViewCertificationsPage() {
+  const { data: certsResp, isLoading } = useGetCertifications()
   const [activeTab, setActiveTab] = useState<'All' | 'Farm' | 'Product'>('All')
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
 
-  // Compute stats
-  const totalCerts = MOCK_CERTIFICATIONS.length
-  const activeCerts = MOCK_CERTIFICATIONS.filter(c => c.status === 'Active').length
-  const expiredCerts = MOCK_CERTIFICATIONS.filter(c => c.status === 'Expired').length
-  const pendingCerts = MOCK_CERTIFICATIONS.filter(c => c.status === 'Pending').length
+  const certifications = useMemo(() => {
+    const raw = certsResp?.data?.data
+    if (!Array.isArray(raw)) return [] as CertificationInfo[]
 
-  const farmCertsCount = MOCK_CERTIFICATIONS.filter(c => c.type === 'Farm').length
-  const productCertsCount = MOCK_CERTIFICATIONS.filter(c => c.type === 'Product').length
+    const normalizeStatus = (status: string, expiryDate: unknown): CertStatus => {
+      const normalized = (status || '').toLowerCase()
+      if (normalized.includes('expire')) return 'Expired'
+      if (normalized.includes('pending') || normalized.includes('review')) return 'Pending'
+      if (normalized.includes('active') || normalized.includes('valid') || normalized.includes('approved')) return 'Active'
+
+      if (typeof expiryDate === 'string' && expiryDate) {
+        const expiryTime = new Date(expiryDate).getTime()
+        if (!Number.isNaN(expiryTime) && expiryTime < Date.now()) return 'Expired'
+      }
+      return 'Pending'
+    }
+
+    const formatDate = (value: unknown) => {
+      if (typeof value !== 'string' || !value) return 'N/A'
+      const parsed = new Date(value)
+      if (Number.isNaN(parsed.getTime())) return 'N/A'
+      return parsed.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
+    }
+
+    const mapType = (entityType: string): CertType => {
+      const t = (entityType || '').toLowerCase()
+      return t.includes('farm_product') || t.includes('product') || t.includes('batch') ? 'Product' : 'Farm'
+    }
+
+    return raw.map((cert: any) => ({
+      id: cert.id,
+      title: cert.certificationType || 'Unknown Certification',
+      subtitle: cert.certifyingBody || 'Unknown Certifying Body',
+      status: normalizeStatus(cert.status, cert.expiryDate),
+      verified: !!cert.verificationDate,
+      certNo: cert.certificateNumber || 'N/A',
+      issueDate: formatDate(cert.issueDate),
+      expiryDate: formatDate(cert.expiryDate),
+      appliedTo: cert.entityId || 'N/A',
+      type: mapType(cert.entityType),
+    }))
+  }, [certsResp])
+
+  // Compute stats
+  const totalCerts = certifications.length
+  const activeCerts = certifications.filter(c => c.status === 'Active').length
+  const expiredCerts = certifications.filter(c => c.status === 'Expired').length
+  const pendingCerts = certifications.filter(c => c.status === 'Pending').length
+
+  const farmCertsCount = certifications.filter(c => c.type === 'Farm').length
+  const productCertsCount = certifications.filter(c => c.type === 'Product').length
 
   // Filter lists
   const filteredCerts = useMemo(() => {
-    return MOCK_CERTIFICATIONS.filter(cert => {
+    return certifications.filter(cert => {
       // Type Match
       if (activeTab === 'Farm' && cert.type !== 'Farm') return false;
       if (activeTab === 'Product' && cert.type !== 'Product') return false;
@@ -137,7 +131,7 @@ export default function ViewCertificationsPage() {
 
       return true;
     })
-  }, [activeTab, searchQuery, statusFilter])
+  }, [activeTab, searchQuery, statusFilter, certifications])
 
   return (
     <div className="space-y-6 pb-10 px-1">
@@ -255,14 +249,18 @@ export default function ViewCertificationsPage() {
 
         {/* Certification Registry Grid */}
         <div className="grid grid-cols-1 gap-6">
-          {filteredCerts.length > 0 ? (
+          {isLoading ? (
+            <div className="rounded-2xl border border-gray-100 p-12 text-center text-sm text-gray-500">
+              Loading certifications...
+            </div>
+          ) : filteredCerts.length > 0 ? (
             filteredCerts.map((cert) => (
               <div key={cert.id} className="group relative rounded-2xl border border-gray-100 bg-white p-6 transition-all hover:border-brand/30 hover:shadow-lg overflow-hidden flex flex-col sm:flex-row sm:items-center gap-8 shadow-sm">
                 <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none transition-opacity group-hover:opacity-20 scale-125">
                   <ShieldCheck className="size-20 text-brand" />
                 </div>
 
-                <div className="flex-shrink-0 size-16 rounded-2xl bg-brand/5 border border-brand/10 flex items-center justify-center text-brand relative z-10">
+                <div className="shrink-0 size-16 rounded-2xl bg-brand/5 border border-brand/10 flex items-center justify-center text-brand relative z-10">
                   <Award className="size-8" />
                 </div>
 

@@ -1,10 +1,12 @@
 import { useCallback, useMemo, useState } from 'react'
+import { toast } from 'sonner'
 import { PageHeader } from '~/components/page-header'
 import { CERTIFICATION_TYPES } from '~/lib/data/certification-types'
 import { DatePicker } from '~/components/ui/date-picker'
 import { useGetFarms } from '~/lib/api/generated/farms/farms'
 import { useGetFarmersProducts } from '~/lib/api/generated/farm-products/farm-products'
 import { usePostCertificationsUpload } from '~/lib/api/generated/certifications/certifications'
+import { usePostUpload } from '~/lib/api/generated/upload/upload'
 import type { Route } from './+types/farm-certification'
 
 export function meta({ }: Route.MetaArgs) {
@@ -97,6 +99,7 @@ export default function FarmCertificationPage() {
 
   // Modal form state
   const [certType, setCertType] = useState('')
+  const [certName, setCertName] = useState('')
   const [certOrg, setCertOrg] = useState('')
   const [dateIssued, setDateIssued] = useState('')
   const [dateExpiry, setDateExpiry] = useState('')
@@ -132,6 +135,7 @@ export default function FarmCertificationPage() {
   const openModal = useCallback((farmId: string) => {
     setSelectedFarmId(farmId)
     setCertType('')
+    setCertName('')
     setCertOrg('')
     setDateIssued('')
     setDateExpiry('')
@@ -144,37 +148,47 @@ export default function FarmCertificationPage() {
     setSelectedFarmId(null)
   }, [])
 
-  const { mutate: uploadCert, isPending: isUploading } = usePostCertificationsUpload()
+  const { mutateAsync: uploadCert, isPending: isSavingCertification } = usePostCertificationsUpload()
+  const { mutateAsync: uploadDocument, isPending: isUploadingDocument } = usePostUpload()
+  const isUploading = isSavingCertification || isUploadingDocument
 
-  const handleUpload = () => {
-    if (!selectedFarmId || !certType) {
-      alert('Please fill down required fields (Certification Type, Farm)')
+  const handleUpload = async () => {
+    if (!selectedFarmId || !certType || !uploadedFile) {
+      toast.error('Please fill all required fields and upload a certificate file')
       return
     }
 
-    uploadCert(
-      {
+    try {
+      const uploadResponse = await uploadDocument({
+        data: {
+          farmCertificate: uploadedFile,
+        },
+      })
+
+      const uploadedUrl = uploadResponse?.data?.urls?.[0]
+      if (!uploadedUrl) {
+        toast.error('Upload succeeded but no document URL was returned')
+        return
+      }
+
+      await uploadCert({
         data: {
           certificationTypeId: certType,
           certifiedEntityType: 'farm',
           farmId: selectedFarmId,
-          certificateNumber: certOrg, // using certOrg input temporarily for cert number/name since schema lacks both
+          certificateNumber: certName || certOrg,
           issueDate: dateIssued ? new Date(dateIssued).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
           expiryDate: dateExpiry ? new Date(dateExpiry).toISOString().split('T')[0] : undefined,
-          documentUrl: 'https://example.com/certificate.pdf', // Dummy document upload string
+          documentUrl: uploadedUrl,
         },
-      },
-      {
-        onSuccess: () => {
-          closeModal()
-          // Optionally refetch certifications or show toast
-        },
-        onError: (err) => {
-          console.error('Failed to upload', err)
-          alert('Failed to upload certification')
-        }
-      }
-    )
+      })
+
+      toast.success('Farm certification uploaded successfully')
+      closeModal()
+    } catch (err) {
+      console.error('Failed to upload certification', err)
+      toast.error('Failed to upload certification')
+    }
   }
 
   const handleFileDrop = useCallback((e: React.DragEvent) => {
@@ -230,7 +244,7 @@ export default function FarmCertificationPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <button className="flex h-10 items-center justify-center gap-2 rounded-md border border-gray-200 bg-white px-4 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors shadow-sm font-bold">
+          <button className="flex h-10 items-center justify-center gap-2 rounded-md border border-gray-200 bg-white px-4 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-colors shadow-sm">
             <SearchIcon />
             Search
           </button>
@@ -399,7 +413,13 @@ export default function FarmCertificationPage() {
                 </div>
                 <div className="space-y-1.5">
                   <label className="block text-xs font-bold uppercase tracking-wider text-gray-700">Certification Name <span className="text-red-500">*</span></label>
-                  <input type="text" placeholder="e.g., GLOBALG.A.P." className="h-10 w-full rounded-md border border-gray-200 bg-white px-3 text-sm font-bold text-gray-900 placeholder:text-gray-300 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all" />
+                  <input
+                    type="text"
+                    placeholder="e.g., GLOBALG.A.P."
+                    value={certName}
+                    onChange={(e) => setCertName(e.target.value)}
+                    className="h-10 w-full rounded-md border border-gray-200 bg-white px-3 text-sm font-bold text-gray-900 placeholder:text-gray-300 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all"
+                  />
                 </div>
               </div>
 

@@ -1,11 +1,13 @@
 import { QRCodeSVG } from 'qrcode.react'
 import { useCallback, useMemo, useState } from 'react'
+import { toast } from 'sonner'
 import { PageHeader } from '~/components/page-header'
 import { CERTIFICATION_TYPES } from '~/lib/data/certification-types'
 import { DatePicker } from '~/components/ui/date-picker'
 import { useGetFarmersProducts } from '~/lib/api/generated/farm-products/farm-products'
 import { useGetFarms } from '~/lib/api/generated/farms/farms'
 import { usePostCertificationsUpload } from '~/lib/api/generated/certifications/certifications'
+import { usePostUpload } from '~/lib/api/generated/upload/upload'
 import { EmptyState } from '~/components/empty-state'
 import { Package, Search } from 'lucide-react'
 import type { Route } from './+types/product-certification'
@@ -174,18 +176,31 @@ export default function ProductCertificationPage() {
     setSelectedProductId(null)
   }, [])
 
-  const { mutate: uploadCert, isPending: isUploading } = usePostCertificationsUpload()
+  const { mutateAsync: uploadCert, isPending: isSavingCertification } = usePostCertificationsUpload()
+  const { mutateAsync: uploadDocument, isPending: isUploadingDocument } = usePostUpload()
+  const isUploading = isSavingCertification || isUploadingDocument
 
-  const handleUpload = () => {
-    if (!selectedProductId || !certType) {
-      alert('Please fill out the required fields (Certification Type, etc.)')
+  const handleUpload = async () => {
+    if (!selectedProductId || !certType || !uploadedFile) {
+      toast.error('Please fill all required fields and upload a certificate file')
       return
     }
 
     const originalProduct = productsResp?.data?.data?.find((p: any) => p.id === selectedProductId)
+    try {
+      const uploadResponse = await uploadDocument({
+        data: {
+          productCertificate: uploadedFile,
+        },
+      })
 
-    uploadCert(
-      {
+      const uploadedUrl = uploadResponse?.data?.urls?.[0]
+      if (!uploadedUrl) {
+        toast.error('Upload succeeded but no document URL was returned')
+        return
+      }
+
+      await uploadCert({
         data: {
           certificationTypeId: certType,
           certifiedEntityType: 'farm_product',
@@ -194,19 +209,16 @@ export default function ProductCertificationPage() {
           certificateNumber: certOrg,
           issueDate: dateIssued ? new Date(dateIssued).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
           expiryDate: dateExpiry ? new Date(dateExpiry).toISOString().split('T')[0] : undefined,
-          documentUrl: 'https://example.com/certificate.pdf',
+          documentUrl: uploadedUrl,
         },
-      },
-      {
-        onSuccess: () => {
-          closeModal()
-        },
-        onError: (err) => {
-          console.error(err)
-          alert('Failed to save certification')
-        }
-      }
-    )
+      })
+
+      toast.success('Product certification uploaded successfully')
+      closeModal()
+    } catch (err) {
+      console.error('Failed to save certification', err)
+      toast.error('Failed to save certification')
+    }
   }
 
   const handleFileDrop = useCallback((e: React.DragEvent) => {

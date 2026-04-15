@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Button } from '~/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '~/components/ui/dialog'
 import { Input } from '~/components/ui/input'
@@ -13,12 +13,165 @@ import { toast } from 'sonner'
 interface StartCropCycleModalProps {
   isOpen: boolean
   onClose: () => void
+  onCropCycleCreated?: () => void
   farmId?: string
   farmName: string
   farmLocation: string
   farmerName: string
   farmerInitials: string
   farmerColor: string
+}
+
+function MapAreaPicker({
+  points,
+  onAddPoint,
+}: {
+  points: [number, number][]
+  onAddPoint: (lat: number, lng: number) => void
+}) {
+  const [mapComponents, setMapComponents] = useState<{
+    MapContainer: typeof import('react-leaflet')['MapContainer']
+    TileLayer: typeof import('react-leaflet')['TileLayer']
+    Marker: typeof import('react-leaflet')['Marker']
+    Polygon: typeof import('react-leaflet')['Polygon']
+    useMapEvents: typeof import('react-leaflet')['useMapEvents']
+    useMap: typeof import('react-leaflet')['useMap']
+  } | null>(null)
+  const [leafletLoaded, setLeafletLoaded] = useState(false)
+  const [loadError, setLoadError] = useState(false)
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    let mounted = true
+
+    Promise.all([import('leaflet'), import('react-leaflet')])
+      .then(([L, RL]) => {
+        if (!mounted) return
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        delete (L.Icon.Default.prototype as any)._getIconUrl
+        L.Icon.Default.mergeOptions({
+          iconRetinaUrl:
+            'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
+          iconUrl:
+            'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+          shadowUrl:
+            'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+        })
+
+        if (!document.querySelector('link[href*="leaflet"]')) {
+          const link = document.createElement('link')
+          link.rel = 'stylesheet'
+          link.href =
+            'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css'
+          document.head.appendChild(link)
+        }
+
+        setMapComponents({
+          MapContainer: RL.MapContainer,
+          TileLayer: RL.TileLayer,
+          Marker: RL.Marker,
+          Polygon: RL.Polygon,
+          useMapEvents: RL.useMapEvents,
+          useMap: RL.useMap,
+        })
+        setLeafletLoaded(true)
+      })
+      .catch((err) => {
+        console.error('Leaflet load error:', err)
+        setLoadError(true)
+      })
+
+    return () => {
+      mounted = false
+    }
+  }, [])
+
+  if (loadError) {
+    return (
+      <div className='flex h-72 items-center justify-center rounded-md bg-red-50 text-sm text-red-500'>
+        Failed to load map.
+      </div>
+    )
+  }
+
+  if (!leafletLoaded || !mapComponents) {
+    return (
+      <div className='flex h-72 items-center justify-center rounded-md bg-gray-100 text-sm text-gray-400'>
+        Loading map...
+      </div>
+    )
+  }
+
+  const { MapContainer, TileLayer, Marker, Polygon, useMapEvents, useMap } =
+    mapComponents
+
+  function MapResizeTrigger() {
+    const map = useMap()
+    useEffect(() => {
+      const timer = setTimeout(() => {
+        map.invalidateSize()
+      }, 100)
+      return () => clearTimeout(timer)
+    }, [map])
+    return null
+  }
+
+  function ClickHandler() {
+    useMapEvents({
+      click(e) {
+        onAddPoint(e.latlng.lat, e.latlng.lng)
+      },
+    })
+    return null
+  }
+
+  return (
+    <MapContainer
+      center={[9.06, 7.49] as [number, number]}
+      zoom={13}
+      className='h-full w-full rounded-md z-0 min-h-[320px]'
+    >
+      <TileLayer
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        url='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+      />
+      <MapResizeTrigger />
+      <ClickHandler />
+      {points.map((point, idx) => (
+        <Marker key={idx} position={point} />
+      ))}
+      {points.length >= 3 && (
+        <Polygon
+          positions={points}
+          pathOptions={{
+            color: '#2E5A27',
+            fillColor: '#2E5A27',
+            fillOpacity: 0.2,
+          }}
+        />
+      )}
+    </MapContainer>
+  )
+}
+
+function calculatePolygonArea(points: [number, number][]): number {
+  if (points.length < 3) return 0
+
+  const toRadians = (deg: number) => (deg * Math.PI) / 180
+  const R = 6371000
+  let area = 0
+  const n = points.length
+
+  for (let i = 0; i < n; i++) {
+    const j = (i + 1) % n
+    const lat1 = toRadians(points[i][0])
+    const lat2 = toRadians(points[j][0])
+    const dLng = toRadians(points[j][1] - points[i][1])
+    area += dLng * (2 + Math.sin(lat1) + Math.sin(lat2))
+  }
+
+  return Math.abs((area * R * R) / 2)
 }
 
 function StepIndicator({ currentStep }: { currentStep: number }) {
@@ -67,6 +220,7 @@ function StepIndicator({ currentStep }: { currentStep: number }) {
 export function StartCropCycleModal({
   isOpen,
   onClose,
+  onCropCycleCreated,
   farmId,
   farmName,
   farmLocation,
@@ -75,6 +229,8 @@ export function StartCropCycleModal({
   farmerColor,
 }: StartCropCycleModalProps) {
   const [step, setStep] = useState(1)
+  const [isMapPickerOpen, setIsMapPickerOpen] = useState(false)
+  const [boundaryPoints, setBoundaryPoints] = useState<[number, number][]>([])
   const [formData, setFormData] = useState({
     productName: '',
     cropCategory: '',
@@ -93,8 +249,35 @@ export function StartCropCycleModal({
     setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
+  const handleAddPoint = useCallback((lat: number, lng: number) => {
+    setBoundaryPoints((prev) => [...prev, [lat, lng]])
+  }, [])
+
+  const handleRemoveLastPoint = () => {
+    setBoundaryPoints((prev) => prev.slice(0, -1))
+  }
+
+  const handleClearPoints = () => {
+    setBoundaryPoints([])
+  }
+
+  const areaSqMeters = calculatePolygonArea(boundaryPoints)
+  const areaHectares = areaSqMeters / 10000
+
+  useEffect(() => {
+    if (boundaryPoints.length < 3 || areaHectares <= 0) return
+    const mappedValue = areaHectares.toFixed(2)
+    setFormData((prev) =>
+      prev.hectaresPlanted === mappedValue
+        ? prev
+        : { ...prev, hectaresPlanted: mappedValue },
+    )
+  }, [boundaryPoints.length, areaHectares])
+
   const handleClose = () => {
     setStep(1)
+    setIsMapPickerOpen(false)
+    setBoundaryPoints([])
     setFormData({
       productName: '', cropCategory: '', variety: '', description: '', isOrganic: false,
       plantingDate: '', expectedHarvest: '', growingSeason: '',
@@ -108,6 +291,8 @@ export function StartCropCycleModal({
     mutation: {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: [`/farms/${farmId}`] })
+        queryClient.invalidateQueries({ queryKey: [`/farms/${farmId}/crop-cycles`] })
+        onCropCycleCreated?.()
         toast.success('Crop cycle started successfully')
         handleClose()
       },
@@ -294,13 +479,72 @@ export function StartCropCycleModal({
               </div>
 
               {/* Draw on Map */}
-              <Button variant="outline" className="w-full flex items-center justify-center gap-2 py-6 text-gray-700">
+              <Button
+                type='button'
+                variant='outline'
+                onClick={() => setIsMapPickerOpen((prev) => !prev)}
+                className='w-full flex items-center justify-center gap-2 py-6 text-gray-700'
+              >
                 <svg className="size-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" /><circle cx="12" cy="10" r="3" />
                 </svg>
-                Draw Area on Map
+                {isMapPickerOpen ? 'Hide Map' : 'Draw Area on Map'}
               </Button>
-              <p className="text-center text-xs text-gray-400">or enter manually</p>
+              {isMapPickerOpen && (
+                <div className='space-y-3 rounded-md border border-gray-200 p-3'>
+                  <p className='text-xs text-gray-500'>
+                    Click on the map to add boundary points. Area is auto-filled
+                    into "Hectares Planted" after at least 3 points.
+                  </p>
+                  <div className='grid grid-cols-3 gap-2'>
+                    <div className='rounded border border-gray-200 bg-gray-50 p-2'>
+                      <p className='text-[10px] text-gray-400 uppercase'>Points</p>
+                      <p className='text-sm font-semibold text-gray-900'>
+                        {boundaryPoints.length}
+                      </p>
+                    </div>
+                    <div className='rounded border border-green-200 bg-green-50 p-2'>
+                      <p className='text-[10px] text-green-700 uppercase'>Hectares</p>
+                      <p className='text-sm font-semibold text-green-700'>
+                        {areaHectares.toFixed(2)}
+                      </p>
+                    </div>
+                    <div className='rounded border border-gray-200 bg-gray-50 p-2'>
+                      <p className='text-[10px] text-gray-400 uppercase'>Sq m</p>
+                      <p className='text-sm font-semibold text-gray-900'>
+                        {Math.round(areaSqMeters)}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className='overflow-hidden rounded-md border border-gray-200 w-full min-h-[320px]'>
+                    <MapAreaPicker
+                      points={boundaryPoints}
+                      onAddPoint={handleAddPoint}
+                    />
+                  </div>
+
+                  {boundaryPoints.length > 0 && (
+                    <div className='flex items-center gap-2'>
+                      <button
+                        type='button'
+                        onClick={handleRemoveLastPoint}
+                        className='rounded-md border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50'
+                      >
+                        Undo Last Point
+                      </button>
+                      <button
+                        type='button'
+                        onClick={handleClearPoints}
+                        className='rounded-md border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50'
+                      >
+                        Clear All Points
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+              <p className='text-center text-xs text-gray-400'>or enter manually</p>
 
               {/* Hectares + Unit */}
               <div className="grid grid-cols-2 gap-4">

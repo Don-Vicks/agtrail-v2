@@ -1,5 +1,3 @@
-import '../../public/logo.png'
-
 interface AgrolinkingLogoProps {
   className?: string
 }

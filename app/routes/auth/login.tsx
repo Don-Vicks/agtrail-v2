@@ -23,16 +23,36 @@ export default function LoginPage() {
   const { mutate: login, isPending } = usePostAuthLogin({
     mutation: {
       onSuccess: (response) => {
-        const authData = response.data?.data
-        if (authData?.user && authData?.session?.token) {
-          setAuth(authData.user, authData.session.token)
+        // Be resilient to backend envelope variations:
+        // - { success, data: { user, session: { token } } }
+        // - { success, data: { data: { user, session: { token } } } }
+        // - { success, data: { user, token } }
+        const payload: any = response?.data
+        const authData: any = payload?.data?.user ? payload.data : payload?.data?.data || payload?.data || payload
+        const user = authData?.user
+        const token = authData?.session?.token || authData?.token
+
+        if (user && token) {
+          setAuth(user, token)
           navigate('/farmer')
         } else {
-          setErrorMsg('Invalid response from server. Missing user or token.')
+          setErrorMsg(
+            'Login response is missing user/token. Please contact support if this persists.',
+          )
         }
       },
       onError: (err: any) => {
-        setErrorMsg(err.response?.data?.message || 'Invalid email or password. Please try again.')
+        const status = err?.response?.status
+        const backendMessage = err?.response?.data?.message
+        if (!status) {
+          setErrorMsg(
+            'Unable to reach authentication server. Check backend/API URL and try again.',
+          )
+          return
+        }
+        setErrorMsg(
+          backendMessage || 'Invalid email or password. Please try again.',
+        )
       },
     },
   })

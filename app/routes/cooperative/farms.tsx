@@ -15,7 +15,7 @@ import { FarmCard } from '~/components/farm-card'
 import { PageHeader } from '~/components/page-header'
 import { StatCard } from '~/components/stat-card'
 import { Button } from '~/components/ui/button'
-import { useGetFarms } from '~/lib/api/generated/farms/farms'
+import { useGetCooperativesFarms as useGetCopertativesFarms } from '~/lib/api/generated/cooperatives/cooperatives'
 import type { Route } from './+types/farms'
 import { cn } from '~/lib/utils'
 
@@ -33,14 +33,12 @@ export default function CooperativeFarms() {
   const itemsPerPage = 12
   const [rowsPerPage, setRowsPerPage] = useState(itemsPerPage)
 
-  const { data: farmsResponse, isLoading, error } = useGetFarms()
+  const { data: farmsResponse, isLoading, error } = useGetCopertativesFarms()
   const farms = farmsResponse?.data?.data || []
 
   const filteredFarms = farms.filter((farm) =>
     farm.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (farm.address && farm.address.toLowerCase().includes(searchQuery.toLowerCase())) ||
-    (farm.state && farm.state.toLowerCase().includes(searchQuery.toLowerCase())) ||
-    (farm.lga && farm.lga.toLowerCase().includes(searchQuery.toLowerCase()))
+    (farm.state && farm.state.toLowerCase().includes(searchQuery.toLowerCase()))
   )
 
   const totalPages = Math.ceil(filteredFarms.length / rowsPerPage)
@@ -49,8 +47,8 @@ export default function CooperativeFarms() {
     currentPage * rowsPerPage
   )
 
-  const totalArea = farms.reduce((sum, farm) => sum + (farm.sizeHectares || 0), 0)
-  const activeFarms = farms.filter(farm => farm.status === 'active').length
+  const totalArea = farms.reduce((sum, farm) => sum + (farm.totalArea || 0), 0)
+  const activeFarms = farms.length
 
   if (isLoading) {
     return (

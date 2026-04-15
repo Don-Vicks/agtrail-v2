@@ -15,10 +15,12 @@ interface FarmCardProps {
 export function FarmCard({ farm, action = 'view', onAction, basePath = '/farmer/farms', ownerName }: FarmCardProps) {
   // Normalise fields — supports both API Farm and legacy mock shapes
   const location = (farm as any).state || (farm as any).lga || (farm as any).region || (farm as any).location || (farm as any).address || 'No location'
-  const hectares = (farm as any).sizeHectares ?? (farm as any).hectares ?? 0
+  const hectares = (farm as any).sizeHectares ?? (farm as any).hectares ?? (farm as any).totalArea ?? 0
 
-  const ownerLabel = ownerName || (farm as any).contactEmail || (farm as any).owner || 'Unknown'
-  const ownerInitials = (farm as any).ownerInitials || ownerLabel
+  const ownerSource = ownerName ?? (farm as any).contactEmail ?? (farm as any).owner ?? 'Unknown'
+  const ownerLabel = typeof ownerSource === 'string' ? ownerSource : String(ownerSource)
+  const ownerInitialsSource = (farm as any).ownerInitials
+  const ownerInitials = (typeof ownerInitialsSource === 'string' && ownerInitialsSource.trim() ? ownerInitialsSource : ownerLabel)
     .split(/[@.\s]/)
     .filter(Boolean)
     .slice(0, 2)
