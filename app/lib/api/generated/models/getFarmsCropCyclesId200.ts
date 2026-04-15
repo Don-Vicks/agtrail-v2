@@ -5,9 +5,9 @@
  * API Documentation for AgTrail Backend V2
  * OpenAPI spec version: 1.0.0
  */
-import type { GetCooperativesFarmers200DataItem } from './getCooperativesFarmers200DataItem';
+import type { CropCycle } from './cropCycle';
 
-export type GetCooperativesFarmers200 = {
+export type GetFarmsCropCyclesId200 = {
   success: boolean;
-  data: GetCooperativesFarmers200DataItem[];
+  data: CropCycle;
 };

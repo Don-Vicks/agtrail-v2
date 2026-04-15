@@ -13,4 +13,6 @@ export interface LogDiseaseDiagnosisRequest {
   diagnosticMethod?: string;
   isConfirmed?: boolean;
   diagnosedByVet?: string;
+  /** URL returned from /api/upload (use fieldname "kycDocument") */
+  diseaseReportUrl?: string;
 }

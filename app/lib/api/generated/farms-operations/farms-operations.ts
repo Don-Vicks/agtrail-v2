@@ -25,7 +25,9 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  GetFarmsCropCyclesIdOperations200,
   GetFarmsIdOperations200,
+  GetFarmsIdOperationsParams,
   LogFarmOperationRequest,
   PostFarmsIdOperations201
 } from '.././models';
@@ -38,7 +40,117 @@ type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
 /**
- * @summary Get farm operations
+ * @summary Get all operations/activities for a specific crop cycle
+ */
+export type getFarmsCropCyclesIdOperationsResponse200 = {
+  data: GetFarmsCropCyclesIdOperations200
+  status: 200
+}
+
+export type getFarmsCropCyclesIdOperationsResponseSuccess = (getFarmsCropCyclesIdOperationsResponse200) & {
+  headers: Headers;
+};
+;
+
+export type getFarmsCropCyclesIdOperationsResponse = (getFarmsCropCyclesIdOperationsResponseSuccess)
+
+export const getGetFarmsCropCyclesIdOperationsUrl = (id: string,) => {
+
+
+  
+
+  return `/farms/crop-cycles/${id}/operations`
+}
+
+export const getFarmsCropCyclesIdOperations = async (id: string, options?: RequestInit): Promise<getFarmsCropCyclesIdOperationsResponse> => {
+  
+  return customFetch<getFarmsCropCyclesIdOperationsResponse>(getGetFarmsCropCyclesIdOperationsUrl(id),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+  
+
+
+
+
+export const getGetFarmsCropCyclesIdOperationsQueryKey = (id: string,) => {
+    return [
+    `/farms/crop-cycles/${id}/operations`
+    ] as const;
+    }
+
+    
+export const getGetFarmsCropCyclesIdOperationsQueryOptions = <TData = Awaited<ReturnType<typeof getFarmsCropCyclesIdOperations>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFarmsCropCyclesIdOperations>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetFarmsCropCyclesIdOperationsQueryKey(id);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getFarmsCropCyclesIdOperations>>> = ({ signal }) => getFarmsCropCyclesIdOperations(id, { signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getFarmsCropCyclesIdOperations>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetFarmsCropCyclesIdOperationsQueryResult = NonNullable<Awaited<ReturnType<typeof getFarmsCropCyclesIdOperations>>>
+export type GetFarmsCropCyclesIdOperationsQueryError = unknown
+
+
+export function useGetFarmsCropCyclesIdOperations<TData = Awaited<ReturnType<typeof getFarmsCropCyclesIdOperations>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFarmsCropCyclesIdOperations>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getFarmsCropCyclesIdOperations>>,
+          TError,
+          Awaited<ReturnType<typeof getFarmsCropCyclesIdOperations>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetFarmsCropCyclesIdOperations<TData = Awaited<ReturnType<typeof getFarmsCropCyclesIdOperations>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFarmsCropCyclesIdOperations>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getFarmsCropCyclesIdOperations>>,
+          TError,
+          Awaited<ReturnType<typeof getFarmsCropCyclesIdOperations>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetFarmsCropCyclesIdOperations<TData = Awaited<ReturnType<typeof getFarmsCropCyclesIdOperations>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFarmsCropCyclesIdOperations>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Get all operations/activities for a specific crop cycle
+ */
+
+export function useGetFarmsCropCyclesIdOperations<TData = Awaited<ReturnType<typeof getFarmsCropCyclesIdOperations>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFarmsCropCyclesIdOperations>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetFarmsCropCyclesIdOperationsQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+/**
+ * @summary Get farm operations (or filter by crop cycle)
  */
 export type getFarmsIdOperationsResponse200 = {
   data: GetFarmsIdOperations200
@@ -52,17 +164,26 @@ export type getFarmsIdOperationsResponseSuccess = (getFarmsIdOperationsResponse2
 
 export type getFarmsIdOperationsResponse = (getFarmsIdOperationsResponseSuccess)
 
-export const getGetFarmsIdOperationsUrl = (id: string,) => {
+export const getGetFarmsIdOperationsUrl = (id: string,
+    params?: GetFarmsIdOperationsParams,) => {
+  const normalizedParams = new URLSearchParams();
 
+  Object.entries(params || {}).forEach(([key, value]) => {
+    
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
 
-  
+  const stringifiedParams = normalizedParams.toString();
 
-  return `/farms/${id}/operations`
+  return stringifiedParams.length > 0 ? `/farms/${id}/operations?${stringifiedParams}` : `/farms/${id}/operations`
 }
 
-export const getFarmsIdOperations = async (id: string, options?: RequestInit): Promise<getFarmsIdOperationsResponse> => {
+export const getFarmsIdOperations = async (id: string,
+    params?: GetFarmsIdOperationsParams, options?: RequestInit): Promise<getFarmsIdOperationsResponse> => {
   
-  return customFetch<getFarmsIdOperationsResponse>(getGetFarmsIdOperationsUrl(id),
+  return customFetch<getFarmsIdOperationsResponse>(getGetFarmsIdOperationsUrl(id,params),
   {      
     ...options,
     method: 'GET'
@@ -75,23 +196,25 @@ export const getFarmsIdOperations = async (id: string, options?: RequestInit): P
 
 
 
-export const getGetFarmsIdOperationsQueryKey = (id: string,) => {
+export const getGetFarmsIdOperationsQueryKey = (id: string,
+    params?: GetFarmsIdOperationsParams,) => {
     return [
-    `/farms/${id}/operations`
+    `/farms/${id}/operations`, ...(params ? [params] : [])
     ] as const;
     }
 
     
-export const getGetFarmsIdOperationsQueryOptions = <TData = Awaited<ReturnType<typeof getFarmsIdOperations>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFarmsIdOperations>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+export const getGetFarmsIdOperationsQueryOptions = <TData = Awaited<ReturnType<typeof getFarmsIdOperations>>, TError = unknown>(id: string,
+    params?: GetFarmsIdOperationsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFarmsIdOperations>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getGetFarmsIdOperationsQueryKey(id);
+  const queryKey =  queryOptions?.queryKey ?? getGetFarmsIdOperationsQueryKey(id,params);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getFarmsIdOperations>>> = ({ signal }) => getFarmsIdOperations(id, { signal, ...requestOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getFarmsIdOperations>>> = ({ signal }) => getFarmsIdOperations(id,params, { signal, ...requestOptions });
 
       
 
@@ -105,7 +228,8 @@ export type GetFarmsIdOperationsQueryError = unknown
 
 
 export function useGetFarmsIdOperations<TData = Awaited<ReturnType<typeof getFarmsIdOperations>>, TError = unknown>(
- id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFarmsIdOperations>>, TError, TData>> & Pick<
+ id: string,
+    params: undefined |  GetFarmsIdOperationsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFarmsIdOperations>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getFarmsIdOperations>>,
           TError,
@@ -115,7 +239,8 @@ export function useGetFarmsIdOperations<TData = Awaited<ReturnType<typeof getFar
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetFarmsIdOperations<TData = Awaited<ReturnType<typeof getFarmsIdOperations>>, TError = unknown>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFarmsIdOperations>>, TError, TData>> & Pick<
+ id: string,
+    params?: GetFarmsIdOperationsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFarmsIdOperations>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getFarmsIdOperations>>,
           TError,
@@ -125,19 +250,21 @@ export function useGetFarmsIdOperations<TData = Awaited<ReturnType<typeof getFar
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetFarmsIdOperations<TData = Awaited<ReturnType<typeof getFarmsIdOperations>>, TError = unknown>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFarmsIdOperations>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ id: string,
+    params?: GetFarmsIdOperationsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFarmsIdOperations>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary Get farm operations
+ * @summary Get farm operations (or filter by crop cycle)
  */
 
 export function useGetFarmsIdOperations<TData = Awaited<ReturnType<typeof getFarmsIdOperations>>, TError = unknown>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFarmsIdOperations>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ id: string,
+    params?: GetFarmsIdOperationsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFarmsIdOperations>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getGetFarmsIdOperationsQueryOptions(id,options)
+  const queryOptions = getGetFarmsIdOperationsQueryOptions(id,params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

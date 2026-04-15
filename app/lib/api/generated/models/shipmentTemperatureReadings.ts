@@ -6,7 +6,7 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type PutFarmerProfile200 = {
-  success: boolean;
-  message: string;
-};
+/**
+ * @nullable
+ */
+export type ShipmentTemperatureReadings = {[key: string]: unknown | null} | null;

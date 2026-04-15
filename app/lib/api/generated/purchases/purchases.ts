@@ -6,17 +6,27 @@
  * OpenAPI spec version: 1.0.0
  */
 import {
-  useMutation
+  useMutation,
+  useQuery
 } from '@tanstack/react-query';
 import type {
+  DataTag,
+  DefinedInitialDataOptions,
+  DefinedUseQueryResult,
   MutationFunction,
   QueryClient,
+  QueryFunction,
+  QueryKey,
+  UndefinedInitialDataOptions,
   UseMutationOptions,
-  UseMutationResult
+  UseMutationResult,
+  UseQueryOptions,
+  UseQueryResult
 } from '@tanstack/react-query';
 
 import type {
   CreatePurchaseResponse,
+  GetPurchases200,
   PostPurchasesBody
 } from '.././models';
 
@@ -109,4 +119,113 @@ export const usePostPurchases = <TError = unknown,
       > => {
       return useMutation(getPostPurchasesMutationOptions(options), queryClient);
     }
+    /**
+ * @summary Get all user purchases
+ */
+export type getPurchasesResponse200 = {
+  data: GetPurchases200
+  status: 200
+}
+
+export type getPurchasesResponseSuccess = (getPurchasesResponse200) & {
+  headers: Headers;
+};
+;
+
+export type getPurchasesResponse = (getPurchasesResponseSuccess)
+
+export const getGetPurchasesUrl = () => {
+
+
+  
+
+  return `/purchases`
+}
+
+export const getPurchases = async ( options?: RequestInit): Promise<getPurchasesResponse> => {
+  
+  return customFetch<getPurchasesResponse>(getGetPurchasesUrl(),
+  {      
+    ...options,
+    method: 'GET'
     
+    
+  }
+);}
+  
+
+
+
+
+export const getGetPurchasesQueryKey = () => {
+    return [
+    `/purchases`
+    ] as const;
+    }
+
+    
+export const getGetPurchasesQueryOptions = <TData = Awaited<ReturnType<typeof getPurchases>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchases>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPurchasesQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPurchases>>> = ({ signal }) => getPurchases({ signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPurchases>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetPurchasesQueryResult = NonNullable<Awaited<ReturnType<typeof getPurchases>>>
+export type GetPurchasesQueryError = unknown
+
+
+export function useGetPurchases<TData = Awaited<ReturnType<typeof getPurchases>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchases>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPurchases>>,
+          TError,
+          Awaited<ReturnType<typeof getPurchases>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetPurchases<TData = Awaited<ReturnType<typeof getPurchases>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchases>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPurchases>>,
+          TError,
+          Awaited<ReturnType<typeof getPurchases>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetPurchases<TData = Awaited<ReturnType<typeof getPurchases>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchases>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Get all user purchases
+ */
+
+export function useGetPurchases<TData = Awaited<ReturnType<typeof getPurchases>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchases>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetPurchasesQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+

@@ -13,7 +13,10 @@ export type PostCertificationsUploadBody = {
   farmId?: string;
   farmProductId?: string;
   certificateNumber?: string;
+  /** ISO date string */
   issueDate: string;
+  /** ISO date string */
   expiryDate?: string;
+  /** Relative path returned from /api/upload */
   documentUrl?: string;
 };

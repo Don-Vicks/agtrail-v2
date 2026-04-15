@@ -17,5 +17,10 @@ export type GetUsersProfile200User = {
   kycStatus: string | null;
   /** @nullable */
   phoneNumber: string | null;
+  /**
+   * URL returned from /api/upload (use fieldname "profilePic")
+   * @nullable
+   */
+  profilePhotoUrl?: string | null;
   createdAt: string | unknown | null;
 };

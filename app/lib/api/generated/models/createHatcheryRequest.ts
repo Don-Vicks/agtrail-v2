@@ -6,6 +6,7 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { CreateHatcheryRequestFacilityType } from './createHatcheryRequestFacilityType';
+import type { CreateHatcheryRequestGpsCoordinates } from './createHatcheryRequestGpsCoordinates';
 import type { CreateHatcheryRequestOwnershipType } from './createHatcheryRequestOwnershipType';
 import type { CreateHatcheryRequestWaterSource } from './createHatcheryRequestWaterSource';
 
@@ -19,7 +20,7 @@ export interface CreateHatcheryRequest {
   state?: string;
   lga?: string;
   community?: string;
-  gpsCoordinates?: unknown | null;
+  gpsCoordinates?: CreateHatcheryRequestGpsCoordinates;
   facilityType?: CreateHatcheryRequestFacilityType;
   capacityPerMonth?: number;
   waterSource?: CreateHatcheryRequestWaterSource;

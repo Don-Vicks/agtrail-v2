@@ -151,6 +151,7 @@ export function useGetUsersProfile<TData = Awaited<ReturnType<typeof getUsersPro
 
 
 /**
+ * Update personal details. Use /api/upload first to get a "profilePhotoUrl".
  * @summary Update user profile
  */
 export type putUsersProfileResponse200 = {
@@ -233,6 +234,7 @@ export const usePutUsersProfile = <TError = unknown,
       return useMutation(getPutUsersProfileMutationOptions(options), queryClient);
     }
     /**
+ * Submit verification details. Use /api/upload first to get a "documentUrl".
  * @summary Submit KYC information
  */
 export type postUsersKycResponse200 = {

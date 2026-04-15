@@ -5,8 +5,9 @@
  * API Documentation for AgTrail Backend V2
  * OpenAPI spec version: 1.0.0
  */
+import type { GetFarmersDashboardStats200Data } from './getFarmersDashboardStats200Data';
 
-export type GetFarmerProfile200 = {
+export type GetFarmersDashboardStats200 = {
   success: boolean;
-  data?: unknown | null;
+  data: GetFarmersDashboardStats200Data;
 };

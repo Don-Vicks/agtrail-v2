@@ -6,7 +6,7 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type GetFarmerDashboardStats200DataActiveProductsItem = {
+export type GetFarmersDashboardStats200DataActiveProductsItem = {
   batchId: string;
   product: string;
   farm: string;

@@ -6,6 +6,7 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { FarmProductStatus } from './farmProductStatus';
+import type { FarmProductStorageConditions } from './farmProductStorageConditions';
 
 export interface FarmProduct {
   id: string;
@@ -28,7 +29,8 @@ export interface FarmProduct {
   harvestMethod?: string | null;
   /** @nullable */
   storageLocation?: string | null;
-  storageConditions?: unknown | null;
+  /** @nullable */
+  storageConditions?: FarmProductStorageConditions;
   batchNumber: string;
   /** @nullable */
   qrCodeData?: string | null;

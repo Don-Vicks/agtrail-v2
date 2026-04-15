@@ -6,7 +6,7 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type GetFarmerDashboardStats200DataMetrics = {
+export type GetFarmersDashboardStats200DataMetrics = {
   walletBalance: string;
   totalFarms: number;
   totalLandArea: number;

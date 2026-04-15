@@ -5,6 +5,7 @@
  * API Documentation for AgTrail Backend V2
  * OpenAPI spec version: 1.0.0
  */
+import type { AddProcessingStepRequestParameters } from './addProcessingStepRequestParameters';
 
 export interface AddProcessingStepRequest {
   stepOrder: number;
@@ -17,6 +18,6 @@ export interface AddProcessingStepRequest {
   humidity?: number;
   equipmentUsed?: string;
   personnelResponsible?: string;
-  parameters?: unknown | null;
+  parameters?: AddProcessingStepRequestParameters;
   notes?: string;
 }

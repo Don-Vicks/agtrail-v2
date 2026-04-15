@@ -5,6 +5,7 @@
  * API Documentation for AgTrail Backend V2
  * OpenAPI spec version: 1.0.0
  */
+import type { OrganizationMemberPermissions } from './organizationMemberPermissions';
 import type { OrganizationMemberRole } from './organizationMemberRole';
 
 export interface OrganizationMember {
@@ -12,6 +13,7 @@ export interface OrganizationMember {
   organizationId: string;
   userId: string;
   role?: OrganizationMemberRole;
-  permissions?: unknown | null;
+  /** @nullable */
+  permissions?: OrganizationMemberPermissions;
   createdAt: string;
 }

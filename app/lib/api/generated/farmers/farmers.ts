@@ -25,9 +25,10 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
-  GetFarmerDashboardStats200,
-  GetFarmerProfile200,
-  PutFarmerProfile200
+  FarmerFullProfile,
+  GetFarmersDashboardStats200,
+  PutFarmersProfile200,
+  UpdateFarmerProfileRequest
 } from '.././models';
 
 import { customFetch } from '../../custom-fetch';
@@ -38,31 +39,32 @@ type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
 /**
+ * Retrieves complete farmer profile including associated farms and apiaries.
  * @summary Get Farmer Profile
  */
-export type getFarmerProfileResponse200 = {
-  data: GetFarmerProfile200
+export type getFarmersProfileResponse200 = {
+  data: FarmerFullProfile
   status: 200
 }
 
-export type getFarmerProfileResponseSuccess = (getFarmerProfileResponse200) & {
+export type getFarmersProfileResponseSuccess = (getFarmersProfileResponse200) & {
   headers: Headers;
 };
 ;
 
-export type getFarmerProfileResponse = (getFarmerProfileResponseSuccess)
+export type getFarmersProfileResponse = (getFarmersProfileResponseSuccess)
 
-export const getGetFarmerProfileUrl = () => {
+export const getGetFarmersProfileUrl = () => {
 
 
   
 
-  return `/farmer/profile`
+  return `/farmers/profile`
 }
 
-export const getFarmerProfile = async ( options?: RequestInit): Promise<getFarmerProfileResponse> => {
+export const getFarmersProfile = async ( options?: RequestInit): Promise<getFarmersProfileResponse> => {
   
-  return customFetch<getFarmerProfileResponse>(getGetFarmerProfileUrl(),
+  return customFetch<getFarmersProfileResponse>(getGetFarmersProfileUrl(),
   {      
     ...options,
     method: 'GET'
@@ -75,69 +77,69 @@ export const getFarmerProfile = async ( options?: RequestInit): Promise<getFarme
 
 
 
-export const getGetFarmerProfileQueryKey = () => {
+export const getGetFarmersProfileQueryKey = () => {
     return [
-    `/farmer/profile`
+    `/farmers/profile`
     ] as const;
     }
 
     
-export const getGetFarmerProfileQueryOptions = <TData = Awaited<ReturnType<typeof getFarmerProfile>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFarmerProfile>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+export const getGetFarmersProfileQueryOptions = <TData = Awaited<ReturnType<typeof getFarmersProfile>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFarmersProfile>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getGetFarmerProfileQueryKey();
+  const queryKey =  queryOptions?.queryKey ?? getGetFarmersProfileQueryKey();
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getFarmerProfile>>> = ({ signal }) => getFarmerProfile({ signal, ...requestOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getFarmersProfile>>> = ({ signal }) => getFarmersProfile({ signal, ...requestOptions });
 
       
 
       
 
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getFarmerProfile>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getFarmersProfile>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
-export type GetFarmerProfileQueryResult = NonNullable<Awaited<ReturnType<typeof getFarmerProfile>>>
-export type GetFarmerProfileQueryError = unknown
+export type GetFarmersProfileQueryResult = NonNullable<Awaited<ReturnType<typeof getFarmersProfile>>>
+export type GetFarmersProfileQueryError = unknown
 
 
-export function useGetFarmerProfile<TData = Awaited<ReturnType<typeof getFarmerProfile>>, TError = unknown>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFarmerProfile>>, TError, TData>> & Pick<
+export function useGetFarmersProfile<TData = Awaited<ReturnType<typeof getFarmersProfile>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFarmersProfile>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getFarmerProfile>>,
+          Awaited<ReturnType<typeof getFarmersProfile>>,
           TError,
-          Awaited<ReturnType<typeof getFarmerProfile>>
+          Awaited<ReturnType<typeof getFarmersProfile>>
         > , 'initialData'
       >, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetFarmerProfile<TData = Awaited<ReturnType<typeof getFarmerProfile>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFarmerProfile>>, TError, TData>> & Pick<
+export function useGetFarmersProfile<TData = Awaited<ReturnType<typeof getFarmersProfile>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFarmersProfile>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getFarmerProfile>>,
+          Awaited<ReturnType<typeof getFarmersProfile>>,
           TError,
-          Awaited<ReturnType<typeof getFarmerProfile>>
+          Awaited<ReturnType<typeof getFarmersProfile>>
         > , 'initialData'
       >, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetFarmerProfile<TData = Awaited<ReturnType<typeof getFarmerProfile>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFarmerProfile>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+export function useGetFarmersProfile<TData = Awaited<ReturnType<typeof getFarmersProfile>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFarmersProfile>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary Get Farmer Profile
  */
 
-export function useGetFarmerProfile<TData = Awaited<ReturnType<typeof getFarmerProfile>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFarmerProfile>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+export function useGetFarmersProfile<TData = Awaited<ReturnType<typeof getFarmersProfile>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFarmersProfile>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getGetFarmerProfileQueryOptions(options)
+  const queryOptions = getGetFarmersProfileQueryOptions(options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -148,47 +150,49 @@ export function useGetFarmerProfile<TData = Awaited<ReturnType<typeof getFarmerP
 
 
 /**
+ * Updates personal and farming-specific details. Use /api/upload first for profilePhotoUrl.
  * @summary Update Farmer Profile
  */
-export type putFarmerProfileResponse200 = {
-  data: PutFarmerProfile200
+export type putFarmersProfileResponse200 = {
+  data: PutFarmersProfile200
   status: 200
 }
 
-export type putFarmerProfileResponseSuccess = (putFarmerProfileResponse200) & {
+export type putFarmersProfileResponseSuccess = (putFarmersProfileResponse200) & {
   headers: Headers;
 };
 ;
 
-export type putFarmerProfileResponse = (putFarmerProfileResponseSuccess)
+export type putFarmersProfileResponse = (putFarmersProfileResponseSuccess)
 
-export const getPutFarmerProfileUrl = () => {
+export const getPutFarmersProfileUrl = () => {
 
 
   
 
-  return `/farmer/profile`
+  return `/farmers/profile`
 }
 
-export const putFarmerProfile = async ( options?: RequestInit): Promise<putFarmerProfileResponse> => {
+export const putFarmersProfile = async (updateFarmerProfileRequest: UpdateFarmerProfileRequest, options?: RequestInit): Promise<putFarmersProfileResponse> => {
   
-  return customFetch<putFarmerProfileResponse>(getPutFarmerProfileUrl(),
+  return customFetch<putFarmersProfileResponse>(getPutFarmersProfileUrl(),
   {      
     ...options,
-    method: 'PUT'
-    
-    
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      updateFarmerProfileRequest,)
   }
 );}
   
 
 
 
-export const getPutFarmerProfileMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putFarmerProfile>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof putFarmerProfile>>, TError,void, TContext> => {
+export const getPutFarmersProfileMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putFarmersProfile>>, TError,{data: UpdateFarmerProfileRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof putFarmersProfile>>, TError,{data: UpdateFarmerProfileRequest}, TContext> => {
 
-const mutationKey = ['putFarmerProfile'];
+const mutationKey = ['putFarmersProfile'];
 const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -198,10 +202,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof putFarmerProfile>>, void> = () => {
-          
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof putFarmersProfile>>, {data: UpdateFarmerProfileRequest}> = (props) => {
+          const {data} = props ?? {};
 
-          return  putFarmerProfile(requestOptions)
+          return  putFarmersProfile(data,requestOptions)
         }
 
 
@@ -211,49 +215,49 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
   return  { mutationFn, ...mutationOptions }}
 
-    export type PutFarmerProfileMutationResult = NonNullable<Awaited<ReturnType<typeof putFarmerProfile>>>
-    
-    export type PutFarmerProfileMutationError = unknown
+    export type PutFarmersProfileMutationResult = NonNullable<Awaited<ReturnType<typeof putFarmersProfile>>>
+    export type PutFarmersProfileMutationBody = UpdateFarmerProfileRequest
+    export type PutFarmersProfileMutationError = unknown
 
     /**
  * @summary Update Farmer Profile
  */
-export const usePutFarmerProfile = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putFarmerProfile>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+export const usePutFarmersProfile = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putFarmersProfile>>, TError,{data: UpdateFarmerProfileRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof putFarmerProfile>>,
+        Awaited<ReturnType<typeof putFarmersProfile>>,
         TError,
-        void,
+        {data: UpdateFarmerProfileRequest},
         TContext
       > => {
-      return useMutation(getPutFarmerProfileMutationOptions(options), queryClient);
+      return useMutation(getPutFarmersProfileMutationOptions(options), queryClient);
     }
     /**
  * @summary Get aggregated farmer dashboard statistics
  */
-export type getFarmerDashboardStatsResponse200 = {
-  data: GetFarmerDashboardStats200
+export type getFarmersDashboardStatsResponse200 = {
+  data: GetFarmersDashboardStats200
   status: 200
 }
 
-export type getFarmerDashboardStatsResponseSuccess = (getFarmerDashboardStatsResponse200) & {
+export type getFarmersDashboardStatsResponseSuccess = (getFarmersDashboardStatsResponse200) & {
   headers: Headers;
 };
 ;
 
-export type getFarmerDashboardStatsResponse = (getFarmerDashboardStatsResponseSuccess)
+export type getFarmersDashboardStatsResponse = (getFarmersDashboardStatsResponseSuccess)
 
-export const getGetFarmerDashboardStatsUrl = () => {
+export const getGetFarmersDashboardStatsUrl = () => {
 
 
   
 
-  return `/farmer/dashboard/stats`
+  return `/farmers/dashboard/stats`
 }
 
-export const getFarmerDashboardStats = async ( options?: RequestInit): Promise<getFarmerDashboardStatsResponse> => {
+export const getFarmersDashboardStats = async ( options?: RequestInit): Promise<getFarmersDashboardStatsResponse> => {
   
-  return customFetch<getFarmerDashboardStatsResponse>(getGetFarmerDashboardStatsUrl(),
+  return customFetch<getFarmersDashboardStatsResponse>(getGetFarmersDashboardStatsUrl(),
   {      
     ...options,
     method: 'GET'
@@ -266,69 +270,69 @@ export const getFarmerDashboardStats = async ( options?: RequestInit): Promise<g
 
 
 
-export const getGetFarmerDashboardStatsQueryKey = () => {
+export const getGetFarmersDashboardStatsQueryKey = () => {
     return [
-    `/farmer/dashboard/stats`
+    `/farmers/dashboard/stats`
     ] as const;
     }
 
     
-export const getGetFarmerDashboardStatsQueryOptions = <TData = Awaited<ReturnType<typeof getFarmerDashboardStats>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFarmerDashboardStats>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+export const getGetFarmersDashboardStatsQueryOptions = <TData = Awaited<ReturnType<typeof getFarmersDashboardStats>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFarmersDashboardStats>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getGetFarmerDashboardStatsQueryKey();
+  const queryKey =  queryOptions?.queryKey ?? getGetFarmersDashboardStatsQueryKey();
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getFarmerDashboardStats>>> = ({ signal }) => getFarmerDashboardStats({ signal, ...requestOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getFarmersDashboardStats>>> = ({ signal }) => getFarmersDashboardStats({ signal, ...requestOptions });
 
       
 
       
 
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getFarmerDashboardStats>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getFarmersDashboardStats>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
-export type GetFarmerDashboardStatsQueryResult = NonNullable<Awaited<ReturnType<typeof getFarmerDashboardStats>>>
-export type GetFarmerDashboardStatsQueryError = unknown
+export type GetFarmersDashboardStatsQueryResult = NonNullable<Awaited<ReturnType<typeof getFarmersDashboardStats>>>
+export type GetFarmersDashboardStatsQueryError = unknown
 
 
-export function useGetFarmerDashboardStats<TData = Awaited<ReturnType<typeof getFarmerDashboardStats>>, TError = unknown>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFarmerDashboardStats>>, TError, TData>> & Pick<
+export function useGetFarmersDashboardStats<TData = Awaited<ReturnType<typeof getFarmersDashboardStats>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFarmersDashboardStats>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getFarmerDashboardStats>>,
+          Awaited<ReturnType<typeof getFarmersDashboardStats>>,
           TError,
-          Awaited<ReturnType<typeof getFarmerDashboardStats>>
+          Awaited<ReturnType<typeof getFarmersDashboardStats>>
         > , 'initialData'
       >, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetFarmerDashboardStats<TData = Awaited<ReturnType<typeof getFarmerDashboardStats>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFarmerDashboardStats>>, TError, TData>> & Pick<
+export function useGetFarmersDashboardStats<TData = Awaited<ReturnType<typeof getFarmersDashboardStats>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFarmersDashboardStats>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getFarmerDashboardStats>>,
+          Awaited<ReturnType<typeof getFarmersDashboardStats>>,
           TError,
-          Awaited<ReturnType<typeof getFarmerDashboardStats>>
+          Awaited<ReturnType<typeof getFarmersDashboardStats>>
         > , 'initialData'
       >, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetFarmerDashboardStats<TData = Awaited<ReturnType<typeof getFarmerDashboardStats>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFarmerDashboardStats>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+export function useGetFarmersDashboardStats<TData = Awaited<ReturnType<typeof getFarmersDashboardStats>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFarmersDashboardStats>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary Get aggregated farmer dashboard statistics
  */
 
-export function useGetFarmerDashboardStats<TData = Awaited<ReturnType<typeof getFarmerDashboardStats>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFarmerDashboardStats>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+export function useGetFarmersDashboardStats<TData = Awaited<ReturnType<typeof getFarmersDashboardStats>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFarmersDashboardStats>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getGetFarmerDashboardStatsQueryOptions(options)
+  const queryOptions = getGetFarmersDashboardStatsQueryOptions(options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -338,85 +342,3 @@ export function useGetFarmerDashboardStats<TData = Awaited<ReturnType<typeof get
 
 
 
-/**
- * @summary Request KYC Update
- */
-export type putFarmerKycResponse501 = {
-  data: void
-  status: 501
-}
-
-;
-export type putFarmerKycResponseError = (putFarmerKycResponse501) & {
-  headers: Headers;
-};
-
-export type putFarmerKycResponse = (putFarmerKycResponseError)
-
-export const getPutFarmerKycUrl = () => {
-
-
-  
-
-  return `/farmer/kyc`
-}
-
-export const putFarmerKyc = async ( options?: RequestInit): Promise<putFarmerKycResponse> => {
-  
-  return customFetch<putFarmerKycResponse>(getPutFarmerKycUrl(),
-  {      
-    ...options,
-    method: 'PUT'
-    
-    
-  }
-);}
-  
-
-
-
-export const getPutFarmerKycMutationOptions = <TError = void,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putFarmerKyc>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof putFarmerKyc>>, TError,void, TContext> => {
-
-const mutationKey = ['putFarmerKyc'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof putFarmerKyc>>, void> = () => {
-          
-
-          return  putFarmerKyc(requestOptions)
-        }
-
-
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type PutFarmerKycMutationResult = NonNullable<Awaited<ReturnType<typeof putFarmerKyc>>>
-    
-    export type PutFarmerKycMutationError = void
-
-    /**
- * @summary Request KYC Update
- */
-export const usePutFarmerKyc = <TError = void,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putFarmerKyc>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof putFarmerKyc>>,
-        TError,
-        void,
-        TContext
-      > => {
-      return useMutation(getPutFarmerKycMutationOptions(options), queryClient);
-    }
-    

@@ -6,12 +6,16 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export interface UpdateOrganizationSettingsRequest {
+export interface UpdateFarmerProfileRequest {
   name?: string;
-  email?: string;
   phoneNumber?: string;
+  gender?: string;
   address?: string;
   state?: string;
+  lga?: string;
+  country?: string;
   /** URL returned from /api/upload (use fieldname "profilePic") */
-  logoUrl?: string;
+  profilePhotoUrl?: string;
+  farmingExperienceYears?: number;
+  primaryCrops?: string[];
 }

@@ -6,7 +6,7 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type GetFarmerDashboardStats200DataProductCategoriesItem = {
+export type GetFarmersDashboardStats200DataProductCategoriesItem = {
   name: string;
   percentage: number;
 };

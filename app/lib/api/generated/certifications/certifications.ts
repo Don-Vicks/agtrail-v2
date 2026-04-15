@@ -148,7 +148,8 @@ export function useGetCertifications<TData = Awaited<ReturnType<typeof getCertif
 
 
 /**
- * @summary Upload a certification
+ * Links a certification type to an entity. Use the /api/upload endpoint first to get a "documentUrl" (relative path).
+ * @summary Create a certification record
  */
 export type postCertificationsUploadResponse201 = {
   data: PostCertificationsUpload201
@@ -217,7 +218,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type PostCertificationsUploadMutationError = unknown
 
     /**
- * @summary Upload a certification
+ * @summary Create a certification record
  */
 export const usePostCertificationsUpload = <TError = unknown,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postCertificationsUpload>>, TError,{data: PostCertificationsUploadBody}, TContext>, request?: SecondParameter<typeof customFetch>}

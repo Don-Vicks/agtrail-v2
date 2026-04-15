@@ -6,7 +6,7 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type GetCooperativesDashboard200DataFarmsByRegionItemFarmsItem = {
+export type GetFarmersDashboardStats200DataFarmsByRegionItemFarmsItem = {
   id: string;
   name: string;
   /** @nullable */

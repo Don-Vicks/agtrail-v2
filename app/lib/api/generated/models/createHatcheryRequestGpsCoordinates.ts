@@ -6,7 +6,4 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type GetFarmerDashboardStats200DataInsights = {
-  avgFarmSize: number;
-  avgYield: number;
-};
+export type CreateHatcheryRequestGpsCoordinates = {[key: string]: unknown | null};

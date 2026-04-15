@@ -6,6 +6,7 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { ShipmentStatus } from './shipmentStatus';
+import type { ShipmentTemperatureReadings } from './shipmentTemperatureReadings';
 
 export interface Shipment {
   id: string;
@@ -28,7 +29,8 @@ export interface Shipment {
   /** @nullable */
   driverContact?: string | null;
   temperatureControlled?: boolean;
-  temperatureReadings?: unknown | null;
+  /** @nullable */
+  temperatureReadings?: ShipmentTemperatureReadings;
   status?: ShipmentStatus;
   /** @nullable */
   notes?: string | null;

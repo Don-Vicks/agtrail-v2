@@ -5,6 +5,7 @@
  * API Documentation for AgTrail Backend V2
  * OpenAPI spec version: 1.0.0
  */
+import type { CreateFarmProductRequestStorageConditions } from './createFarmProductRequestStorageConditions';
 
 export interface CreateFarmProductRequest {
   farmId: string;
@@ -19,8 +20,9 @@ export interface CreateFarmProductRequest {
   harvestDate: string;
   harvestMethod?: string;
   storageLocation?: string;
-  storageConditions?: unknown | null;
+  storageConditions?: CreateFarmProductRequestStorageConditions;
   suggestedPricePerUnit?: number;
   priceCurrency?: string;
+  /** URL returned from /api/upload (use fieldname "productCertificate") */
   imageUrl?: string;
 }

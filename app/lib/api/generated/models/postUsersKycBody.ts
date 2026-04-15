@@ -9,5 +9,6 @@
 export type PostUsersKycBody = {
   bvnVerified?: boolean;
   ninVerified?: boolean;
+  /** URL returned from /api/upload (use fieldname "kycDocument") */
   documentUrl?: string;
 };

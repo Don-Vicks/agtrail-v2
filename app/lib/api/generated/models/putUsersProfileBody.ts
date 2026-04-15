@@ -13,4 +13,6 @@ export type PutUsersProfileBody = {
   state?: string;
   lga?: string;
   country?: string;
+  /** URL returned from /api/upload (use fieldname "profilePic") */
+  profilePhotoUrl?: string;
 };

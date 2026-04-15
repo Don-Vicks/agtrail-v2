@@ -5,6 +5,7 @@
  * API Documentation for AgTrail Backend V2
  * OpenAPI spec version: 1.0.0
  */
+import type { ProcessingStepParameters } from './processingStepParameters';
 
 export interface ProcessingStep {
   id: string;
@@ -27,7 +28,8 @@ export interface ProcessingStep {
   equipmentUsed?: string | null;
   /** @nullable */
   personnelResponsible?: string | null;
-  parameters?: unknown | null;
+  /** @nullable */
+  parameters?: ProcessingStepParameters;
   /** @nullable */
   notes?: string | null;
   createdAt: string;

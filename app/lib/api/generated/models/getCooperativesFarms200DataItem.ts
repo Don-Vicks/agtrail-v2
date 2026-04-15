@@ -6,11 +6,15 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type GetFarmerDashboardStats200DataFarmsByRegionItemFarmsItem = {
+export type GetCooperativesFarms200DataItem = {
   id: string;
   name: string;
   /** @nullable */
   state: string | null;
+  /** @nullable */
+  totalArea?: number | null;
+  /** @nullable */
+  areaUnit?: string | null;
   /** GeoJSON or array bounds */
   coordinates?: unknown | null;
 };

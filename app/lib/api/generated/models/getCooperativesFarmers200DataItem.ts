@@ -6,7 +6,7 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type GetAdminUsers200DataItem = {
+export type GetCooperativesFarmers200DataItem = {
   id: string;
   /** @nullable */
   name: string | null;

@@ -5,9 +5,10 @@
  * API Documentation for AgTrail Backend V2
  * OpenAPI spec version: 1.0.0
  */
+import type { UpdateShipmentRequestTemperatureReadings } from './updateShipmentRequestTemperatureReadings';
 
 export interface UpdateShipmentRequest {
   status?: string;
-  temperatureReadings?: unknown | null;
+  temperatureReadings?: UpdateShipmentRequestTemperatureReadings;
   actualDeliveryDate?: string;
 }
