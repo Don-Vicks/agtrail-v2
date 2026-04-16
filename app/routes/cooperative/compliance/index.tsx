@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { PageHeader } from '~/components/page-header'
+import { EmptyState } from '~/components/empty-state'
 import { StatCard } from '~/components/stat-card'
 import { Button } from '~/components/ui/button'
 import { Badge } from '~/components/ui/badge'
@@ -211,11 +212,12 @@ export default function ComplianceAnalysisPage() {
           </table>
           
           {COMPLIANCE_DATA.length === 0 && (
-            <div className="py-20 flex flex-col items-center justify-center text-center">
-              <ShieldCheck className="size-12 text-gray-100 mb-4" />
-              <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest italic">No Data Found</h3>
-              <p className="text-[10px] text-gray-300 uppercase tracking-tight">No compliance data available...</p>
-            </div>
+            <EmptyState
+              className="py-16"
+              icon={<ShieldCheck className="size-8 text-gray-300" />}
+              title="No compliance rows"
+              description="Compliance data will appear here when available from the API."
+            />
           )}
         </div>
       </div>

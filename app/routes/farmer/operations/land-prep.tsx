@@ -1,48 +1,41 @@
 import { useState } from 'react'
-import { useNavigate, useParams } from 'react-router'
+import { toast } from 'sonner'
 import { OperationFormLayout } from '~/components/operation-form-layout'
 import { PersonField } from '~/components/person-field'
-import { allCropCycles } from '~/lib/mock-data/farmer'
-import { usePostFarmsIdOperations } from '~/lib/api/generated/farms-operations/farms-operations'
+import { OperationFormError, OperationFormLoading } from '~/components/operation-form-load-state'
+import { useFarmOperationPage } from '~/hooks/use-farm-operation-page'
+import type { FarmOperationRouteSlug } from '~/lib/farm-operation-log'
 import type { Route } from './+types/land-prep'
-import { toast } from 'sonner'
+
+const OPERATION_SLUG = 'land-prep' as FarmOperationRouteSlug
 
 export function meta({ }: Route.MetaArgs) {
   return [{ title: 'Land Preparation | Agrolinking' }]
 }
 
 export default function LandPreparation() {
-  const { cropCycleId } = useParams()
-  const navigate = useNavigate()
-  
-  // In a real app, fetch the cycle by ID. Here we mock it so we have the farmId string available.
-  const cropCycle = allCropCycles.find((c) => c.id === cropCycleId) || allCropCycles[0]
-  
+  const { layoutCropCycle, isLoading, isError, submitLog, isPending } = useFarmOperationPage(OPERATION_SLUG)
   const [description, setDescription] = useState('')
-  const { mutateAsync: logOperation, isPending } = usePostFarmsIdOperations()
+
+  if (isLoading) return <OperationFormLoading />
+  if (isError || !layoutCropCycle) {
+    return (
+      <OperationFormError message="We could not load this crop cycle. Return to the record-operation list and try again." />
+    )
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
-    if (!description) {
+    if (!description.trim()) {
       toast.error('Description is required.')
       return
     }
-    
     try {
-      await logOperation({
-        id: cropCycle.farmId,
-        data: {
-          cropCycleId: cropCycle.id,
-          operationType: 'land_clearing', // Defined by backend FarmOperationOperationType enum
-          description: description,
-          operationDate: new Date().toISOString()
-        }
-      })
-      toast.success('Land preparation operation logged successfully!')
-      navigate('/farmer/operations/new')
-    } catch (err: any) {
-      toast.error(`Failed to log operation: ${err.message || 'Unknown error'}`)
+      await submitLog(description)
+      toast.success('Land preparation logged successfully.')
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Unknown error'
+      toast.error(`Failed to log operation: ${msg}`)
     }
   }
 
@@ -50,10 +43,11 @@ export default function LandPreparation() {
     <OperationFormLayout
       title="Land Preparation"
       breadcrumbLabel="Land Preparation"
-      cropCycle={cropCycle}
+      cropCycle={layoutCropCycle}
       onSubmit={handleSubmit}
+      isSubmitting={isPending}
       submitLabel="Log Land Preparation"
-      organicWarning={cropCycle.status === 'planning' ? 'This is an organic crop cycle. Some synthetic inputs may trigger warnings.' : undefined}
+      organicWarning={layoutCropCycle.status === 'planned' ? 'This is an organic crop cycle. Some synthetic inputs may trigger warnings.' : undefined}
     >
       {/* 2-column: Operator & Supervisor */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

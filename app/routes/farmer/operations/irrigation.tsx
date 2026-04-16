@@ -1,46 +1,41 @@
 import { useState } from 'react'
-import { useNavigate, useParams } from 'react-router'
 import { toast } from 'sonner'
 import { OperationFormLayout } from '~/components/operation-form-layout'
 import { PersonField } from '~/components/person-field'
-import { usePostFarmsIdOperations } from '~/lib/api/generated/farms-operations/farms-operations'
-import { allCropCycles } from '~/lib/mock-data/farmer'
+import { OperationFormError, OperationFormLoading } from '~/components/operation-form-load-state'
+import { useFarmOperationPage } from '~/hooks/use-farm-operation-page'
+import type { FarmOperationRouteSlug } from '~/lib/farm-operation-log'
 import type { Route } from './+types/irrigation'
+
+const OPERATION_SLUG = 'irrigation' as FarmOperationRouteSlug
 
 export function meta({ }: Route.MetaArgs) {
   return [{ title: 'Irrigation | Agrolinking' }]
 }
 
 export default function Irrigation() {
-  const { cropCycleId } = useParams()
-  const navigate = useNavigate()
-  const cropCycle = allCropCycles.find((c) => c.id === cropCycleId) || allCropCycles[0]
-
+  const { layoutCropCycle, isLoading, isError, submitLog, isPending } = useFarmOperationPage(OPERATION_SLUG)
   const [description, setDescription] = useState('')
-  const { mutateAsync: logOperation } = usePostFarmsIdOperations()
+
+  if (isLoading) return <OperationFormLoading />
+  if (isError || !layoutCropCycle) {
+    return (
+      <OperationFormError message="We could not load this crop cycle. Return to the record-operation list and try again." />
+    )
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
-    if (!description) {
+    if (!description.trim()) {
       toast.error('Description is required.')
       return
     }
-
     try {
-      await logOperation({
-        id: cropCycle.farmId,
-        data: {
-          cropCycleId: cropCycle.id,
-          operationType: 'irrigation',
-          description,
-          operationDate: new Date().toISOString(),
-        },
-      })
-      toast.success('Irrigation operation logged successfully!')
-      navigate('/farmer/operations/new')
-    } catch (err: any) {
-      toast.error(`Failed to log operation: ${err.message || 'Unknown error'}`)
+      await submitLog(description)
+      toast.success('Irrigation logged successfully.')
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Unknown error'
+      toast.error(`Failed to log operation: ${msg}`)
     }
   }
 
@@ -48,8 +43,9 @@ export default function Irrigation() {
     <OperationFormLayout
       title="Irrigation"
       breadcrumbLabel="Irrigation"
-      cropCycle={cropCycle}
+      cropCycle={layoutCropCycle}
       onSubmit={handleSubmit}
+      isSubmitting={isPending}
       submitLabel="Log Irrigation Operation"
     >
       {/* 2-column: Operator & Supervisor */}

@@ -1,4 +1,5 @@
 import { Link } from 'react-router';
+import { useMemo } from 'react'
 import type { ProcessorBatch } from '~/lib/api/generated/models';
 import { useGetProcessorsBatches } from '~/lib/api/generated/processors-batches/processors-batches';
 import { useGetProcessorsDashboardStats } from '~/lib/api/generated/processors-dashboard/processors-dashboard';
@@ -21,6 +22,7 @@ import {
   ArrowRight,
   LayoutDashboard
 } from 'lucide-react';
+import { getOrganizationHeaders } from '~/lib/organization-context'
 
 /* ─── Components ─── */
 // Local StatCard and ActionButton removed as shared components are now used
@@ -121,15 +123,43 @@ function BatchTable({ title, count, data, emptyMessage }: { title: string; count
 /* ─── Main Route ─── */
 
 export default function ProcessorDashboard() {
-  const { data: statsResponse, isLoading: isStatsLoading } = useGetProcessorsDashboardStats()
-  const { data: batchesResponse, isLoading: isBatchesLoading } = useGetProcessorsBatches()
+  const organizationHeaders = getOrganizationHeaders()
+  const {
+    data: statsResponse,
+    isLoading: isStatsLoading,
+    isError: isStatsError,
+  } = useGetProcessorsDashboardStats({
+    request: { headers: organizationHeaders },
+  })
+  const {
+    data: batchesResponse,
+    isLoading: isBatchesLoading,
+    isError: isBatchesError,
+  } = useGetProcessorsBatches({
+    request: { headers: organizationHeaders },
+  })
 
   const statsData: any = statsResponse?.data?.data || {}
-  const allBatches = batchesResponse?.data?.data || []
-
-  const incomingBatches = allBatches.filter((b: ProcessorBatch) => b.status === 'pending')
-  const wipBatches = allBatches.filter((b: ProcessorBatch) => b.status === 'in_progress')
-  const completedBatches = allBatches.filter((b: ProcessorBatch) => b.status === 'completed')
+  const allBatches = (batchesResponse?.data?.data || []) as ProcessorBatch[]
+  const incomingBatches = useMemo(
+    () =>
+      allBatches.filter((b) => (b.status || '').toLowerCase() === 'pending'),
+    [allBatches],
+  )
+  const wipBatches = useMemo(
+    () =>
+      allBatches.filter(
+        (b) => (b.status || '').toLowerCase() === 'in_progress',
+      ),
+    [allBatches],
+  )
+  const completedBatches = useMemo(
+    () =>
+      allBatches.filter((b) => (b.status || '').toLowerCase() === 'completed'),
+    [allBatches],
+  )
+  const hasLoadError = isStatsError || isBatchesError
+  const hasOrganizationContext = Boolean(organizationHeaders['X-Organization-Id'])
 
   return (
     <div className="space-y-6 pb-10 px-1 text-left w-full overflow-x-hidden">
@@ -141,15 +171,33 @@ export default function ProcessorDashboard() {
           <p className="text-sm text-gray-500 mt-1">Manage your production batches and inventory</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button className="bg-[#1d3d1e] hover:bg-black text-white flex items-center gap-2 h-11 px-6 shadow-sm">
-            <Plus className="size-4" />
-            <span className="font-bold uppercase tracking-wide text-xs">Start New Batch</span>
-          </Button>
+          <Link to="/processor/batches/new">
+            <Button className="bg-[#1d3d1e] hover:bg-black text-white flex items-center gap-2 h-11 px-6 shadow-sm">
+              <Plus className="size-4" />
+              <span className="font-bold uppercase tracking-wide text-xs">Start New Batch</span>
+            </Button>
+          </Link>
         </div>
       </div>
+      {!hasOrganizationContext ? (
+        <EmptyState
+          className="rounded-xl border border-dashed border-amber-200 bg-amber-50/40 py-14"
+          icon={<AlertCircle className="size-9 text-amber-600" />}
+          title="Organization context is missing"
+          description="Set `VITE_DEFAULT_ORGANIZATION_ID` or log in to an organization-aware account."
+        />
+      ) : null}
+      {hasLoadError ? (
+        <EmptyState
+          className="rounded-xl border border-dashed border-red-200 bg-red-50/30 py-14"
+          icon={<AlertCircle className="size-9 text-red-500" />}
+          title="Failed to load processor data"
+          description="Dashboard data could not be loaded. Verify organization header setup and refresh."
+        />
+      ) : null}
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className={cn("grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4", hasLoadError && "opacity-70 pointer-events-none")}>
         {isStatsLoading ? (
           <>
             {[...Array(4)].map((_, i) => (

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useParams, Link } from 'react-router'
 import { PageHeader } from '~/components/page-header'
+import { EmptyState } from '~/components/empty-state'
 import { StartCropCycleModal } from '~/components/start-crop-cycle-modal'
 import { SelectOperationModal } from '~/components/select-operation-modal'
 import { useGetFarmsIdCropCycles } from '~/lib/api/generated/farms-crop-cycles/farms-crop-cycles'
@@ -373,11 +374,13 @@ export default function CooperativeFarmDetails() {
             </div>
           ))}
           {filteredCycles.length === 0 && !isLoadingCycles && (
-            <div className='col-span-full py-20 text-center border-2 border-dashed border-gray-100 rounded-2xl bg-gray-50/20'>
-              <Package className='size-12 text-gray-200 mx-auto mb-4' />
-              <p className='text-sm font-bold text-gray-400 uppercase tracking-widest italic'>
-                No Crop Cycles Found
-              </p>
+            <div className="col-span-full">
+              <EmptyState
+                className="rounded-2xl border-2 border-dashed border-gray-100 bg-gray-50/20 py-16"
+                icon={<Package className="size-8 text-gray-300" />}
+                title="No crop cycles"
+                description="Start a crop cycle for this farm to record activities here."
+              />
             </div>
           )}
         </div>

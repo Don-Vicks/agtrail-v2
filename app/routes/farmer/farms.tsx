@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { PageHeader } from '~/components/page-header'
+import { EmptyState } from '~/components/empty-state'
 import { CreateFarmModal } from '~/components/create-farm-modal'
 import { FarmCard } from '~/components/farm-card'
 import { StatCard } from '~/components/stat-card'
@@ -167,18 +168,16 @@ export default function FarmerFarms() {
           ))}
         </div>
       ) : mappedFarms.length === 0 ? (
-        <div className="py-20 text-center rounded-xl border border-dashed border-gray-200">
-          <MapPin className="size-12 text-gray-200 mx-auto mb-4" />
-          <h3 className="text-sm font-bold text-gray-900 uppercase tracking-tight">No assets discovered</h3>
-          <p className="text-xs text-gray-500 mt-1 uppercase tracking-widest font-bold">Register your first farm to begin tracking operations</p>
-          <Button 
-            onClick={() => setIsCreateModalOpen(true)}
-            variant="outline" 
-            className="mt-6 border-brand text-brand hover:bg-brand hover:text-white"
-          >
-            Start Registration
-          </Button>
-        </div>
+        <EmptyState
+          className="rounded-xl border border-dashed border-gray-200"
+          icon={<MapPin className="size-8 text-gray-300" />}
+          title="No farms yet"
+          description="Register your first farm to begin tracking operations."
+          action={{
+            label: 'Start registration',
+            onClick: () => setIsCreateModalOpen(true),
+          }}
+        />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {paginatedFarms.map((farm: any) => (

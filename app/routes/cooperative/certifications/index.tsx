@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router'
 import { PageHeader } from '~/components/page-header'
+import { EmptyState } from '~/components/empty-state'
 import { StatCard } from '~/components/stat-card'
 import { Button } from '~/components/ui/button'
 import { Badge } from '~/components/ui/badge'
@@ -32,9 +33,8 @@ export function meta({ }: Route.MetaArgs) {
   ]
 }
 
-/* ─── Mock Data ─── */
-type CertType = 'Farm' | 'Product';
-type CertStatus = 'Active' | 'Expired' | 'Pending';
+type CertType = 'Farm' | 'Product'
+type CertStatus = 'Active' | 'Expired' | 'Pending'
 
 interface CertificationInfo {
   id: string;
@@ -46,7 +46,7 @@ interface CertificationInfo {
   issueDate: string;
   expiryDate: string;
   appliedTo: string;
-  type: CertType;
+  type: CertType
 }
 
 export default function ViewCertificationsPage() {
@@ -174,25 +174,33 @@ export default function ViewCertificationsPage() {
           label="Total Certs"
           value={totalCerts.toString()}
           icon={<Award className="size-5 text-blue-500" />}
-          trend={{ value: '2 Updated', isPositive: true }}
+          trend="neutral"
+          subtitle="From API"
+          description="All recorded certifications"
         />
         <StatCard
           label="Active Standards"
           value={activeCerts.toString()}
           icon={<CheckCircle2 className="size-5 text-emerald-500" />}
-          trend={{ value: 'Verified', isPositive: true }}
+          trend="neutral"
+          subtitle="Valid / approved"
+          description="Based on status & expiry"
         />
         <StatCard
           label="Critical Expired"
           value={expiredCerts.toString()}
           icon={<AlertCircle className="size-5 text-red-500" />}
-          trend={{ value: 'High Priority', isPositive: false }}
+          trend="neutral"
+          subtitle="Past expiry or flagged"
+          description="May need renewal"
         />
         <StatCard
           label="Audit Pending"
           value={pendingCerts.toString()}
           icon={<Clock className="size-5 text-amber-500" />}
-          trend={{ value: 'In Review', isPositive: true }}
+          trend="neutral"
+          subtitle="In review"
+          description="Awaiting verification"
         />
       </div>
 
@@ -315,14 +323,19 @@ export default function ViewCertificationsPage() {
               </div>
             ))
           ) : (
-            <div className="rounded-2xl border-2 border-dashed border-gray-100 p-20 flex flex-col items-center justify-center text-center">
-              <div className="size-16 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center mb-6">
-                <Search className="size-8 text-gray-200" />
-              </div>
-              <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-2 italic">No Certifications Found</h3>
-              <p className="text-[10px] text-gray-300 uppercase tracking-tight mb-8">No certifications match your current filters</p>
-              <Button variant="outline" onClick={() => { setSearchQuery(''); setStatusFilter('') }} className="text-[10px] font-bold uppercase h-10 px-6 border-gray-100 hover:bg-gray-50">Reset Global Filters</Button>
-            </div>
+            <EmptyState
+              className="rounded-2xl border-2 border-dashed border-gray-100 py-16"
+              icon={<Search className="size-8 text-gray-300" />}
+              title="No certifications match filters"
+              description="Try another search, status filter, or tab."
+              action={{
+                label: 'Reset filters',
+                onClick: () => {
+                  setSearchQuery('')
+                  setStatusFilter('')
+                },
+              }}
+            />
           )}
         </div>
       </div>

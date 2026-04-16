@@ -1,29 +1,52 @@
-import { useParams } from 'react-router'
+import { useState } from 'react'
+import { toast } from 'sonner'
 import { OperationFormLayout } from '~/components/operation-form-layout'
-import { PersonField } from '~/components/person-field'
 import { InventoryField } from '~/components/inventory-field'
-import { allCropCycles } from '~/lib/mock-data/cooperative'
+import { PersonField } from '~/components/person-field'
+import { OperationFormError, OperationFormLoading } from '~/components/operation-form-load-state'
+import { useFarmOperationPage } from '~/hooks/use-farm-operation-page'
+import type { FarmOperationRouteSlug } from '~/lib/farm-operation-log'
 import type { Route } from './+types/fertilizer'
+
+const OPERATION_SLUG = 'fertilizer' as FarmOperationRouteSlug
 
 export function meta({ }: Route.MetaArgs) {
   return [{ title: 'Fertilizer Application | Agrolinking' }]
 }
 
-export default function Fertilizer() {
-  const { cropCycleId } = useParams()
-  const cropCycle = allCropCycles.find((c) => c.id === cropCycleId) || allCropCycles[0]
+export default function FertilizerApplication() {
+  const { layoutCropCycle, isLoading, isError, submitLog, isPending } = useFarmOperationPage(OPERATION_SLUG)
+  const [description, setDescription] = useState('')
 
-  const handleSubmit = (e: React.FormEvent) => {
+  if (isLoading) return <OperationFormLoading />
+  if (isError || !layoutCropCycle) {
+    return (
+      <OperationFormError message="We could not load this crop cycle. Return to the record-operation list and try again." />
+    )
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log('Submitted Fertilizer')
+    if (!description.trim()) {
+      toast.error('Description is required.')
+      return
+    }
+    try {
+      await submitLog(description)
+      toast.success('Fertilizer application logged successfully.')
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Unknown error'
+      toast.error(`Failed to log operation: ${msg}`)
+    }
   }
 
   return (
     <OperationFormLayout
       title="Fertilizer Application"
       breadcrumbLabel="Fertilizer Application"
-      cropCycle={cropCycle}
+      cropCycle={layoutCropCycle}
       onSubmit={handleSubmit}
+      isSubmitting={isPending}
       submitLabel="Log Fertilizer Application"
     >
       {/* 2-column: Operator & Supervisor */}
@@ -115,7 +138,14 @@ export default function Fertilizer() {
       {/* Description */}
       <div>
         <label className="mb-1.5 block text-sm font-semibold text-gray-900">Description <span className="text-red-500">*</span></label>
-        <textarea rows={3} required placeholder="Describe the fertilizer application... (e.g., Applied NPK fertilizer to maize field)" className="w-full resize-none rounded-md border border-gray-200 px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20" />
+        <textarea 
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          rows={3} 
+          required 
+          placeholder="Describe the fertilizer application... (e.g., Applied NPK fertilizer to maize field)" 
+          className="w-full resize-none rounded-md border border-gray-200 px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20" 
+        />
       </div>
     </OperationFormLayout>
   )

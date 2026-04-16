@@ -1,32 +1,53 @@
-import { useParams } from 'react-router'
+import { useState } from 'react'
+import { toast } from 'sonner'
 import { OperationFormLayout } from '~/components/operation-form-layout'
 import { PersonField } from '~/components/person-field'
-import { allCropCycles } from '~/lib/mock-data/cooperative'
+import { OperationFormError, OperationFormLoading } from '~/components/operation-form-load-state'
+import { useFarmOperationPage } from '~/hooks/use-farm-operation-page'
+import type { FarmOperationRouteSlug } from '~/lib/farm-operation-log'
 import type { Route } from './+types/land-prep'
+
+const OPERATION_SLUG = 'land-prep' as FarmOperationRouteSlug
 
 export function meta({ }: Route.MetaArgs) {
   return [{ title: 'Land Preparation | Agrolinking' }]
 }
 
 export default function LandPreparation() {
-  const { cropCycleId } = useParams()
-  // In a real app, fetch the cycle by ID. Here we mock it.
-  const cropCycle = allCropCycles.find((c) => c.id === cropCycleId) || allCropCycles[0]
+  const { layoutCropCycle, isLoading, isError, submitLog, isPending } = useFarmOperationPage(OPERATION_SLUG)
+  const [description, setDescription] = useState('')
 
-  const handleSubmit = (e: React.FormEvent) => {
+  if (isLoading) return <OperationFormLoading />
+  if (isError || !layoutCropCycle) {
+    return (
+      <OperationFormError message="We could not load this crop cycle. Return to the record-operation list and try again." />
+    )
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Handle form submission
-    console.log('Submitted Land Preparation')
+    if (!description.trim()) {
+      toast.error('Description is required.')
+      return
+    }
+    try {
+      await submitLog(description)
+      toast.success('Land preparation logged successfully.')
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Unknown error'
+      toast.error(`Failed to log operation: ${msg}`)
+    }
   }
 
   return (
     <OperationFormLayout
       title="Land Preparation"
       breadcrumbLabel="Land Preparation"
-      cropCycle={cropCycle}
+      cropCycle={layoutCropCycle}
       onSubmit={handleSubmit}
+      isSubmitting={isPending}
       submitLabel="Log Land Preparation"
-      organicWarning={cropCycle.status === 'planning' ? 'This is an organic crop cycle. Some synthetic inputs may trigger warnings.' : undefined}
+      organicWarning={layoutCropCycle.status === 'planned' ? 'This is an organic crop cycle. Some synthetic inputs may trigger warnings.' : undefined}
     >
       {/* 2-column: Operator & Supervisor */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -131,7 +152,11 @@ export default function LandPreparation() {
       {/* Description */}
       <div>
         <label className="mb-1.5 block text-sm font-semibold text-gray-900">Description <span className="text-red-500">*</span></label>
-        <textarea rows={3} placeholder="Describe the land preparation... (e.g., Plowed and harrowed field for maize planting)" className="w-full resize-none rounded-md border border-gray-200 px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20" required />
+        <textarea 
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          rows={3} 
+          placeholder="Describe the land preparation... (e.g., Plowed and harrowed field for maize planting)" className="w-full resize-none rounded-md border border-gray-200 px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20" required />
       </div>
     </OperationFormLayout>
   )

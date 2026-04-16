@@ -6,6 +6,7 @@ import { DatePicker } from '~/components/ui/date-picker'
 import { useGetFarms } from '~/lib/api/generated/farms/farms'
 import { useGetFarmersProducts } from '~/lib/api/generated/farm-products/farm-products'
 import { usePostCertificationsUpload } from '~/lib/api/generated/certifications/certifications'
+import { resolveDocumentUrlForApi } from '~/lib/api/custom-fetch'
 import { usePostUpload } from '~/lib/api/generated/upload/upload'
 import type { Route } from './+types/farm-certification'
 
@@ -166,7 +167,8 @@ export default function FarmCertificationPage() {
       })
 
       const uploadedUrl = uploadResponse?.data?.urls?.[0]
-      if (!uploadedUrl) {
+      const documentUrl = resolveDocumentUrlForApi(uploadedUrl)
+      if (!documentUrl) {
         toast.error('Upload succeeded but no document URL was returned')
         return
       }
@@ -179,7 +181,7 @@ export default function FarmCertificationPage() {
           certificateNumber: certName || certOrg,
           issueDate: dateIssued ? new Date(dateIssued).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
           expiryDate: dateExpiry ? new Date(dateExpiry).toISOString().split('T')[0] : undefined,
-          documentUrl: uploadedUrl,
+          documentUrl,
         },
       })
 

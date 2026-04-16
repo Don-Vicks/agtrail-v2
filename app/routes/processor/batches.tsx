@@ -1,4 +1,5 @@
 import { Link } from 'react-router';
+import { useMemo, useState } from 'react'
 import { PageHeader } from '~/components/page-header';
 import { cn } from '~/lib/utils';
 import { useGetProcessorsBatches } from '~/lib/api/generated/processors-batches/processors-batches';
@@ -8,6 +9,7 @@ import { Button } from '~/components/ui/button';
 import { Badge } from '~/components/ui/badge';
 import { EmptyState } from '~/components/empty-state';
 import { Layers, Plus, Search, Package, Clock, Activity, CheckCircle, ArrowRight, Play, Eye } from 'lucide-react';
+import { getOrganizationHeaders } from '~/lib/organization-context'
 
 // StatItem removed as shared StatCard is now used
 
@@ -93,14 +95,28 @@ function BatchCard({ batch }: { batch: ProcessorBatch }) {
 }
 
 export default function ProcessorBatches() {
-  const { data: batchesRaw, isLoading } = useGetProcessorsBatches()
+  const [search, setSearch] = useState('')
+  const organizationHeaders = getOrganizationHeaders()
+  const { data: batchesRaw, isLoading, isError } = useGetProcessorsBatches({
+    request: { headers: organizationHeaders },
+  })
   const batches: ProcessorBatch[] = batchesRaw?.data?.data || []
+  const filteredBatches = useMemo(() => {
+    const term = search.trim().toLowerCase()
+    if (!term) return batches
+    return batches.filter((b) =>
+      [b.batchCode, b.outputProductName, b.outputProductType, b.status || '']
+        .join(' ')
+        .toLowerCase()
+        .includes(term),
+    )
+  }, [batches, search])
 
   // Compute stats
-  const total = batches.length;
-  const active = batches.filter(b => b.status === 'in_progress').length;
-  const completed = batches.filter(b => b.status === 'completed').length;
-  const pending = batches.filter(b => b.status === 'pending').length;
+  const total = filteredBatches.length;
+  const active = filteredBatches.filter(b => (b.status || '').toLowerCase() === 'in_progress').length;
+  const completed = filteredBatches.filter(b => (b.status || '').toLowerCase() === 'completed').length;
+  const pending = filteredBatches.filter(b => (b.status || '').toLowerCase() === 'pending').length;
 
   return (
     <div className="space-y-6 pb-10">
@@ -122,15 +138,35 @@ export default function ProcessorBatches() {
           <p className="text-sm text-gray-500 mt-1">Manage and track production flow from raw materials to finished products</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button className="bg-[#1d3d1e] hover:bg-black text-white flex items-center gap-2 h-11 px-6 shadow-sm">
-            <Plus className="size-4" />
-            <span className="font-bold uppercase tracking-wide text-xs">Create New Batch</span>
-          </Button>
+          <Link to="/processor/batches/new">
+            <Button className="bg-[#1d3d1e] hover:bg-black text-white flex items-center gap-2 h-11 px-6 shadow-sm">
+              <Plus className="size-4" />
+              <span className="font-bold uppercase tracking-wide text-xs">Create New Batch</span>
+            </Button>
+          </Link>
         </div>
       </div>
 
       {isLoading ? (
-        <div className="py-20 text-center text-gray-500 animate-pulse">Loading batches...</div>
+        <div className="space-y-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+              <div className="h-5 w-1/3 animate-pulse rounded bg-gray-100" />
+              <div className="mt-3 grid grid-cols-3 gap-4">
+                <div className="h-4 animate-pulse rounded bg-gray-100" />
+                <div className="h-4 animate-pulse rounded bg-gray-100" />
+                <div className="h-4 animate-pulse rounded bg-gray-100" />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : isError ? (
+        <EmptyState
+          icon={<Package className="size-12" />}
+          title="Failed to load processor batches"
+          description="Processor batches could not be loaded. Confirm `X-Organization-Id` context."
+          className="py-16"
+        />
       ) : (
         <>
           {/* Stats Header Block */}
@@ -145,6 +181,8 @@ export default function ProcessorBatches() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
             <input
               type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
               placeholder="Search batches by ID, product name, or status..."
               className="w-full rounded-xl border border-gray-200 pl-10 pr-4 py-3 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white shadow-sm"
             />
@@ -152,14 +190,14 @@ export default function ProcessorBatches() {
 
           {/* Batches List */}
           <div className="space-y-4">
-            {batches.length === 0 ? (
+            {filteredBatches.length === 0 ? (
               <EmptyState 
                 icon={<Package className="size-12" />}
                 title="No batches found"
                 description="Your processing queue is currently empty. Start a new batch to track production."
                 className="py-16"
               />
-            ) : batches.map(batch => (
+            ) : filteredBatches.map(batch => (
               <BatchCard key={batch.id} batch={batch} />
             ))}
           </div>

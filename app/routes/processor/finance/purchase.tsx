@@ -14,6 +14,7 @@ import {
   usePostPurchases,
   useGetPurchases,
 } from '~/lib/api/generated/purchases/purchases'
+import type { ProductTransfer } from '~/lib/api/generated/models/productTransfer'
 import type { Route } from './+types/purchase'
 
 export function meta({}: Route.MetaArgs) {
@@ -22,19 +23,6 @@ export function meta({}: Route.MetaArgs) {
     { name: 'description', content: 'Log farm payments and purchases' },
   ]
 }
-
-/* ─── Mock Table Data ─── */
-const RECENT_PURCHASES = [
-  {
-    id: 1,
-    date: 'Jan 07, 2026',
-    farmer: 'Olamide Olutekunbi',
-    farm: 'Baba Beji Farms',
-    beneficiary: 'Olamide Olutekunbi',
-    account: 'Cash',
-    amount: '₦5,000',
-  },
-]
 
 export default function RecordPurchasePage() {
   const [search, setSearch] = useState('')
@@ -48,20 +36,38 @@ export default function RecordPurchasePage() {
   const [farmProductId, setFarmProductId] = useState('')
   const [description, setDescription] = useState('')
   const { mutateAsync: submitPurchase, isPending } = usePostPurchases()
-  const { data: purchasesResponse } = useGetPurchases()
-  const purchases = purchasesResponse?.data?.data || []
+  const { data: purchasesResponse, isLoading: isLoadingPurchases } = useGetPurchases()
+  const purchases = (purchasesResponse?.data?.data || []) as ProductTransfer[]
+
+  const purchaseRows = useMemo(
+    () =>
+      purchases.map((p) => ({
+        id: p.id,
+        date: p.createdAt
+          ? new Date(p.createdAt).toLocaleDateString()
+          : 'N/A',
+        beneficiary: p.toUserId || 'Unknown Seller',
+        merchantHandle: p.transferCode || p.fromUserId || 'transfer',
+        account: p.currency || 'NGN',
+        amount:
+          typeof p.totalPrice === 'number'
+            ? `₦${p.totalPrice.toLocaleString()}`
+            : 'N/A',
+        status: p.status || 'pending',
+      })),
+    [purchases],
+  )
 
   const filteredPurchases = useMemo(() => {
-    return RECENT_PURCHASES.filter((p) => {
+    return purchaseRows.filter((p) => {
       const term = search.toLowerCase()
       return (
-        p.farmer.toLowerCase().includes(term) ||
-        p.farm.toLowerCase().includes(term) ||
         p.beneficiary.toLowerCase().includes(term) ||
+        p.merchantHandle.toLowerCase().includes(term) ||
         p.amount.includes(term)
       )
     })
-  }, [search])
+  }, [purchaseRows, search])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -358,7 +364,13 @@ export default function RecordPurchasePage() {
         </div>
 
         <div className='flex-1 overflow-x-auto'>
-          {filteredPurchases.length === 0 ? (
+          {isLoadingPurchases ? (
+            <div className='space-y-3 p-6'>
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className='h-10 w-full animate-pulse rounded bg-gray-100' />
+              ))}
+            </div>
+          ) : filteredPurchases.length === 0 ? (
             <EmptyState
               icon={<ShoppingCart className='size-10' />}
               title={search ? 'No matches found' : 'No acquisitions found'}
@@ -409,7 +421,7 @@ export default function RecordPurchasePage() {
                             {purchase.beneficiary}
                           </span>
                           <span className='text-xs text-gray-500 font-medium lowercase tracking-tight'>
-                            @{purchase.farm.toLowerCase().replace(/\s+/g, '')}
+                            @{purchase.merchantHandle.toLowerCase().replace(/\s+/g, '')}
                           </span>
                         </div>
                       </td>
@@ -423,7 +435,7 @@ export default function RecordPurchasePage() {
                               variant='outline'
                               className='text-[8px] px-1 py-0 bg-blue-50/50 text-blue-600 border-blue-100 font-bold uppercase tracking-wide'
                             >
-                              Processed
+                              {purchase.status}
                             </Badge>
                           </div>
                           <span className='text-[10px] text-gray-400 font-medium tracking-wide lowercase'>

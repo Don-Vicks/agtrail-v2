@@ -2,8 +2,11 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import { PageHeader } from '~/components/page-header';
+import { EmptyState } from '~/components/empty-state';
+import { Package } from 'lucide-react';
 import type { CreateBatchRequest } from '~/lib/api/generated/models';
 import { usePostProcessorsBatches } from '~/lib/api/generated/processors-batches/processors-batches';
+import { getClientOrganizationId } from '~/lib/organization-context';
 
 function SectionCard({ title, subtitle, icon, action, children }: { title: string; subtitle: string; icon: React.ReactNode; action?: React.ReactNode; children: React.ReactNode }) {
   return (
@@ -42,7 +45,10 @@ function InputField({ label, placeholder, required = false, type = 'text', child
 
 export default function CreateNewBatch() {
   const navigate = useNavigate();
-  const { mutate: createBatch, isPending } = usePostProcessorsBatches();
+  const organizationId = getClientOrganizationId()
+  const { mutate: createBatch, isPending } = usePostProcessorsBatches({
+    request: { headers: organizationId ? { 'X-Organization-Id': organizationId } : {} },
+  });
 
   // Form state
   const [outputProductName, setOutputProductName] = useState('');
@@ -55,6 +61,11 @@ export default function CreateNewBatch() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!organizationId) {
+      toast.error('Missing organization context. Set VITE_DEFAULT_ORGANIZATION_ID or select an organization.');
+      return;
+    }
 
     if (!outputProductName || !outputProductType) {
       toast.error('Please fill in all required fields');
@@ -82,7 +93,11 @@ export default function CreateNewBatch() {
         },
         onError: (error) => {
           console.error('Failed to create batch:', error);
-          toast.error('Failed to create batch. Please try again.');
+          const message =
+            (error as any)?.response?.data?.message ||
+            (error as any)?.message ||
+            'Failed to create batch. Please try again.'
+          toast.error(message);
         },
       }
     );
@@ -107,6 +122,14 @@ export default function CreateNewBatch() {
       />
 
       {/* Page Header */}
+      {!organizationId ? (
+        <EmptyState
+          className="rounded-xl border border-dashed border-amber-200 bg-amber-50/40 py-8 mb-6"
+          icon={<Package className="size-8 text-amber-700" />}
+          title="Organization context is missing"
+          description="Batch creation requires `X-Organization-Id`. Set `VITE_DEFAULT_ORGANIZATION_ID` and restart dev server."
+        />
+      ) : null}
       <div className="flex items-start gap-4 mb-8">
         <div className="text-brand bg-brand/10 p-2 rounded-lg shrink-0">
           <svg className="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -226,15 +249,12 @@ export default function CreateNewBatch() {
           </button>
         }
       >
-        <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
-          <div className="mb-4 text-[#8ea79d]">
-            <svg className="size-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-            </svg>
-          </div>
-          <h3 className="text-base font-bold text-gray-900">No Materials Selected</h3>
-          <p className="mt-1 text-sm text-gray-500">Click "Add Material" to select materials for this batch.</p>
-        </div>
+        <EmptyState
+          className="py-12"
+          icon={<Package className="size-8 text-[#8ea79d]" />}
+          title="No materials selected"
+          description='Use "Add Material" to select inputs for this batch.'
+        />
       </SectionCard>
 
       {/* Section 3: Auto-Generated Product Settings */}

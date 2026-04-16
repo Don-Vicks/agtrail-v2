@@ -68,4 +68,58 @@ This section tracks backend response fields/endpoints the frontend currently nee
    - `GET /farms/:id` includes `name`
    - `GET /accounts/:id` includes account/payment label
 
-### 4) Upload Endpoint gives 500 Error
+### 4) Record operation endpoint rejects valid cycle/farm flow
+
+- **Endpoint:** `POST /farms/:farmId/operations`
+- **Observed errors:**
+  - `{"success":false,"message":"Invalid crop Cycle ID for this farm"}`
+  - intermittent `500` when logging operations from record-operation forms
+- **Problem:** Frontend uses crop cycles selected from farm cycle lists, but backend rejects pairing during operation logging.
+- **Current impact:** users cannot reliably record pre-harvest or post-harvest operations.
+- **Backend action requested:**
+  - confirm expected request contract (required fields and formats):
+    - `cropCycleId`
+    - `operationType`
+    - `operationDate`
+    - `description`
+  - ensure cycle ownership validation matches cycle IDs returned by `GET /farms/:id/crop-cycles`
+  - return stable 4xx validation errors (not 500) with actionable message when payload is invalid
+
+### 5) Certification upload path can duplicate `/api`
+
+- **Endpoints involved:**
+  - `POST /upload` (returns relative file path)
+  - certification upload/submit flows consuming uploaded document URLs
+- **Observed issue:** with `VITE_API_BASE_URL` ending in `/api/`, upload path values like `/api/upload/file/...` can become `.../api/api/upload/file/...` when joined.
+- **Current impact:** certification document upload/submit fails due to invalid URL paths.
+- **Backend action requested:**
+  - return canonical upload path format consistently (prefer `upload/file/...` without leading `/api`)
+  - document expected path format in API docs and model descriptions
+
+### 6) Processor endpoints appear to require org header (undocumented)
+
+- **Endpoints observed:** `/processors/*` (dashboard stats, batches, batch products)
+- **Observed behavior:** requests may fail unless `X-Organization-Id` header is present.
+- **Observed error response:** `{"success": false, "message": "No active organization context. Provide X-Organization-Id header."}`
+- **Problem:** OpenAPI generated client does not document this header requirement, so calls fail in environments where org context is not implicitly resolved.
+- **Current frontend mitigation:** sends `X-Organization-Id` from local storage (`agrolinking_organization_id`) or `VITE_DEFAULT_ORGANIZATION_ID`.
+- **Backend action requested:**
+  - confirm whether `X-Organization-Id` is mandatory for processor routes
+  - if mandatory, add it to OpenAPI operation parameters and error docs
+  - if not mandatory, resolve org context from token server-side consistently
+
+### 7) Processor certification readiness page is mocked
+
+- **Route/Page:** `/processor/certifications/readiness`
+- **Current frontend status:** UI uses hardcoded stat values and a placeholder empty-state flow; no live readiness data is fetched.
+- **Problem:** users cannot view real certification readiness progress for processor products.
+- **Backend action requested:**
+  - provide a readiness endpoint for processor certifications (per product and summary counts), or confirm an existing endpoint we should use
+  - include fields for:
+    - total certifications
+    - in progress
+    - completed
+    - pending review
+    - product-level readiness checklist/status rows
+
+### 8) Farmer Dashboard Stats Returning 500

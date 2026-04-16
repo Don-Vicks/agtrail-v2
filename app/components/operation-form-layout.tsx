@@ -1,15 +1,17 @@
 import { useNavigate, useLocation } from 'react-router'
 import { PageHeader } from '~/components/page-header'
-import type { CropCycle } from '~/lib/mock-data/farmer'
+import type { OperationLayoutCropCycle } from '~/lib/operation-layout-types'
+import { getOperationsListPath } from '~/lib/operations-list-path'
 
 interface OperationFormLayoutProps {
   title: string
-  cropCycle: CropCycle
+  cropCycle: OperationLayoutCropCycle
   breadcrumbLabel: string
   children: React.ReactNode
   onSubmit: (e: React.FormEvent) => void
   submitLabel: string
   organicWarning?: string
+  isSubmitting?: boolean
 }
 
 export function OperationFormLayout({
@@ -20,6 +22,7 @@ export function OperationFormLayout({
   onSubmit,
   submitLabel,
   organicWarning,
+  isSubmitting = false,
 }: OperationFormLayoutProps) {
   const navigate = useNavigate()
   const location = useLocation()
@@ -28,6 +31,7 @@ export function OperationFormLayout({
     : location.pathname.startsWith('/processor')
       ? '/processor'
       : '/farmer'
+  const operationsListHref = getOperationsListPath(location.pathname)
 
   return (
     <div className="pb-12 text-left">
@@ -43,7 +47,7 @@ export function OperationFormLayout({
               </svg>
             ),
           },
-          { label: 'Record Operation', href: `${basePath}/operations/new` },
+          { label: 'Record Operation', href: operationsListHref },
           { label: breadcrumbLabel },
         ]}
       />
@@ -52,7 +56,7 @@ export function OperationFormLayout({
         {/* Back Button */}
         <div>
           <button
-            onClick={() => navigate(`${basePath}/operations/new`)}
+            onClick={() => navigate(operationsListHref)}
             className="flex items-center gap-2 rounded-md border border-gray-200 bg-white px-4 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
           >
             <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -87,7 +91,10 @@ export function OperationFormLayout({
               <p className="mb-4 text-xs font-normal text-gray-500">Variety: <span className="font-semibold text-gray-900">{cropCycle.variety || 'N/A'}</span></p>
               <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-xs text-gray-500">
                 <span className="font-normal">Planted:</span><span className="text-right font-semibold text-gray-900">{cropCycle.plantedDate || 'N/A'}</span>
-                <span className="font-normal">Area:</span><span className="text-right font-semibold text-gray-900">{cropCycle.area} hectares</span>
+                <span className="font-normal">Area:</span>
+                <span className="text-right font-semibold text-gray-900">
+                  {cropCycle.area != null && cropCycle.area !== '' ? `${cropCycle.area} hectares` : 'N/A'}
+                </span>
                 <span className="font-normal">Season:</span><span className="text-right font-semibold text-gray-900">{cropCycle.season ? cropCycle.season.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase()) : 'N/A'}</span>
               </div>
             </div>
@@ -108,7 +115,9 @@ export function OperationFormLayout({
                 </div>
                 <div>
                   <p className="text-sm font-bold text-gray-900">{cropCycle.farmer}</p>
-                  <p className="text-[10px] font-normal text-gray-500">3cf2b8af-478b-4c40-b99d-a7f303dce8a1</p>
+                  <p className="text-[10px] font-normal text-gray-500 truncate max-w-[12rem]" title={cropCycle.id}>
+                    Cycle ID: {cropCycle.id.slice(0, 8)}…
+                  </p>
                 </div>
               </div>
             </div>
@@ -224,8 +233,12 @@ export function OperationFormLayout({
               </div>
 
               {/* Submit */}
-              <button type="submit" className="w-full rounded-md bg-[#2b5314] py-3 text-sm font-bold text-white hover:bg-[#1f3c0f] shadow-sm transition-all focus:outline-none focus:ring-4 focus:ring-brand/20">
-                {submitLabel}
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full rounded-md bg-[#2b5314] py-3 text-sm font-bold text-white hover:bg-[#1f3c0f] shadow-sm transition-all focus:outline-none focus:ring-4 focus:ring-brand/20 disabled:pointer-events-none disabled:opacity-60"
+              >
+                {isSubmitting ? 'Saving…' : submitLabel}
               </button>
             </div>
           </div>

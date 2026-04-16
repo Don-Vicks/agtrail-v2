@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { AddMaterialModal, type NewMaterialData } from '~/components/add-material-modal'
 import { PageHeader } from '~/components/page-header'
 import { StatCard } from '~/components/stat-card'
@@ -14,8 +14,9 @@ import { cn } from '~/lib/utils'
 import { Plus, Search, Filter, Download, MoreHorizontal, Package, ClipboardList, Layers, Clock, ArrowRight, ChevronDown, LayoutDashboard } from 'lucide-react'
 import { EmptyState } from '~/components/empty-state'
 import { Badge } from '~/components/ui/badge'
-// TODO: Add API integration when GET /processors/materials endpoint becomes available
-// import { useGetProcessorsMaterials } from '~/lib/api/generated/processors-materials/processors-materials'
+import { useGetProcessorsBatches } from '~/lib/api/generated/processors-batches/processors-batches'
+import type { ProcessorBatch } from '~/lib/api/generated/models'
+import { getOrganizationHeaders } from '~/lib/organization-context'
 
 // ─── Mock Data ───
 
@@ -24,6 +25,7 @@ interface Material {
   batchId: string
   material: string
   type: string
+  status?: string
   farmerSource: string
   materialSource: string
   quantity: string
@@ -52,10 +54,50 @@ const mockMaterials: Material[] = [
 
 export default function ProcessorMaterials() {
   const [activeTab, setActiveTab] = useState('Platform Materials')
-  const [materials, setMaterials] = useState<Material[]>(mockMaterials)
+  const [manualMaterials, setManualMaterials] = useState<Material[]>(mockMaterials)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
+  const organizationHeaders = getOrganizationHeaders()
+  const {
+    data: batchesResponse,
+    isLoading: isBatchesLoading,
+    isError: isBatchesError,
+  } = useGetProcessorsBatches({
+    request: { headers: organizationHeaders },
+  })
+
+  const platformMaterials = useMemo(() => {
+    const rows = (batchesResponse?.data?.data || []) as ProcessorBatch[]
+    return rows.map((b) => ({
+      id: b.id,
+      batchId: b.batchCode,
+      material: b.outputProductName || 'Batch Material',
+      type: b.outputProductType || 'processed',
+      status: b.status || 'pending',
+      farmerSource: b.createdBy || 'System',
+      materialSource: b.facilityName || b.facilityLocation || 'Platform',
+      quantity: 'N/A',
+      harvested: b.packagingDate
+        ? new Date(b.packagingDate).toLocaleDateString()
+        : 'N/A',
+      received: b.createdAt
+        ? new Date(b.createdAt).toLocaleDateString()
+        : 'N/A',
+    }))
+  }, [batchesResponse])
+
+  const materials = useMemo(() => {
+    if (activeTab === 'External Material') return manualMaterials
+    if (activeTab === 'Incoming Materials') {
+      return platformMaterials.filter(
+        (m) =>
+          (m.status || '').toLowerCase() === 'pending' ||
+          (m.status || '').toLowerCase() === 'in_progress',
+      )
+    }
+    return [...platformMaterials, ...manualMaterials]
+  }, [activeTab, platformMaterials, manualMaterials])
 
   const handleAddMaterial = (data: NewMaterialData) => {
     // Generate a quick random batch ID
@@ -81,7 +123,7 @@ export default function ProcessorMaterials() {
       received: formatMockDate(data.received),
     }
 
-    setMaterials(prev => [...prev, newMaterial])
+    setManualMaterials(prev => [...prev, newMaterial])
   }
 
   return (
@@ -130,14 +172,14 @@ export default function ProcessorMaterials() {
         />
         <StatCard 
           title="Manual Entry" 
-          value={materials.length.toString()} 
+          value={manualMaterials.length.toString()} 
           subtitle="Offline"
           description="Manually added materials"
           icon={<ClipboardList className="size-4" />}
         />
         <StatCard 
           title="In Transit" 
-          value="8" 
+          value={platformMaterials.length.toString()} 
           subtitle="Pending receipt"
           description="Incoming from cooperatives"
           icon={<Clock className="size-4" />}
@@ -228,7 +270,7 @@ export default function ProcessorMaterials() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-[500px] mb-8">
           <div>
-            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 block text-brand/70 font-mono">Start Date</label>
+            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 block font-mono">Start Date</label>
             <DatePicker 
               value={startDate} 
               onChange={setStartDate} 
@@ -237,7 +279,7 @@ export default function ProcessorMaterials() {
             />
           </div>
           <div>
-            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 block text-brand/70 font-mono">End Date</label>
+            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 block font-mono">End Date</label>
             <DatePicker 
               value={endDate} 
               onChange={setEndDate} 
@@ -282,6 +324,22 @@ export default function ProcessorMaterials() {
         </div>
 
         <div className="overflow-x-auto">
+          {isBatchesLoading ? (
+            <div className="space-y-4 p-6">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="h-8 w-full animate-pulse rounded bg-gray-100" />
+              ))}
+            </div>
+          ) : null}
+          {isBatchesError ? (
+            <EmptyState
+              icon={<Package className="size-10" />}
+              title="Failed to load processor materials"
+              description="Could not load materials from processor batches."
+              className="py-10"
+            />
+          ) : null}
+          {!isBatchesLoading && !isBatchesError ? (
           <table className="w-full text-left text-sm">
             <thead className="border-b border-gray-50 bg-gray-50/50">
               <tr>
@@ -309,7 +367,7 @@ export default function ProcessorMaterials() {
                   <td className="px-5 py-4 text-xs font-medium text-gray-500">{row.received}</td>
                   <td className="px-5 py-4 text-right">
                     <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
+                      <DropdownMenuTrigger>
                         <Button variant="ghost" size="icon" className="size-8 text-gray-400 hover:text-gray-900">
                           <MoreHorizontal className="size-4" />
                         </Button>
@@ -325,7 +383,8 @@ export default function ProcessorMaterials() {
               ))}
             </tbody>
           </table>
-          {materials.length === 0 && (
+          ) : null}
+          {!isBatchesLoading && !isBatchesError && materials.length === 0 && (
             <EmptyState
               icon={<Package className="size-10" />}
               title="No materials found"

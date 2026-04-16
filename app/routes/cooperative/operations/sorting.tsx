@@ -1,28 +1,51 @@
-import { useParams } from 'react-router'
+import { useState } from 'react'
+import { toast } from 'sonner'
 import { OperationFormLayout } from '~/components/operation-form-layout'
+import { OperationFormError, OperationFormLoading } from '~/components/operation-form-load-state'
 import { PersonField } from '~/components/person-field'
-import { allCropCycles } from '~/lib/mock-data/cooperative'
+import { useFarmOperationPage } from '~/hooks/use-farm-operation-page'
+import type { FarmOperationRouteSlug } from '~/lib/farm-operation-log'
 import type { Route } from './+types/sorting'
+
+const OPERATION_SLUG = 'sorting' as FarmOperationRouteSlug
 
 export function meta({ }: Route.MetaArgs) {
   return [{ title: 'Sorting & Grading | Agrolinking' }]
 }
 
 export default function SortingAndGrading() {
-  const { cropCycleId } = useParams()
-  const cropCycle = allCropCycles.find((c) => c.id === cropCycleId) || allCropCycles[0]
+  const { layoutCropCycle, isLoading, isError, submitLog, isPending } = useFarmOperationPage(OPERATION_SLUG)
+  const [description, setDescription] = useState('')
 
-  const handleSubmit = (e: React.FormEvent) => {
+  if (isLoading) return <OperationFormLoading />
+  if (isError || !layoutCropCycle) {
+    return (
+      <OperationFormError message="We could not load this crop cycle. Return to the record-operation list and try again." />
+    )
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log('Submitted Sorting & Grading')
+    if (!description.trim()) {
+      toast.error('Description is required.')
+      return
+    }
+    try {
+      await submitLog(description)
+      toast.success('Sorting & grading logged successfully.')
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Unknown error'
+      toast.error(`Failed to log operation: ${msg}`)
+    }
   }
 
   return (
     <OperationFormLayout
       title="Sorting & Grading"
       breadcrumbLabel="Sorting & Grading"
-      cropCycle={cropCycle}
+      cropCycle={layoutCropCycle}
       onSubmit={handleSubmit}
+      isSubmitting={isPending}
       submitLabel="Log Sorting & Grading"
     >
       {/* 2-column: Operator & Supervisor */}
@@ -85,7 +108,14 @@ export default function SortingAndGrading() {
       {/* Description */}
       <div>
         <label className="mb-1.5 block text-sm font-semibold text-gray-900">Sorting Observations <span className="text-red-500">*</span></label>
-        <textarea rows={3} placeholder="Record any observations about crop quality, size distribution, etc." className="w-full resize-none rounded-md border border-gray-200 px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20" required />
+        <textarea
+          rows={3}
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder="Record any observations about crop quality, size distribution, etc."
+          className="w-full resize-none rounded-md border border-gray-200 px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+          required
+        />
       </div>
     </OperationFormLayout>
   )

@@ -15,6 +15,7 @@ import {
   ClipboardList 
 } from 'lucide-react'
 import { PageHeader } from '~/components/page-header'
+import { EmptyState } from '~/components/empty-state'
 import { StatCard } from '~/components/stat-card'
 import { Button } from '~/components/ui/button'
 import { Badge } from '~/components/ui/badge'
@@ -159,12 +160,13 @@ export default function CooperativeFarmerDetails() {
             <Button variant="ghost" size="icon" className="size-8 text-gray-300 hover:text-brand"><Activity className="size-4" /></Button>
           </div>
           
-          <div className="flex-1 flex flex-col items-center justify-center p-8 border-2 border-dashed border-gray-50 rounded-xl bg-gray-50/10 mb-6 text-center">
-            <div className="size-12 rounded-full bg-white shadow-sm flex items-center justify-center mb-3">
-              <Package className="size-5 text-gray-200" />
-            </div>
-            <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">No Active Cycles</p>
-            <p className="text-[10px] text-gray-300 mt-1 uppercase tracking-tight">Start a new production cycle to begin tracking performance</p>
+          <div className="mb-6">
+            <EmptyState
+              className="rounded-xl border-2 border-dashed border-gray-50 bg-gray-50/10 py-10"
+              icon={<Package className="size-7 text-gray-300" />}
+              title="No active cycles"
+              description="Start a new production cycle to begin tracking performance."
+            />
           </div>
           
           <Link to={`/cooperative/farmers/${farmer.id}/farms`} className="block">
@@ -218,10 +220,12 @@ export default function CooperativeFarmerDetails() {
             </div>
           </div>
           
-          <div className="flex-1 flex flex-col items-center justify-center p-8 border-2 border-dashed border-gray-50 rounded-xl bg-gray-50/10 text-center">
-            <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest italic">Status: Clear</p>
-            <p className="text-[10px] text-gray-300 mt-1 uppercase tracking-tight">No critical deviations detected for the next 45 days</p>
-          </div>
+          <EmptyState
+            className="rounded-xl border-2 border-dashed border-gray-50 bg-gray-50/10 py-10"
+            icon={<ClipboardList className="size-7 text-gray-300" />}
+            title="Status: clear"
+            description="No critical deviations flagged for this view."
+          />
         </div>
       </div>
     </div>

@@ -1,62 +1,55 @@
 import { useState } from 'react'
-import { useNavigate, useParams } from 'react-router'
 import { toast } from 'sonner'
 import { OperationFormLayout } from '~/components/operation-form-layout'
+import { OperationFormError, OperationFormLoading } from '~/components/operation-form-load-state'
 import { PersonField } from '~/components/person-field'
-import { usePostFarmsIdOperations } from '~/lib/api/generated/farms-operations/farms-operations'
-import { allCropCycles } from '~/lib/mock-data/farmer'
+import { useFarmOperationPage } from '~/hooks/use-farm-operation-page'
+import type { FarmOperationRouteSlug } from '~/lib/farm-operation-log'
 import type { Route } from './+types/harvesting'
+
+const OPERATION_SLUG = 'harvesting' as FarmOperationRouteSlug
 
 export function meta({ }: Route.MetaArgs) {
   return [{ title: 'Harvesting | Agrolinking' }]
 }
 
 export default function Harvesting() {
-  const { cropCycleId } = useParams()
-  const navigate = useNavigate()
-  const cropCycle = allCropCycles.find((c) => c.id === cropCycleId) || allCropCycles[0]
-
+  const { layoutCropCycle, isLoading, isError, submitLog, isPending } = useFarmOperationPage(OPERATION_SLUG)
   const [description, setDescription] = useState('')
-  const { mutateAsync: logOperation, isPending } = usePostFarmsIdOperations()
+
+  if (isLoading) return <OperationFormLoading />
+  if (isError || !layoutCropCycle) {
+    return (
+      <OperationFormError message="We could not load this crop cycle. Return to the record-operation list and try again." />
+    )
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
-    if (!description) {
+    if (!description.trim()) {
       toast.error('Description is required.')
       return
     }
-    
     try {
-      await logOperation({
-        id: cropCycle.farmId,
-        data: {
-          cropCycleId: cropCycle.id,
-          operationType: 'harvesting',
-          description: description,
-          operationDate: new Date().toISOString()
-        }
-      })
-      toast.success('Harvesting operation logged successfully!')
-      navigate('/farmer/operations/new')
-    } catch (err: any) {
-      toast.error(`Failed to log operation: ${err.message || 'Unknown error'}`)
+      await submitLog(description)
+      toast.success('Harvesting logged successfully.')
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Unknown error'
+      toast.error(`Failed to log operation: ${msg}`)
     }
   }
-
-  // Harvesting requires hiding some common bottom fields and appending its own. 
-  // We'll pass children, but the Figma shows it has its own Weather Conditions/Costs/Inputs BEFORE the bottom. 
-  // BUT Figma also shows Area Covered/Cost/Weather/Energy right after description. 
-  // Let's use the layout but pass specific children to match the harvesting flow.
 
   return (
     <OperationFormLayout
       title="Harvesting"
       breadcrumbLabel="Harvesting"
-      cropCycle={cropCycle}
+      cropCycle={layoutCropCycle}
       onSubmit={handleSubmit}
+      isSubmitting={isPending}
       submitLabel="Log Harvesting Operation"
-      organicWarning="This is an organic crop cycle."
+      organicWarning={
+        layoutCropCycle.status === 'planned' ? 'This is an organic crop cycle.' : undefined
+      }
     >
       {/* 2-column: Operator & Supervisor */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

@@ -98,7 +98,10 @@ export function ViewActivitiesModal({ isOpen, onClose, cropCycle }: ViewActiviti
             <DialogTitle className="text-lg font-bold text-brand-dark">Crop Cycle Activities</DialogTitle>
             <DialogDescription className="space-y-1">
               <p className="font-semibold text-gray-900 text-sm">
-                {cropCycle.productName} <span className="text-gray-500 font-normal">({cropCycle.variety})</span>
+                {cropCycle.cropName || (cropCycle as { productName?: string }).productName || 'Crop'}
+                {cropCycle.variety ? (
+                  <span className="text-gray-500 font-normal"> ({cropCycle.variety})</span>
+                ) : null}
               </p>
               <p className="text-gray-600 text-sm">{cropCycle.farmName}</p>
               <p className="text-gray-400 text-xs mt-1">
