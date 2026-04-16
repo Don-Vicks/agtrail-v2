@@ -20,6 +20,7 @@ import {
   Activity,
   LayoutDashboard,
   Boxes as BoxesIcon,
+  Settings,
 } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import { Badge } from '~/components/ui/badge'
@@ -27,7 +28,7 @@ import type { Route } from './+types/products'
 import { useGetProcessorsBatches } from '~/lib/api/generated/processors-batches/processors-batches'
 import type { ProcessorBatch } from '~/lib/api/generated/models'
 
-export function meta({}: Route.MetaArgs) {
+export function meta({ }: Route.MetaArgs) {
   return [
     { title: 'Product Output | Agtrail' },
     {
@@ -122,13 +123,13 @@ function InventoryTab() {
 
   const filteredBatches = useMemo(() => {
     return batches.filter((b: any) => {
-      const matchesSearch = !search || 
-        b.outputProductName?.toLowerCase().includes(search.toLowerCase()) || 
+      const matchesSearch = !search ||
+        b.outputProductName?.toLowerCase().includes(search.toLowerCase()) ||
         b.batchCode?.toLowerCase().includes(search.toLowerCase())
-      
-      const matchesStatus = statusFilter === 'all' || 
+
+      const matchesStatus = statusFilter === 'all' ||
         b.status?.toLowerCase() === statusFilter.toLowerCase()
-        
+
       return matchesSearch && matchesStatus
     })
   }, [batches, search, statusFilter])
@@ -159,8 +160,8 @@ function InventoryTab() {
             isLoading
               ? '...'
               : batches
-                  .filter((b) => b.status?.toLowerCase() === 'completed')
-                  .length.toString()
+                .filter((b) => b.status?.toLowerCase() === 'completed')
+                .length.toString()
           }
           icon={<CheckCircle className='size-5 text-emerald-500' />}
           trend={{ value: 'Verified', isPositive: true }}
@@ -171,8 +172,8 @@ function InventoryTab() {
             isLoading
               ? '...'
               : batches
-                  .filter((b) => b.status?.toLowerCase() !== 'completed')
-                  .length.toString()
+                .filter((b) => b.status?.toLowerCase() !== 'completed')
+                .length.toString()
           }
           icon={<Clock className='size-5 text-amber-500' />}
           trend={{ value: 'Stable', isPositive: true }}
@@ -340,7 +341,7 @@ function InventoryTab() {
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-2">
               <span className="text-gray-300">Show</span>
-              <select 
+              <select
                 value={rowsPerPage}
                 onChange={(e) => { setRowsPerPage(Number(e.target.value)); setCurrentPage(1) }}
                 className="bg-transparent border-none outline-none text-gray-900 font-bold"
@@ -352,18 +353,18 @@ function InventoryTab() {
             <div className="flex items-center gap-4">
               <span className="text-gray-300">Page {currentPage} / {totalPages}</span>
               <div className="flex items-center gap-1">
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="size-7 text-gray-300" 
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="size-7 text-gray-300"
                   disabled={currentPage === 1}
                   onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                 >
                   <ArrowRight className="size-3.5 rotate-180" />
                 </Button>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
+                <Button
+                  variant="ghost"
+                  size="icon"
                   className="size-7 text-gray-400 hover:text-brand"
                   disabled={currentPage >= totalPages}
                   onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
@@ -391,10 +392,10 @@ function TransfersTab() {
         trf.ref?.toLowerCase().includes(search.toLowerCase()) ||
         trf.product?.toLowerCase().includes(search.toLowerCase()) ||
         trf.to?.toLowerCase().includes(search.toLowerCase())
-      
+
       const matchesStatus = statusFilter === 'all' ||
         trf.status?.toLowerCase() === statusFilter.toLowerCase()
-        
+
       return matchesSearch && matchesStatus
     })
   }, [search, statusFilter])
@@ -563,7 +564,7 @@ function TransfersTab() {
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-2">
               <span className="text-gray-300">Show</span>
-              <select 
+              <select
                 value={rowsPerPage}
                 onChange={(e) => { setRowsPerPage(Number(e.target.value)); setCurrentPage(1) }}
                 className="bg-transparent border-none outline-none text-gray-900 font-bold"
@@ -575,18 +576,18 @@ function TransfersTab() {
             <div className="flex items-center gap-4">
               <span className="text-gray-300">Page {currentPage} / {totalPages}</span>
               <div className="flex items-center gap-1">
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="size-7 text-gray-300" 
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="size-7 text-gray-300"
                   disabled={currentPage === 1}
                   onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                 >
                   <ArrowRight className="size-3.5 rotate-180" />
                 </Button>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
+                <Button
+                  variant="ghost"
+                  size="icon"
                   className="size-7 text-gray-400 hover:text-brand"
                   disabled={currentPage >= totalPages}
                   onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}

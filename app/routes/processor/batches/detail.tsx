@@ -4,6 +4,7 @@ import { PageHeader } from '~/components/page-header'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import { Badge } from '~/components/ui/badge'
+import { DatePicker } from '~/components/ui/date-picker'
 import { EmptyState } from '~/components/empty-state'
 import { useGetProcessorsBatchesId } from '~/lib/api/generated/processors-batches/processors-batches'
 import { 
@@ -44,16 +45,28 @@ export default function BatchDetailsPage() {
   const [currentStep, setCurrentStep] = useState(2)
 
   // Simulation state arrays for dynamic local rendering until GET hooks explicitly exist for these endpoints
-  const [processingStepsList] = useState<any[]>([])
-  const [fortificationList] = useState<any[]>([])
-  const [qualityTestList] = useState<any[]>([])
-  const [packagingList] = useState<any[]>([])
+  const [processingStepsList, setProcessingStepsList] = useState<any[]>([])
+  const [fortificationList, setFortificationList] = useState<any[]>([])
+  const [qualityTestList, setQualityTestList] = useState<any[]>([])
+  const [packagingList, setPackagingList] = useState<any[]>([])
+
+  // Local Form Buffers
+  const [stepData, setStepData] = useState<any>({})
+  const [fortData, setFortData] = useState<any>({ nutrients: [] })
+  const [qualityData, setQualityData] = useState<any>({})
+  const [packData, setPackData] = useState<any>({})
 
   // Forms Visibility State
   const [showAddStepForm, setShowAddStepForm] = useState(false)
   const [showAddFortificationForm, setShowAddFortificationForm] = useState(false)
   const [showAddQualityTestForm, setShowAddQualityTestForm] = useState(false)
   const [showAddPackagingForm, setShowAddPackagingForm] = useState(false)
+
+  // Submissions
+  const pushStep = () => { if (stepData.name) { setProcessingStepsList(p => [...p, stepData]); setStepData({}); setShowAddStepForm(false) } }
+  const pushFort = () => { if (fortData.name) { setFortificationList(p => [...p, fortData]); setFortData({ nutrients: [] }); setShowAddFortificationForm(false) } }
+  const pushQuality = () => { if (qualityData.name) { setQualityTestList(p => [...p, qualityData]); setQualityData({}); setShowAddQualityTestForm(false) } }
+  const pushPack = () => { if (packData.material) { setPackagingList(p => [...p, packData]); setPackData({}); setShowAddPackagingForm(false) } }
 
   const steps = [
     { title: 'Materials Review', desc: 'Confirm input materials and quantities', icon: <CheckCircle2 className="size-4" /> },
@@ -63,7 +76,7 @@ export default function BatchDetailsPage() {
   ]
 
   return (
-    <div className="space-y-6 pb-24 px-1 max-w-5xl mx-auto align-top">
+    <div className="space-y-6 pb-10">
       {/* Breadcrumb Header */}
       <PageHeader
         items={[
@@ -77,7 +90,7 @@ export default function BatchDetailsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 uppercase tracking-tight">{batchCode}</h1>
-          <p className="text-sm text-gray-500 mt-1">{productName} {productType && `(${productType})`}</p>
+          <p className="text-sm text-gray-500 mt-1">{productName}</p>
         </div>
         <Badge variant="outline" className={cn(
           "px-4 py-1 text-xs uppercase tracking-widest font-bold",
@@ -186,7 +199,7 @@ export default function BatchDetailsPage() {
             <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-4">
               <div>
                 <h3 className="text-lg font-bold text-gray-900 tracking-tight">Batch: {batchCode}</h3>
-                <p className="text-xs text-gray-500 mt-1">Product: {productName} {productType && `(${productType})`}</p>
+                <p className="text-xs text-gray-500 mt-1">Product: {productName}</p>
               </div>
               
               <div className="flex gap-3 w-full sm:w-auto">
@@ -209,56 +222,56 @@ export default function BatchDetailsPage() {
             {/* ADD PROCESSING STEP FORM */}
             {showAddStepForm && (
               <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-                <h3 className="text-base font-bold text-gray-900Tracking-tight mb-1">Add Processing Step</h3>
+                <h3 className="text-base font-bold text-gray-900 tracking-tight mb-1">Add Processing Step</h3>
                 <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-6 border-b border-gray-100 pb-4">Document each step of your processing operation with contextual details</p>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                   <div className="space-y-2">
                     <label className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Step Name *</label>
-                    <select className="w-full h-10 px-3 rounded-lg border border-gray-200 text-sm bg-gray-50/50 outline-none focus:border-brand focus:ring-1 focus:ring-brand">
-                      <option>Select processing step</option>
-                      <option>Washing</option>
-                      <option>Drying</option>
-                      <option>Milling</option>
+                    <select value={stepData.name || ''} onChange={e => setStepData({...stepData, name: e.target.value})} className="w-full h-10 px-3 rounded-lg border border-gray-200 text-sm bg-gray-50/50 outline-none focus:border-brand focus:ring-1 focus:ring-brand">
+                      <option value="">Select processing step</option>
+                      <option value="Washing">Washing</option>
+                      <option value="Drying">Drying</option>
+                      <option value="Milling">Milling</option>
                     </select>
                   </div>
                   <div className="space-y-2">
                     <label className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Personnel Responsible</label>
-                    <Input placeholder="Operator name" className="h-10 bg-gray-50/50" />
+                    <Input value={stepData.personnel || ''} onChange={e => setStepData({...stepData, personnel: e.target.value})} placeholder="Operator name" className="h-10 bg-gray-50/50" />
                   </div>
                   <div className="space-y-2">
                     <label className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Start Time</label>
-                    <Input type="datetime-local" className="h-10 bg-gray-50/50" />
+                    <Input type="datetime-local" value={stepData.startTime || ''} onChange={e => setStepData({...stepData, startTime: e.target.value})} className="h-10 bg-gray-50/50" />
                   </div>
                   <div className="space-y-2">
                     <label className="text-[11px] font-bold uppercase tracking-widest text-gray-500">End Time</label>
-                    <Input type="datetime-local" className="h-10 bg-gray-50/50" />
+                    <Input type="datetime-local" value={stepData.endTime || ''} onChange={e => setStepData({...stepData, endTime: e.target.value})} className="h-10 bg-gray-50/50" />
                   </div>
                   <div className="space-y-2">
                     <label className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Temperature (°C)</label>
-                    <Input type="number" placeholder="25.0" className="h-10 bg-gray-50/50" />
+                    <Input type="number" value={stepData.temp || ''} onChange={e => setStepData({...stepData, temp: e.target.value})} placeholder="25.0" className="h-10 bg-gray-50/50" />
                   </div>
                   <div className="space-y-2">
                     <label className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Humidity (%)</label>
-                    <Input type="number" placeholder="60.0" className="h-10 bg-gray-50/50" />
+                    <Input type="number" value={stepData.humidity || ''} onChange={e => setStepData({...stepData, humidity: e.target.value})} placeholder="60.0" className="h-10 bg-gray-50/50" />
                   </div>
                   <div className="md:col-span-2 space-y-2">
                     <label className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Equipment Used</label>
-                    <Input placeholder="Search or add equipment..." className="h-10 bg-gray-50/50" />
+                    <Input value={stepData.equipment || ''} onChange={e => setStepData({...stepData, equipment: e.target.value})} placeholder="Search or add equipment..." className="h-10 bg-gray-50/50" />
                   </div>
                   <div className="md:col-span-2 space-y-2">
                     <label className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Description</label>
-                    <textarea rows={3} placeholder="Detailed description of the processing step..." className="w-full rounded-lg border border-gray-200 p-3 text-sm bg-gray-50/50 outline-none focus:border-brand focus:ring-1 focus:ring-brand resize-none" />
+                    <textarea value={stepData.description || ''} onChange={e => setStepData({...stepData, description: e.target.value})} rows={3} placeholder="Detailed description of the processing step..." className="w-full rounded-lg border border-gray-200 p-3 text-sm bg-gray-50/50 outline-none focus:border-brand focus:ring-1 focus:ring-brand resize-none" />
                   </div>
                   <div className="md:col-span-2 space-y-2">
                     <label className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Notes</label>
-                    <textarea rows={3} placeholder="Additional notes or observations..." className="w-full rounded-lg border border-gray-200 p-3 text-sm bg-gray-50/50 outline-none focus:border-brand focus:ring-1 focus:ring-brand resize-none" />
+                    <textarea value={stepData.notes || ''} onChange={e => setStepData({...stepData, notes: e.target.value})} rows={3} placeholder="Additional notes or observations..." className="w-full rounded-lg border border-gray-200 p-3 text-sm bg-gray-50/50 outline-none focus:border-brand focus:ring-1 focus:ring-brand resize-none" />
                   </div>
                 </div>
 
                 <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
                   <Button variant="ghost" onClick={() => setShowAddStepForm(false)} className="text-xs uppercase tracking-wider font-bold h-9">Cancel</Button>
-                  <Button onClick={() => setShowAddStepForm(false)} className="bg-[#8b9e8b] text-white hover:bg-brand text-xs uppercase tracking-wider font-bold h-9 px-6 transition-colors">Add Processing Step</Button>
+                  <Button onClick={pushStep} className="bg-[#8b9e8b] text-white hover:bg-brand text-xs uppercase tracking-wider font-bold h-9 px-6 transition-colors">Add Processing Step</Button>
                 </div>
               </div>
             )}
@@ -272,45 +285,45 @@ export default function BatchDetailsPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                   <div className="space-y-2">
                     <label className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Fortificant Type *</label>
-                    <select className="w-full h-10 px-3 rounded-lg border border-gray-200 text-sm bg-gray-50/50 outline-none focus:border-brand">
-                      <option>Select fortificant type</option>
-                      <option>Vitamin</option>
-                      <option>Mineral</option>
+                    <select value={fortData.type || ''} onChange={e => setFortData({...fortData, type: e.target.value})} className="w-full h-10 px-3 rounded-lg border border-gray-200 text-sm bg-gray-50/50 outline-none focus:border-brand">
+                      <option value="">Select fortificant type</option>
+                      <option value="Vitamin">Vitamin</option>
+                      <option value="Mineral">Mineral</option>
                     </select>
                   </div>
                   <div className="space-y-2">
                     <label className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Fortificant/Premix Name *</label>
-                    <Input placeholder="e.g., Vitamin A Palmitate 250" className="h-10 bg-gray-50/50" />
+                    <Input value={fortData.name || ''} onChange={e => setFortData({...fortData, name: e.target.value})} placeholder="e.g., Vitamin A Palmitate 250" className="h-10 bg-gray-50/50" />
                   </div>
                   <div className="space-y-2">
                     <label className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Process Stage *</label>
-                    <select className="w-full h-10 px-3 rounded-lg border border-gray-200 text-sm bg-gray-50/50 outline-none focus:border-brand">
-                      <option>Select process stage</option>
-                      <option>mixing process</option>
+                    <select value={fortData.stage || ''} onChange={e => setFortData({...fortData, stage: e.target.value})} className="w-full h-10 px-3 rounded-lg border border-gray-200 text-sm bg-gray-50/50 outline-none focus:border-brand">
+                      <option value="">Select process stage</option>
+                      <option value="mixing process">mixing process</option>
                     </select>
                   </div>
                   <div className="space-y-2">
                     <label className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Date & Time of Addition</label>
-                    <Input type="datetime-local" className="h-10 bg-gray-50/50" />
+                    <Input type="datetime-local" value={fortData.additionTime || ''} onChange={e => setFortData({...fortData, additionTime: e.target.value})} className="h-10 bg-gray-50/50" />
                   </div>
                   <div className="space-y-2">
                     <label className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Quantity of Premix Added *</label>
                     <div className="flex gap-2">
-                      <Input type="number" placeholder="10.5" className="h-10 bg-gray-50/50 flex-1" />
-                      <select className="h-10 px-3 rounded-lg border border-gray-200 text-sm bg-gray-50/50 outline-none focus:border-brand w-24">
-                        <option>mg</option>
-                        <option>g</option>
-                        <option>kg</option>
+                      <Input type="number" value={fortData.quantity || ''} onChange={e => setFortData({...fortData, quantity: e.target.value})} placeholder="10.5" className="h-10 bg-gray-50/50 flex-1" />
+                      <select value={fortData.unit || 'mg'} onChange={e => setFortData({...fortData, unit: e.target.value})} className="h-10 px-3 rounded-lg border border-gray-200 text-sm bg-gray-50/50 outline-none focus:border-brand w-24">
+                        <option value="mg">mg</option>
+                        <option value="g">g</option>
+                        <option value="kg">kg</option>
                       </select>
                     </div>
                   </div>
                   <div className="space-y-2">
                     <label className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Concentration</label>
-                    <Input type="number" placeholder="15.0" className="h-10 bg-gray-50/50" />
+                    <Input type="number" value={fortData.concentration || ''} onChange={e => setFortData({...fortData, concentration: e.target.value})} placeholder="15.0" className="h-10 bg-gray-50/50" />
                   </div>
                   <div className="space-y-2">
                     <label className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Fortificant Expiry Date</label>
-                    <Input type="date" className="h-10 bg-gray-50/50" />
+                    <DatePicker value={fortData.expiryDate} onChange={(date) => setFortData({...fortData, expiryDate: date})} />
                   </div>
                 </div>
 
@@ -319,7 +332,10 @@ export default function BatchDetailsPage() {
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                     {['Vitamin A', 'Iron', 'Folic Acid', 'Zinc', 'Vitamin B12', 'Calcium', 'Vitamin D', 'Iodine'].map(n => (
                       <label key={n} className="flex items-center gap-2 cursor-pointer">
-                        <input type="checkbox" className="rounded border-gray-300 text-brand focus:ring-brand size-4" />
+                        <input type="checkbox" checked={fortData.nutrients?.includes(n)} onChange={(e) => {
+                          if (e.target.checked) setFortData({...fortData, nutrients: [...fortData.nutrients, n]})
+                          else setFortData({...fortData, nutrients: fortData.nutrients.filter((x: string) => x !== n)})
+                        }} className="rounded border-gray-300 text-brand focus:ring-brand size-4" />
                         <span className="text-sm font-medium text-gray-700">{n}</span>
                       </label>
                     ))}
@@ -330,19 +346,19 @@ export default function BatchDetailsPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                   <div className="space-y-2">
                     <label className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Supplier Name *</label>
-                    <Input placeholder="e.g. Global Nutrients Inc." className="h-10 bg-gray-50/50" />
+                    <Input value={fortData.supplierName || ''} onChange={e => setFortData({...fortData, supplierName: e.target.value})} placeholder="e.g. Global Nutrients Inc." className="h-10 bg-gray-50/50" />
                   </div>
                   <div className="space-y-2">
                     <label className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Supplier Batch Number</label>
-                    <Input placeholder="Supplier batch number" className="h-10 bg-gray-50/50" />
+                    <Input value={fortData.supplierBatch || ''} onChange={e => setFortData({...fortData, supplierBatch: e.target.value})} placeholder="Supplier batch number" className="h-10 bg-gray-50/50" />
                   </div>
                   <div className="space-y-2">
                     <label className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Supplier Lot Number *</label>
-                    <Input placeholder="Supplier's lot number (for traceability)" className="h-10 bg-gray-50/50" />
+                    <Input value={fortData.supplierLot || ''} onChange={e => setFortData({...fortData, supplierLot: e.target.value})} placeholder="Supplier's lot number (for traceability)" className="h-10 bg-gray-50/50" />
                   </div>
                   <div className="space-y-2">
                     <label className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Certificate Number</label>
-                    <Input placeholder="Certificate or CoA number" className="h-10 bg-gray-50/50" />
+                    <Input value={fortData.certNumber || ''} onChange={e => setFortData({...fortData, certNumber: e.target.value})} placeholder="Certificate or CoA number" className="h-10 bg-gray-50/50" />
                   </div>
                   <div className="md:col-span-2 space-y-2">
                     <label className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Certificate of Analysis</label>
@@ -356,7 +372,7 @@ export default function BatchDetailsPage() {
 
                 <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
                   <Button variant="ghost" onClick={() => setShowAddFortificationForm(false)} className="text-xs uppercase tracking-wider font-bold h-9">Cancel</Button>
-                  <Button onClick={() => setShowAddFortificationForm(false)} className="bg-[#8b9e8b] text-white hover:bg-brand text-xs uppercase tracking-wider font-bold h-9 px-6 transition-colors">Add Fortification Record</Button>
+                  <Button onClick={pushFort} className="bg-[#8b9e8b] text-white hover:bg-brand text-xs uppercase tracking-wider font-bold h-9 px-6 transition-colors">Add Fortification Record</Button>
                 </div>
               </div>
             )}
@@ -373,7 +389,15 @@ export default function BatchDetailsPage() {
                   </div>
                 ) : processingStepsList.map((step, idx) => (
                   <div key={idx} className="rounded-xl border border-gray-100 p-5 bg-gray-50/30">
-                    <p className="text-xs text-gray-600">Recorded Processing Step</p>
+                    <div className="flex justify-between items-start mb-2">
+                       <h4 className="font-bold text-sm text-gray-900">{step.name} <span className="text-xs text-gray-400 font-normal ml-2">by {step.personnel || 'Unknown'}</span></h4>
+                       <span className="text-[10px] text-gray-400 font-bold uppercase">{step.startTime?.split('T')[0] || 'No Date'}</span>
+                    </div>
+                    {step.description && <p className="text-xs text-gray-600 mb-2">{step.description}</p>}
+                    <div className="flex gap-4 text-xs font-bold text-gray-500 pt-3 border-t border-gray-100">
+                      {step.temp && <span>{step.temp}°C</span>}
+                      {step.humidity && <span>{step.humidity}% Humidity</span>}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -391,7 +415,24 @@ export default function BatchDetailsPage() {
                   </div>
                 ) : fortificationList.map((fort, idx) => (
                   <div key={idx} className="rounded-xl border border-gray-100 p-5 bg-gray-50/30">
-                    <p className="text-xs text-gray-600">Recorded Fortification Step</p>
+                    <div className="flex justify-between items-start mb-2">
+                      <h4 className="font-bold text-sm text-gray-900">{fort.name} <span className="text-xs text-brand font-normal ml-2">({fort.type})</span></h4>
+                      <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100 border-none px-2 rounded-full text-[9px] uppercase tracking-wider font-bold">Pending</Badge>
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs mt-3">
+                      <div>
+                        <span className="block text-gray-500 mb-0.5">Quantity</span>
+                        <strong className="text-gray-900">{fort.quantity} {fort.unit}</strong>
+                      </div>
+                      <div>
+                        <span className="block text-gray-500 mb-0.5">Stage</span>
+                        <strong className="text-gray-900">{fort.stage}</strong>
+                      </div>
+                      <div className="col-span-2">
+                        <span className="block text-gray-500 mb-0.5">Supplier</span>
+                        <strong className="text-gray-900">{fort.supplierName} ({fort.supplierLot})</strong>
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -416,7 +457,7 @@ export default function BatchDetailsPage() {
             <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-4">
               <div>
                 <h3 className="text-lg font-bold text-gray-900 tracking-tight">Batch: {batchCode}</h3>
-                <p className="text-xs text-gray-500 mt-1">Product: {productName} {productType && `(${productType})`}</p>
+                <p className="text-xs text-gray-500 mt-1">Product: {productName}</p>
               </div>
               
               <Button 
@@ -434,25 +475,25 @@ export default function BatchDetailsPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                   <div className="space-y-2">
                     <label className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Test Name</label>
-                    <Input placeholder="e.g. Moisture Content" className="h-10 bg-gray-50/50" />
+                    <Input value={qualityData.name || ''} onChange={e => setQualityData({...qualityData, name: e.target.value})} placeholder="e.g. Moisture Content" className="h-10 bg-gray-50/50" />
                   </div>
                   <div className="space-y-2">
                     <label className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Test Type</label>
-                    <Input placeholder="e.g. Nutritional" className="h-10 bg-gray-50/50" />
+                    <Input value={qualityData.type || ''} onChange={e => setQualityData({...qualityData, type: e.target.value})} placeholder="e.g. Nutritional" className="h-10 bg-gray-50/50" />
                   </div>
                   <div className="space-y-2">
                     <label className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Result</label>
-                    <Input placeholder="e.g. 12.5 ppm" className="h-10 bg-gray-50/50" />
+                    <Input value={qualityData.result || ''} onChange={e => setQualityData({...qualityData, result: e.target.value})} placeholder="e.g. 12.5 ppm" className="h-10 bg-gray-50/50" />
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-2 flex flex-col">
                     <label className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Date</label>
-                    <Input type="date" className="h-10 bg-gray-50/50" />
+                    <DatePicker value={qualityData.date} onChange={(date) => setQualityData({...qualityData, date})} className="h-10 bg-gray-50/50" />
                   </div>
                 </div>
 
                 <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
                   <Button variant="ghost" onClick={() => setShowAddQualityTestForm(false)} className="text-xs uppercase tracking-wider font-bold h-9">Cancel</Button>
-                  <Button onClick={() => setShowAddQualityTestForm(false)} className="bg-[#8b9e8b] text-white hover:bg-brand text-xs uppercase tracking-wider font-bold h-9 px-6 transition-colors">Add Test Record</Button>
+                  <Button onClick={pushQuality} className="bg-[#8b9e8b] text-white hover:bg-brand text-xs uppercase tracking-wider font-bold h-9 px-6 transition-colors">Add Test Record</Button>
                 </div>
               </div>
             )}
@@ -467,7 +508,17 @@ export default function BatchDetailsPage() {
                   </div>
                 ) : qualityTestList.map((test, idx) => (
                   <div key={idx} className="rounded-xl border border-gray-100 p-5 bg-gray-50/30">
-                    <p className="text-xs text-gray-600">Recorded Test Result</p>
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <h4 className="font-bold text-sm text-gray-900">{test.name}</h4>
+                        <p className="text-[11px] text-gray-500">{test.type}</p>
+                      </div>
+                      <Badge className="bg-emerald-100 text-brand border-none px-3 font-bold hover:bg-emerald-100 tracking-widest uppercase text-[10px]">Logged</Badge>
+                    </div>
+                    <div className="flex gap-12 text-xs mt-2">
+                       <div><span className="block text-gray-500 mb-1">Result</span><strong className="text-gray-900">{test.result}</strong></div>
+                       <div><span className="block text-gray-500 mb-1">Date</span><strong className="text-gray-900">{test.date}</strong></div>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -492,7 +543,7 @@ export default function BatchDetailsPage() {
             <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-4">
               <div>
                 <h3 className="text-lg font-bold text-gray-900 tracking-tight">Batch: {batchCode}</h3>
-                <p className="text-xs text-gray-500 mt-1">Product: {productName} {productType && `(${productType})`}</p>
+                <p className="text-xs text-gray-500 mt-1">Product: {productName}</p>
               </div>
               
               <div className="flex gap-3 w-full sm:w-auto">
@@ -519,40 +570,40 @@ export default function BatchDetailsPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                   <div className="space-y-2">
                     <label className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Packaging Material *</label>
-                    <Input placeholder="e.g. Food-grade polypropylene" className="h-10 bg-gray-50/50" />
+                    <Input value={packData.material || ''} onChange={e => setPackData({...packData, material: e.target.value})} placeholder="e.g. Food-grade polypropylene" className="h-10 bg-gray-50/50" />
                   </div>
                   <div className="space-y-2">
                     <label className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Packaging Type *</label>
-                    <select className="w-full h-10 px-3 rounded-lg border border-gray-200 text-sm bg-gray-50/50 outline-none focus:border-brand">
-                      <option>Select packaging type</option>
-                      <option>Bag</option>
-                      <option>Sack</option>
-                      <option>Box</option>
+                    <select value={packData.type || ''} onChange={e => setPackData({...packData, type: e.target.value})} className="w-full h-10 px-3 rounded-lg border border-gray-200 text-sm bg-gray-50/50 outline-none focus:border-brand">
+                      <option value="">Select packaging type</option>
+                      <option value="Bag">Bag</option>
+                      <option value="Sack">Sack</option>
+                      <option value="Box">Box</option>
                     </select>
                   </div>
                   <div className="space-y-2">
                     <label className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Environmental Rating</label>
-                    <select className="w-full h-10 px-3 rounded-lg border border-gray-200 text-sm bg-gray-50/50 outline-none focus:border-brand">
-                      <option>A - Excellent</option>
-                      <option>B - Good</option>
-                      <option>C - Fair</option>
+                    <select value={packData.rating || ''} onChange={e => setPackData({...packData, rating: e.target.value})} className="w-full h-10 px-3 rounded-lg border border-gray-200 text-sm bg-gray-50/50 outline-none focus:border-brand">
+                      <option value="A - Excellent">A - Excellent</option>
+                      <option value="B - Good">B - Good</option>
+                      <option value="C - Fair">C - Fair</option>
                     </select>
                   </div>
                   <div className="space-y-2">
                     <label className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Package Size</label>
-                    <Input type="number" placeholder="1.0" className="h-10 bg-gray-50/50" />
+                    <Input type="number" value={packData.size || ''} onChange={e => setPackData({...packData, size: e.target.value})} placeholder="1.0" className="h-10 bg-gray-50/50" />
                   </div>
                   <div className="space-y-2">
                     <label className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Packages Count</label>
-                    <Input type="number" placeholder="100" className="h-10 bg-gray-50/50" />
+                    <Input type="number" value={packData.count || ''} onChange={e => setPackData({...packData, count: e.target.value})} placeholder="100" className="h-10 bg-gray-50/50" />
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-2 flex flex-col">
                     <label className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Packaging Date *</label>
-                    <Input type="date" className="h-10 bg-gray-50/50" />
+                    <DatePicker value={packData.packagingDate} onChange={(date) => setPackData({...packData, packagingDate: date})} className="h-10 bg-gray-50/50" />
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-2 flex flex-col">
                     <label className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Expiry Date</label>
-                    <Input type="date" className="h-10 bg-gray-50/50" />
+                    <DatePicker value={packData.expiryDate} onChange={(date) => setPackData({...packData, expiryDate: date})} className="h-10 bg-gray-50/50" />
                   </div>
                 </div>
 
@@ -572,7 +623,7 @@ export default function BatchDetailsPage() {
 
                 <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
                   <Button variant="ghost" onClick={() => setShowAddPackagingForm(false)} className="text-xs uppercase tracking-wider font-bold h-9">Cancel</Button>
-                  <Button onClick={() => setShowAddPackagingForm(false)} className="bg-[#1d3d1e] text-white hover:bg-black text-xs uppercase tracking-wider font-bold h-9 px-6 transition-colors">Add Packaging Record</Button>
+                  <Button onClick={pushPack} className="bg-[#1d3d1e] text-white hover:bg-black text-xs uppercase tracking-wider font-bold h-9 px-6 transition-colors">Add Packaging Record</Button>
                 </div>
               </div>
             )}
@@ -586,8 +637,17 @@ export default function BatchDetailsPage() {
                     <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">No packaging records added yet</p>
                   </div>
                 ) : packagingList.map((record, idx) => (
-                  <div key={idx} className="rounded-xl border border-gray-100 p-5 bg-gray-50/30">
-                    <p className="text-xs text-gray-600">Recorded Packaging</p>
+                  <div key={idx} className="rounded-xl border border-gray-100 p-5 bg-gray-50/30 flex justify-between items-start">
+                    <div>
+                      <h4 className="font-bold text-sm text-gray-900">{record.type} - {record.material}</h4>
+                      <p className="text-[11px] text-gray-500 mt-1">Packaged on {record.packagingDate}</p>
+                      <div className="flex gap-8 text-xs mt-4">
+                        <div><span className="block text-gray-500 mb-1">Package Size</span><strong className="text-gray-900">{record.size}</strong></div>
+                        <div><span className="block text-gray-500 mb-1">Total Packages</span><strong className="text-gray-900">{record.count}</strong></div>
+                        <div><span className="block text-gray-500 mb-1">Expiry</span><strong className="text-gray-900">{record.expiryDate}</strong></div>
+                      </div>
+                    </div>
+                    {record.rating && <Badge className="bg-emerald-100 text-brand border-none px-2 text-[10px] uppercase font-bold">Rating: {record.rating.split(' ')[0]}</Badge>}
                   </div>
                 ))}
               </div>
@@ -597,7 +657,7 @@ export default function BatchDetailsPage() {
       </div>
 
       {/* Persistent Wizard Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.1)] z-50 flex items-center justify-between sm:pl-64">
+      <div className="mt-8 flex items-center justify-between border-t border-gray-200 pt-6 bg-white rounded-xl p-4 shadow-sm">
         <Button 
           variant="outline" 
           onClick={() => setCurrentStep(prev => Math.max(1, prev - 1))}
