@@ -1,4 +1,4 @@
-import { useQueryClient } from '@tanstack/react-query'
+import { useQueries, useQueryClient } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
 import { 
   Plus, 
@@ -16,13 +16,17 @@ import {
   getGetFarmersProductsQueryKey, 
   useGetFarmersProducts 
 } from '~/lib/api/generated/farm-products/farm-products'
+import { getGetFarmsIdCropCyclesQueryOptions } from '~/lib/api/generated/farms-crop-cycles/farms-crop-cycles'
 import { useGetFarms } from '~/lib/api/generated/farms/farms'
+import type { CropCycle } from '~/lib/api/generated/models'
 import { PageHeader } from '~/components/page-header'
 import { Button } from '~/components/ui/button'
 import { ProductGridCard } from '~/components/product-grid-card'
 import { ProductCardSkeleton } from '~/components/product-card-skeleton'
 import { CreateProductModal } from '~/components/create-product-modal'
+import { EmptyState } from '~/components/empty-state'
 import { cn } from '~/lib/utils'
+import { extractCropCyclesFromQueries } from '~/lib/record-operation-dashboard'
 
 /* ─── Page ─── */
 export default function ProductsIndex() {
@@ -33,6 +37,7 @@ export default function ProductsIndex() {
   const [search, setSearch] = useState('')
   const [farmFilter, setFarmFilter] = useState('all')
   const [productFilter, setProductFilter] = useState('all')
+  const [cycleStatusFilter, setCycleStatusFilter] = useState('all')
 
   const queryClient = useQueryClient()
 
@@ -42,6 +47,13 @@ export default function ProductsIndex() {
 
   const products = productsResponse?.data?.data || []
   const farms = farmsResponse?.data?.data || []
+  const cycleQueries = useQueries({
+    queries: farms.map((farm) => ({
+      ...getGetFarmsIdCropCyclesQueryOptions(farm.id),
+      enabled: !!farm.id,
+    })),
+  })
+  const cropCycles = useMemo(() => extractCropCyclesFromQueries(cycleQueries), [cycleQueries])
 
   // Farm name lookup
   const farmNameMap = useMemo(() => {
@@ -87,10 +99,27 @@ export default function ProductsIndex() {
     })
   }, [products, search, farmFilter, productFilter, farmNameMap])
 
-  // Products linked to a crop cycle
-  const cropCycleProducts = useMemo(() => {
-    return products.filter(p => p.cropCycleId)
-  }, [products])
+  const cropCycleRows = useMemo<FarmerUICropCycle[]>(() => {
+    return cropCycles.map((cycle) => ({
+      ...cycle,
+      farmName: farmNameMap.get(cycle.farmId) || cycle.farmId.slice(0, 8),
+    }))
+  }, [cropCycles, farmNameMap])
+  const filteredCropCycles = useMemo(() => {
+    const query = search.trim().toLowerCase()
+    return cropCycleRows.filter((cycle) => {
+      const matchesSearch =
+        !query ||
+        cycle.cropName.toLowerCase().includes(query) ||
+        cycle.farmName.toLowerCase().includes(query) ||
+        cycle.id.toLowerCase().includes(query)
+      const matchesFarm = farmFilter === 'all' || cycle.farmId === farmFilter
+      const matchesStatus =
+        cycleStatusFilter === 'all' ||
+        (cycle.status || '').toLowerCase() === cycleStatusFilter.toLowerCase()
+      return matchesSearch && matchesFarm && matchesStatus
+    })
+  }, [cropCycleRows, search, farmFilter, cycleStatusFilter])
 
   const totalPages = Math.ceil(filteredProducts.length / rowsPerPage)
   const paginatedProducts = filteredProducts.slice(
@@ -157,7 +186,7 @@ export default function ProductsIndex() {
               activeTab === 'ongoing' ? "bg-brand text-white shadow-sm" : "text-gray-400 hover:text-gray-600"
             )}
           >
-            Crop Cycles ({cropCycleProducts.length})
+            Crop Cycles ({cropCycleRows.length})
           </button>
         </div>
       </div>
@@ -236,18 +265,13 @@ export default function ProductsIndex() {
                 <ProductCardSkeleton />
               </>
             ) : paginatedProducts.length === 0 ? (
-              <div className="col-span-2 rounded-xl border border-gray-200 bg-white p-12 text-center">
-                <svg className="mx-auto size-12 text-gray-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
-                  <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z" />
-                </svg>
-                <p className="text-sm font-medium text-gray-500">
-                  {hasActiveFilters ? 'No products match your filters.' : 'No products have been created yet.'}
-                </p>
-                {hasActiveFilters && (
-                  <button onClick={clearFilters} className="mt-2 text-xs font-medium text-brand hover:underline">
-                    Clear all filters
-                  </button>
-                )}
+              <div className="col-span-2">
+                <EmptyState
+                  icon={<Package className="size-8" />}
+                  title={hasActiveFilters ? 'No products match your filters' : 'No products have been created yet'}
+                  description={hasActiveFilters ? 'Try adjusting your search or filters to find what you\'re looking for.' : undefined}
+                  action={hasActiveFilters ? { label: "Clear Filters", onClick: clearFilters } : undefined}
+                />
               </div>
             ) : paginatedProducts.map(p => (
               <ProductGridCard
@@ -306,6 +330,40 @@ export default function ProductsIndex() {
         </>
       ) : (
         <>
+          <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm mb-6">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+              <div className="relative w-full lg:max-w-md">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search crop cycles..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full rounded-lg border border-gray-200 pl-10 pr-4 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white transition-all shadow-sm"
+                />
+              </div>
+              <div className="flex flex-wrap items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest px-1">Status</span>
+                  <div className="relative">
+                    <select
+                      value={cycleStatusFilter}
+                      onChange={(e) => setCycleStatusFilter(e.target.value)}
+                      className="h-10 rounded-lg border border-gray-200 pl-3 pr-8 text-[11px] font-bold uppercase tracking-wider text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand bg-gray-50/50 appearance-none min-w-[140px]"
+                    >
+                      <option value="all">All Statuses</option>
+                      <option value="planned">Planned</option>
+                      <option value="active">Active</option>
+                      <option value="harvested">Harvested</option>
+                      <option value="failed">Failed</option>
+                      <option value="abandoned">Abandoned</option>
+                    </select>
+                    <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 size-3 text-gray-400 pointer-events-none" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {isLoading ? (
               <>
@@ -313,20 +371,16 @@ export default function ProductsIndex() {
                 <ProductCardSkeleton />
                 <ProductCardSkeleton />
               </>
-            ) : cropCycleProducts.length === 0 ? (
-              <div className="col-span-3 rounded-xl border border-gray-200 bg-white p-12 text-center">
-                <svg className="mx-auto size-12 text-gray-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
-                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-                </svg>
-                <p className="text-sm font-medium text-gray-500">No products linked to crop cycles yet.</p>
-                <p className="text-xs text-gray-400 mt-1">Products created from a crop cycle will appear here.</p>
+            ) : filteredCropCycles.length === 0 ? (
+              <div className="col-span-3">
+                <EmptyState
+                  icon={<Package className="size-8" />}
+                  title="No crop cycles found"
+                  description="No crop cycles match the selected filters."
+                />
               </div>
-            ) : cropCycleProducts.map(p => (
-              <ProductGridCard
-                key={p.id}
-                product={p}
-                farmName={farmNameMap.get(p.farmId) || p.farmId.slice(0, 8)}
-              />
+            ) : filteredCropCycles.map((cycle) => (
+              <FarmerCropCycleCard key={cycle.id} cycle={cycle} />
             ))}
           </div>
         </>
@@ -336,6 +390,35 @@ export default function ProductsIndex() {
         isOpen={isCreateModalOpen} 
         onClose={() => setIsCreateModalOpen(false)} 
       />
+    </div>
+  )
+}
+
+type FarmerUICropCycle = CropCycle & { farmName: string }
+
+function FarmerCropCycleCard({ cycle }: { cycle: FarmerUICropCycle }) {
+  const badgeClass =
+    (cycle.status || '').toLowerCase() === 'harvested'
+      ? 'border border-gray-200 bg-gray-50 text-gray-500'
+      : (cycle.status || '').toLowerCase() === 'active'
+        ? 'border border-brand-surface bg-brand-surface/50 text-brand'
+        : 'border border-blue-200 bg-blue-50 text-blue-700'
+
+  return (
+    <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm hover:shadow-md transition-shadow">
+      <div className="mb-3 flex items-center justify-between">
+        <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${badgeClass}`}>
+          {(cycle.status || 'planned').toUpperCase()}
+        </span>
+      </div>
+      <h4 className="text-base font-semibold text-gray-900">{cycle.cropName}</h4>
+      <p className="text-sm text-gray-600 mt-1">{cycle.farmName}</p>
+      <p className="text-xs text-gray-400 mt-1">
+        Planted: {cycle.plantingDate ? new Date(cycle.plantingDate).toLocaleDateString() : 'N/A'}
+      </p>
+      <p className="text-xs text-gray-400 mt-1">
+        Area: {cycle.areaPlantedHectares ? `${cycle.areaPlantedHectares} ha` : 'N/A'}
+      </p>
     </div>
   )
 }

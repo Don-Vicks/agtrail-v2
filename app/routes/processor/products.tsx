@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react'
 import { cn } from '~/lib/utils'
 import { PageHeader } from '~/components/page-header'
 import { StatCard } from '~/components/stat-card'
+import { EmptyState } from '~/components/empty-state'
 import {
   Search,
   Plus,
@@ -232,17 +233,12 @@ function InventoryTab() {
           </div>
         )}
         {!isLoading && filteredBatches.length === 0 ? (
-          <div className="rounded-xl border border-gray-200 bg-white p-12 text-center">
-            <Package className="mx-auto size-12 text-gray-300 mb-3" />
-            <p className="text-sm font-medium text-gray-500">
-              {hasActiveFilters ? 'No batches match your filters.' : 'No batches found.'}
-            </p>
-            {hasActiveFilters && (
-              <button onClick={clearFilters} className="mt-2 text-xs font-medium text-brand hover:underline">
-                Clear all filters
-              </button>
-            )}
-          </div>
+          <EmptyState
+            icon={<Package className="size-8" />}
+            title={hasActiveFilters ? "No batches match your filters" : "No batches found"}
+            description={hasActiveFilters ? "Try adjusting your search or filters to find what you're looking for." : "You haven't created any processing batches yet."}
+            action={hasActiveFilters ? { label: "Clear Filters", onClick: clearFilters } : undefined}
+          />
         ) : (
           paginatedBatches.map((item) => (
             <div
@@ -476,17 +472,12 @@ function TransfersTab() {
 
       <div className='space-y-3'>
         {filteredTransfers.length === 0 ? (
-          <div className="rounded-xl border border-gray-200 bg-white p-12 text-center">
-            <Activity className="mx-auto size-12 text-gray-300 mb-3" />
-            <p className="text-sm font-medium text-gray-500">
-              {hasActiveFilters ? 'No transfers match your filters.' : 'No transfers found.'}
-            </p>
-            {hasActiveFilters && (
-              <button onClick={clearFilters} className="mt-2 text-xs font-medium text-brand hover:underline">
-                Clear all filters
-              </button>
-            )}
-          </div>
+          <EmptyState
+            icon={<Activity className="size-8" />}
+            title={hasActiveFilters ? "No transfers match your filters" : "No transfers found"}
+            description={hasActiveFilters ? "Try adjusting your search or filters to find what you're looking for." : "You haven't initiated any product transfers yet."}
+            action={hasActiveFilters ? { label: "Clear Filters", onClick: clearFilters } : undefined}
+          />
         ) : (
           paginatedTransfers.map((trf) => (
             <div

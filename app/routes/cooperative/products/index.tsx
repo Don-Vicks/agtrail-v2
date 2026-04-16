@@ -1,12 +1,17 @@
 import { QRCodeSVG } from 'qrcode.react'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
+import { useQueries } from '@tanstack/react-query'
 import { Link } from 'react-router'
 import { PageHeader } from '~/components/page-header'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
+import { SelectOperationModal } from '~/components/select-operation-modal'
+import { ViewActivitiesModal } from '~/components/view-activities-modal'
 import { useGetCooperativesProducts } from '~/lib/api/generated/cooperatives/cooperatives'
-import type { FarmProduct } from '~/lib/api/generated/models'
-import { allCropCycles, type CropCycle } from '~/lib/mock-data/farmer'
+import { useGetCooperativesFarms } from '~/lib/api/generated/cooperatives/cooperatives'
+import { getGetFarmsIdCropCyclesQueryOptions } from '~/lib/api/generated/farms-crop-cycles/farms-crop-cycles'
+import type { CropCycle, FarmProduct } from '~/lib/api/generated/models'
+import { extractCropCyclesFromQueries, formatFarmLocation } from '~/lib/record-operation-dashboard'
 import { 
   Plus, 
   Search, 
@@ -24,6 +29,7 @@ import {
   Bookmark
 } from 'lucide-react'
 import { Badge } from '~/components/ui/badge'
+import { EmptyState } from '~/components/empty-state'
 import { cn } from '~/lib/utils'
 
 /* ─── Product Card ─── */
@@ -78,9 +84,63 @@ export default function ProductsIndex() {
   const [currentPage, setCurrentPage] = useState(1)
   const [rowsPerPage, setRowsPerPage] = useState(10)
   const [searchQuery, setSearchQuery] = useState('')
+  const [cycleSearchQuery, setCycleSearchQuery] = useState('')
+  const [cycleStatusFilter, setCycleStatusFilter] = useState('all')
+  const [selectedCycleForOperation, setSelectedCycleForOperation] = useState<UICropCycle | null>(null)
+  const [selectedCycleForActivities, setSelectedCycleForActivities] = useState<UICropCycle | null>(null)
 
   const { data: productsResponse, isLoading, error } = useGetCooperativesProducts()
+  const { data: farmsResponse, isLoading: isLoadingFarms } = useGetCooperativesFarms()
   const allProducts = (productsResponse?.data?.data as unknown as FarmProduct[]) || []
+  const farms = farmsResponse?.data?.data || []
+  const cycleQueries = useQueries({
+    queries: farms.map((farm) => ({
+      ...getGetFarmsIdCropCyclesQueryOptions(farm.id),
+      enabled: !!farm.id,
+    })),
+  })
+  const isLoadingCycles = isLoadingFarms || cycleQueries.some((q) => q.isLoading)
+  const cropCycles = useMemo(() => extractCropCyclesFromQueries(cycleQueries), [cycleQueries])
+  const uiCropCycles = useMemo<UICropCycle[]>(() => {
+    return cropCycles.map((cycle) => {
+      const farm = farms.find((f) => f.id === cycle.farmId)
+      const farmName = farm?.name || 'Unknown Farm'
+      const farmerInitials = farmName
+        .split(' ')
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((v) => v[0])
+        .join('')
+        .toUpperCase() || 'CF'
+      return {
+        ...cycle,
+        productName: cycle.cropName || 'Unknown Crop',
+        plantedDate: cycle.plantingDate
+          ? new Date(cycle.plantingDate).toLocaleDateString()
+          : null,
+        area: cycle.areaPlantedHectares ? `${cycle.areaPlantedHectares} ha` : null,
+        farmName,
+        farmLocation: formatFarmLocation(farm),
+        farmer: 'Cooperative Member',
+        farmerInitials,
+        farmerColor: '#2E5A27',
+      }
+    })
+  }, [cropCycles, farms])
+  const filteredCycles = useMemo(() => {
+    const query = cycleSearchQuery.trim().toLowerCase()
+    return uiCropCycles.filter((cycle) => {
+      const matchesSearch =
+        !query ||
+        cycle.cropName.toLowerCase().includes(query) ||
+        cycle.farmName.toLowerCase().includes(query) ||
+        cycle.farmer.toLowerCase().includes(query)
+      const matchesStatus =
+        cycleStatusFilter === 'all' ||
+        (cycle.status || '').toLowerCase() === cycleStatusFilter.toLowerCase()
+      return matchesSearch && matchesStatus
+    })
+  }, [uiCropCycles, cycleSearchQuery, cycleStatusFilter])
 
   const filteredProducts = allProducts.filter((product) =>
     product.productName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -217,7 +277,16 @@ export default function ProductsIndex() {
 
           {/* Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-5">
-            {paginatedProducts.map(p => (
+            {paginatedProducts.length === 0 ? (
+              <div className="col-span-2">
+                <EmptyState
+                  icon={<Package className="size-8" />}
+                  title={searchQuery ? 'No products match your search' : 'No products available'}
+                  description={searchQuery ? 'Try adjusting your search query.' : 'There are no products listed currently.'}
+                  action={searchQuery ? { label: "Clear Search", onClick: () => { setSearchQuery(''); setCurrentPage(1) } } : undefined}
+                />
+              </div>
+            ) : paginatedProducts.map(p => (
               <ProductGridCard key={p.id} product={p} />
             ))}
           </div>
@@ -260,6 +329,8 @@ export default function ProductsIndex() {
                 <Input
                   type="text"
                   placeholder="Filter by crop cycle, farm name, or owner..."
+                  value={cycleSearchQuery}
+                  onChange={(e) => setCycleSearchQuery(e.target.value)}
                   className="bg-white w-full h-10 pl-10 text-sm border-gray-100 rounded-lg focus:ring-1 focus:ring-brand focus:border-brand shadow-none"
                 />
               </div>
@@ -268,11 +339,17 @@ export default function ProductsIndex() {
                 <div className="flex items-center gap-2">
                   <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest px-1">Phase Status</span>
                   <div className="relative">
-                    <select className="h-10 rounded-lg border border-gray-200 pl-3 pr-8 text-[11px] font-bold uppercase tracking-wider text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand bg-gray-50/50 appearance-none min-w-[140px]">
-                      <option>All Statuses</option>
-                      <option>Planned</option>
-                      <option>Active</option>
-                      <option>Ready</option>
+                    <select
+                      value={cycleStatusFilter}
+                      onChange={(e) => setCycleStatusFilter(e.target.value)}
+                      className="h-10 rounded-lg border border-gray-200 pl-3 pr-8 text-[11px] font-bold uppercase tracking-wider text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand bg-gray-50/50 appearance-none min-w-[140px]"
+                    >
+                      <option value="all">All Statuses</option>
+                      <option value="planned">Planned</option>
+                      <option value="active">Active</option>
+                      <option value="harvested">Harvested</option>
+                      <option value="failed">Failed</option>
+                      <option value="abandoned">Abandoned</option>
                     </select>
                     <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 size-3 text-gray-400 pointer-events-none" />
                   </div>
@@ -283,18 +360,67 @@ export default function ProductsIndex() {
 
           {/* Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {allCropCycles.map(cycle => (
-              <CropCycleCard key={cycle.id} cycle={cycle} />
+            {isLoadingCycles ? (
+              <>
+                <div className="h-64 rounded-xl border border-gray-200 bg-white animate-pulse" />
+                <div className="h-64 rounded-xl border border-gray-200 bg-white animate-pulse" />
+                <div className="h-64 rounded-xl border border-gray-200 bg-white animate-pulse" />
+              </>
+            ) : filteredCycles.length === 0 ? (
+              <div className="col-span-3">
+                <EmptyState
+                  icon={<Package className="size-8" />}
+                  title="No crop cycles found"
+                  description="There are no crop cycles matching your current filters."
+                />
+              </div>
+            ) : filteredCycles.map(cycle => (
+              <CropCycleCard
+                key={cycle.id}
+                cycle={cycle}
+                onViewActivities={() => setSelectedCycleForActivities(cycle)}
+                onRecordActivity={() => setSelectedCycleForOperation(cycle)}
+              />
             ))}
           </div>
         </>
       )}
+      <SelectOperationModal
+        isOpen={!!selectedCycleForOperation}
+        onClose={() => setSelectedCycleForOperation(null)}
+        cropCycle={selectedCycleForOperation}
+        basePath="/cooperative/operations/new"
+      />
+      <ViewActivitiesModal
+        isOpen={!!selectedCycleForActivities}
+        onClose={() => setSelectedCycleForActivities(null)}
+        cropCycle={selectedCycleForActivities}
+      />
     </div>
   )
 }
 
 /* ─── Crop Cycle Card ─── */
-function CropCycleCard({ cycle }: { cycle: CropCycle }) {
+type UICropCycle = CropCycle & {
+  productName: string
+  plantedDate: string | null
+  area: string | null
+  farmName: string
+  farmLocation: string
+  farmer: string
+  farmerInitials: string
+  farmerColor: string
+}
+
+function CropCycleCard({
+  cycle,
+  onViewActivities,
+  onRecordActivity,
+}: {
+  cycle: UICropCycle
+  onViewActivities: () => void
+  onRecordActivity: () => void
+}) {
   return (
     <div className="group relative rounded-xl border border-gray-200 bg-white p-6 shadow-sm hover:border-brand/40 hover:shadow-lg transition-all overflow-hidden flex flex-col">
       <div className="absolute top-0 right-0 p-3 opacity-10 pointer-events-none transition-opacity group-hover:opacity-20 scale-150">
@@ -307,7 +433,9 @@ function CropCycleCard({ cycle }: { cycle: CropCycle }) {
         </div>
         <Badge className={cn(
           "px-3 py-1 text-[9px] font-bold uppercase tracking-widest border shadow-none",
-          cycle.status === 'completed' ? 'bg-gray-100 text-gray-400 border-gray-200' : 'bg-green-50 text-brand border-green-100'
+          (cycle.status || '').toLowerCase() === 'harvested'
+            ? 'bg-gray-100 text-gray-400 border-gray-200'
+            : 'bg-green-50 text-brand border-green-100'
         )}>
           {cycle.status}
         </Badge>
@@ -315,19 +443,19 @@ function CropCycleCard({ cycle }: { cycle: CropCycle }) {
 
       <div className="mb-6 relative z-10">
         <h4 className="text-base font-bold text-gray-900 uppercase tracking-tight mb-1 truncate">
-          {cycle.productName}
+          {cycle.cropName}
         </h4>
-        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest italic">{cycle.variety || 'Seed Variety'}</p>
+        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest italic">{cycle.variety || 'No Variety'}</p>
       </div>
 
       <div className="space-y-4 mb-8 pt-6 border-t border-gray-50 relative z-10 text-[11px] font-bold uppercase tracking-tight text-gray-400">
         <div className="flex items-center justify-between">
           <span className="flex items-center gap-2 italic text-gray-300"><Calendar className="size-3" /> Planted</span>
-          <span className="text-gray-900">{cycle.plantedDate || 'Not Set'}</span>
+          <span className="text-gray-900">{cycle.plantingDate ? new Date(cycle.plantingDate).toLocaleDateString() : 'Not Set'}</span>
         </div>
         <div className="flex items-center justify-between">
           <span className="flex items-center gap-2 italic text-gray-300"><Clock className="size-3" /> Area</span>
-          <span className="text-gray-900">{cycle.area || '0.00'} Hectares</span>
+          <span className="text-gray-900">{cycle.areaPlantedHectares || '0.00'} Hectares</span>
         </div>
         <div className="flex items-center border-t border-gray-50 pt-3 mt-1">
           <div className="size-6 rounded-full bg-brand/10 flex items-center justify-center text-[9px] text-brand border border-brand/20 mr-2 shadow-sm">
@@ -338,17 +466,22 @@ function CropCycleCard({ cycle }: { cycle: CropCycle }) {
       </div>
 
       <div className="mt-auto flex flex-col gap-2 relative z-10">
-        <Link to={`/cooperative/crop-cycle/${cycle.id}`} className="block">
-          <Button variant="outline" className="w-full h-10 text-[10px] font-bold uppercase tracking-wider border-gray-100 hover:bg-gray-50 text-gray-600 gap-1.5 shadow-none">
-            View Details
-          </Button>
-        </Link>
-        <Link to={`/cooperative/operations/new?cycleId=${cycle.id}`} className="block">
-          <Button className="w-full h-10 bg-brand/5 text-brand hover:bg-brand hover:text-white border border-brand/10 shadow-none font-bold uppercase tracking-wider text-[10px] gap-2">
-            <Activity className="size-4" />
-            Record Activity
-          </Button>
-        </Link>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onViewActivities}
+          className="w-full h-10 text-[10px] font-bold uppercase tracking-wider border-gray-100 hover:bg-gray-50 text-gray-600 gap-1.5 shadow-none"
+        >
+          View Activities
+        </Button>
+        <Button
+          type="button"
+          onClick={onRecordActivity}
+          className="w-full h-10 bg-brand/5 text-brand hover:bg-brand hover:text-white border border-brand/10 shadow-none font-bold uppercase tracking-wider text-[10px] gap-2"
+        >
+          <Activity className="size-4" />
+          Record Activity
+        </Button>
       </div>
     </div>
   )
