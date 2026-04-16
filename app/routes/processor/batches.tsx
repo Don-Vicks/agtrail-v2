@@ -18,7 +18,7 @@ function BatchCard({ batch }: { batch: ProcessorBatch }) {
   const isCompleted = batch.status === 'completed' || batch.status === 'Passed' as any;
   let buttonLabel = 'Start Processing'
   let buttonStyle = 'bg-[#1b4332] text-white hover:bg-[#0f2e20]'
-  let buttonPath = '/processor/batches/new'
+  let buttonPath = `/processor/batches/${batch.id}`
 
   if (isCompleted) {
     buttonLabel = 'View Product'

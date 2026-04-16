@@ -14,6 +14,7 @@ export const processorRoutes: RouteConfig = [
       route('personnel', 'routes/farmer/personnel.tsx', { id: 'processor-personnel' }),
       route('batches', 'routes/processor/batches.tsx'),
       route('batches/new', 'routes/processor/batches/new.tsx'),
+      route('batches/:id', 'routes/processor/batches/detail.tsx'),
       route('materials', 'routes/processor/materials.tsx'),
       route('products', 'routes/processor/products.tsx'),
       route(

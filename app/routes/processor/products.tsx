@@ -3,6 +3,7 @@ import { cn } from '~/lib/utils'
 import { PageHeader } from '~/components/page-header'
 import { StatCard } from '~/components/stat-card'
 import { EmptyState } from '~/components/empty-state'
+import { Link } from 'react-router'
 import {
   Search,
   Plus,
@@ -298,14 +299,16 @@ function InventoryTab() {
               </div>
 
               <div className='relative z-10 flex items-center gap-2'>
-                <Button
-                  variant='ghost'
-                  size='sm'
-                  className='h-10 px-3 text-[10px] font-bold uppercase tracking-widest text-brand hover:bg-brand/5 gap-2'
-                >
-                  <Eye className='size-3.5' />
-                  View Story
-                </Button>
+                <Link to={`/processor/batches/${item.id}`}>
+                  <Button
+                    variant='ghost'
+                    size='sm'
+                    className='h-10 px-3 text-[10px] font-bold uppercase tracking-widest text-brand hover:bg-brand/5 gap-2'
+                  >
+                    <Settings className='size-3.5' />
+                    Manage Batch
+                  </Button>
+                </Link>
                 <Button
                   variant='ghost'
                   size='sm'
