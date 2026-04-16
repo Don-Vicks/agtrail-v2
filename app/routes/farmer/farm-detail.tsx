@@ -12,15 +12,21 @@ import {
   Calendar,
   Layers,
   MoreHorizontal,
-  ChevronDown
+  ChevronDown,
+  Activity,
+  Maximize
 } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import { Badge } from '~/components/ui/badge'
+import { PageHeader } from '~/components/page-header'
 import { useGetFarmsIdCropCycles } from '~/lib/api/generated/farms-crop-cycles/farms-crop-cycles'
 import { farmCropCycles, type CropCycle } from '~/lib/mock-data/farmer'
 import type { Route } from './+types/farm-detail'
 import { useGetFarmsId } from '~/lib/api/generated/farms/farms'
 import { useAuth } from '~/context/auth-context'
+import { StartCropCycleModal } from '~/components/start-crop-cycle-modal'
+import { SelectOperationModal } from '~/components/select-operation-modal'
+import { cn } from '~/lib/utils'
 
 export function meta({ }: Route.MetaArgs) {
   return [
