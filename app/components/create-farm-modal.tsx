@@ -125,8 +125,8 @@ function MapBoundaryPicker({
       className="h-full w-full rounded-md z-0 min-h-[400px]"
     >
       <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution='Tiles &copy; Esri'
+        url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
       />
       <MapResizeTrigger />
       <ClickHandler />

@@ -96,6 +96,7 @@ function BatchCard({ batch }: { batch: ProcessorBatch }) {
 
 export default function ProcessorBatches() {
   const [search, setSearch] = useState('')
+  const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'product' | 'status'>('newest')
   const organizationHeaders = getOrganizationHeaders()
   const { data: batchesRaw, isLoading, isError } = useGetProcessorsBatches({
     request: { headers: organizationHeaders },
@@ -111,6 +112,32 @@ export default function ProcessorBatches() {
         .includes(term),
     )
   }, [batches, search])
+
+  const sortedBatches = useMemo(() => {
+    const rows = [...filteredBatches]
+    if (sortBy === 'newest') {
+      return rows.sort((a, b) => {
+        const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0
+        const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0
+        return bTime - aTime
+      })
+    }
+    if (sortBy === 'oldest') {
+      return rows.sort((a, b) => {
+        const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0
+        const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0
+        return aTime - bTime
+      })
+    }
+    if (sortBy === 'status') {
+      return rows.sort((a, b) =>
+        String(a.status || '').localeCompare(String(b.status || '')),
+      )
+    }
+    return rows.sort((a, b) =>
+      String(a.outputProductName || '').localeCompare(String(b.outputProductName || '')),
+    )
+  }, [filteredBatches, sortBy])
 
   // Compute stats
   const total = filteredBatches.length;
@@ -177,15 +204,31 @@ export default function ProcessorBatches() {
             <StatCard title="Pending" value={pending.toString()} subtitle="Awaiting start" description="Incoming raw materials" icon={<Clock className="size-4" />} />
           </div>
 
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search batches by ID, product name, or status..."
-              className="w-full rounded-xl border border-gray-200 pl-10 pr-4 py-3 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white shadow-sm"
-            />
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_auto]">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search batches by ID, product name, or status..."
+                className="w-full rounded-xl border border-gray-200 pl-10 pr-4 py-3 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white shadow-sm"
+              />
+            </div>
+            <select
+              value={sortBy}
+              onChange={(e) =>
+                setSortBy(
+                  e.target.value as 'newest' | 'oldest' | 'product' | 'status',
+                )
+              }
+              className="rounded-xl border border-gray-200 px-3 py-3 text-sm text-gray-700 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+            >
+              <option value="newest">Sort: Newest</option>
+              <option value="oldest">Sort: Oldest</option>
+              <option value="product">Sort: Product Name (A-Z)</option>
+              <option value="status">Sort: Status (A-Z)</option>
+            </select>
           </div>
 
           {/* Batches List */}
@@ -197,7 +240,7 @@ export default function ProcessorBatches() {
                 description="Your processing queue is currently empty. Start a new batch to track production."
                 className="py-16"
               />
-            ) : filteredBatches.map(batch => (
+            ) : sortedBatches.map(batch => (
               <BatchCard key={batch.id} batch={batch} />
             ))}
           </div>

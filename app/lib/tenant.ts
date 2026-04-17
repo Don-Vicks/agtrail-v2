@@ -17,8 +17,8 @@ export function getTenantSelectValue(role: TenantRole): string {
 export function getTenantOperationAction(role: TenantRole) {
   if (role === 'processor') {
     return {
-      href: '/processor/operations/record',
-      label: 'Record Operation',
+      href: '/processor/batches',
+      label: 'Manage Batches',
     }
   }
 

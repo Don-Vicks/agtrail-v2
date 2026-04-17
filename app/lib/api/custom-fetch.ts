@@ -1,4 +1,6 @@
 import { getClientOrganizationId } from '~/lib/organization-context'
+import { buildGetCacheKey, getCachedGetResponse, setCachedGetResponse } from '~/lib/offline/get-cache-storage'
+import { enqueueOfflineAction } from '~/lib/offline/queue-storage'
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
 
 function normalizePathAgainstBase(baseUrl: string, pathOrUrl: string): string {
@@ -56,6 +58,28 @@ export function resolveDocumentUrlForApi(
   return `${cleanBase}/${cleanPath}`
 }
 
+function headersToRecord(headers?: HeadersInit): Record<string, string> {
+  if (!headers) return {}
+  if (headers instanceof Headers) {
+    return Object.fromEntries(headers.entries())
+  }
+  if (Array.isArray(headers)) {
+    return Object.fromEntries(headers)
+  }
+  return { ...headers }
+}
+
+function isMutationMethod(method: string) {
+  return ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)
+}
+
+function isOfflineQueueablePath(path: string) {
+  const lowered = path.toLowerCase()
+  if (lowered.includes('/auth/login') || lowered.includes('/auth/refresh')) return false
+  if (lowered.includes('/upload') || lowered.includes('/certifications/upload')) return false
+  return true
+}
+
 export const customFetch = async <T>(
   url: string,
   options?: RequestInit,
@@ -67,21 +91,106 @@ export const customFetch = async <T>(
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('agrolinking_token') : null
   const organizationId = getClientOrganizationId()
+  const method = String(options?.method ?? 'GET').toUpperCase()
 
   const body = options?.body
   const isFormData =
     typeof FormData !== 'undefined' && body instanceof FormData
+  const mergedHeaders = {
+    ...(!isFormData ? { 'Content-Type': 'application/json' } : {}),
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(organizationId ? { 'X-Organization-Id': organizationId } : {}),
+    ...headersToRecord(options?.headers),
+  }
 
-  const response = await fetch(fullUrl, {
-    ...options,
-    headers: {
-      // Multipart uploads must not send application/json; let the browser set the boundary.
-      ...(!isFormData ? { 'Content-Type': 'application/json' } : {}),
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...(organizationId ? { 'X-Organization-Id': organizationId } : {}),
-      ...options?.headers,
-    },
-  })
+  if (typeof navigator !== 'undefined' && !navigator.onLine) {
+    if (method === 'GET') {
+      const cacheKey = buildGetCacheKey(cleanPath, organizationId)
+      const cached = getCachedGetResponse(cacheKey)
+      if (cached) {
+        return {
+          data: cached.value,
+          status: cached.status,
+          offlineCached: true,
+          cachedAt: cached.updatedAt,
+        } as unknown as T
+      }
+
+      const err = new Error('Offline and no cached response available')
+      ;(err as any).code = 'OFFLINE_READ_UNAVAILABLE'
+      throw err
+    }
+
+    if (isMutationMethod(method) && isOfflineQueueablePath(cleanPath) && !isFormData) {
+      const idempotencyKey =
+        typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+          ? crypto.randomUUID()
+          : `${Date.now()}-${Math.random().toString(16).slice(2)}`
+
+      enqueueOfflineAction({
+        url: cleanPath,
+        method: method as 'POST' | 'PUT' | 'PATCH' | 'DELETE',
+        headers: mergedHeaders,
+        body:
+          typeof body === 'string'
+            ? body
+            : body != null
+              ? JSON.stringify(body)
+              : undefined,
+        organizationId: organizationId ?? null,
+        idempotencyKey,
+      })
+
+      return {
+        data: {
+          success: true,
+          offlineQueued: true,
+          message: 'Saved offline. Sync will resume when online.',
+        },
+        status: 202,
+      } as unknown as T
+    }
+  }
+
+  let response: Response
+  try {
+    response = await fetch(fullUrl, {
+      ...options,
+      headers: mergedHeaders,
+    })
+  } catch (error) {
+    // Network blip while browser still reports online.
+    if (isMutationMethod(method) && isOfflineQueueablePath(cleanPath) && !isFormData) {
+      const idempotencyKey =
+        typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+          ? crypto.randomUUID()
+          : `${Date.now()}-${Math.random().toString(16).slice(2)}`
+
+      enqueueOfflineAction({
+        url: cleanPath,
+        method: method as 'POST' | 'PUT' | 'PATCH' | 'DELETE',
+        headers: mergedHeaders,
+        body:
+          typeof body === 'string'
+            ? body
+            : body != null
+              ? JSON.stringify(body)
+              : undefined,
+        organizationId: organizationId ?? null,
+        idempotencyKey,
+      })
+
+      return {
+        data: {
+          success: true,
+          offlineQueued: true,
+          message: 'Connection unstable. Request queued for retry.',
+        },
+        status: 202,
+      } as unknown as T
+    }
+    throw error
+  }
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => null)
@@ -95,6 +204,13 @@ export const customFetch = async <T>(
   if (!text) return { data: {}, status: response.status } as unknown as T
   const parsed = JSON.parse(text)
   persistOrganizationIdFromResponse(parsed)
+  if (method === 'GET') {
+    setCachedGetResponse(
+      buildGetCacheKey(cleanPath, organizationId),
+      parsed,
+      response.status,
+    )
+  }
   return {
     data: parsed,
     status: response.status,

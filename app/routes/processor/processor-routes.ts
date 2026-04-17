@@ -12,6 +12,8 @@ export const processorRoutes: RouteConfig = [
       index('routes/processor/dashboard.tsx'),
       route('inventory', 'routes/farmer/inventory.tsx', { id: 'processor-inventory' }),
       route('personnel', 'routes/farmer/personnel.tsx', { id: 'processor-personnel' }),
+      route('facilities', 'routes/processor/facilities.tsx'),
+      route('facilities/:id', 'routes/processor/facility-detail.tsx'),
       route('batches', 'routes/processor/batches.tsx'),
       route('batches/new', 'routes/processor/batches/new.tsx'),
       route('batches/:id', 'routes/processor/batches/detail.tsx'),
@@ -31,7 +33,6 @@ export const processorRoutes: RouteConfig = [
       ),
       route('finance/purchase', 'routes/processor/finance/purchase.tsx'),
       route('finance/receivables', 'routes/processor/finance/receivables.tsx'),
-      route('operations/record', 'routes/processor/operations/record.tsx'),
       ...prefix('operations/new/:cropCycleId', [
         route('land-prep', 'routes/processor/operations/land-prep.tsx'),
         route('planting', 'routes/processor/operations/planting.tsx'),

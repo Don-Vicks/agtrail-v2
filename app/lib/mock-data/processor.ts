@@ -18,13 +18,9 @@ export const sidebarNavigation = {
     { label: 'Products', icon: 'package', href: '/processor/products' },
     { label: 'Inventory', icon: 'jar', href: '/processor/inventory' },
     { label: 'Personnel', icon: 'clipboard-list', href: '/processor/personnel' },
+    { label: 'Facilities', icon: 'home', href: '/processor/facilities' },
   ],
   operations: [
-    {
-      label: 'Record Operation',
-      icon: 'clipboard-list',
-      href: '/processor/operations/record',
-    },
     { label: 'Materials', icon: 'box', href: '/processor/materials' },
   ],
   certification: [

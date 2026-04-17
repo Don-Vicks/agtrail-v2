@@ -47,6 +47,7 @@ export default function CreateNewBatch() {
   const navigate = useNavigate();
   const organizationId = getClientOrganizationId()
   const { mutate: createBatch, isPending } = usePostProcessorsBatches({
+    mutation: { networkMode: 'always' },
     request: { headers: organizationId ? { 'X-Organization-Id': organizationId } : {} },
   });
 
@@ -87,8 +88,21 @@ export default function CreateNewBatch() {
     createBatch(
       { data: payload },
       {
-        onSuccess: () => {
-          toast.success('Batch created successfully!');
+        onSuccess: (response) => {
+          const queuedOffline = (response as any)?.status === 202 || (response as any)?.data?.offlineQueued
+          if (queuedOffline) {
+            toast.success('Batch saved offline and queued for sync.')
+            setOutputProductName('')
+            setOutputProductType('')
+            setFacilityName('')
+            setFacilityLocation('')
+            setPackagingDate('')
+            setShelfLifeDays('')
+            setStorageConditions('')
+            return
+          }
+
+          toast.success('Batch created successfully!')
           navigate('/processor/batches');
         },
         onError: (error) => {

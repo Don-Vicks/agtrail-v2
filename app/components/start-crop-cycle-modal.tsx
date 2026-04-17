@@ -133,8 +133,8 @@ function MapAreaPicker({
       className='h-full w-full rounded-md z-0 min-h-[320px]'
     >
       <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        url='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+        attribution='Tiles &copy; Esri'
+        url='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
       />
       <MapResizeTrigger />
       <ClickHandler />
@@ -263,6 +263,7 @@ export function StartCropCycleModal({
 
   const areaSqMeters = calculatePolygonArea(boundaryPoints)
   const areaHectares = areaSqMeters / 10000
+  const isAreaAutoLocked = boundaryPoints.length > 0
 
   useEffect(() => {
     if (boundaryPoints.length < 3 || areaHectares <= 0) return
@@ -474,7 +475,7 @@ export function StartCropCycleModal({
                   <svg className="mr-1 inline-block size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <circle cx="12" cy="12" r="10" /><path d="M12 16v-4" /><path d="M12 8h.01" />
                   </svg>
-                  Area pre-filled from farm size. You can adjust if planting a smaller area.
+                  Area is auto-calculated from map boundary points.
                 </p>
               </div>
 
@@ -544,14 +545,26 @@ export function StartCropCycleModal({
                   )}
                 </div>
               )}
-              <p className='text-center text-xs text-gray-400'>or enter manually</p>
+              <p className='text-center text-xs text-gray-400'>
+                {isAreaAutoLocked
+                  ? 'Area is locked after map selection. Clear points to edit manually.'
+                  : 'or enter manually'}
+              </p>
 
               {/* Hectares + Unit */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="mb-1.5 block text-sm font-medium text-gray-900">Hectares Planted <span className="text-red-500">*</span></label>
-                  <Input type="text" value={formData.hectaresPlanted} onChange={(e) => handleFieldChange('hectaresPlanted', e.target.value)}
-                    className="py-5" />
+                  <Input
+                    type="text"
+                    value={formData.hectaresPlanted}
+                    onChange={(e) => handleFieldChange('hectaresPlanted', e.target.value)}
+                    readOnly={isAreaAutoLocked}
+                    className={cn(
+                      'py-5',
+                      isAreaAutoLocked && 'cursor-not-allowed bg-gray-50 text-gray-500',
+                    )}
+                  />
                 </div>
                 <div>
                   <label className="mb-1.5 block text-sm font-medium text-gray-900">Unit</label>
