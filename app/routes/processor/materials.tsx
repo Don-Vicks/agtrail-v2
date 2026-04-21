@@ -179,7 +179,7 @@ export default function ProcessorMaterials() {
   }
 
   return (
-    <div className="space-y-6 pb-10 px-1 text-left w-full overflow-x-hidden">
+    <>
       <PageHeader
         items={[
           {
@@ -191,6 +191,7 @@ export default function ProcessorMaterials() {
           { label: 'Raw Materials' },
         ]}
       />
+      <div className="space-y-6 pb-10 px-1 text-left w-full overflow-x-hidden">
 
       {/* Main Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -516,11 +517,12 @@ export default function ProcessorMaterials() {
         </div>
       </div>
 
-      <AddMaterialModal 
-        isOpen={isAddModalOpen} 
-        onClose={() => setIsAddModalOpen(false)} 
-        onAdd={handleAddMaterial} 
-      />
-    </div>
+        <AddMaterialModal 
+          isOpen={isAddModalOpen} 
+          onClose={() => setIsAddModalOpen(false)} 
+          onAdd={handleAddMaterial} 
+        />
+      </div>
+    </>
   )
 }
