@@ -129,7 +129,7 @@ function AccountSettingsTab() {
           toast.success('Profile updated successfully')
           refetchProfile()
         },
-        onError: (err) => {
+        onError: (err: unknown) => {
           toast.error('Failed to update profile')
           console.error(err)
         },
@@ -143,7 +143,7 @@ function AccountSettingsTab() {
           toast.success('Organization updated successfully')
           refetchOrg()
         },
-        onError: (err) => {
+        onError: (err: unknown) => {
           toast.error('Failed to update organization')
           console.error(err)
         },
@@ -278,6 +278,8 @@ function AccountSettingsTab() {
 /* ─── 2. Identity Verification (KYC) ─── */
 function IdentityVerificationTab() {
   const { user } = useAuth()
+  const [shouldLaunchKyc, setShouldLaunchKyc] = useState(false)
+  const [kycLaunchCount, setKycLaunchCount] = useState(0)
 
   const { mutate: linkKyc } = usePostUsersKyc({
     mutation: {
@@ -293,6 +295,7 @@ function IdentityVerificationTab() {
   const response = (type: string, data: any) => {
     console.log(type, data)
     if (type === 'success') {
+      setShouldLaunchKyc(false)
       toast.success('Identity verified successfully by Dojah!')
       linkKyc({
         data: {
@@ -302,8 +305,10 @@ function IdentityVerificationTab() {
         },
       })
     } else if (type === 'error') {
+      setShouldLaunchKyc(false)
       toast.error('Identity verification failed. Please try again.')
     } else if (type === 'close') {
+      setShouldLaunchKyc(false)
       console.log('Dojah widget closed.')
     }
   }
@@ -377,15 +382,43 @@ function IdentityVerificationTab() {
         </p>
 
         {hasDojahConfig ? (
-          <DojahWidget
-            response={response}
-            appID={appID}
-            publicKey={publicKey}
-            type='custom'
-            config={config}
-            userData={userData}
-            metadata={{ user_id: user?.id || 'unknown' }}
-          />
+          <div className='w-full space-y-3'>
+            <button
+              type='button'
+              onClick={() => {
+                setKycLaunchCount((v) => v + 1)
+                setShouldLaunchKyc(true)
+              }}
+              className='inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-brand bg-white px-4 py-2 text-sm font-semibold text-brand transition-colors hover:bg-brand-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2'
+            >
+              <svg
+                className='size-4'
+                fill='none'
+                viewBox='0 0 24 24'
+                stroke='currentColor'
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
+                  d='M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z'
+                />
+              </svg>
+              Start KYC Flow
+            </button>
+            {shouldLaunchKyc ? (
+              <DojahWidget
+                key={kycLaunchCount}
+                response={response}
+                appID={appID}
+                publicKey={publicKey}
+                type='custom'
+                config={config}
+                userData={userData}
+                metadata={{ user_id: user?.id || 'unknown' }}
+              />
+            ) : null}
+          </div>
         ) : (
           <div className='w-full rounded-lg border border-amber-200 bg-amber-50 p-4 text-left'>
             <p className='text-sm font-semibold text-amber-800'>

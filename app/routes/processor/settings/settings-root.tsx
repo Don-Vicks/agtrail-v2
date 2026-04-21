@@ -1,4 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router'
+import { KycActionButton } from '~/components/kyc-action-button'
 import { PageHeader } from '~/components/page-header'
 import type { Route } from './+types/settings-root'
 
@@ -13,7 +15,22 @@ export function meta({ }: Route.MetaArgs) {
 type TabType = 'Account' | 'Identity Verification' | 'Notifications'
 
 export default function SettingsPage() {
-  const [activeTab, setActiveTab] = useState<TabType>('Account')
+  const [searchParams] = useSearchParams()
+  const tabFromQuery = useMemo<TabType>(() => {
+    const tab = (searchParams.get('tab') || '').toLowerCase()
+    if (tab === 'kyc' || tab === 'identity' || tab === 'verification') {
+      return 'Identity Verification'
+    }
+    if (tab === 'notifications') {
+      return 'Notifications'
+    }
+    return 'Account'
+  }, [searchParams])
+  const [activeTab, setActiveTab] = useState<TabType>(tabFromQuery)
+
+  useEffect(() => {
+    setActiveTab(tabFromQuery)
+  }, [tabFromQuery])
 
   return (
     <div className="space-y-6 pb-10">
@@ -133,6 +150,9 @@ function IdentityVerificationTab() {
       <div>
         <h2 className="text-xl font-bold text-gray-900">Identity Verification (KYC)</h2>
         <p className="text-sm text-gray-500">Verify your identity to unlock all features and build trust with buyers</p>
+        <div className="mt-4">
+          <KycActionButton href="/processor/settings?tab=kyc" />
+        </div>
       </div>
 
       {/* Stepper logic (visual only for mockup) */}
