@@ -1,19 +1,19 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router'
-import { PageHeader } from '~/components/page-header'
-import { useAuth } from '~/context/auth-context'
 import { toast } from 'sonner'
 import { DojahWidget } from '~/components/dojah-widget'
-import type { Route } from './+types/settings-root'
-import {
-  useGetUsersProfile,
-  usePutUsersProfile,
-  usePostUsersKyc,
-} from '~/lib/api/generated/users/users'
+import { PageHeader } from '~/components/page-header'
+import { useAuth } from '~/context/auth-context'
 import {
   useGetOrganizationsSettings,
   usePutOrganizationsSettings,
 } from '~/lib/api/generated/organizations-settings/organizations-settings'
+import {
+  useGetUsersProfile,
+  usePostUsersKyc,
+  usePutUsersProfile,
+} from '~/lib/api/generated/users/users'
+import type { Route } from './+types/settings-root'
 
 export function meta({}: Route.MetaArgs) {
   return [
