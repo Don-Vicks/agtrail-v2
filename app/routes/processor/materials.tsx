@@ -11,7 +11,7 @@ import {
     DropdownMenuTrigger,
 } from '~/components/ui/dropdown-menu'
 import { cn } from '~/lib/utils'
-import { Plus, Search, Filter, Download, MoreHorizontal, Package, ClipboardList, Layers, Clock, ArrowRight, ChevronDown, LayoutDashboard } from 'lucide-react'
+import { Plus, Search, Filter, Download, MoreHorizontal, Package, ClipboardList, Clock, ArrowRight, ChevronDown, LayoutDashboard } from 'lucide-react'
 import { EmptyState } from '~/components/empty-state'
 import { Badge } from '~/components/ui/badge'
 import { useGetProcessorsBatches } from '~/lib/api/generated/processors-batches/processors-batches'
@@ -26,26 +26,17 @@ interface Material {
   material: string
   type: string
   status?: string
+  sourceType: 'platform' | 'external'
   farmerSource: string
   materialSource: string
   quantity: string
+  quantityValue?: number
+  unit?: string
   harvested: string
   received: string
 }
 
-const mockMaterials: Material[] = [
-  {
-    id: '1',
-    batchId: 'BATCH-fe228318-1764512695673',
-    material: 'Beans',
-    type: 'Agricultural Product',
-    farmerSource: 'Abdullahi Bashir',
-    materialSource: 'Sunshine Farms',
-    quantity: '0kg',
-    harvested: '11/30/2025',
-    received: '11/30/2025',
-  }
-]
+const mockMaterials: Material[] = []
 
 // ─── Shared Components moved to central directory ───
 
@@ -75,6 +66,7 @@ export default function ProcessorMaterials() {
       material: b.outputProductName || 'Batch Material',
       type: b.outputProductType || 'processed',
       status: b.status || 'pending',
+      sourceType: 'platform' as const,
       farmerSource: b.createdBy || 'System',
       materialSource: b.facilityName || b.facilityLocation || 'Platform',
       quantity: 'N/A',
@@ -88,7 +80,7 @@ export default function ProcessorMaterials() {
   }, [batchesResponse])
 
   const materials = useMemo(() => {
-    if (activeTab === 'External Material') return manualMaterials
+    if (activeTab === 'External Materials') return manualMaterials
     if (activeTab === 'Incoming Materials') {
       return platformMaterials.filter(
         (m) =>
@@ -99,12 +91,68 @@ export default function ProcessorMaterials() {
     return [...platformMaterials, ...manualMaterials]
   }, [activeTab, platformMaterials, manualMaterials])
 
+  const showPlatformFilters = activeTab === 'Platform Materials'
+  const showExternalSummary = activeTab === 'External Materials'
+
+  const parseDecimal = (value: string) => {
+    const normalized = value.replace(/,/g, '').trim()
+    const parsed = Number.parseFloat(normalized)
+    return Number.isFinite(parsed) ? parsed : 0
+  }
+
+  const unique = (values: string[]) => Array.from(new Set(values.filter(Boolean)))
+
+  const sourceFarmerOptions = useMemo(
+    () => unique(platformMaterials.map((m) => m.farmerSource)),
+    [platformMaterials],
+  )
+  const sourceOptions = useMemo(
+    () => unique(platformMaterials.map((m) => m.materialSource)),
+    [platformMaterials],
+  )
+  const materialOptions = useMemo(
+    () => unique(platformMaterials.map((m) => m.material)),
+    [platformMaterials],
+  )
+
+  const platformInStockCount = useMemo(
+    () =>
+      platformMaterials.filter((m) => {
+        const status = (m.status || '').toLowerCase()
+        return status === 'completed' || status === 'approved' || status === 'done'
+      }).length,
+    [platformMaterials],
+  )
+  const platformLowStockCount = useMemo(
+    () =>
+      platformMaterials.filter((m) => {
+        const status = (m.status || '').toLowerCase()
+        return status === 'pending' || status === 'in_progress' || status === 'in transit'
+      }).length,
+    [platformMaterials],
+  )
+
+  const externalTotalQuantity = useMemo(
+    () => manualMaterials.reduce((sum, m) => sum + (m.quantityValue || 0), 0),
+    [manualMaterials],
+  )
+  const externalBaseUnit = manualMaterials.find((m) => m.unit)?.unit || 'kg'
+  const externalInStockCount = useMemo(
+    () => manualMaterials.filter((m) => (m.quantityValue || 0) > 10).length,
+    [manualMaterials],
+  )
+  const externalLowStockCount = useMemo(
+    () => manualMaterials.filter((m) => (m.quantityValue || 0) > 0 && (m.quantityValue || 0) <= 10).length,
+    [manualMaterials],
+  )
+
   const handleAddMaterial = (data: NewMaterialData) => {
-    // Generate a quick random batch ID
-    const newBatchId = `BATCH-${Math.random().toString(36).substring(2, 10)}-${Date.now()}`
-    
-    // Convert YYYY-MM-DD to localized string mapping (or just keep as is, but our mock is MM/DD/YYYY)
-    const formatMockDate = (d: string) => {
+    const newBatchId = data.lotBatchNumber?.trim()
+      ? data.lotBatchNumber.trim()
+      : `BATCH-${Math.random().toString(36).substring(2, 10)}-${Date.now()}`
+    const quantityValue = parseDecimal(data.quantityPurchased)
+
+    const formatDisplayDate = (d: string) => {
       if (!d) return ''
       const parts = d.split('-')
       if (parts.length === 3) return `${parts[1]}/${parts[2]}/${parts[0]}`
@@ -114,13 +162,17 @@ export default function ProcessorMaterials() {
     const newMaterial: Material = {
       id: Math.random().toString(36).substr(2, 9),
       batchId: newBatchId,
-      material: data.material,
-      type: data.type,
-      farmerSource: 'External Vendor', // default for external materials
-      materialSource: data.materialSource,
-      quantity: data.quantity,
-      harvested: formatMockDate(data.harvested),
-      received: formatMockDate(data.received),
+      material: data.materialName,
+      type: data.certifications || 'External Material',
+      status: quantityValue > 10 ? 'in_stock' : quantityValue > 0 ? 'low_stock' : 'out_of_stock',
+      sourceType: 'external',
+      farmerSource: data.supplierName,
+      materialSource: [data.originRegion, data.originCountry].filter(Boolean).join(', ') || data.originCountry,
+      quantity: `${data.quantityPurchased} ${data.unit}`,
+      quantityValue,
+      unit: data.unit,
+      harvested: formatDisplayDate(data.purchaseDate),
+      received: formatDisplayDate(data.receivedDate || data.purchaseDate),
     }
 
     setManualMaterials(prev => [...prev, newMaterial])
@@ -199,18 +251,18 @@ export default function ProcessorMaterials() {
                 : "text-gray-500 hover:bg-gray-50"
             )}
           >
-            Cooperatives
+            Platform Materials
           </button>
           <button
-            onClick={() => setActiveTab('External Material')}
+            onClick={() => setActiveTab('External Materials')}
             className={cn(
               "px-5 py-2.5 text-xs font-bold uppercase tracking-wider rounded-lg transition-all",
-              activeTab === 'External Material'
+              activeTab === 'External Materials'
                 ? "bg-brand text-white shadow-sm"
                 : "text-gray-500 hover:bg-gray-50"
             )}
           >
-            Manual Entry
+            External Materials
           </button>
           <button
             onClick={() => setActiveTab('Incoming Materials')}
@@ -221,88 +273,127 @@ export default function ProcessorMaterials() {
                 : "text-gray-500 hover:bg-gray-50"
             )}
           >
-            In Transit
+            Incoming Materials
           </button>
         </div>
       </div>
 
-      {/* Filter Panel */}
-      <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-        <div className="flex items-center gap-2 mb-6">
-          <div className="size-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-500">
-            <Filter className="size-4" />
+      {showPlatformFilters && (
+        <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="flex items-center gap-2 mb-6">
+            <div className="size-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-500">
+              <Filter className="size-4" />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-gray-900 uppercase tracking-tight">Filters</h2>
+              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Filter raw material records</p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-base font-bold text-gray-900 uppercase tracking-tight">Filters</h2>
-            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Filter raw material records</p>
-          </div>
-        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div>
-            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 block">Source Farmer</label>
-            <div className="relative">
-              <select className="w-full h-11 rounded-lg border border-gray-200 pl-3 pr-10 text-xs font-bold uppercase tracking-wider text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand bg-white appearance-none">
-                <option>All System Farmers</option>
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-gray-400 pointer-events-none" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div>
+              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 block">Source Farmer</label>
+              <div className="relative">
+                <select className="w-full h-11 rounded-lg border border-gray-200 pl-3 pr-10 text-xs font-bold uppercase tracking-wider text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand bg-white appearance-none">
+                  <option>All System Farmers</option>
+                  {sourceFarmerOptions.map((farmer) => (
+                    <option key={farmer} value={farmer}>
+                      {farmer}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-gray-400 pointer-events-none" />
+              </div>
+            </div>
+            <div>
+              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 block">Source</label>
+              <div className="relative">
+                <select className="w-full h-11 rounded-lg border border-gray-200 pl-3 pr-10 text-xs font-bold uppercase tracking-wider text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand bg-white appearance-none">
+                  <option>All Sources</option>
+                  {sourceOptions.map((source) => (
+                    <option key={source} value={source}>
+                      {source}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-gray-400 pointer-events-none" />
+              </div>
+            </div>
+            <div>
+              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 block">Material</label>
+              <div className="relative">
+                <select className="w-full h-11 rounded-lg border border-gray-200 pl-3 pr-10 text-xs font-bold uppercase tracking-wider text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand bg-white appearance-none">
+                  <option>All Materials</option>
+                  {materialOptions.map((materialOption) => (
+                    <option key={materialOption} value={materialOption}>
+                      {materialOption}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-gray-400 pointer-events-none" />
+              </div>
             </div>
           </div>
-          <div>
-            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 block">Source</label>
-            <div className="relative">
-              <select className="w-full h-11 rounded-lg border border-gray-200 pl-3 pr-10 text-xs font-bold uppercase tracking-wider text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand bg-white appearance-none">
-                <option>All Sources</option>
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-gray-400 pointer-events-none" />
-            </div>
-          </div>
-          <div>
-            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 block">Material</label>
-            <div className="relative">
-              <select className="w-full h-11 rounded-lg border border-gray-200 pl-3 pr-10 text-xs font-bold uppercase tracking-wider text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand bg-white appearance-none">
-                <option>All Materials</option>
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-gray-400 pointer-events-none" />
-            </div>
-          </div>
-        </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-[500px] mb-8">
-          <div>
-            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 block font-mono">Start Date</label>
-            <DatePicker 
-              value={startDate} 
-              onChange={setStartDate} 
-              placeholder="Start range"
-              className="w-full text-xs font-bold uppercase tracking-wider text-gray-700 h-11 rounded-lg border border-gray-200 focus:border-brand focus:ring-1 focus:ring-brand outline-none" 
-            />
-          </div>
-          <div>
-            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 block font-mono">End Date</label>
-            <DatePicker 
-              value={endDate} 
-              onChange={setEndDate} 
-              placeholder="End range"
-              className="w-full text-xs font-bold uppercase tracking-wider text-gray-700 h-11 rounded-lg border border-gray-200 focus:border-brand focus:ring-1 focus:ring-brand outline-none" 
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-8 pt-8 border-t border-gray-50">
-          {[
-            { label: 'Total Materials', value: '1' },
-            { label: 'Cooperatives', value: '0 kg' },
-            { label: 'Total Stock', value: '0' },
-            { label: 'Alerts', value: '0' }
-          ].map((stat, i) => (
-            <div key={i} className="bg-gray-50/50 rounded-xl p-4 border border-gray-100/50">
-              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">{stat.label}</p>
-              <p className="text-xl font-bold text-gray-900">{stat.value}</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-[500px] mb-8">
+            <div>
+              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 block font-mono">Start Date</label>
+              <DatePicker 
+                value={startDate} 
+                onChange={setStartDate} 
+                placeholder="Start range"
+                className="w-full text-xs font-bold uppercase tracking-wider text-gray-700 h-11 rounded-lg border border-gray-200 focus:border-brand focus:ring-1 focus:ring-brand outline-none" 
+              />
             </div>
-          ))}
+            <div>
+              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 block font-mono">End Date</label>
+              <DatePicker 
+                value={endDate} 
+                onChange={setEndDate} 
+                placeholder="End range"
+                className="w-full text-xs font-bold uppercase tracking-wider text-gray-700 h-11 rounded-lg border border-gray-200 focus:border-brand focus:ring-1 focus:ring-brand outline-none" 
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-8 pt-8 border-t border-gray-50">
+            {[
+              { label: 'Total Products', value: platformMaterials.length.toString() },
+              { label: 'Platform Materials', value: `${platformMaterials.length}` },
+              { label: 'In Stock', value: platformInStockCount.toString() },
+              { label: 'Low Stock', value: platformLowStockCount.toString() },
+            ].map((stat, i) => (
+              <div key={i} className="bg-gray-50/50 rounded-xl p-4 border border-gray-100/50">
+                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">{stat.label}</p>
+                <p className="text-xl font-bold text-gray-900">{stat.value}</p>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
+
+      {showExternalSummary && (
+        <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="mb-6">
+            <h2 className="text-base font-bold text-gray-900 uppercase tracking-tight">External Materials Inventory</h2>
+            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Track materials sourced from external suppliers</p>
+          </div>
+
+          <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {[
+              { label: 'Total Products', value: manualMaterials.length.toString() },
+              { label: 'External Materials', value: `${externalTotalQuantity.toFixed(2)} ${externalBaseUnit}` },
+              { label: 'In Stock', value: externalInStockCount.toString() },
+              { label: 'Low Stock', value: externalLowStockCount.toString() },
+            ].map((stat) => (
+              <div key={stat.label} className="bg-gray-50/50 rounded-xl p-4 border border-gray-100/50">
+                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">{stat.label}</p>
+                <p className="text-xl font-bold text-gray-900">{stat.value}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Available Raw Materials */}
       <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden flex flex-col">
