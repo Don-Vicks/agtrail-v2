@@ -139,13 +139,40 @@ export default function ProcessorFacilitiesPage() {
   const handleSaveFacility = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const formData = new FormData(e.currentTarget)
+    const name = String(formData.get('name') ?? '').trim()
+    const location = String(formData.get('location') ?? '').trim()
+    const lineType = String(formData.get('lineType') ?? '').trim()
+    const manager = String(formData.get('manager') ?? '').trim()
+    const monthlyCapacityTons = Number(formData.get('monthlyCapacityTons'))
+
+    if (!name) {
+      toast.error('Facility name is required.')
+      return
+    }
+    if (!location) {
+      toast.error('Location is required.')
+      return
+    }
+    if (!lineType) {
+      toast.error('Processing line type is required.')
+      return
+    }
+    if (!manager) {
+      toast.error('Facility manager is required.')
+      return
+    }
+    if (!Number.isFinite(monthlyCapacityTons) || monthlyCapacityTons <= 0) {
+      toast.error('Monthly capacity must be a positive number.')
+      return
+    }
+
     const data = {
-      name: formData.get('name') as string,
-      location: formData.get('location') as string,
-      lineType: formData.get('lineType') as string,
-      monthlyCapacityTons: Number(formData.get('monthlyCapacityTons')),
+      name,
+      location,
+      lineType,
+      monthlyCapacityTons,
       status: formData.get('status') as FacilityStatus,
-      manager: formData.get('manager') as string,
+      manager,
       utilization: editingFacility ? editingFacility.utilization : 0,
     }
 

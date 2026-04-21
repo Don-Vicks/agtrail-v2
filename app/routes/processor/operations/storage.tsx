@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
+import type { OperationFormFooterValues } from '~/lib/operation-form-footer'
+import { formatOperationLogDescription } from '~/lib/operation-form-footer'
 import { OperationFormLayout } from '~/components/operation-form-layout'
 import { OperationFormError, OperationFormLoading } from '~/components/operation-form-load-state'
 import { PersonField } from '~/components/person-field'
@@ -24,14 +26,13 @@ export default function Storage() {
     )
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = async (e: React.FormEvent, footer: OperationFormFooterValues) => {
     if (!description.trim()) {
       toast.error('Description is required.')
       return
     }
     try {
-      await submitLog(description)
+      await submitLog(formatOperationLogDescription(description.trim(), footer))
       toast.success('Storage logged successfully.')
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Unknown error'

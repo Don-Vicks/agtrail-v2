@@ -51,7 +51,8 @@ export default function FarmerDashboard() {
   const farmsData = farmsByRegion.flatMap(region => region.farms.map(farm => ({
     ...farm,
     // Add defaults for missing fields in aggregated schema
-    sizeHectares: 0, 
+    sizeHectares: farm.totalArea ?? 0,
+    areaUnit: farm.areaUnit ?? 'ha',
     region: region.region
   })))
 
@@ -428,7 +429,7 @@ export default function FarmerDashboard() {
                   </p>
                   <div className="flex items-center justify-between">
                     <p className="text-lg font-bold text-brand tracking-tight">
-                      {insights?.avgFarmSize ? `${insights.avgFarmSize.toFixed(1)} ha` : 'N/A'}
+                      {farm.totalArea != null ? `${Number(farm.totalArea).toFixed(1)} ${farm.areaUnit || 'ha'}` : 'N/A'}
                     </p>
                     <Badge variant="ghost" className="text-[9px] font-bold text-gray-300 uppercase tracking-widest p-0">#{farm.id.slice(0, 8)}</Badge>
                   </div>

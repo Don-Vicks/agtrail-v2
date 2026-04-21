@@ -94,8 +94,23 @@ export function CreateProductModal({ isOpen, onClose }: CreateProductModalProps)
   })
 
   const submitProduct = () => {
-    if (!formData.farmId || !formData.cropCycleId || !formData.harvestOperationId || !formData.productName || !formData.category || !formData.quantityHarvested || !formData.harvestDate) {
+    const productName = formData.productName.trim()
+    const category = formData.category.trim()
+    const qty = Number(formData.quantityHarvested)
+    if (
+      !formData.farmId ||
+      !formData.cropCycleId ||
+      !formData.harvestOperationId ||
+      !productName ||
+      !category ||
+      !formData.quantityHarvested ||
+      !formData.harvestDate
+    ) {
       toast.error('Please fill in all required fields.')
+      return
+    }
+    if (!Number.isFinite(qty) || qty <= 0) {
+      toast.error('Quantity harvested must be a positive number.')
       return
     }
 
@@ -106,9 +121,9 @@ export function CreateProductModal({ isOpen, onClose }: CreateProductModalProps)
         // The endpoint technically requires harvestOperationId according to your error
         // Because of code generation limits, we will append it dynamically or simply pass it along
         harvestOperationId: formData.harvestOperationId,
-        productName: formData.productName,
-        category: formData.category,
-        quantityHarvested: Number(formData.quantityHarvested),
+        productName,
+        category,
+        quantityHarvested: qty,
         unit: formData.unit || undefined,
         harvestDate: new Date(formData.harvestDate).toISOString(),
         qualityGrade: formData.qualityGrade || undefined,

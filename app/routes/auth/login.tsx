@@ -60,11 +60,12 @@ export default function LoginPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     setErrorMsg('')
-    if (!email || !password) {
+    const trimmedEmail = email.trim()
+    if (!trimmedEmail || !password) {
       setErrorMsg('Please enter both email and password.')
       return
     }
-    login({ data: { email, password } })
+    login({ data: { email: trimmedEmail, password } })
   }
 
   return (

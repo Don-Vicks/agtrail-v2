@@ -1,9 +1,11 @@
+import { useState } from 'react'
 import { Link } from 'react-router'
 
 import { AgrolinkingLogo } from '~/components/agrolinking-logo'
+import { toast } from 'sonner'
 import type { Route } from './+types/forgot-password'
 
-export function meta({ }: Route.MetaArgs) {
+export function meta({}: Route.MetaArgs) {
   return [
     { title: 'Forgot Password | Agtrail' },
     {
@@ -14,6 +16,24 @@ export function meta({ }: Route.MetaArgs) {
 }
 
 export default function ForgotPasswordPage() {
+  const [email, setEmail] = useState('')
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const trimmed = email.trim()
+    if (!trimmed) {
+      toast.error('Please enter your email address.')
+      return
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      toast.error('Enter a valid email address.')
+      return
+    }
+    toast.info(
+      'Password reset is not wired to the API yet. Contact your administrator if you need access.',
+    )
+  }
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-white px-4 py-12">
       <div className="w-full max-w-md">
@@ -29,7 +49,7 @@ export default function ForgotPasswordPage() {
           </p>
 
           {/* Form */}
-          <form className="mt-8 w-full space-y-5">
+          <form className="mt-8 w-full space-y-5" onSubmit={handleSubmit}>
             {/* Email */}
             <div className="space-y-1.5">
               <label
@@ -40,7 +60,11 @@ export default function ForgotPasswordPage() {
               </label>
               <input
                 id="reset-email"
+                name="email"
                 type="email"
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 placeholder="m@example.com"
                 className="h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
               />

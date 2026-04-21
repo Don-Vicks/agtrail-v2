@@ -37,6 +37,7 @@ import {
   UploadCloud,
   Clock,
 } from 'lucide-react'
+import { sortedNigeriaStates } from '~/lib/nigeria-geo-options'
 import { cn } from '~/lib/utils'
 import type { Route } from './+types/farm'
 
@@ -102,10 +103,10 @@ export default function FarmCertificationPage() {
     [certList],
   )
 
-  const states = useMemo(() => {
-    const s = new Set(uiFarms.map((f) => f.location).filter(Boolean))
-    return Array.from(s).sort()
-  }, [uiFarms])
+  const stateFilterOptions = useMemo(
+    () => sortedNigeriaStates().map((s) => s.name),
+    [],
+  )
 
   const filteredFarms = useMemo(() => {
     return uiFarms.filter((f) => {
@@ -269,8 +270,8 @@ export default function FarmCertificationPage() {
               }}
               className="h-11 w-full sm:w-64 rounded-xl border border-gray-100 bg-gray-50/50 pl-4 pr-10 text-[11px] font-bold uppercase tracking-widest text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand appearance-none"
             >
-              <option value="">All locations</option>
-              {states.map((st) => (
+              <option value="">All states</option>
+              {stateFilterOptions.map((st) => (
                 <option key={st} value={st}>
                   {st}
                 </option>

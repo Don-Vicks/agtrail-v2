@@ -68,22 +68,31 @@ export default function CreateNewBatch() {
       return;
     }
 
-    if (!outputProductName || !outputProductType) {
-      toast.error('Please fill in all required fields');
+    const trimmedProductName = outputProductName.trim();
+    if (!trimmedProductName || !outputProductType) {
+      toast.error('Please fill in output product name and product type.');
       return;
     }
 
+    if (shelfLifeDays.trim()) {
+      const days = parseInt(shelfLifeDays, 10);
+      if (!Number.isFinite(days) || days < 1) {
+        toast.error('Shelf life must be a positive whole number of days.');
+        return;
+      }
+    }
+
     const payload: CreateBatchRequest = {
-      outputProductName,
+      outputProductName: trimmedProductName,
       outputProductType,
     };
 
     // Add optional fields if provided
-    if (facilityName) payload.facilityName = facilityName;
-    if (facilityLocation) payload.facilityLocation = facilityLocation;
+    if (facilityName.trim()) payload.facilityName = facilityName.trim();
+    if (facilityLocation.trim()) payload.facilityLocation = facilityLocation.trim();
     if (packagingDate) payload.packagingDate = packagingDate;
-    if (shelfLifeDays) payload.shelfLifeDays = parseInt(shelfLifeDays);
-    if (storageConditions) payload.storageConditions = storageConditions;
+    if (shelfLifeDays.trim()) payload.shelfLifeDays = parseInt(shelfLifeDays, 10);
+    if (storageConditions.trim()) payload.storageConditions = storageConditions.trim();
 
     createBatch(
       { data: payload },

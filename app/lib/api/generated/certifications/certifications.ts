@@ -26,6 +26,7 @@ import type {
 
 import type {
   GetCertifications200,
+  GetCertificationsReadiness200,
   PostCertificationsUpload201,
   PostCertificationsUploadBody
 } from '.././models';
@@ -230,4 +231,113 @@ export const usePostCertificationsUpload = <TError = unknown,
       > => {
       return useMutation(getPostCertificationsUploadMutationOptions(options), queryClient);
     }
+    /**
+ * @summary Get processor certification readiness metrics
+ */
+export type getCertificationsReadinessResponse200 = {
+  data: GetCertificationsReadiness200
+  status: 200
+}
+
+export type getCertificationsReadinessResponseSuccess = (getCertificationsReadinessResponse200) & {
+  headers: Headers;
+};
+;
+
+export type getCertificationsReadinessResponse = (getCertificationsReadinessResponseSuccess)
+
+export const getGetCertificationsReadinessUrl = () => {
+
+
+  
+
+  return `/certifications/readiness`
+}
+
+export const getCertificationsReadiness = async ( options?: RequestInit): Promise<getCertificationsReadinessResponse> => {
+  
+  return customFetch<getCertificationsReadinessResponse>(getGetCertificationsReadinessUrl(),
+  {      
+    ...options,
+    method: 'GET'
     
+    
+  }
+);}
+  
+
+
+
+
+export const getGetCertificationsReadinessQueryKey = () => {
+    return [
+    `/certifications/readiness`
+    ] as const;
+    }
+
+    
+export const getGetCertificationsReadinessQueryOptions = <TData = Awaited<ReturnType<typeof getCertificationsReadiness>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCertificationsReadiness>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCertificationsReadinessQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCertificationsReadiness>>> = ({ signal }) => getCertificationsReadiness({ signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCertificationsReadiness>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetCertificationsReadinessQueryResult = NonNullable<Awaited<ReturnType<typeof getCertificationsReadiness>>>
+export type GetCertificationsReadinessQueryError = unknown
+
+
+export function useGetCertificationsReadiness<TData = Awaited<ReturnType<typeof getCertificationsReadiness>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCertificationsReadiness>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getCertificationsReadiness>>,
+          TError,
+          Awaited<ReturnType<typeof getCertificationsReadiness>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetCertificationsReadiness<TData = Awaited<ReturnType<typeof getCertificationsReadiness>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCertificationsReadiness>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getCertificationsReadiness>>,
+          TError,
+          Awaited<ReturnType<typeof getCertificationsReadiness>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetCertificationsReadiness<TData = Awaited<ReturnType<typeof getCertificationsReadiness>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCertificationsReadiness>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Get processor certification readiness metrics
+ */
+
+export function useGetCertificationsReadiness<TData = Awaited<ReturnType<typeof getCertificationsReadiness>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCertificationsReadiness>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetCertificationsReadinessQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+

@@ -2,7 +2,7 @@ import { useCallback, useMemo, useRef, useState } from 'react'
 
 import { StepIndicator, SubStepIndicator } from '~/components/step-indicator'
 import { COUNTRIES, DEFAULT_COUNTRY_CODE } from '~/lib/data/countries'
-import { NIGERIA_STATES } from '~/lib/data/nigeria-states'
+import { sortedLgasForStateName, sortedNigeriaStates } from '~/lib/nigeria-geo-options'
 import type { Route } from './+types/farmer-registration'
 
 export function meta({ }: Route.MetaArgs) {
@@ -113,11 +113,12 @@ export default function FarmerRegistrationPage() {
   const [cameraActive, setCameraActive] = useState(false)
   const [selfieCapture, setSelfieCapture] = useState<string | null>(null)
 
-  // Derive LGAs from selected state
+  const nigeriaStatesSorted = useMemo(() => sortedNigeriaStates(), [])
+
+  // Derive LGAs from selected state (full state name)
   const availableLgas = useMemo(() => {
     if (country !== 'NG' || !state) return []
-    const found = NIGERIA_STATES.find((s) => s.name === state)
-    return found?.lgas ?? []
+    return sortedLgasForStateName(state).map((l) => l.name)
   }, [country, state])
 
   // Whether to show Nigeria-specific fields (State / LGA)
@@ -189,6 +190,7 @@ export default function FarmerRegistrationPage() {
               address={address}
               setAddress={setAddress}
               isNigeria={isNigeria}
+              nigeriaStatesSorted={nigeriaStatesSorted}
               availableLgas={availableLgas}
               onContinue={handleContinueToVerification}
             />
@@ -239,6 +241,7 @@ interface LocationStepProps {
   address: string
   setAddress: (v: string) => void
   isNigeria: boolean
+  nigeriaStatesSorted: { name: string; code: string }[]
   availableLgas: string[]
   onContinue: () => void
 }
@@ -250,6 +253,7 @@ function LocationStep({
   lga, setLga,
   address, setAddress,
   isNigeria,
+  nigeriaStatesSorted,
   availableLgas,
   onContinue,
 }: LocationStepProps) {
@@ -304,8 +308,10 @@ function LocationStep({
               className={selectClass}
             >
               <option value="">Select State</option>
-              {NIGERIA_STATES.map((s) => (
-                <option key={s.name} value={s.name}>{s.name}</option>
+              {nigeriaStatesSorted.map((s) => (
+                <option key={s.code} value={s.name}>
+                  {s.name}
+                </option>
               ))}
             </select>
             <ChevronDown />

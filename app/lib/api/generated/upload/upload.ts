@@ -30,7 +30,7 @@ type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 /**
  * Accepts multipart/form-data. This is the FIRST step of a two-step upload flow.
   
-  1. Upload the file here to get a relative path (e.g., /api/upload/file/folder/name.ext).
+  1. Upload the file here to get a relative path (e.g., upload/file/folder/name.ext).
   2. Use the returned path in your actual entity creation/update request (e.g., as 'documentUrl' or 'profilePhotoUrl').
   
   Supported field names (mapped to specific storage folders):

@@ -83,14 +83,15 @@ export default function RecordPurchasePage() {
     e.preventDefault()
 
     const parsedQuantity = parseFloat(quantity)
+    const beneficiaryId = beneficiary.trim()
     if (
-      !beneficiary ||
+      !beneficiaryId ||
       !quantity ||
       !unit ||
       Number.isNaN(parsedQuantity) ||
       parsedQuantity <= 0
     ) {
-      toast.error('Please fill in all required fields')
+      toast.error('Please fill in beneficiary, unit, and a positive quantity.')
       return
     }
 
@@ -100,7 +101,7 @@ export default function RecordPurchasePage() {
         quantityTransferred: parsedQuantity,
         unit,
         currency: 'NGN',
-        toUserId: beneficiary, // In farmer context, beneficiary is the seller
+        toUserId: beneficiaryId, // In farmer context, beneficiary is the seller
         notes: description,
       }
 

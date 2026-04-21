@@ -1,4 +1,6 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { getStateByCode } from 'ng-geo-data'
+import { sortedLgasForStateCode, sortedNigeriaStates } from '~/lib/nigeria-geo-options'
 import { Button } from '~/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '~/components/ui/dialog'
 import { Input } from '~/components/ui/input'
@@ -230,7 +232,8 @@ export function CreateFarmModal({ isOpen, onClose }: CreateFarmModalProps) {
   const [step, setStep] = useState(1)
   const [formData, setFormData] = useState({
     farmName: '',
-    state: '',
+    /** Nigerian state code from `ng-geo-data` (e.g. LA, FC) */
+    stateCode: '',
     lga: '',
     farmRegion: '',
     address: '',
@@ -239,6 +242,41 @@ export function CreateFarmModal({ isOpen, onClose }: CreateFarmModalProps) {
 
   const handleFieldChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
+  }
+
+  const statesSorted = useMemo(() => sortedNigeriaStates(), [])
+
+  const lgasForState = useMemo(
+    () => sortedLgasForStateCode(formData.stateCode),
+    [formData.stateCode],
+  )
+
+  const validateCurrentStep = (): boolean => {
+    if (step === 1) {
+      if (!formData.farmName.trim()) {
+        toast.error('Farm name is required.')
+        return false
+      }
+      if (!formData.stateCode.trim()) {
+        toast.error('State is required.')
+        return false
+      }
+      if (!formData.lga.trim()) {
+        toast.error('LGA is required.')
+        return false
+      }
+      if (!formData.address.trim()) {
+        toast.error('Address is required.')
+        return false
+      }
+    }
+
+    if (step === 2 && boundaryPoints.length < 3) {
+      toast.error('Please add at least 3 boundary points on the map.')
+      return false
+    }
+
+    return true
   }
 
   const handleAddPoint = useCallback((lat: number, lng: number) => {
@@ -255,7 +293,7 @@ export function CreateFarmModal({ isOpen, onClose }: CreateFarmModalProps) {
 
   const handleClose = () => {
     setStep(1)
-    setFormData({ farmName: '', state: '', lga: '', farmRegion: '', address: '' })
+    setFormData({ farmName: '', stateCode: '', lga: '', farmRegion: '', address: '' })
     setBoundaryPoints([])
     onClose()
   }
@@ -276,6 +314,18 @@ export function CreateFarmModal({ isOpen, onClose }: CreateFarmModalProps) {
   })
 
   const submitFarm = () => {
+    const stateName = getStateByCode(formData.stateCode)?.name
+    if (
+      !formData.farmName.trim() ||
+      !formData.stateCode.trim() ||
+      !stateName ||
+      !formData.lga.trim() ||
+      !formData.address.trim()
+    ) {
+      toast.error('Farm name, state, LGA, and address are required.')
+      return
+    }
+
     let boundaries = null
     let gpsCoordinates = null
     if (boundaryPoints.length >= 3) {
@@ -301,7 +351,7 @@ export function CreateFarmModal({ isOpen, onClose }: CreateFarmModalProps) {
     createFarm({
       data: {
         name: formData.farmName,
-        state: formData.state || undefined,
+        state: stateName || undefined,
         lga: formData.lga || undefined,
         region: formData.farmRegion || undefined,
         address: formData.address || undefined,
@@ -319,7 +369,7 @@ export function CreateFarmModal({ isOpen, onClose }: CreateFarmModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={(open) => { if (!open) handleClose() }}>
       <DialogContent
-        className="p-0 gap-0 overflow-hidden outline-none duration-200 sm:max-w-xl"
+        className="p-0 gap-0 overflow-hidden outline-none duration-200 sm:max-w-160"
         showCloseButton={false}
       >
         <div className="max-h-[90vh] overflow-y-auto">
@@ -367,28 +417,53 @@ export function CreateFarmModal({ isOpen, onClose }: CreateFarmModalProps) {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="mb-1.5 block text-sm font-medium text-gray-900">State</label>
-                  <Select value={formData.state} onValueChange={(val) => handleFieldChange('state', val || '')}>
+                  <label className="mb-1.5 block text-sm font-medium text-gray-900">
+                    State <span className="text-red-500">*</span>
+                  </label>
+                  <Select
+                    value={formData.stateCode || undefined}
+                    onValueChange={(val) => {
+                      setFormData((prev) => ({
+                        ...prev,
+                        stateCode: val || '',
+                        lga: '',
+                      }))
+                    }}
+                  >
                     <SelectTrigger className="w-full py-5 text-gray-500 font-normal">
-                      <SelectValue placeholder="Select a State" />
+                      <SelectValue placeholder="Select a state" />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Abia">Abia</SelectItem>
-                      <SelectItem value="Lagos">Lagos</SelectItem>
-                      <SelectItem value="Katsina">Katsina</SelectItem>
-                      <SelectItem value="Oyo">Oyo</SelectItem>
+                    <SelectContent className="max-h-72">
+                      {statesSorted.map((s) => (
+                        <SelectItem key={s.code} value={s.code}>
+                          {s.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-sm font-medium text-gray-900">LGA</label>
-                  <Select value={formData.lga} onValueChange={(val) => handleFieldChange('lga', val || '')} disabled={!formData.state}>
+                  <label className="mb-1.5 block text-sm font-medium text-gray-900">
+                    LGA <span className="text-red-500">*</span>
+                  </label>
+                  <Select
+                    value={formData.lga || undefined}
+                    onValueChange={(val) => handleFieldChange('lga', val || '')}
+                    disabled={!formData.stateCode}
+                  >
                     <SelectTrigger className="w-full py-5 text-gray-500 font-normal">
-                      <SelectValue placeholder="Select a state first" />
+                      <SelectValue
+                        placeholder={
+                          formData.stateCode ? 'Select an LGA' : 'Select a state first'
+                        }
+                      />
                     </SelectTrigger>
-                    <SelectContent>
-                      {formData.state && <SelectItem value="Arochukwu">Arochukwu</SelectItem>}
-                      {formData.state && <SelectItem value="Ikeja">Ikeja</SelectItem>}
+                    <SelectContent className="max-h-72">
+                      {lgasForState.map((lga) => (
+                        <SelectItem key={`${lga.state}-${lga.name}`} value={lga.name}>
+                          {lga.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -419,7 +494,7 @@ export function CreateFarmModal({ isOpen, onClose }: CreateFarmModalProps) {
 
           {/* ─── Step 2: Map Boundaries ──────────────────── */}
           {step === 2 && (
-            <div className="space-y-4 px-6 relative w-full h-full flex flex-col">
+            <div className="space-y-4 px-6 relative w-full h-full flex grow flex-col">
               {/* Instructions */}
               <div className="rounded-md bg-[#f0f6ff] p-3">
                 <p className="text-sm">
@@ -469,7 +544,7 @@ export function CreateFarmModal({ isOpen, onClose }: CreateFarmModalProps) {
               </div>
 
               {/* Map */}
-              <div className="overflow-hidden rounded-md border border-gray-200 w-full flex-grow min-h-[400px]">
+              <div className="overflow-hidden rounded-md border border-gray-200 w-full grow min-h-[400px]">
                 <MapBoundaryPicker points={boundaryPoints} onAddPoint={handleAddPoint} />
               </div>
 
@@ -510,7 +585,9 @@ export function CreateFarmModal({ isOpen, onClose }: CreateFarmModalProps) {
                 </div>
                 <div>
                   <p className="text-xs text-gray-400 mb-0.5">State</p>
-                  <p className="text-sm font-semibold text-gray-900">{formData.state || '—'}</p>
+                  <p className="text-sm font-semibold text-gray-900">
+                    {getStateByCode(formData.stateCode)?.name || '—'}
+                  </p>
                 </div>
                 <div>
                   <p className="text-xs text-gray-400 mb-0.5">LGA</p>
@@ -563,8 +640,14 @@ export function CreateFarmModal({ isOpen, onClose }: CreateFarmModalProps) {
 
             <Button
               onClick={() => {
-                if (step < 3) setStep(step + 1)
-                else submitFarm()
+                if (step < 3) {
+                  if (!validateCurrentStep()) return
+                  setStep(step + 1)
+                  return
+                }
+
+                if (!validateCurrentStep()) return
+                submitFarm()
               }}
               disabled={(step === 2 && boundaryPoints.length < 3) || isPending}
               className="flex items-center gap-1.5 bg-brand text-white hover:bg-brand-dark px-5"

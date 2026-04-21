@@ -54,6 +54,11 @@ export function AddMaterialModal({ isOpen, onClose, onAdd }: AddMaterialModalPro
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    if (!harvested || !received) {
+      toast.error('Date harvested and date received are required.')
+      return
+    }
+
     onAdd({
       material,
       type,

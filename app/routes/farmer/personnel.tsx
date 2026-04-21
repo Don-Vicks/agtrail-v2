@@ -1,13 +1,13 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { useLocation } from 'react-router'
 import { PageHeader } from '~/components/page-header'
 import { StatCard } from '~/components/stat-card'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
-import { 
+import {
   DropdownMenu,
-  DropdownMenuContent, 
-  DropdownMenuItem, 
+  DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
@@ -15,11 +15,40 @@ import {
   DropdownMenuSeparator,
   DropdownMenuGroup
 } from '~/components/ui/dropdown-menu'
-import { MoreVertical, Search, Plus, UserPlus, Filter, Download } from 'lucide-react'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from '~/components/ui/dialog'
+import { Input } from '~/components/ui/input'
+import { Label } from '~/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
+import { MoreVertical, Search, Plus, UserPlus, Filter, Download, Mail, Phone, Calendar, ShieldCheck, UserCircle, Briefcase, Edit2, Trash2, Users } from 'lucide-react'
 import { cn } from '~/lib/utils'
 import { EmptyState } from '~/components/empty-state'
+import { toast } from 'sonner'
 
-const mockPersonnel = [
+interface Person {
+  id: string
+  fullName: string
+  phoneNumber: string
+  emailAddress: string
+  role: string
+  farmAssignments: string[]
+  employmentType: string
+  employeeId: string
+  startDate: string
+  certifications: string[]
+  emergencyContactName: string
+  emergencyContactPhone: string
+  status: string
+  notes: string
+}
+
+const INITIAL_PERSONNEL: Person[] = [
   {
     id: '1',
     fullName: 'Olamide Olutekunbi',
@@ -75,45 +104,129 @@ export function meta() {
 }
 
 export default function FarmerPersonnel() {
+  const [personnel, setPersonnel] = useState<Person[]>(INITIAL_PERSONNEL)
+  const [isLoading, setIsLoading] = useState(true)
   const [search, setSearch] = useState('')
-  const [newPerson, setNewPerson] = useState('')
   const [roleFilter, setRoleFilter] = useState('All')
   const [statusFilter, setStatusFilter] = useState('All')
   const [employmentFilter, setEmploymentFilter] = useState('All')
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [editingPerson, setEditingPerson] = useState<Person | null>(null)
 
   const location = useLocation()
-  const basePath = location.pathname.startsWith('/processor') 
-    ? '/processor' 
-    : location.pathname.startsWith('/cooperative') 
-      ? '/cooperative' 
+  const basePath = location.pathname.startsWith('/processor')
+    ? '/processor'
+    : location.pathname.startsWith('/cooperative')
+      ? '/cooperative'
       : '/farmer'
 
-  const roles = useMemo(() => {
-    const uniqueRoles = Array.from(new Set(mockPersonnel.map(p => p.role)))
-    return ['All', ...uniqueRoles]
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 800)
+    return () => clearTimeout(timer)
   }, [])
 
+  const roles = useMemo(() => {
+    const uniqueRoles = Array.from(new Set(personnel.map(p => p.role)))
+    return ['All', ...uniqueRoles]
+  }, [personnel])
+
   const filtered = useMemo(() => {
-    return mockPersonnel.filter((p) => {
-      const matchesSearch = p.fullName.toLowerCase().includes(search.toLowerCase()) ||
-        p.role.toLowerCase().includes(search.toLowerCase()) ||
-        p.employeeId.toLowerCase().includes(search.toLowerCase())
-      
+    return personnel.filter((p) => {
+      const matchesSearch = [p.fullName, p.role, p.employeeId, p.emailAddress].some(v => v.toLowerCase().includes(search.toLowerCase()))
       const matchesRole = roleFilter === 'All' || p.role === roleFilter
       const matchesStatus = statusFilter === 'All' || p.status === statusFilter
       const matchesEmployment = employmentFilter === 'All' || p.employmentType === employmentFilter
-
       return matchesSearch && matchesRole && matchesStatus && matchesEmployment
     })
-  }, [search, roleFilter, statusFilter, employmentFilter])
+  }, [search, roleFilter, statusFilter, employmentFilter, personnel])
 
-  const personnelStats = useMemo(() => {
-    const total = mockPersonnel.length
-    const active = mockPersonnel.filter(p => p.status === 'Active').length
-    const permanent = mockPersonnel.filter(p => p.employmentType === 'Permanent').length
-    const seasonal = mockPersonnel.filter(p => p.employmentType === 'Seasonal').length
+  const stats = useMemo(() => {
+    const total = personnel.length
+    const active = personnel.filter(p => p.status === 'Active').length
+    const permanent = personnel.filter(p => p.employmentType === 'Permanent').length
+    const seasonal = personnel.filter(p => p.employmentType === 'Seasonal').length
     return { total, active, permanent, seasonal }
-  }, [])
+  }, [personnel])
+
+  const handleSavePerson = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const formData = new FormData(e.currentTarget)
+    const fullName = String(formData.get('fullName') ?? '').trim()
+    const emailAddress = String(formData.get('email') ?? '').trim()
+    const phoneDigits = String(formData.get('phone') ?? '').replace(/\D/g, '')
+    const role = String(formData.get('role') ?? '').trim()
+    const employeeId = String(formData.get('employeeId') ?? '').trim()
+
+    if (!fullName) {
+      toast.error('Full name is required.')
+      return
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailAddress)) {
+      toast.error('Enter a valid email address.')
+      return
+    }
+    if (phoneDigits.length < 7) {
+      toast.error('Enter a valid phone number.')
+      return
+    }
+    if (!role) {
+      toast.error('Designated role is required.')
+      return
+    }
+    if (!employeeId) {
+      toast.error('Employee ID is required.')
+      return
+    }
+
+    const data = {
+      fullName,
+      emailAddress,
+      phoneNumber: String(formData.get('phone') ?? '').trim(),
+      role,
+      employmentType: formData.get('employmentType') as string,
+      employeeId,
+      status: formData.get('status') as string,
+      startDate: formData.get('startDate') as string || new Date().toISOString().split('T')[0],
+      farmAssignments: editingPerson ? editingPerson.farmAssignments : ['Default Assignment'],
+      certifications: editingPerson ? editingPerson.certifications : [],
+      emergencyContactName: formData.get('emergencyName') as string,
+      emergencyContactPhone: formData.get('emergencyPhone') as string,
+      notes: formData.get('notes') as string,
+    }
+
+    if (editingPerson) {
+      setPersonnel(personnel.map(p => p.id === editingPerson.id ? { ...p, ...data } : p))
+      toast.success('Personnel record updated')
+    } else {
+      const newPerson: Person = {
+        id: Math.random().toString(36).substr(2, 9),
+        ...data,
+      }
+      setPersonnel([newPerson, ...personnel])
+      toast.success('New personnel added successfully')
+    }
+    handleCloseModal()
+  }
+
+  const handleEditClick = (p: Person) => {
+    setEditingPerson(p)
+    setIsModalOpen(true)
+  }
+
+  const handleDelete = (id: string) => {
+    setPersonnel(personnel.filter(p => p.id !== id))
+    toast.success('Personnel record removed')
+  }
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false)
+    setEditingPerson(null)
+  }
+
+  const handleExport = () => {
+    toast.info('Exporting staff list as CSV...')
+    setTimeout(() => toast.success('Export complete! staff_list_2024.csv downloaded.'), 1500)
+  }
 
   return (
     <div className="space-y-6 pb-10">
@@ -140,14 +253,108 @@ export default function FarmerPersonnel() {
           <p className="text-sm text-gray-500 mt-1">Manage your farm workforce, roles, and assignments</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" className="flex items-center gap-2 text-gray-600">
+          <Button variant="outline" onClick={handleExport} className="flex items-center gap-2 text-gray-600">
             <Download className="size-4" />
             <span className="hidden sm:inline">Export Staff List</span>
           </Button>
-          <Button className="bg-[#1d3d1e] hover:bg-black text-white flex items-center gap-2">
-            <UserPlus className="size-4" />
-            <span>Add Personnel</span>
-          </Button>
+          
+          <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+            <DialogTrigger render={
+              <Button onClick={() => setEditingPerson(null)} className="bg-[#1d3d1e] hover:bg-black text-white flex items-center gap-2">
+                <UserPlus className="size-4" />
+                <span>Add Personnel</span>
+              </Button>
+            } />
+            <DialogContent className="max-w-2xl overflow-y-auto max-h-[90vh]">
+              <DialogHeader>
+                <DialogTitle className="text-xl font-bold uppercase tracking-tighter">
+                  {editingPerson ? 'Edit Personnel Data' : 'Onboard New Personnel'}
+                </DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleSavePerson} className="grid grid-cols-1 md:grid-cols-2 gap-6 py-6" id="person-form">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="fullName" className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Full Name</Label>
+                    <Input id="fullName" name="fullName" defaultValue={editingPerson?.fullName} required placeholder="e.g. Olamide Olutekunbi" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="email" className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Email Address</Label>
+                    <Input id="email" name="email" type="email" defaultValue={editingPerson?.emailAddress} required placeholder="name@example.com" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="phone" className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Phone Number</Label>
+                    <Input id="phone" name="phone" defaultValue={editingPerson?.phoneNumber} required placeholder="+234 ..." />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="employeeId" className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Employee ID</Label>
+                    <Input id="employeeId" name="employeeId" defaultValue={editingPerson?.employeeId} required placeholder="EMP-000" />
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Designated Role</Label>
+                    <Input name="role" defaultValue={editingPerson?.role} required placeholder="e.g. Farm Manager" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Type</Label>
+                      <Select name="employmentType" defaultValue={editingPerson?.employmentType || 'Permanent'}>
+                        <SelectTrigger className="w-full">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Permanent">Permanent</SelectItem>
+                          <SelectItem value="Seasonal">Seasonal</SelectItem>
+                          <SelectItem value="Contract">Contract</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Status</Label>
+                      <Select name="status" defaultValue={editingPerson?.status || 'Active'}>
+                        <SelectTrigger className="w-full">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Active">Active</SelectItem>
+                          <SelectItem value="Inactive">Inactive</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="startDate" className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Start Date</Label>
+                    <Input id="startDate" name="startDate" type="date" defaultValue={editingPerson?.startDate} />
+                  </div>
+                </div>
+
+                <div className="md:col-span-2 border-t border-gray-100 pt-6 mt-2">
+                  <h3 className="text-xs font-bold uppercase tracking-widest text-gray-900 mb-4">Emergency Contact & Notes</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="emergencyName" className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Contact Person</Label>
+                      <Input id="emergencyName" name="emergencyName" defaultValue={editingPerson?.emergencyContactName} placeholder="Emergency contact name" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="emergencyPhone" className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Contact Phone</Label>
+                      <Input id="emergencyPhone" name="emergencyPhone" defaultValue={editingPerson?.emergencyContactPhone} placeholder="Emergency contact phone" />
+                    </div>
+                    <div className="md:col-span-2 space-y-2">
+                      <Label htmlFor="notes" className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Professional Notes</Label>
+                      <Input id="notes" name="notes" defaultValue={editingPerson?.notes} placeholder="Additional details..." />
+                    </div>
+                  </div>
+                </div>
+
+                <DialogFooter className="md:col-span-2 pt-4">
+                  <Button type="button" variant="ghost" onClick={handleCloseModal} className="font-bold uppercase tracking-widest text-[10px]">Cancel</Button>
+                  <Button type="submit" form="person-form" className="bg-[#1d3d1e] hover:bg-black text-white px-10 font-bold uppercase tracking-widest text-[10px] shadow-md">
+                    {editingPerson ? 'Update Personnel' : 'Add to Staff'}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 
@@ -155,32 +362,32 @@ export default function FarmerPersonnel() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <StatCard 
           title="Total Personnel" 
-          value={personnelStats.total.toString()} 
+          value={stats.total.toString()} 
           subtitle="Registered staff"
           description="Total workforce size"
-          icon={<svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>}
+          icon={<Users className="size-4" />}
         />
         <StatCard 
           title="Active Staff" 
-          value={personnelStats.active.toString()} 
+          value={stats.active.toString()} 
           subtitle="Currently on duty"
           description="Ready for operations"
-          icon={<svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
+          icon={<ShieldCheck className="size-4" />}
           className="border-green-100 bg-green-50/10"
         />
         <StatCard 
           title="Permanent" 
-          value={personnelStats.permanent.toString()} 
+          value={stats.permanent.toString()} 
           subtitle="Full-time employees"
           description="Long-term contracts"
-          icon={<svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>}
+          icon={<Briefcase className="size-4" />}
         />
         <StatCard 
           title="Seasonal" 
-          value={personnelStats.seasonal.toString()} 
+          value={stats.seasonal.toString()} 
           subtitle="Temporary workers"
           description="Peak season support"
-          icon={<svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>}
+          icon={<Calendar className="size-4" />}
         />
       </div>
 
@@ -200,17 +407,17 @@ export default function FarmerPersonnel() {
           </div>
           <div className="flex items-center gap-2">
             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
+              <DropdownMenuTrigger render={
                 <Button variant="outline" size="sm" className={cn("flex items-center gap-2", (roleFilter !== 'All' || statusFilter !== 'All' || employmentFilter !== 'All') && "border-brand text-brand")}>
                   <Filter className="size-4" />
                   <span>Advanced Filter</span>
                   {(roleFilter !== 'All' || statusFilter !== 'All' || employmentFilter !== 'All') && <div className="size-2 rounded-full bg-brand" />}
                 </Button>
-              </DropdownMenuTrigger>
+              } />
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuGroup>
                   <DropdownMenuLabel>Role</DropdownMenuLabel>
-                  <DropdownMenuRadioGroup value={roleFilter} onValueChange={setRoleFilter}>
+                  <DropdownMenuRadioGroup value={roleFilter} onValueChange={(v) => setRoleFilter(v || 'All')}>
                     {roles.map(r => (
                       <DropdownMenuRadioItem key={r} value={r}>{r}</DropdownMenuRadioItem>
                     ))}
@@ -219,7 +426,7 @@ export default function FarmerPersonnel() {
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
                   <DropdownMenuLabel>Status</DropdownMenuLabel>
-                  <DropdownMenuRadioGroup value={statusFilter} onValueChange={setStatusFilter}>
+                  <DropdownMenuRadioGroup value={statusFilter} onValueChange={(v) => setStatusFilter(v || 'All')}>
                     <DropdownMenuRadioItem value="All">All Statuses</DropdownMenuRadioItem>
                     <DropdownMenuRadioItem value="Active">Active</DropdownMenuRadioItem>
                     <DropdownMenuRadioItem value="Inactive">Inactive</DropdownMenuRadioItem>
@@ -228,7 +435,7 @@ export default function FarmerPersonnel() {
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
                   <DropdownMenuLabel>Employment</DropdownMenuLabel>
-                  <DropdownMenuRadioGroup value={employmentFilter} onValueChange={setEmploymentFilter}>
+                  <DropdownMenuRadioGroup value={employmentFilter} onValueChange={(v) => setEmploymentFilter(v || 'All')}>
                     <DropdownMenuRadioItem value="All">All Types</DropdownMenuRadioItem>
                     <DropdownMenuRadioItem value="Permanent">Permanent</DropdownMenuRadioItem>
                     <DropdownMenuRadioItem value="Seasonal">Seasonal</DropdownMenuRadioItem>
@@ -239,7 +446,7 @@ export default function FarmerPersonnel() {
                     <DropdownMenuSeparator />
                     <DropdownMenuItem 
                       onClick={() => { setRoleFilter('All'); setStatusFilter('All'); setEmploymentFilter('All') }}
-                      className="text-center justify-center font-bold text-brand"
+                      className="text-center justify-center font-bold text-brand cursor-pointer"
                     >
                       Reset Filters
                     </DropdownMenuItem>
@@ -264,7 +471,32 @@ export default function FarmerPersonnel() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {filtered.map((person) => (
+              {isLoading ? (
+                [1, 2, 3].map(i => (
+                  <tr key={i} className="animate-pulse">
+                    <td colSpan={6} className="px-6 py-8"><div className="h-8 bg-gray-50 rounded-lg w-full" /></td>
+                  </tr>
+                ))
+              ) : filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-20 text-center">
+                    <EmptyState
+                      icon={<Search className="size-10" />}
+                      title="No personnel found"
+                      description="Try adjusting your search or filters to find what you're looking for."
+                      action={{
+                        label: "Clear all filters",
+                        onClick: () => {
+                          setSearch('')
+                          setRoleFilter('All')
+                          setStatusFilter('All')
+                          setEmploymentFilter('All')
+                        }
+                      }}
+                    />
+                  </td>
+                </tr>
+              ) : filtered.map((person) => (
                 <tr key={person.id} className="hover:bg-gray-50/80 transition-colors group">
                   <td className="px-6 py-5">
                     <div className="flex items-center gap-3">
@@ -325,16 +557,16 @@ export default function FarmerPersonnel() {
                   </td>
                   <td className="px-6 py-5 text-center">
                     <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
+                      <DropdownMenuTrigger render={
                         <Button variant="ghost" size="icon" className="size-8 rounded-full hover:bg-gray-100">
                           <MoreVertical className="size-4 text-gray-400" />
                         </Button>
-                      </DropdownMenuTrigger>
+                      } />
                       <DropdownMenuContent align="end" className="w-48">
-                        <DropdownMenuItem className="cursor-pointer">Edit Profile</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleEditClick(person)} className="cursor-pointer">Edit Profile</DropdownMenuItem>
                         <DropdownMenuItem className="cursor-pointer">Manage Assignments</DropdownMenuItem>
                         <DropdownMenuItem className="cursor-pointer">View Emergency Contact</DropdownMenuItem>
-                        <DropdownMenuItem className="cursor-pointer text-red-600">Deactivate Staff</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleDelete(person.id)} className="cursor-pointer text-red-600">Deactivate Staff</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </td>
@@ -342,22 +574,6 @@ export default function FarmerPersonnel() {
               ))}
             </tbody>
           </table>
-          {filtered.length === 0 && (
-            <EmptyState
-              icon={<Search className="size-10" />}
-              title="No personnel found"
-              description="Try adjusting your search or filters to find what you're looking for."
-              action={{
-                label: "Clear all filters",
-                onClick: () => {
-                  setSearch('')
-                  setRoleFilter('All')
-                  setStatusFilter('All')
-                  setEmploymentFilter('All')
-                }
-              }}
-            />
-          )}
         </div>
         
         {/* Table Footer */}

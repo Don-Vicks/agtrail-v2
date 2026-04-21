@@ -249,6 +249,36 @@ export function StartCropCycleModal({
     setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
+  const validateCurrentStep = (): boolean => {
+    if (step === 1) {
+      if (!formData.productName.trim()) {
+        toast.error('Product name is required.')
+        return false
+      }
+      if (!formData.cropCategory.trim()) {
+        toast.error('Crop category is required.')
+        return false
+      }
+    }
+
+    if (step === 2) {
+      if (!formData.plantingDate) {
+        toast.error('Planting date is required.')
+        return false
+      }
+    }
+
+    if (step === 3) {
+      const area = Number(formData.hectaresPlanted)
+      if (!formData.hectaresPlanted || Number.isNaN(area) || area <= 0) {
+        toast.error('Hectares planted must be a valid number greater than 0.')
+        return false
+      }
+    }
+
+    return true
+  }
+
   const handleAddPoint = useCallback((lat: number, lng: number) => {
     setBoundaryPoints((prev) => [...prev, [lat, lng]])
   }, [])
@@ -309,6 +339,20 @@ export function StartCropCycleModal({
       toast.error('Farm ID is missing, cannot create crop cycle.')
       return
     }
+    const area = Number(formData.hectaresPlanted)
+    if (!formData.productName.trim() || !formData.cropCategory.trim()) {
+      toast.error('Product name and crop category are required.')
+      return
+    }
+    if (!formData.plantingDate) {
+      toast.error('Planting date is required.')
+      return
+    }
+    if (!formData.hectaresPlanted || Number.isNaN(area) || area <= 0) {
+      toast.error('Hectares planted must be a valid number greater than 0.')
+      return
+    }
+
     createCropCycle({
       id: farmId,
       data: {
@@ -327,7 +371,7 @@ export function StartCropCycleModal({
   return (
     <Dialog open={isOpen} onOpenChange={(open) => { if (!open) handleClose() }}>
       <DialogContent
-        className="p-0 gap-0 overflow-hidden outline-none duration-200 sm:max-w-xl"
+        className="p-0 gap-0 overflow-hidden outline-none duration-200 sm:max-w-160"
         showCloseButton={false}
       >
         <div className="max-h-[90vh] overflow-y-auto">
@@ -383,11 +427,18 @@ export function StartCropCycleModal({
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Cereals">Cereals</SelectItem>
-                    <SelectItem value="Legumes">Legumes</SelectItem>
+                    <SelectItem value="Cereals (Grains)">Cereals (Grains)</SelectItem>
+                    <SelectItem value="Legumes (Pulses)">Legumes (Pulses)</SelectItem>
+                    <SelectItem value="Root and Tuber Crops">Root and Tuber Crops</SelectItem>
                     <SelectItem value="Vegetables">Vegetables</SelectItem>
                     <SelectItem value="Fruits">Fruits</SelectItem>
-                    <SelectItem value="Tubers">Tubers</SelectItem>
+                    <SelectItem value="Oil Crops">Oil Crops</SelectItem>
+                    <SelectItem value="Sugar and Starch Crops">Sugar and Starch Crops</SelectItem>
+                    <SelectItem value="Beverage Crops">Beverage Crops</SelectItem>
+                    <SelectItem value="Spices and Condiments">Spices and Condiments</SelectItem>
+                    <SelectItem value="Fiber Crops">Fiber Crops</SelectItem>
+                    <SelectItem value="Forage Crops">Forage Crops</SelectItem>
+                    <SelectItem value="Ornamental Crops">Ornamental Crops</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -623,8 +674,14 @@ export function StartCropCycleModal({
             </Button>
             <Button 
               onClick={() => {
-                if (step < 3) setStep(step + 1)
-                else handleSubmit()
+                if (step < 3) {
+                  if (!validateCurrentStep()) return
+                  setStep(step + 1)
+                  return
+                }
+
+                if (!validateCurrentStep()) return
+                handleSubmit()
               }}
               disabled={isPending}
               className="flex items-center gap-1.5 bg-brand text-white hover:bg-brand-dark px-5"

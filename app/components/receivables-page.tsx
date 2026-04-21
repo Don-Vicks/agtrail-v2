@@ -62,8 +62,18 @@ export function ReceivablesPage({ dashboardHref, dashboardLabel = 'Dashboard' }:
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!date || !amount || !farm || !product || !quantity) {
-      toast.error('Please fill in all required fields')
+    const amountNum = parseFloat(amount)
+    const quantityNum = parseFloat(quantity)
+    if (
+      !date ||
+      !farm ||
+      !product ||
+      Number.isNaN(amountNum) ||
+      amountNum <= 0 ||
+      Number.isNaN(quantityNum) ||
+      quantityNum <= 0
+    ) {
+      toast.error('Enter a valid date, farm, product, and positive amount and quantity.')
       return
     }
 

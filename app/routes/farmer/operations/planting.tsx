@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
+import type { OperationFormFooterValues } from '~/lib/operation-form-footer'
+import { formatOperationLogDescription } from '~/lib/operation-form-footer'
 import { OperationFormLayout } from '~/components/operation-form-layout'
 import { InventoryField } from '~/components/inventory-field'
 import { PersonField } from '~/components/person-field'
@@ -25,14 +27,13 @@ export default function Planting() {
     )
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = async (e: React.FormEvent, footer: OperationFormFooterValues) => {
     if (!description.trim()) {
       toast.error('Description is required.')
       return
     }
     try {
-      await submitLog(description)
+      await submitLog(formatOperationLogDescription(description.trim(), footer))
       toast.success('Planting logged successfully.')
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Unknown error'

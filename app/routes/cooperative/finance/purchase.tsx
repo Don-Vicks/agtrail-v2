@@ -63,16 +63,23 @@ export default function RecordPurchasePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!toUserId || !quantity || !unit) {
-      toast.error('Please fill in all required fields')
+    const parsedQuantity = parseFloat(quantity)
+    if (
+      !toUserId?.trim() ||
+      !quantity ||
+      !unit ||
+      Number.isNaN(parsedQuantity) ||
+      parsedQuantity <= 0
+    ) {
+      toast.error('Please fill in beneficiary, unit, and a positive quantity.')
       return
     }
 
     try {
       const purchaseData: PostPurchasesBody = {
         productType,
-        toUserId,
-        quantityTransferred: parseFloat(quantity),
+        toUserId: toUserId.trim(),
+        quantityTransferred: parsedQuantity,
         unit,
         pricePerUnit: pricePerUnit ? parseFloat(pricePerUnit) : undefined,
         totalPrice: pricePerUnit && quantity ? parseFloat(pricePerUnit) * parseFloat(quantity) : undefined,

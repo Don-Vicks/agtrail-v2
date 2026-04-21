@@ -1,6 +1,19 @@
 import { Link } from 'react-router'
+import { useGetUsersProfile } from '~/lib/api/generated/users/users'
+
+function isVerifiedKycStatus(status: string | null | undefined): boolean {
+  if (!status) return false
+  const normalized = status.trim().toLowerCase()
+  return normalized === 'verified' || normalized === 'approved' || normalized === 'completed'
+}
 
 export function KYCBanner() {
+  const { data: profileResponse, isLoading } = useGetUsersProfile()
+  const kycStatus = profileResponse?.data?.user?.kycStatus
+  const isVerified = isVerifiedKycStatus(kycStatus)
+
+  if (isLoading || isVerified) return null
+
   return (
     <div className="flex items-center justify-between rounded-md border border-orange-200 bg-brand-accent-surface px-5 py-3.5">
       <div className="flex items-center gap-3">
@@ -17,7 +30,7 @@ export function KYCBanner() {
         </div>
       </div>
       <Link
-        to="/farmer/kyc"
+        to="/farmer/settings?tab=kyc"
         className="shrink-0 rounded-md border border-brand bg-white px-4 py-2 text-sm font-medium text-brand hover:bg-brand-surface transition-colors"
       >
         Complete KYC
