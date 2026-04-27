@@ -301,10 +301,11 @@ export default function FarmerInventory() {
         ]}
       />
 
+      {/* Header Section */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 uppercase tracking-tight">Stock & Inventory</h1>
-          <p className="text-sm text-gray-500 mt-1">Track consumables, materials, and warehouse stock</p>
+          <h1 className="text-2xl font-bold text-[#2e7d32]">Inventory Management</h1>
+          <p className="text-sm text-gray-500 mt-1">Track and manage your farm supplies and inputs</p>
         </div>
         <div className="flex items-center gap-3">
           <Button variant="outline" onClick={handleExport} className="h-11 px-5 border-gray-200 text-gray-600 font-bold uppercase tracking-widest text-[10px] hover:bg-gray-50 shadow-sm transition-all">

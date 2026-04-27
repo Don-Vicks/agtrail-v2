@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { Link, useLocation } from 'react-router'
 import { Button } from '~/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '~/components/ui/dialog'
 import { Input } from '~/components/ui/input'
@@ -7,8 +8,11 @@ import { Textarea } from '~/components/ui/textarea'
 import { DatePicker } from '~/components/ui/date-picker'
 import { cn } from '~/lib/utils'
 import { usePostFarmsIdCropCycles } from '~/lib/api/generated/farms-crop-cycles/farms-crop-cycles'
+import { useGetUsersProfile } from '~/lib/api/generated/users/users'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
+import { isVerifiedKycStatus } from '~/lib/kyc'
+import { GoogleMapPolygonPicker } from '~/components/google-map-polygon-picker.client'
 
 interface StartCropCycleModalProps {
   isOpen: boolean
@@ -20,139 +24,6 @@ interface StartCropCycleModalProps {
   farmerName: string
   farmerInitials: string
   farmerColor: string
-}
-
-function MapAreaPicker({
-  points,
-  onAddPoint,
-}: {
-  points: [number, number][]
-  onAddPoint: (lat: number, lng: number) => void
-}) {
-  const [mapComponents, setMapComponents] = useState<{
-    MapContainer: typeof import('react-leaflet')['MapContainer']
-    TileLayer: typeof import('react-leaflet')['TileLayer']
-    Marker: typeof import('react-leaflet')['Marker']
-    Polygon: typeof import('react-leaflet')['Polygon']
-    useMapEvents: typeof import('react-leaflet')['useMapEvents']
-    useMap: typeof import('react-leaflet')['useMap']
-  } | null>(null)
-  const [leafletLoaded, setLeafletLoaded] = useState(false)
-  const [loadError, setLoadError] = useState(false)
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-    let mounted = true
-
-    Promise.all([import('leaflet'), import('react-leaflet')])
-      .then(([L, RL]) => {
-        if (!mounted) return
-
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        delete (L.Icon.Default.prototype as any)._getIconUrl
-        L.Icon.Default.mergeOptions({
-          iconRetinaUrl:
-            'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
-          iconUrl:
-            'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
-          shadowUrl:
-            'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-        })
-
-        if (!document.querySelector('link[href*="leaflet"]')) {
-          const link = document.createElement('link')
-          link.rel = 'stylesheet'
-          link.href =
-            'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css'
-          document.head.appendChild(link)
-        }
-
-        setMapComponents({
-          MapContainer: RL.MapContainer,
-          TileLayer: RL.TileLayer,
-          Marker: RL.Marker,
-          Polygon: RL.Polygon,
-          useMapEvents: RL.useMapEvents,
-          useMap: RL.useMap,
-        })
-        setLeafletLoaded(true)
-      })
-      .catch((err) => {
-        console.error('Leaflet load error:', err)
-        setLoadError(true)
-      })
-
-    return () => {
-      mounted = false
-    }
-  }, [])
-
-  if (loadError) {
-    return (
-      <div className='flex h-72 items-center justify-center rounded-md bg-red-50 text-sm text-red-500'>
-        Failed to load map.
-      </div>
-    )
-  }
-
-  if (!leafletLoaded || !mapComponents) {
-    return (
-      <div className='flex h-72 items-center justify-center rounded-md bg-gray-100 text-sm text-gray-400'>
-        Loading map...
-      </div>
-    )
-  }
-
-  const { MapContainer, TileLayer, Marker, Polygon, useMapEvents, useMap } =
-    mapComponents
-
-  function MapResizeTrigger() {
-    const map = useMap()
-    useEffect(() => {
-      const timer = setTimeout(() => {
-        map.invalidateSize()
-      }, 100)
-      return () => clearTimeout(timer)
-    }, [map])
-    return null
-  }
-
-  function ClickHandler() {
-    useMapEvents({
-      click(e) {
-        onAddPoint(e.latlng.lat, e.latlng.lng)
-      },
-    })
-    return null
-  }
-
-  return (
-    <MapContainer
-      center={[9.06, 7.49] as [number, number]}
-      zoom={13}
-      className='h-full w-full rounded-md z-0 min-h-[320px]'
-    >
-      <TileLayer
-        attribution='Tiles &copy; Esri'
-        url='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
-      />
-      <MapResizeTrigger />
-      <ClickHandler />
-      {points.map((point, idx) => (
-        <Marker key={idx} position={point} />
-      ))}
-      {points.length >= 3 && (
-        <Polygon
-          positions={points}
-          pathOptions={{
-            color: '#2E5A27',
-            fillColor: '#2E5A27',
-            fillOpacity: 0.2,
-          }}
-        />
-      )}
-    </MapContainer>
-  )
 }
 
 function calculatePolygonArea(points: [number, number][]): number {
@@ -228,6 +99,7 @@ export function StartCropCycleModal({
   farmerInitials,
   farmerColor,
 }: StartCropCycleModalProps) {
+  const location = useLocation()
   const [step, setStep] = useState(1)
   const [isMapPickerOpen, setIsMapPickerOpen] = useState(false)
   const [boundaryPoints, setBoundaryPoints] = useState<[number, number][]>([])
@@ -244,6 +116,14 @@ export function StartCropCycleModal({
     unit: 'Hectares',
     fieldIdentifiers: '',
   })
+  const { data: profileResponse, isLoading: isProfileLoading } = useGetUsersProfile()
+  const kycStatus = profileResponse?.data?.user?.kycStatus
+  const isKycVerified = isVerifiedKycStatus(kycStatus)
+  const kycSettingsPath = location.pathname.startsWith('/cooperative')
+    ? '/cooperative/settings?tab=kyc'
+    : location.pathname.startsWith('/processor')
+      ? '/processor/settings?tab=kyc'
+      : '/farmer/settings?tab=kyc'
 
   const handleFieldChange = (field: string, value: string | boolean) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
@@ -335,6 +215,10 @@ export function StartCropCycleModal({
   })
 
   const handleSubmit = () => {
+    if (!isKycVerified) {
+      toast.error('KYC must be verified before starting crop cycles.')
+      return
+    }
     if (!farmId) {
       toast.error('Farm ID is missing, cannot create crop cycle.')
       return
@@ -406,20 +290,39 @@ export function StartCropCycleModal({
             </div>
           </div>
 
-          {/* Step Indicator */}
-          <div className="px-6">
-            <StepIndicator currentStep={step} />
-          </div>
-
-          {/* ─── Step 1: Crop Details ─────────────────────── */}
-          {step === 1 && (
-            <div className="space-y-4 px-6">
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-gray-900">Product Name <span className="text-red-500">*</span></label>
-                <Input placeholder="e.g., Maize, Rice, Tomatoes" value={formData.productName}
-                  onChange={(e) => handleFieldChange('productName', e.target.value)}
-                  className="py-5" />
+          {!isProfileLoading && !isKycVerified ? (
+            <div className="px-6 pb-6">
+              <div className="rounded-xl border border-amber-200 bg-amber-50/60 p-5">
+                <p className="text-sm font-semibold text-amber-900">KYC verification required</p>
+                <p className="mt-1 text-xs text-amber-800">
+                  You cannot start crop cycles until your KYC status is verified.
+                </p>
+                <div className="mt-4">
+                  <Link
+                    to={kycSettingsPath}
+                    className="inline-flex items-center rounded-md border border-brand bg-white px-4 py-2 text-sm font-medium text-brand hover:bg-brand-surface transition-colors"
+                  >
+                    Complete KYC
+                  </Link>
+                </div>
               </div>
+            </div>
+          ) : (
+            <>
+              {/* Step Indicator */}
+              <div className="px-6">
+                <StepIndicator currentStep={step} />
+              </div>
+
+              {/* ─── Step 1: Crop Details ─────────────────────── */}
+              {step === 1 && (
+                <div className="space-y-4 px-6">
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-gray-900">Product Name <span className="text-red-500">*</span></label>
+                    <Input placeholder="e.g., Maize, Rice, Tomatoes" value={formData.productName}
+                      onChange={(e) => handleFieldChange('productName', e.target.value)}
+                      className="py-5" />
+                  </div>
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-gray-900">Crop Category <span className="text-red-500">*</span></label>
                 <Select value={formData.cropCategory} onValueChange={(val) => handleFieldChange('cropCategory', val || '')}>
@@ -474,11 +377,11 @@ export function StartCropCycleModal({
                   <span className={cn('absolute top-0.5 block size-5 rounded-full bg-white shadow transition-transform', formData.isOrganic ? 'translate-x-5.5' : 'translate-x-0.5')} />
                 </button>
               </div>
-            </div>
-          )}
+                </div>
+              )}
 
           {/* ─── Step 2: Planting Schedule ────────────────── */}
-          {step === 2 && (
+              {step === 2 && (
             <div className="space-y-4 px-6">
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-gray-900">Planting Date <span className="text-red-500">*</span></label>
@@ -515,10 +418,10 @@ export function StartCropCycleModal({
                 <p className="mt-1 text-xs text-gray-400">The growing season for this crop cycle</p>
               </div>
             </div>
-          )}
+              )}
 
           {/* ─── Step 3: Area & Location ──────────────────── */}
-          {step === 3 && (
+              {step === 3 && (
             <div className="space-y-4 px-6">
               {/* Info banner */}
               <div className="rounded-md border border-blue-200 bg-blue-50 px-4 py-2.5">
@@ -570,9 +473,11 @@ export function StartCropCycleModal({
                   </div>
 
                   <div className='overflow-hidden rounded-md border border-gray-200 w-full min-h-[320px]'>
-                    <MapAreaPicker
+                    <GoogleMapPolygonPicker
                       points={boundaryPoints}
                       onAddPoint={handleAddPoint}
+                      variant="crop"
+                      minHeightPx={320}
                     />
                   </div>
 
@@ -663,6 +568,8 @@ export function StartCropCycleModal({
                 </div>
               </div>
             </div>
+              )}
+            </>
           )}
 
           {/* Footer */}
@@ -674,6 +581,10 @@ export function StartCropCycleModal({
             </Button>
             <Button 
               onClick={() => {
+                if (!isKycVerified) {
+                  toast.error('KYC must be verified before starting crop cycles.')
+                  return
+                }
                 if (step < 3) {
                   if (!validateCurrentStep()) return
                   setStep(step + 1)
@@ -683,7 +594,7 @@ export function StartCropCycleModal({
                 if (!validateCurrentStep()) return
                 handleSubmit()
               }}
-              disabled={isPending}
+              disabled={!isKycVerified || isProfileLoading || isPending}
               className="flex items-center gap-1.5 bg-brand text-white hover:bg-brand-dark px-5"
             >
               {isPending ? 'Creating...' : step < 3 ? 'Next' : 'Create Crop Cycle'}

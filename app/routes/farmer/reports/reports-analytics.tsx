@@ -113,13 +113,13 @@ export default function ReportsAnalyticsPage() {
 
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold uppercase text-brand">Reports & Analytics</h1>
+        <h1 className="text-2xl font-bold text-[#2e7d32]">Reports & Analytics</h1>
         <p className="mt-1 text-sm text-gray-500">Access your farm insights and documentation</p>
       </div>
 
       {/* Production Reports */}
       <div>
-        <h2 className="mb-4 text-lg font-bold text-brand">Production Reports</h2>
+        <h2 className="mb-4 text-lg font-bold text-[#2e7d32]">Production Reports</h2>
         <div className="space-y-4">
           <ReportCard
             icon={<SeedlingIcon />}
@@ -141,7 +141,7 @@ export default function ReportsAnalyticsPage() {
 
       {/* Financial Reports */}
       <div>
-        <h2 className="mb-4 text-lg font-bold text-brand">Financial Reports</h2>
+        <h2 className="mb-4 text-lg font-bold text-[#2e7d32]">Financial Reports</h2>
         <div className="space-y-4">
           <ReportCard
             icon={<DollarIcon />}

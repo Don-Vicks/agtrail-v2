@@ -225,7 +225,7 @@ export default function FarmCertificationPage() {
 
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-brand uppercase tracking-tight">Certificate Upload</h1>
+        <h1 className="text-2xl font-bold text-[#2e7d32]">Certificate Upload</h1>
         <p className="mt-1 text-sm text-gray-500">Upload Certificate for farm</p>
       </div>
 
@@ -382,7 +382,7 @@ export default function FarmCertificationPage() {
             <div className="border-b border-gray-100 px-6 py-4">
               <div className="flex items-start justify-between">
                 <div>
-                  <h2 className="text-xl font-bold text-brand uppercase tracking-tight">Add Certification</h2>
+                  <h2 className="text-xl font-bold text-[#2e7d32]">Add Certification</h2>
                   <p className="mt-0.5 text-xs font-medium text-gray-500">Upload a new farm certification.</p>
                 </div>
                 <button

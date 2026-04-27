@@ -101,7 +101,7 @@ export default function FarmerCropCycle() {
 
       {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-bold uppercase text-brand-dark mb-1">Start Crop Cycle</h1>
+        <h1 className="text-2xl font-bold text-[#2e7d32] mb-1">Start Crop Cycle</h1>
         <p className="text-sm text-gray-500">Select a farm to start a new crop cycle</p>
       </div>
 

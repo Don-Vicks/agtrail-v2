@@ -56,19 +56,8 @@ export function DojahWidget({
 
   useEffect(() => {
     cancelledRef.current = false
-
-    const removeScriptSafe = () => {
-      const script = scriptRef.current
-      if (!script) return
-      script.removeEventListener('load', onScriptLoad)
-      script.removeEventListener('error', onScriptError)
-      try {
-        script.remove()
-      } catch {
-        // Node may already be detached (widget callbacks call remove() too).
-      }
-      scriptRef.current = null
-    }
+    let attachedLoadListener = false
+    let attachedErrorListener = false
 
     const openWidget = () => {
       if (cancelledRef.current) return
@@ -99,15 +88,12 @@ export function DojahWidget({
           }),
         onSuccess: (data: unknown) => {
           emit('success', data)
-          removeScriptSafe()
         },
         onError: (err: unknown) => {
           emit('error', err)
-          removeScriptSafe()
         },
         onClose: (err: unknown) => {
           emit('close', err)
-          removeScriptSafe()
         },
       }
 
@@ -118,7 +104,6 @@ export function DojahWidget({
 
     const onScriptLoad = () => {
       if (cancelledRef.current) {
-        removeScriptSafe()
         return
       }
       emit('start')
@@ -127,23 +112,37 @@ export function DojahWidget({
 
     const onScriptError = () => {
       emit('error', new Error('Failed to load Dojah widget script'))
-      removeScriptSafe()
     }
 
     const uri = window.dojah?.uri || DEFAULT_WIDGET_URI
     emit('loading')
 
-    const script = document.createElement('script')
-    script.async = true
-    script.src = uri
-    script.addEventListener('load', onScriptLoad)
-    script.addEventListener('error', onScriptError)
-    document.head.appendChild(script)
-    scriptRef.current = script
+    // Do not re-inject widget.js on every mount; Dojah script is not idempotent.
+    if (typeof window.Connect === 'function') {
+      onScriptLoad()
+    } else {
+      const existing = document.querySelector<HTMLScriptElement>(
+        `script[src="${uri}"]`
+      )
+      const script = existing ?? document.createElement('script')
+      if (!existing) {
+        script.async = true
+        script.src = uri
+        document.head.appendChild(script)
+      }
+      script.addEventListener('load', onScriptLoad)
+      attachedLoadListener = true
+      script.addEventListener('error', onScriptError)
+      attachedErrorListener = true
+      scriptRef.current = script
+    }
 
     return () => {
       cancelledRef.current = true
-      removeScriptSafe()
+      const script = scriptRef.current
+      if (!script) return
+      if (attachedLoadListener) script.removeEventListener('load', onScriptLoad)
+      if (attachedErrorListener) script.removeEventListener('error', onScriptError)
     }
   }, [appID, publicKey, type])
 

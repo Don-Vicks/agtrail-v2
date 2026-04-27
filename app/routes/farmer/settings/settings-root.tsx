@@ -73,7 +73,7 @@ export default function SettingsPage() {
       />
       {/* Header */}
       <div>
-        <h1 className='text-3xl font-bold text-gray-900'>Settings</h1>
+        <h1 className='text-3xl font-bold text-[#2e7d32]'>Settings</h1>
         <p className='mt-1 text-sm text-gray-500 mb-6'>
           Manage your account and application preferences
         </p>
@@ -186,7 +186,7 @@ function AccountSettingsTab() {
   return (
     <div className='space-y-6'>
       <div>
-        <h2 className='text-xl font-bold text-gray-900'>Account Settings</h2>
+        <h2 className='text-xl font-bold text-[#2e7d32]'>Account Settings</h2>
         <p className='text-sm text-gray-500'>
           Update your personal and organization details
         </p>
@@ -280,6 +280,9 @@ function IdentityVerificationTab() {
   const { user } = useAuth()
   const [shouldLaunchKyc, setShouldLaunchKyc] = useState(false)
   const [kycLaunchCount, setKycLaunchCount] = useState(0)
+  const { data: profileResp } = useGetUsersProfile()
+  const profileUser = profileResp?.data?.user as any
+  const [kycErrorDetail, setKycErrorDetail] = useState<string>('')
 
   const { mutate: linkKyc } = usePostUsersKyc({
     mutation: {
@@ -292,22 +295,57 @@ function IdentityVerificationTab() {
     },
   })
 
+  const syncKyc = (data: any) => {
+    setShouldLaunchKyc(false)
+    toast.success('Identity verified successfully by Dojah!')
+    linkKyc({
+      data: {
+        bvnVerified: true,
+        ninVerified: true,
+        documentUrl: data?.result?.document?.url || '',
+      },
+    })
+  }
+
   const response = (type: string, data: any) => {
-    console.log(type, data)
+    console.log('Dojah event:', type, data)
     if (type === 'success') {
+      setKycErrorDetail('')
+      syncKyc(data)
+      return
+    }
+
+    if (type === 'error') {
       setShouldLaunchKyc(false)
-      toast.success('Identity verified successfully by Dojah!')
-      linkKyc({
-        data: {
-          bvnVerified: true,
-          ninVerified: true,
-          documentUrl: data?.result?.document?.url || '', // Pass the document URL from Dojah response
-        },
-      })
-    } else if (type === 'error') {
-      setShouldLaunchKyc(false)
-      toast.error('Identity verification failed. Please try again.')
-    } else if (type === 'close') {
+      const reason =
+        data?.message ||
+        data?.response?.message ||
+        data?.error?.message ||
+        data?.reason ||
+        'Identity verification failed. Please try again.'
+      const deviceInfo = data?.deviceInfo
+      const looksLikeDeviceGuardBlock =
+        typeof reason === 'string' && reason.toLowerCase().includes('verification failed')
+      if (looksLikeDeviceGuardBlock) {
+        const detail = deviceInfo
+          ? `Dojah DeviceGuard blocked this session. Complete KYC on one device/browser only. Device info: ${deviceInfo}`
+          : 'Dojah DeviceGuard blocked this session. Complete KYC on one device/browser only.'
+        setKycErrorDetail(detail)
+        toast.error('Verification blocked by Dojah security checks. Use same device/browser and retry.')
+      } else {
+        setKycErrorDetail(String(reason))
+        toast.error(reason)
+      }
+      return
+    }
+
+    if (type === 'close') {
+      // Some Dojah flows close the widget after a completed check.
+      if (data?.status === 'success' || data?.verification_status === 'success') {
+        setKycErrorDetail('')
+        syncKyc(data)
+        return
+      }
       setShouldLaunchKyc(false)
       console.log('Dojah widget closed.')
     }
@@ -331,11 +369,9 @@ function IdentityVerificationTab() {
           dl: false,
           mobile: false,
           otp: false,
-          selfie: false,
+          selfie: true,
         },
       },
-      { page: 'selfie' },
-      { page: 'id', config: { passport: false, dl: true } },
     ],
   }
 
@@ -345,12 +381,14 @@ function IdentityVerificationTab() {
       user?.name && user.name.split(' ').length > 1
         ? user.name.split(' ')[1]
         : '',
+    email: user?.email || profileUser?.email || '',
+    phone_number: profileUser?.phoneNumber || '',
   }
 
   return (
     <div className='space-y-8'>
       <div>
-        <h2 className='text-xl font-bold text-gray-900'>
+        <h2 className='text-xl font-bold text-[#2e7d32]'>
           Identity Verification (KYC)
         </h2>
         <p className='text-sm text-gray-500'>
@@ -418,6 +456,14 @@ function IdentityVerificationTab() {
                 metadata={{ user_id: user?.id || 'unknown' }}
               />
             ) : null}
+            {kycErrorDetail ? (
+              <div className='rounded-lg border border-amber-200 bg-amber-50 p-3 text-left'>
+                <p className='text-xs font-semibold uppercase tracking-widest text-amber-800'>
+                  Verification issue
+                </p>
+                <p className='mt-1 text-xs text-amber-700'>{kycErrorDetail}</p>
+              </div>
+            ) : null}
           </div>
         ) : (
           <div className='w-full rounded-lg border border-amber-200 bg-amber-50 p-4 text-left'>
@@ -442,7 +488,7 @@ function NotificationsTab() {
   return (
     <div className='space-y-6'>
       <div>
-        <h2 className='text-xl font-bold text-gray-900'>
+        <h2 className='text-xl font-bold text-[#2e7d32]'>
           Notification Preferences
         </h2>
         <p className='text-sm text-gray-500'>

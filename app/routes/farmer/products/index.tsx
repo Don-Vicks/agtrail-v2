@@ -153,7 +153,7 @@ export default function ProductsIndex() {
       {/* Page Title Section */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 uppercase tracking-tight">Products</h1>
+          <h1 className="text-2xl font-bold text-[#2e7d32]">Products</h1>
           <p className="text-sm text-gray-500 mt-1">Manage your crops and harvested products</p>
         </div>
         <div className="flex items-center gap-2">

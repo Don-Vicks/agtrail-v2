@@ -45,6 +45,8 @@ export default function FarmerDashboard() {
   const insights = statsData?.insights
   const activeProducts = statsData?.activeProducts || []
   const upcomingTasks = statsData?.upcomingTasks || []
+  const upcomingTasksLimit = 5
+  const displayedUpcomingTasks = upcomingTasks.slice(0, upcomingTasksLimit)
   const farmsByRegion = statsData?.farmsByRegion || []
 
   // Flatten farms from region groups for mapping and counts
@@ -145,15 +147,22 @@ export default function FarmerDashboard() {
             {isLoading ? (
               <div className="rounded-xl border-l-4 border-gray-100 bg-gray-50/50 p-4 animate-pulse h-20" />
             ) : upcomingTasks.length > 0 ? (
-              upcomingTasks.map((task, idx) => (
-                <div key={idx} className="rounded-xl border-l-4 border-amber-400 bg-amber-50/50 p-4">
-                  <p className="text-sm font-bold text-gray-900 uppercase tracking-tight mb-1">{task.title}</p>
-                  <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">
-                    {task.date ? new Date(task.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : 'No date set'}
+              <>
+                {displayedUpcomingTasks.map((task, idx) => (
+                  <div key={idx} className="rounded-xl border-l-4 border-amber-400 bg-amber-50/50 p-4">
+                    <p className="text-sm font-bold text-gray-900 uppercase tracking-tight mb-1">{task.title}</p>
+                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">
+                      {task.date ? new Date(task.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : 'No date set'}
+                    </p>
+                  </div>
+                ))}
+                {upcomingTasks.length > upcomingTasksLimit ? (
+                  <p className="text-center text-[10px] font-bold uppercase tracking-widest text-gray-500">
+                    +{upcomingTasks.length - upcomingTasksLimit} more scheduled
                   </p>
-                </div>
-              )))
-            : (
+                ) : null}
+              </>
+            ) : (
               <div className="rounded-xl border-l-4 border-amber-400 bg-amber-50/50 p-4">
                 <p className="text-sm font-bold text-gray-900 uppercase tracking-tight mb-1">No Upcoming Tasks</p>
                 <p className="text-xs text-gray-500 leading-relaxed font-medium">Your current production cycles do not have any tasks scheduled for the next 30 days.</p>

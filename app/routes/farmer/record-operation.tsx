@@ -185,7 +185,7 @@ export default function RecordOperation() {
       />
 
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">RECORD FARM OPERATION</h1>
+        <h1 className="text-2xl font-bold text-[#2e7d32]">Record Operation</h1>
         <p className="text-sm text-gray-500">Select a crop cycle to record an operation</p>
       </div>
 

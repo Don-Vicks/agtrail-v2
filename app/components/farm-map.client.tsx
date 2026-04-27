@@ -1,20 +1,8 @@
-import { useEffect } from 'react'
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet'
-import { Icon } from 'leaflet'
-import 'leaflet/dist/leaflet.css'
+import { useCallback, useMemo, useState } from 'react'
+import { GoogleMap, InfoWindow, Marker, useJsApiLoader } from '@react-google-maps/api'
+import { getGoogleMapsApiKey, NIGERIA_ROUGH_CENTER } from '~/lib/google-maps'
 
-// Fix for default markers in react-leaflet
-import markerIcon from 'leaflet/dist/images/marker-icon.png'
-import markerShadow from 'leaflet/dist/images/marker-shadow.png'
-
-const defaultIcon = new Icon({
-  iconUrl: markerIcon,
-  shadowUrl: markerShadow,
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41]
-})
+const loaderId = 'argolinking-google-maps'
 
 interface FarmLocation {
   id: string
@@ -31,40 +19,105 @@ interface FarmMapProps {
   className?: string
 }
 
-export function FarmMap({ farms, className = '' }: FarmMapProps) {
-  // Calculate center point from all farm locations
-  const centerLat = farms.reduce((sum, farm) => sum + farm.lat, 0) / farms.length
-  const centerLng = farms.reduce((sum, farm) => sum + farm.lng, 0) / farms.length
+type FarmId = string
+
+function FarmMapLoaded({ farms, className, apiKey }: FarmMapProps & { apiKey: string }) {
+  const { isLoaded, loadError } = useJsApiLoader({
+    id: loaderId,
+    googleMapsApiKey: apiKey,
+  })
+  const [openInfoId, setOpenInfoId] = useState<FarmId | null>(null)
+
+  const center = useMemo(() => {
+    if (farms.length === 0) return NIGERIA_ROUGH_CENTER
+    const sum = farms.reduce(
+      (acc, f) => ({ lat: acc.lat + f.lat, lng: acc.lng + f.lng }),
+      { lat: 0, lng: 0 }
+    )
+    return { lat: sum.lat / farms.length, lng: sum.lng / farms.length }
+  }, [farms])
+
+  const mapOptions = useMemo(
+    () => ({
+      mapTypeId: 'satellite' as const,
+      streetViewControl: false,
+      mapTypeControl: true,
+      fullscreenControl: true,
+    }),
+    []
+  )
+
+  const onMapLoad = useCallback((map: google.maps.Map) => {
+    window.setTimeout(() => {
+      if (window.google?.maps?.event) {
+        window.google.maps.event.trigger(map, 'resize')
+      }
+    }, 200)
+  }, [])
+
+  if (loadError) {
+    return (
+      <div
+        className={`flex h-[300px] items-center justify-center rounded-md border border-gray-200 bg-red-50 text-sm text-red-600 ${className}`}
+      >
+        Map failed to load. Check VITE_GOOGLE_MAPS_API_KEY and the Maps JavaScript API.
+      </div>
+    )
+  }
+
+  if (!isLoaded) {
+    return (
+      <div
+        className={`flex h-[300px] items-center justify-center rounded-md border border-gray-200 bg-gray-100 text-sm text-gray-500 ${className}`}
+      >
+        Loading map…
+      </div>
+    )
+  }
 
   return (
-    <div className={`rounded-md border border-gray-200 overflow-hidden ${className}`}>
-      <MapContainer
-        center={[centerLat || 9.0820, centerLng || 8.6753]} // Default to Nigeria center
-        zoom={6}
-        style={{ height: '300px', width: '100%' }}
-        className="z-0"
+    <div className={`overflow-hidden rounded-md border border-gray-200 ${className}`}>
+      <GoogleMap
+        mapContainerStyle={{ width: '100%', height: '300px' }}
+        center={center}
+        zoom={farms.length <= 1 ? 10 : 6}
+        onLoad={onMapLoad}
+        options={mapOptions}
       >
-        <TileLayer
-          attribution='Tiles &copy; Esri'
-          url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-        />
         {farms.map((farm) => (
           <Marker
             key={farm.id}
-            position={[farm.lat, farm.lng]}
-            icon={defaultIcon}
+            position={{ lat: farm.lat, lng: farm.lng }}
+            onClick={() => setOpenInfoId(farm.id)}
           >
-            <Popup>
-              <div className="p-2">
-                <h3 className="font-semibold text-sm">{farm.name}</h3>
-                <p className="text-xs text-gray-600">{farm.location}</p>
-                <p className="text-xs text-gray-600">{farm.region}</p>
-                <p className="text-xs font-medium text-green-600">{farm.hectares} ha</p>
-              </div>
-            </Popup>
+            {openInfoId === farm.id && (
+              <InfoWindow onCloseClick={() => setOpenInfoId(null)}>
+                <div className="p-1 min-w-0 max-w-[220px]">
+                  <h3 className="text-sm font-semibold">{farm.name}</h3>
+                  <p className="text-xs text-gray-600">{farm.location}</p>
+                  <p className="text-xs text-gray-600">{farm.region}</p>
+                  <p className="text-xs font-medium text-green-600">{farm.hectares} ha</p>
+                </div>
+              </InfoWindow>
+            )}
           </Marker>
         ))}
-      </MapContainer>
+      </GoogleMap>
     </div>
   )
+}
+
+export function FarmMap({ farms, className = '' }: FarmMapProps) {
+  const apiKey = getGoogleMapsApiKey()
+  if (!apiKey) {
+    return (
+      <div
+        className={`flex h-[300px] items-center justify-center rounded-md border border-amber-200 bg-amber-50 px-4 text-center text-sm text-amber-900 ${className}`}
+      >
+        Set <code className="mx-0.5 rounded bg-amber-100 px-1 font-mono text-xs">VITE_GOOGLE_MAPS_API_KEY</code> in
+        your environment to show the map.
+      </div>
+    )
+  }
+  return <FarmMapLoaded farms={farms} className={className} apiKey={apiKey} />
 }

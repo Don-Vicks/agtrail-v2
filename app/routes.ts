@@ -108,7 +108,13 @@ export default [
       route('reports', 'routes/farmer/reports/reports-analytics.tsx'),
 
       // Compliance Analysis
-      route('compliance', 'routes/farmer/compliance/compliance-analysis.tsx'),
+      // Compliance Analysis Workflow
+      ...prefix('compliance', [
+        index('routes/farmer/compliance/risk-assessment.tsx'),
+        route('market', 'routes/farmer/compliance/market-selection.tsx'),
+        route('readiness', 'routes/farmer/compliance/readiness-check.tsx'),
+        route('report', 'routes/farmer/compliance/compliance-report.tsx'),
+      ]),
 
       // Settings
       route('settings', 'routes/farmer/settings/settings-root.tsx'),
