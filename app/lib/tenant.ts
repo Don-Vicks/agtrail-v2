@@ -1,14 +1,16 @@
 import type { AuthResponseDataUser } from '~/lib/api/generated/models/authResponseDataUser'
 
-export type TenantRole = 'farmer' | 'processor' | 'cooperative'
+export type TenantRole = 'farmer' | 'processor' | 'cooperative' | 'aggregator'
 
 export function getTenantFromPathname(pathname: string): TenantRole {
+  if (pathname.startsWith('/aggregator')) return 'aggregator'
   if (pathname.startsWith('/processor')) return 'processor'
   if (pathname.startsWith('/cooperative')) return 'cooperative'
   return 'farmer'
 }
 
 export function getTenantSelectValue(role: TenantRole): string {
+  if (role === 'aggregator') return 'Aggregator'
   if (role === 'processor') return 'Processor'
   if (role === 'cooperative') return 'Cooperative'
   return 'Farmer'
@@ -26,6 +28,13 @@ export function getTenantOperationAction(role: TenantRole) {
     return {
       href: '/cooperative/operations/record',
       label: 'Record Operation',
+    }
+  }
+
+  if (role === 'aggregator') {
+    return {
+      href: '/cooperative/farmers',
+      label: 'Add Farmer',
     }
   }
 

@@ -380,6 +380,12 @@ export function Sidebar() {
               >
                 Cooperative
               </SelectItem>
+              <SelectItem
+                value='Aggregator'
+                className='focus:bg-brand/10 focus:text-brand focus-visible:bg-brand/10 focus-visible:text-brand'
+              >
+                Aggregator
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>

@@ -46,7 +46,7 @@ export default function RecordPurchasePage() {
   const [unit, setUnit] = useState('kg')
   const [pricePerUnit, setPricePerUnit] = useState('0')
   const [account, setAccount] = useState('')
-  const [productType, setProductType] = useState<PostPurchasesBodyProductType>('crop')
+  const [productType, setProductType] = useState<PostPurchasesBodyProductType>('farm_product')
   const [toUserId, setToUserId] = useState('')
   const [farmProductId, setFarmProductId] = useState('')
   const [description, setDescription] = useState('')
@@ -177,7 +177,8 @@ export default function RecordPurchasePage() {
                   required
                   className="h-11 w-full flex items-center justify-between rounded-lg border border-gray-100 bg-gray-50/50 px-4 py-2 text-sm font-bold uppercase tracking-wider text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand appearance-none"
                 >
-                  <option value="crop">Crop</option>
+                  <option value="farm_product">Farm Product</option>
+                  <option value="batch_product">Batch Product</option>
                   <option value="livestock">Livestock</option>
                   <option value="aquaculture">Aquaculture</option>
                   <option value="dairy">Dairy</option>

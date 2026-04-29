@@ -126,9 +126,10 @@ export function CreateFarmModal({ isOpen, onClose }: CreateFarmModalProps) {
     isFarmerOwner: '',
     documentFileName: '',
   })
+  const [deforestationRiskAcknowledged, setDeforestationRiskAcknowledged] = useState(false)
   const { data: profileResponse, isLoading: isProfileLoading } = useGetUsersProfile()
   const kycStatus = profileResponse?.data?.user?.kycStatus
-  const isKycVerified = true//isVerifiedKycStatus(kycStatus)
+  const isKycVerified = isVerifiedKycStatus(kycStatus)
   const kycSettingsPath = location.pathname.startsWith('/cooperative')
     ? '/cooperative/settings?tab=kyc'
     : location.pathname.startsWith('/processor')
@@ -195,6 +196,11 @@ export function CreateFarmModal({ isOpen, onClose }: CreateFarmModalProps) {
       }
     }
 
+    if (step === 4 && !deforestationRiskAcknowledged) {
+      toast.error('Please acknowledge the deforestation risk decision before continuing.')
+      return false
+    }
+
     return true
   }
 
@@ -227,6 +233,7 @@ export function CreateFarmModal({ isOpen, onClose }: CreateFarmModalProps) {
       isFarmerOwner: '',
       documentFileName: '',
     })
+    setDeforestationRiskAcknowledged(false)
     onClose()
   }
 
@@ -248,6 +255,11 @@ export function CreateFarmModal({ isOpen, onClose }: CreateFarmModalProps) {
   const submitFarm = () => {
     if (!isKycVerified) {
       toast.error('KYC must be verified before creating farm plots.')
+      return
+    }
+
+    if (!deforestationRiskAcknowledged) {
+      toast.error('Please acknowledge the deforestation risk decision before creating this farm.')
       return
     }
 
@@ -760,6 +772,19 @@ export function CreateFarmModal({ isOpen, onClose }: CreateFarmModalProps) {
                       <p className="mt-1 text-xl font-bold text-[#d26e1f]">0</p>
                     </div>
                   </div>
+
+                  <label className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50/70 p-4 text-left">
+                    <input
+                      type="checkbox"
+                      checked={deforestationRiskAcknowledged}
+                      onChange={(e) => setDeforestationRiskAcknowledged(e.target.checked)}
+                      className="mt-0.5 size-4 rounded border-amber-300 text-brand focus:ring-brand"
+                    />
+                    <span className="text-sm leading-5 text-amber-900">
+                      I acknowledge the deforestation risk decision and confirm this farm plot is eligible for
+                      registration based on the displayed checks.
+                    </span>
+                  </label>
                 </div>
               )}
 

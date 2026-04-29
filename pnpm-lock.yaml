@@ -41,6 +41,9 @@ importers:
       date-fns:
         specifier: ^4.1.0
         version: 4.1.0
+      dojah-kyc-sdk-react:
+        specifier: ^0.0.6
+        version: 0.0.6(react@19.2.4)
       isbot:
         specifier: ^5.1.31
         version: 5.1.35
@@ -62,9 +65,6 @@ importers:
       react-day-picker:
         specifier: ^9.14.0
         version: 9.14.0(react@19.2.4)
-      react-dojah:
-        specifier: ^1.1.0
-        version: 1.1.0(react@19.2.4)
       react-dom:
         specifier: ^19.2.4
         version: 19.2.4(react@19.2.4)
@@ -1414,6 +1414,12 @@ packages:
     resolution: {integrity: sha512-qejHi7bcSD4hQAZE0tNAawRK1ZtafHDmMTMkrrIGgSLl7hTnQHmKCeB45xAcbfTqK2zowkM3j3bHt/4b/ARbYQ==}
     engines: {node: '>=0.3.1'}
 
+  dojah-kyc-sdk-react@0.0.6:
+    resolution: {integrity: sha512-w7GUh88byv+WVpQDYHDcSAHBeWw+HDh+QZPXhj1/54+h59HCAMI2ANT9wBpShjjjacYw0DBtLMnD4MX9RMa21g==}
+    engines: {node: '>=10'}
+    peerDependencies:
+      react: ^19.0.0
+
   dotenv@17.3.1:
     resolution: {integrity: sha512-IO8C/dzEb6O3F9/twg6ZLXz164a2fhTnEWb95H23Dm4OuN+92NmEAlTrupP9VW6Jm3sO26tQlqyvyi4CsnY9GA==}
     engines: {node: '>=12'}
@@ -2404,12 +2410,6 @@ packages:
     engines: {node: '>=18'}
     peerDependencies:
       react: '>=16.8.0'
-
-  react-dojah@1.1.0:
-    resolution: {integrity: sha512-+O+NjhUR98Ti4QOvoTURVlN6mB4Df/+ebLWintElJX7y8eD4oVByJHhvXA6Qwr9oEXq6u9qDTY9OH5/UbEKm9w==}
-    engines: {node: '>=10'}
-    peerDependencies:
-      react: ^16.0.0
 
   react-dom@19.2.4:
     resolution: {integrity: sha512-AXJdLo8kgMbimY95O2aKQqsz2iWi9jMgKJhRBAxECE4IFxfcazB2LmzloIoibJI3C12IlY20+KFaLv+71bUJeQ==}
@@ -4251,6 +4251,10 @@ snapshots:
 
   diff@8.0.3: {}
 
+  dojah-kyc-sdk-react@0.0.6(react@19.2.4):
+    dependencies:
+      react: 19.2.4
+
   dotenv@17.3.1: {}
 
   dunder-proto@1.0.1:
@@ -5223,10 +5227,6 @@ snapshots:
       '@tabby_ai/hijri-converter': 1.0.5
       date-fns: 4.1.0
       date-fns-jalali: 4.1.0-0
-      react: 19.2.4
-
-  react-dojah@1.1.0(react@19.2.4):
-    dependencies:
       react: 19.2.4
 
   react-dom@19.2.4(react@19.2.4):

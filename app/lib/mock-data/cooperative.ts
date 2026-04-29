@@ -29,6 +29,18 @@ export const sidebarNavigation = [
         href: '/cooperative/products',
         icon: 'package',
       },
+      {
+        id: 'inventory',
+        label: 'Inventory',
+        href: '/cooperative/inventory',
+        icon: 'package',
+      },
+      {
+        id: 'personnel',
+        label: 'Personnel',
+        href: '/cooperative/personnel',
+        icon: 'users',
+      },
     ],
   },
   {

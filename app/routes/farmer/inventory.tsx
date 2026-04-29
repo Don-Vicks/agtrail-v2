@@ -1,5 +1,6 @@
-import { Fragment, useMemo, useState, useEffect } from 'react'
+import { Fragment, useMemo, useState, type FormEvent } from 'react'
 import { useLocation } from 'react-router'
+import { useQueryClient } from '@tanstack/react-query'
 import { PageHeader } from '~/components/page-header'
 import { StatCard } from '~/components/stat-card'
 import { Badge } from '~/components/ui/badge'
@@ -9,11 +10,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuGroup
 } from '~/components/ui/dropdown-menu'
 import { 
   Dialog,
@@ -30,7 +27,6 @@ import {
   MoreVertical, 
   Search, 
   Plus, 
-  Filter, 
   Download, 
   ChevronDown, 
   ChevronRight, 
@@ -44,12 +40,26 @@ import {
   Edit2,
   Trash2,
   MapPin,
-  History,
   Archive
 } from 'lucide-react'
 import { cn } from '~/lib/utils'
 import { EmptyState } from '~/components/empty-state'
 import { toast } from 'sonner'
+import {
+  getGetSuppliesInventoryQueryKey,
+  useDeleteSuppliesInventoryId,
+  useGetSuppliesInventory,
+  usePatchSuppliesInventoryId,
+  usePostSuppliesInventory,
+} from '~/lib/api/generated/supplies-inventory/supplies-inventory'
+import type {
+  CreateSuppliesInventoryRequestCategory,
+  CreateSuppliesInventoryRequestCertification,
+  SuppliesInventory,
+  UpdateSuppliesInventoryRequestCategory,
+  UpdateSuppliesInventoryRequestCertification,
+} from '~/lib/api/generated/models'
+import { getApiErrorMessage } from '~/lib/api/error-message'
 
 interface InventoryItem {
   id: string
@@ -75,91 +85,88 @@ interface InventoryItem {
   notes: string
 }
 
-const INITIAL_INVENTORY: InventoryItem[] = [
-  {
-    id: '1',
-    itemName: 'NPK 15-15-15 Fertilizer',
-    category: 'Fertilizer',
-    brand: 'Dangote',
-    supplierName: 'Agro Supplies Ltd',
-    supplierPhone: '+234 801 234 5678',
-    purchaseLocation: 'Lagos Central Market',
-    unitOfMeasurement: 'kg',
-    quantityPurchased: 100,
-    unitCost: 2500,
-    totalCost: 250000,
-    purchaseDate: '2024-01-15',
-    invoiceNumber: 'INV-2024-001',
-    batchNumber: 'BATCH-FERT-001',
-    expiryDate: '2025-01-15',
-    storageLocation: 'Warehouse A',
-    currentStockLevel: 85,
-    minimumStockLevel: 20,
-    certificationStatus: 'Conventional',
-    assignedFarms: ['Farm A', 'Farm B'],
-    notes: 'High-quality NPK fertilizer for maize cultivation'
-  },
-  {
-    id: '2',
-    itemName: 'Maize Seed - Hybrid 1',
-    category: 'Seeds',
-    brand: 'Premier Seeds',
-    supplierName: 'Seed Distributors Nigeria',
-    supplierPhone: '+234 802 345 6789',
-    purchaseLocation: 'Ibadan Seed Market',
-    unitOfMeasurement: 'kg',
-    quantityPurchased: 50,
-    unitCost: 15000,
-    totalCost: 750000,
-    purchaseDate: '2024-02-01',
-    invoiceNumber: 'INV-2024-002',
-    batchNumber: 'BATCH-SEED-001',
-    expiryDate: '2025-02-01',
-    storageLocation: 'Cold Storage B',
-    currentStockLevel: 45,
-    minimumStockLevel: 10,
-    certificationStatus: 'Organic',
-    assignedFarms: ['Farm A'],
-    notes: 'High-yield hybrid maize seeds'
-  },
-  {
-    id: '3',
-    itemName: 'Pesticide - Insecticide',
-    category: 'Pesticide',
-    brand: 'AgroChem',
-    supplierName: 'Chemical Supplies Co',
-    supplierPhone: '+234 803 456 7890',
-    purchaseLocation: 'Kano Agro Mall',
-    unitOfMeasurement: 'litres',
-    quantityPurchased: 20,
-    unitCost: 8000,
-    totalCost: 160000,
-    purchaseDate: '2024-01-20',
-    invoiceNumber: 'INV-2024-003',
-    batchNumber: 'BATCH-PEST-001',
-    expiryDate: '2024-12-20',
-    storageLocation: 'Pesticide Storage',
-    currentStockLevel: 18,
-    minimumStockLevel: 5,
-    certificationStatus: 'Conventional',
-    assignedFarms: ['Farm B'],
-    notes: 'Effective against common maize pests'
-  },
-]
+const categoryLabelMap: Record<CreateSuppliesInventoryRequestCategory, string> = {
+  fertilizer: 'Fertilizer',
+  seed: 'Seed',
+  pesticide: 'Pesticide',
+  raw_material: 'Raw Material',
+  other: 'Other',
+}
+
+const categoryOptions = [
+  { value: 'fertilizer', label: 'Fertilizer' },
+  { value: 'seed', label: 'Seed' },
+  { value: 'pesticide', label: 'Pesticide' },
+  { value: 'raw_material', label: 'Raw Material' },
+  { value: 'other', label: 'Other' },
+] as const
+
+const certificationOptions = [
+  { value: 'conventional', label: 'Conventional' },
+  { value: 'organic', label: 'Organic' },
+] as const
+
+const toNumber = (value?: string | null) => {
+  const parsed = Number(value ?? 0)
+  return Number.isFinite(parsed) ? parsed : 0
+}
+
+const getStockProgress = (currentStockLevel: number, quantityPurchased: number) => {
+  if (quantityPurchased <= 0) return 0
+  const value = (currentStockLevel / quantityPurchased) * 100
+  return Math.max(0, Math.min(100, value))
+}
+
+const mapApiInventoryItem = (item: SuppliesInventory): InventoryItem => {
+  const quantityPurchased = toNumber(item.quantity)
+  const unitCost = toNumber(item.unitCost)
+  const currentStockLevel = toNumber(item.currentLevel)
+
+  return {
+    id: item.id,
+    itemName: item.itemName,
+    category: categoryLabelMap[item.category] ?? 'Other',
+    brand: item.itemName,
+    supplierName: item.supplierName ?? 'N/A',
+    supplierPhone: '',
+    purchaseLocation: '',
+    unitOfMeasurement: item.unit,
+    quantityPurchased,
+    unitCost,
+    totalCost: quantityPurchased * unitCost,
+    purchaseDate: item.createdAt?.split('T')[0] ?? '',
+    invoiceNumber: `INV-${item.id.slice(0, 6).toUpperCase()}`,
+    batchNumber: `BATCH-${item.id.slice(0, 6).toUpperCase()}`,
+    expiryDate: item.expiryDate?.split('T')[0] ?? '',
+    storageLocation: item.facilityId ?? 'Warehouse Main',
+    currentStockLevel,
+    minimumStockLevel: toNumber(item.minAlertLevel),
+    certificationStatus: item.certification === 'organic' ? 'Organic' : 'Conventional',
+    assignedFarms: [],
+    notes: item.internalStorageNotes ?? '',
+  }
+}
 
 export function meta() {
   return [{ title: 'Inventory | Agtrail' }]
 }
 
 export default function FarmerInventory() {
-  const [inventory, setInventory] = useState<InventoryItem[]>(INITIAL_INVENTORY)
-  const [isLoading, setIsLoading] = useState(true)
+  const queryClient = useQueryClient()
+  const { data: inventoryResponse, isLoading, isError, refetch } = useGetSuppliesInventory()
+  const { mutateAsync: createInventoryItem, isPending: isCreating } = usePostSuppliesInventory()
+  const { mutateAsync: updateInventoryItem, isPending: isUpdating } = usePatchSuppliesInventoryId()
+  const { mutateAsync: deleteInventoryItem, isPending: isDeleting } = useDeleteSuppliesInventoryId()
   const [search, setSearch] = useState('')
   const [activeTab, setActiveTab] = useState('All')
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set())
   const [stockStatusFilter, setStockStatusFilter] = useState('All')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingItem, setEditingItem] = useState<InventoryItem | null>(null)
+  const [formCategory, setFormCategory] =
+    useState<CreateSuppliesInventoryRequestCategory>('fertilizer')
+  const [formCertification, setFormCertification] =
+    useState<CreateSuppliesInventoryRequestCertification>('conventional')
 
   const location = useLocation()
   const basePath = location.pathname.startsWith('/processor')
@@ -168,12 +175,12 @@ export default function FarmerInventory() {
       ? '/cooperative'
       : '/farmer'
 
-  const categories = ['All', 'Fertilizer', 'Seeds', 'Pesticide']
+  const categories = ['All', ...categoryOptions.map((option) => option.label)]
 
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 800)
-    return () => clearTimeout(timer)
-  }, [])
+  const inventory = useMemo(
+    () => (inventoryResponse?.data?.data ?? []).map(mapApiInventoryItem),
+    [inventoryResponse],
+  )
 
   const toggleRow = (id: string) => {
     const next = new Set(expandedRows)
@@ -184,7 +191,7 @@ export default function FarmerInventory() {
 
   const filtered = useMemo(() => {
     return inventory.filter((item) => {
-      const matchesSearch = [item.itemName, item.brand, item.category].some(v => v.toLowerCase().includes(search.toLowerCase()))
+      const matchesSearch = [item.itemName, item.brand, item.category, item.supplierName].some(v => v.toLowerCase().includes(search.toLowerCase()))
       const matchesTab = activeTab === 'All' || item.category === activeTab
       const matchesStock = stockStatusFilter === 'All' || 
         (stockStatusFilter === 'Low Stock' && item.currentStockLevel <= item.minimumStockLevel) ||
@@ -201,7 +208,7 @@ export default function FarmerInventory() {
     return { totalItems, lowStock, totalValue }
   }, [inventory])
 
-  const handleSaveItem = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSaveItem = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const formData = new FormData(e.currentTarget)
     const itemName = String(formData.get('itemName') ?? '').trim()
@@ -236,51 +243,78 @@ export default function FarmerInventory() {
       return
     }
 
-    const data = {
-      itemName,
-      category: formData.get('category') as string,
-      brand,
-      supplierName,
-      unitOfMeasurement: uom,
-      quantityPurchased: qty,
-      unitCost: cost,
-      totalCost: qty * cost,
-      currentStockLevel: Number(formData.get('currentStock')) || qty,
-      minimumStockLevel: Number(formData.get('minStock')) || 0,
-      expiryDate: formData.get('expiryDate') as string,
-      storageLocation: formData.get('storage') as string || 'Warehouse Main',
-      certificationStatus: formData.get('certification') as string || 'Conventional',
-      purchaseDate: formData.get('purchaseDate') as string || new Date().toISOString().split('T')[0],
-      assignedFarms: editingItem ? editingItem.assignedFarms : [],
-      notes: formData.get('notes') as string,
-    }
-
-    if (editingItem) {
-      setInventory(inventory.map(p => p.id === editingItem.id ? { ...p, ...data } : p))
-      toast.success('Inventory item updated')
-    } else {
-      const newItem: InventoryItem = {
-        id: Math.random().toString(36).substr(2, 9),
-        supplierPhone: '',
-        purchaseLocation: '',
-        invoiceNumber: `INV-${Date.now().toString().slice(-4)}`,
-        batchNumber: `BATCH-${Date.now().toString().slice(-4)}`,
-        ...data,
+    try {
+      const payload = {
+        itemName,
+        category:
+          formCategory as
+            | CreateSuppliesInventoryRequestCategory
+            | UpdateSuppliesInventoryRequestCategory,
+        supplierName,
+        quantity: String(qty),
+        unit: uom,
+        currentLevel: String(Number(formData.get('currentStock')) || qty),
+        minAlertLevel: String(Number(formData.get('minStock')) || 0),
+        unitCost: String(cost),
+        unitCostCurrency: 'NGN',
+        expiryDate: String(formData.get('expiryDate') ?? ''),
+        certification:
+          formCertification as
+            | CreateSuppliesInventoryRequestCertification
+            | UpdateSuppliesInventoryRequestCertification,
+        internalStorageNotes: String(formData.get('notes') ?? ''),
+        facilityId: String(formData.get('storage') ?? '').trim() || undefined,
       }
-      setInventory([newItem, ...inventory])
-      toast.success('Stock item added successfully')
+
+      if (editingItem) {
+        await updateInventoryItem({ id: editingItem.id, data: payload })
+        toast.success('Inventory item updated')
+      } else {
+        await createInventoryItem({ data: payload })
+        toast.success('Stock item added successfully')
+      }
+
+      await queryClient.invalidateQueries({ queryKey: getGetSuppliesInventoryQueryKey() })
+      handleCloseModal()
+    } catch (error) {
+      console.error('Failed to save inventory item', error)
+      toast.error(
+        getApiErrorMessage(error, 'Unable to save inventory item. Please try again.'),
+      )
     }
-    handleCloseModal()
   }
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteInventoryItem({ id })
+      await queryClient.invalidateQueries({ queryKey: getGetSuppliesInventoryQueryKey() })
+      toast.success('Inventory item removed')
+    } catch (error) {
+      console.error('Failed to remove inventory item', error)
+      toast.error(
+        getApiErrorMessage(error, 'Unable to remove inventory item. Please try again.'),
+      )
+    }
+  }
+
 
   const handleEditClick = (item: InventoryItem) => {
     setEditingItem(item)
+    const matchedCategory = categoryOptions.find(
+      (option) => option.label === item.category,
+    )
+    setFormCategory(matchedCategory?.value ?? 'other')
+    setFormCertification(
+      item.certificationStatus === 'Organic' ? 'organic' : 'conventional',
+    )
     setIsModalOpen(true)
   }
 
   const handleCloseModal = () => {
+    if (isCreating || isUpdating) return
     setIsModalOpen(false)
     setEditingItem(null)
+    setFormCategory('fertilizer')
+    setFormCertification('conventional')
   }
 
   const handleExport = () => {
@@ -312,9 +346,19 @@ export default function FarmerInventory() {
             <Download className="size-4 mr-2" />
             <span className="hidden sm:inline">Export CSV</span>
           </Button>
-          <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+          <Dialog
+            open={isModalOpen}
+            onOpenChange={(open) => (open ? setIsModalOpen(true) : handleCloseModal())}
+          >
             <DialogTrigger render={
-              <Button onClick={() => setEditingItem(null)} className="bg-[#1d3d1e] hover:bg-black text-white h-11 px-6 shadow-lg shadow-brand/10 transition-all hover:scale-[1.02] active:scale-[0.98]">
+              <Button
+                onClick={() => {
+                  setEditingItem(null)
+                  setFormCategory('fertilizer')
+                  setFormCertification('conventional')
+                }}
+                className="bg-[#1d3d1e] hover:bg-black text-white h-11 px-6 shadow-lg shadow-brand/10 transition-all hover:scale-[1.02] active:scale-[0.98]"
+              >
                 <Plus className="size-4 mr-2" />
                 <span className="font-bold uppercase tracking-widest text-[10px]">Add Stock Item</span>
               </Button>
@@ -333,10 +377,19 @@ export default function FarmerInventory() {
                    </div>
                    <div className="space-y-2">
                      <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Category</Label>
-                     <Select name="category" defaultValue={editingItem?.category || 'Fertilizer'}>
+                     <Select
+                       value={formCategory}
+                       onValueChange={(value) =>
+                         setFormCategory(value as CreateSuppliesInventoryRequestCategory)
+                       }
+                     >
                        <SelectTrigger><SelectValue /></SelectTrigger>
                        <SelectContent>
-                          {categories.slice(1).map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                          {categoryOptions.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
                        </SelectContent>
                      </Select>
                    </div>
@@ -384,11 +437,21 @@ export default function FarmerInventory() {
                    </div>
                    <div className="space-y-2">
                      <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Certification</Label>
-                     <Select name="certification" defaultValue={editingItem?.certificationStatus || 'Conventional'}>
+                     <Select
+                       value={formCertification}
+                       onValueChange={(value) =>
+                         setFormCertification(
+                           value as CreateSuppliesInventoryRequestCertification,
+                         )
+                       }
+                     >
                        <SelectTrigger><SelectValue /></SelectTrigger>
                        <SelectContent>
-                          <SelectItem value="Conventional">Conventional</SelectItem>
-                          <SelectItem value="Organic">Organic</SelectItem>
+                          {certificationOptions.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
                        </SelectContent>
                      </Select>
                    </div>
@@ -401,8 +464,8 @@ export default function FarmerInventory() {
                 
                 <DialogFooter className="md:col-span-3 pt-6 border-t border-gray-50 mt-4">
                   <Button type="button" variant="ghost" onClick={handleCloseModal} className="font-bold uppercase tracking-widest text-[10px]">Cancel</Button>
-                  <Button type="submit" form="inventory-form" className="bg-[#1d3d1e] hover:bg-black text-white px-10 font-bold uppercase tracking-widest text-[10px] shadow-md">
-                    {editingItem ? 'Save Adjustments' : 'Commit to Stock'}
+                  <Button type="submit" form="inventory-form" disabled={isCreating || isUpdating} className="bg-[#1d3d1e] hover:bg-black text-white px-10 font-bold uppercase tracking-widest text-[10px] shadow-md">
+                    {isCreating || isUpdating ? 'Saving...' : editingItem ? 'Save Adjustments' : 'Commit to Stock'}
                   </Button>
                 </DialogFooter>
               </form>
@@ -484,10 +547,29 @@ export default function FarmerInventory() {
                       <td colSpan={6} className="px-6 py-8"><div className="h-8 bg-gray-50 rounded-lg w-full" /></td>
                     </tr>
                   ))
+                ) : isError ? (
+                  <tr>
+                    <td colSpan={6} className="py-20 text-center">
+                      <EmptyState
+                        icon={<AlertTriangle className="size-10" />}
+                        title="Inventory failed to load"
+                        description="Check your connection and try again."
+                        action={{ label: 'Retry', onClick: () => refetch() }}
+                      />
+                    </td>
+                  </tr>
                 ) : filtered.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="py-20 text-center">
-                       <EmptyState icon={<Package className="size-10" />} title="No stock items found" description="Adjust your filters or add a new entry" />
+                       <EmptyState
+                         icon={<Package className="size-10" />}
+                         title={inventory.length === 0 ? 'No stock items yet' : 'No stock items found'}
+                         description={
+                           inventory.length === 0
+                             ? 'Add a stock item to start tracking inventory records.'
+                             : 'Adjust your filters or search query to see results.'
+                         }
+                       />
                     </td>
                   </tr>
                 ) : filtered.map((item) => (
@@ -527,7 +609,7 @@ export default function FarmerInventory() {
                            <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden shadow-inner">
                               <div
                                 className={cn("h-full transition-all duration-700", item.currentStockLevel <= item.minimumStockLevel ? 'bg-red-500' : 'bg-brand')}
-                                style={{ width: `${(item.currentStockLevel / item.quantityPurchased) * 100}%` }}
+                                style={{ width: `${getStockProgress(item.currentStockLevel, item.quantityPurchased)}%` }}
                               />
                            </div>
                         </div>
@@ -550,14 +632,14 @@ export default function FarmerInventory() {
                             </Button>
                           } />
                           <DropdownMenuContent align="end" className="w-52 p-1 rounded-xl shadow-xl ring-1 ring-black/5">
-                            <DropdownMenuItem onClick={() => handleEditClick(item)} className="gap-2 cursor-pointer font-bold py-2.5 px-3 rounded-lg text-[10px] uppercase tracking-widest transition-all">
+                            <DropdownMenuItem onClick={() => handleEditClick(item)} disabled={isCreating || isUpdating || isDeleting} className="gap-2 cursor-pointer font-bold py-2.5 px-3 rounded-lg text-[10px] uppercase tracking-widest transition-all">
                                <ArrowRightLeft className="size-3.5 text-blue-500" /> Adjust Stock Level
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleEditClick(item)} className="gap-2 cursor-pointer font-bold py-2.5 px-3 rounded-lg text-[10px] uppercase tracking-widest">
+                            <DropdownMenuItem onClick={() => handleEditClick(item)} disabled={isCreating || isUpdating || isDeleting} className="gap-2 cursor-pointer font-bold py-2.5 px-3 rounded-lg text-[10px] uppercase tracking-widest">
                                <Edit2 className="size-3.5 text-gray-400" /> Edit Specifications
                             </DropdownMenuItem>
                             <DropdownMenuSeparator className="my-1 bg-gray-50" />
-                            <DropdownMenuItem className="gap-2 text-red-600 focus:bg-red-50 focus:text-red-700 cursor-pointer font-bold py-2.5 px-3 rounded-lg text-[10px] uppercase tracking-widest">
+                            <DropdownMenuItem onClick={() => handleDelete(item.id)} disabled={isDeleting} className="gap-2 text-red-600 focus:bg-red-50 focus:text-red-700 cursor-pointer font-bold py-2.5 px-3 rounded-lg text-[10px] uppercase tracking-widest">
                                <Trash2 className="size-3.5" /> Remove Item
                             </DropdownMenuItem>
                           </DropdownMenuContent>

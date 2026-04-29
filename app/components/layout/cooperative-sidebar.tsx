@@ -427,6 +427,7 @@ export function CooperativeSidebar() {
               if (val === 'Farmer') navigate('/farmer')
               if (val === 'Processor') navigate('/processor')
               if (val === 'Cooperative') navigate('/cooperative')
+              if (val === 'Aggregator') navigate('/aggregator')
             }}
           >
             <SelectTrigger className='w-full h-10 py-2 px-3.5 rounded-lg border border-gray-200 bg-white shadow-sm hover:bg-gray-50 transition-all cursor-pointer'>
@@ -450,6 +451,12 @@ export function CooperativeSidebar() {
                 className='focus:bg-brand/10 focus:text-brand'
               >
                 Cooperative
+              </SelectItem>
+              <SelectItem
+                value='Aggregator'
+                className='focus:bg-brand/10 focus:text-brand'
+              >
+                Aggregator
               </SelectItem>
             </SelectContent>
           </Select>

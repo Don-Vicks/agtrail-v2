@@ -3,6 +3,7 @@ import { useMemo } from 'react'
 import type { ProcessorBatch } from '~/lib/api/generated/models';
 import { useGetProcessorsBatches } from '~/lib/api/generated/processors-batches/processors-batches';
 import { useGetProcessorsDashboardStats } from '~/lib/api/generated/processors-dashboard/processors-dashboard';
+import { useGetFacilities } from '~/lib/api/generated/facilities/facilities';
 import { cn } from '~/lib/utils';
 import { StatCard } from '~/components/stat-card';
 import { Button } from '~/components/ui/button';
@@ -20,7 +21,8 @@ import {
   Activity,
   ClipboardList,
   ArrowRight,
-  LayoutDashboard
+  LayoutDashboard,
+  Building2,
 } from 'lucide-react';
 import { getOrganizationHeaders } from '~/lib/organization-context'
 
@@ -138,6 +140,9 @@ export default function ProcessorDashboard() {
   } = useGetProcessorsBatches({
     request: { headers: organizationHeaders },
   })
+  const { data: facilitiesResponse } = useGetFacilities({
+    request: { headers: organizationHeaders },
+  })
 
   const statsData: any = statsResponse?.data?.data || {}
   const allBatches = (batchesResponse?.data?.data || []) as ProcessorBatch[]
@@ -160,6 +165,7 @@ export default function ProcessorDashboard() {
   )
   const hasLoadError = isStatsError || isBatchesError
   const hasOrganizationContext = Boolean(organizationHeaders['X-Organization-Id'])
+  const totalFacilities = facilitiesResponse?.data?.data?.length ?? 0
 
   return (
     <div className="space-y-6 pb-10 px-1 text-left w-full overflow-x-hidden">
@@ -197,10 +203,10 @@ export default function ProcessorDashboard() {
       ) : null}
 
       {/* Stat Cards */}
-      <div className={cn("grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4", hasLoadError && "opacity-70 pointer-events-none")}>
+      <div className={cn("grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4", hasLoadError && "opacity-70 pointer-events-none")}>
         {isStatsLoading ? (
           <>
-            {[...Array(4)].map((_, i) => (
+            {[...Array(5)].map((_, i) => (
               <div key={i} className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
                 <div className="h-4 w-24 bg-gray-200 rounded animate-pulse"></div>
                 <div className="mt-3 h-8 w-16 bg-gray-200 rounded animate-pulse"></div>
@@ -212,14 +218,14 @@ export default function ProcessorDashboard() {
           <>
             <StatCard
               title="Finished Goods"
-              value={statsData.totalFinishedGoods ?? completedBatches.length}
+              value={String(statsData.totalFinishedGoods ?? completedBatches.length)}
               subtitle="Completed production"
               description="Batches Ready for Distribution"
               icon={<Package className="size-4" />}
             />
             <StatCard
               title="Quality Control"
-              value={statsData.totalQcHold ?? 0}
+              value={String(statsData.totalQcHold ?? 0)}
               subtitle="Verification status"
               description="Batch on QA Hold"
               icon={<CheckCircle className="size-4" />}
@@ -227,7 +233,7 @@ export default function ProcessorDashboard() {
             />
             <StatCard
               title="Work In Progress"
-              value={statsData.totalWip ?? wipBatches.length}
+              value={String(statsData.totalWip ?? wipBatches.length)}
               subtitle="Active production"
               description="Batches in Production"
               icon={<Activity className="size-4" />}
@@ -235,10 +241,17 @@ export default function ProcessorDashboard() {
             />
             <StatCard
               title="Incoming Goods"
-              value={statsData.totalIncoming ?? incomingBatches.length}
+              value={String(statsData.totalIncoming ?? incomingBatches.length)}
               subtitle="Awaiting receipt"
               description="Batches Awaiting Receipt"
               icon={<Clock className="size-4" />}
+            />
+            <StatCard
+              title="Facilities"
+              value={String(totalFacilities)}
+              subtitle="Active locations"
+              description="Processing sites managed"
+              icon={<Building2 className="size-4" />}
             />
           </>
         )}
@@ -303,6 +316,14 @@ export default function ProcessorDashboard() {
                     <AlertCircle className="size-4" />
                   </div>
                   <span className="text-xs uppercase tracking-tight">QA/QC Test</span>
+                </Button>
+              </Link>
+              <Link to="/processor/facilities" className="block">
+                <Button variant="outline" className="w-full justify-start gap-3 h-12 font-bold text-gray-700 hover:text-brand transition-all border-gray-200">
+                  <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
+                    <Building2 className="size-4" />
+                  </div>
+                  <span className="text-xs uppercase tracking-tight">Manage Facilities</span>
                 </Button>
               </Link>
             </div>

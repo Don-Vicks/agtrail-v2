@@ -356,6 +356,7 @@ function IdentityVerificationTab() {
   const publicKey = import.meta.env.VITE_DOJAH_PUBLIC_KEY
   const sandboxMode =
     String(import.meta.env.VITE_DOJAH_SANDBOX || '').toLowerCase() === 'true'
+  const dojahEnv = sandboxMode ? 'sandbox' : undefined
   const hasDojahConfig = Boolean(appID && publicKey)
 
   const config = {
@@ -451,6 +452,7 @@ function IdentityVerificationTab() {
                 appID={appID}
                 publicKey={publicKey}
                 type='custom'
+                env={dojahEnv}
                 config={config}
                 userData={userData}
                 metadata={{ user_id: user?.id || 'unknown' }}

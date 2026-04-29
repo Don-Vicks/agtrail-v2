@@ -10,9 +10,6 @@ export type PostPurchasesBodyProductType = typeof PostPurchasesBodyProductType[k
 
 
 export const PostPurchasesBodyProductType = {
-  crop: 'crop',
-  livestock: 'livestock',
-  aquaculture: 'aquaculture',
-  apiary: 'apiary',
-  processed_batch: 'processed_batch',
+  farm_product: 'farm_product',
+  batch_product: 'batch_product',
 } as const;

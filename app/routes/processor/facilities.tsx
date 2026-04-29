@@ -1,10 +1,10 @@
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router'
-import { 
+import { useQueryClient } from '@tanstack/react-query'
+import {
   Building2, 
   Layers, 
   Search, 
-  Settings2, 
   ShieldCheck, 
   Wrench, 
   Plus, 
@@ -13,7 +13,8 @@ import {
   Trash2, 
   ArrowRight, 
   Activity,
-  MapPin
+  MapPin,
+  Loader2,
 } from 'lucide-react'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
@@ -45,105 +46,113 @@ import {
 } from '~/components/ui/select'
 import { cn } from '~/lib/utils'
 import { toast } from 'sonner'
+import {
+  getGetFacilitiesIdQueryKey,
+  getGetFacilitiesQueryKey,
+  useDeleteFacilitiesId,
+  useGetFacilities,
+  usePatchFacilitiesId,
+  usePostFacilities,
+} from '~/lib/api/generated/facilities/facilities'
+import type {
+  Facility,
+  CreateFacilityRequestStatus,
+  UpdateFacilityRequestStatus,
+} from '~/lib/api/generated/models'
+import { getOrganizationHeaders } from '~/lib/organization-context'
 
-type FacilityStatus = 'Operational' | 'Maintenance' | 'Inactive'
-
-interface ProcessingFacility {
-  id: string
-  name: string
-  location: string
-  lineType: string
-  monthlyCapacityTons: number
-  utilization: number
-  status: FacilityStatus
-  manager: string
-  lastMaintained?: string
+type FacilityStatus = CreateFacilityRequestStatus | UpdateFacilityRequestStatus
+type FacilityRecord = Facility & {
+  managerDisplay: string
+  capacityDisplay: string
+  utilizationValue: number
 }
 
-const INITIAL_FACILITIES: ProcessingFacility[] = [
-  {
-    id: '1',
-    name: 'Abuja Processing Hub',
-    location: 'Gwagwalada, Abuja',
-    lineType: 'Drying and Milling',
-    monthlyCapacityTons: 240,
-    utilization: 78,
-    status: 'Operational',
-    manager: 'Ibrahim Sani',
-    lastMaintained: '2024-03-10'
-  },
-  {
-    id: '2',
-    name: 'Lagos Packaging Center',
-    location: 'Ikeja, Lagos',
-    lineType: 'Packaging and Storage',
-    monthlyCapacityTons: 160,
-    utilization: 64,
-    status: 'Operational',
-    manager: 'Adaobi Okeke',
-    lastMaintained: '2024-02-15'
-  },
-  {
-    id: '3',
-    name: 'Kano Extraction Unit',
-    location: 'Nasarawa, Kano',
-    lineType: 'Oil Extraction',
-    monthlyCapacityTons: 130,
-    utilization: 0,
-    status: 'Maintenance',
-    manager: 'Musa Abdullahi',
-    lastMaintained: '2024-04-01'
-  },
+const STATUS_OPTIONS: Array<{ value: FacilityStatus; label: string }> = [
+  { value: 'operational', label: 'Operational' },
+  { value: 'maintenance', label: 'Maintenance' },
+  { value: 'inactive', label: 'Inactive' },
 ]
 
 export default function ProcessorFacilitiesPage() {
-  const [facilities, setFacilities] = useState<ProcessingFacility[]>(INITIAL_FACILITIES)
-  const [isLoading, setIsLoading] = useState(true)
+  const queryClient = useQueryClient()
+  const organizationHeaders = getOrganizationHeaders()
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
-  const [sortBy, setSortBy] = useState<'name' | 'capacity' | 'utilization'>('name')
+  const [sortBy, setSortBy] = useState<'name' | 'capacity'>('name')
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [editingFacility, setEditingFacility] = useState<ProcessingFacility | null>(null)
+  const [editingFacility, setEditingFacility] = useState<Facility | null>(null)
+  const [statusInput, setStatusInput] = useState<FacilityStatus>('operational')
 
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 800)
-    return () => clearTimeout(timer)
-  }, [])
+  const { data: facilitiesResponse, isLoading, isError, refetch } = useGetFacilities({
+    request: { headers: organizationHeaders },
+  })
+  const createMutation = usePostFacilities({
+    request: { headers: organizationHeaders },
+  })
+  const updateMutation = usePatchFacilitiesId({
+    request: { headers: organizationHeaders },
+  })
+  const deleteMutation = useDeleteFacilitiesId({
+    request: { headers: organizationHeaders },
+  })
+  const isSaving = createMutation.isPending || updateMutation.isPending
+
+  const facilities = useMemo<FacilityRecord[]>(
+    () =>
+      (facilitiesResponse?.data?.data ?? []).map((facility) => {
+        const capacity = Number(facility.capacity ?? 0)
+        const utilizationValue =
+          facility.status === 'operational'
+            ? Math.min(95, Math.max(20, Math.round(capacity / 10)))
+            : facility.status === 'maintenance'
+              ? 0
+              : 10
+
+        return {
+          ...facility,
+          managerDisplay: facility.facilityManagerId ?? 'Unassigned',
+          capacityDisplay: facility.capacity ?? '0',
+          utilizationValue,
+        }
+      }),
+    [facilitiesResponse],
+  )
 
   const filteredAndSorted = useMemo(() => {
     return facilities
       .filter((f) => {
-        const matchesSearch = !search || 
-          [f.name, f.location, f.lineType, f.manager].some(v => v.toLowerCase().includes(search.toLowerCase()))
-        const matchesStatus = statusFilter === 'all' || f.status.toLowerCase() === statusFilter.toLowerCase()
+        const matchesSearch = !search ||
+          [f.name, f.location ?? '', f.processingLineType ?? '', f.managerDisplay]
+            .some(v => v.toLowerCase().includes(search.toLowerCase()))
+        const matchesStatus = statusFilter === 'all' || f.status === statusFilter
         return matchesSearch && matchesStatus
       })
       .sort((a, b) => {
         if (sortBy === 'name') return a.name.localeCompare(b.name)
-        if (sortBy === 'capacity') return b.monthlyCapacityTons - a.monthlyCapacityTons
-        if (sortBy === 'utilization') return b.utilization - a.utilization
+        if (sortBy === 'capacity') return Number(b.capacity || 0) - Number(a.capacity || 0)
         return 0
       })
   }, [facilities, search, statusFilter, sortBy])
 
   const stats = useMemo(() => {
     const total = facilities.length
-    const operational = facilities.filter(f => f.status === 'Operational').length
-    const maintenance = facilities.filter(f => f.status === 'Maintenance').length
-    const avgUtil = total > 0 
-      ? Math.round(facilities.reduce((sum, f) => sum + f.utilization, 0) / total) 
+    const operational = facilities.filter(f => f.status === 'operational').length
+    const maintenance = facilities.filter(f => f.status === 'maintenance').length
+    const avgUtil = total > 0
+      ? Math.round(facilities.reduce((sum, f) => sum + Number(f.capacity || 0), 0) / total)
       : 0
     return { total, operational, maintenance, avgUtil }
   }, [facilities])
 
-  const handleSaveFacility = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSaveFacility = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const formData = new FormData(e.currentTarget)
     const name = String(formData.get('name') ?? '').trim()
     const location = String(formData.get('location') ?? '').trim()
     const lineType = String(formData.get('lineType') ?? '').trim()
     const manager = String(formData.get('manager') ?? '').trim()
-    const monthlyCapacityTons = Number(formData.get('monthlyCapacityTons'))
+    const monthlyCapacityTons = String(formData.get('monthlyCapacityTons') ?? '').trim()
 
     if (!name) {
       toast.error('Facility name is required.')
@@ -161,48 +170,69 @@ export default function ProcessorFacilitiesPage() {
       toast.error('Facility manager is required.')
       return
     }
-    if (!Number.isFinite(monthlyCapacityTons) || monthlyCapacityTons <= 0) {
-      toast.error('Monthly capacity must be a positive number.')
+    if (!monthlyCapacityTons || Number.isNaN(Number(monthlyCapacityTons))) {
+      toast.error('Monthly capacity must be a valid number.')
       return
     }
 
-    const data = {
+    const payload = {
       name,
       location,
-      lineType,
-      monthlyCapacityTons,
-      status: formData.get('status') as FacilityStatus,
-      manager,
-      utilization: editingFacility ? editingFacility.utilization : 0,
+      status: statusInput,
+      capacity: monthlyCapacityTons,
+      processingLineType: lineType,
+      facilityManagerId: manager,
     }
 
-    if (editingFacility) {
-      setFacilities(facilities.map(f => f.id === editingFacility.id ? { ...f, ...data } : f))
-      toast.success('Facility updated successfully')
-    } else {
-      const newFacility: ProcessingFacility = {
-        id: Math.random().toString(36).substr(2, 9),
-        ...data,
+    try {
+      if (editingFacility) {
+        await updateMutation.mutateAsync({
+          id: editingFacility.id,
+          data: payload,
+        })
+        toast.success('Facility updated successfully')
+      } else {
+        await createMutation.mutateAsync({ data: payload })
+        toast.success('Facility added successfully')
       }
-      setFacilities([...facilities, newFacility])
-      toast.success('Facility added successfully')
+      handleCloseModal()
+      await queryClient.invalidateQueries({ queryKey: getGetFacilitiesQueryKey() })
+      if (editingFacility?.id) {
+        await queryClient.invalidateQueries({
+          queryKey: getGetFacilitiesIdQueryKey(editingFacility.id),
+        })
+      }
+    } catch (error) {
+      console.error(error)
+      toast.error(editingFacility ? 'Failed to update facility.' : 'Failed to add facility.')
     }
-    handleCloseModal()
   }
 
-  const handleDeleteFacility = (id: string) => {
-    setFacilities(facilities.filter(f => f.id !== id))
-    toast.success('Facility deleted successfully')
+  const handleDeleteFacility = async (id: string) => {
+    if (!window.confirm('Delete this facility? This action cannot be undone.')) {
+      return
+    }
+    try {
+      await deleteMutation.mutateAsync({ id })
+      toast.success('Facility deleted successfully')
+      await queryClient.invalidateQueries({ queryKey: getGetFacilitiesQueryKey() })
+      await queryClient.invalidateQueries({ queryKey: getGetFacilitiesIdQueryKey(id) })
+    } catch (error) {
+      console.error(error)
+      toast.error('Failed to delete facility.')
+    }
   }
 
-  const handleEditClick = (facility: ProcessingFacility) => {
+  const handleEditClick = (facility: Facility) => {
     setEditingFacility(facility)
+    setStatusInput(facility.status as FacilityStatus)
     setIsModalOpen(true)
   }
 
   const handleCloseModal = () => {
     setIsModalOpen(false)
     setEditingFacility(null)
+    setStatusInput('operational')
   }
 
   return (
@@ -221,7 +251,13 @@ export default function ProcessorFacilitiesPage() {
         </div>
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
           <DialogTrigger render={
-            <Button onClick={() => setEditingFacility(null)} className="bg-[#1d3d1e] hover:bg-black text-white h-11 px-6 shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98]">
+            <Button
+              onClick={() => {
+                setEditingFacility(null)
+                setStatusInput('operational')
+              }}
+              className="bg-[#1d3d1e] hover:bg-black text-white h-11 px-6 shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
+            >
               <Plus className="size-4 mr-2" />
               <span className="font-bold uppercase tracking-wide text-xs">Add Facility</span>
             </Button>
@@ -240,39 +276,42 @@ export default function ProcessorFacilitiesPage() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="location" className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Location</Label>
-                  <Input id="location" name="location" defaultValue={editingFacility?.location} placeholder="e.g. Gwagwalada, Abuja" required className="h-10" />
+                  <Input id="location" name="location" defaultValue={editingFacility?.location ?? ''} placeholder="e.g. Gwagwalada, Abuja" required className="h-10" />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Status</label>
-                    <Select name="status" defaultValue={editingFacility?.status || 'Operational'}>
+                    <Select value={statusInput} onValueChange={(value) => setStatusInput(value as FacilityStatus)}>
                       <SelectTrigger className="h-10 w-full">
                         <SelectValue placeholder="Status" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Operational">Operational</SelectItem>
-                        <SelectItem value="Maintenance">Maintenance</SelectItem>
-                        <SelectItem value="Inactive">Inactive</SelectItem>
+                        {STATUS_OPTIONS.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="monthlyCapacityTons" className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Capacity (Tons/Mo)</Label>
-                    <Input id="monthlyCapacityTons" name="monthlyCapacityTons" type="number" defaultValue={editingFacility?.monthlyCapacityTons} placeholder="240" required className="h-10" />
+                    <Input id="monthlyCapacityTons" name="monthlyCapacityTons" type="number" defaultValue={editingFacility?.capacity || ''} placeholder="240" required className="h-10" />
                   </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="lineType" className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Processing Line Type</Label>
-                  <Input id="lineType" name="lineType" defaultValue={editingFacility?.lineType} placeholder="e.g. Drying and Milling" required className="h-10" />
+                  <Input id="lineType" name="lineType" defaultValue={editingFacility?.processingLineType || ''} placeholder="e.g. Drying and Milling" required className="h-10" />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="manager" className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Facility Manager</Label>
-                  <Input id="manager" name="manager" defaultValue={editingFacility?.manager} placeholder="Full Name" required className="h-10" />
+                  <Label htmlFor="manager" className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Facility Manager ID</Label>
+                  <Input id="manager" name="manager" defaultValue={editingFacility?.facilityManagerId || ''} placeholder="usr_1234" required className="h-10" />
                 </div>
               </div>
               <DialogFooter className="pt-6">
                 <Button type="button" variant="ghost" onClick={handleCloseModal} className="font-bold uppercase tracking-widest text-[10px]">Cancel</Button>
-                <Button type="submit" className="bg-[#1d3d1e] hover:bg-black text-white px-8 font-bold uppercase tracking-widest text-[10px] shadow-md transition-all">
+                <Button type="submit" disabled={isSaving} className="bg-[#1d3d1e] hover:bg-black text-white px-8 font-bold uppercase tracking-widest text-[10px] shadow-md transition-all disabled:cursor-not-allowed disabled:opacity-70">
+                  {isSaving ? <Loader2 className="size-3.5 mr-1.5 animate-spin" /> : null}
                   {editingFacility ? 'Save Changes' : 'Create Facility'}
                 </Button>
               </DialogFooter>
@@ -309,9 +348,11 @@ export default function ProcessorFacilitiesPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="Operational">Operational</SelectItem>
-                <SelectItem value="Maintenance">Maintenance</SelectItem>
-                <SelectItem value="Inactive">Inactive</SelectItem>
+                {STATUS_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -320,14 +361,13 @@ export default function ProcessorFacilitiesPage() {
 
           <div className="flex items-center gap-2">
             <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest px-1">Sort</span>
-            <Select value={sortBy} onValueChange={(v) => setSortBy(v as any || 'name')}>
+            <Select value={sortBy} onValueChange={(v) => setSortBy((v as 'name' | 'capacity') || 'name')}>
               <SelectTrigger className="h-10 w-[140px] bg-gray-50/50 border-gray-100 font-medium">
                 <SelectValue placeholder="Sort By" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="name">Name (A-Z)</SelectItem>
                 <SelectItem value="capacity">Capacity (High)</SelectItem>
-                <SelectItem value="utilization">Utilization</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -340,6 +380,29 @@ export default function ProcessorFacilitiesPage() {
             <div key={i} className="h-48 rounded-2xl border border-gray-100 bg-gray-50/50 animate-pulse" />
           ))}
         </div>
+      ) : isError ? (
+        <EmptyState
+          icon={<Building2 className="size-12" />}
+          title="Could not load facilities"
+          description="Please check your organization context and try again."
+          action={{ label: 'Retry', onClick: () => refetch() }}
+          className="py-16 bg-white rounded-2xl border border-red-100 shadow-sm"
+        />
+      ) : facilities.length === 0 ? (
+        <EmptyState
+          icon={<Building2 className="size-12" />}
+          title="No facilities yet"
+          description="Create your first facility to start tracking operations."
+          action={{
+            label: 'Add Facility',
+            onClick: () => {
+              setEditingFacility(null)
+              setStatusInput('operational')
+              setIsModalOpen(true)
+            },
+          }}
+          className="py-16 bg-white rounded-2xl border border-gray-100 shadow-sm"
+        />
       ) : filteredAndSorted.length === 0 ? (
         <EmptyState
           icon={<Building2 className="size-12" />}
@@ -358,8 +421,8 @@ export default function ProcessorFacilitiesPage() {
                 <div className="flex items-center gap-3">
                   <div className={cn(
                     "size-10 rounded-xl flex items-center justify-center transition-colors",
-                    facility.status === 'Operational' ? "bg-emerald-50 text-emerald-600 group-hover:bg-emerald-100" :
-                    facility.status === 'Maintenance' ? "bg-amber-50 text-amber-600 group-hover:bg-amber-100" :
+                    facility.status === 'operational' ? "bg-emerald-50 text-emerald-600 group-hover:bg-emerald-100" :
+                    facility.status === 'maintenance' ? "bg-amber-50 text-amber-600 group-hover:bg-amber-100" :
                     "bg-gray-50 text-gray-600 group-hover:bg-gray-100"
                   )}>
                     <Building2 className="size-5" />
@@ -368,7 +431,7 @@ export default function ProcessorFacilitiesPage() {
                     <h3 className="text-base font-bold text-gray-900 group-hover:text-brand transition-colors">{facility.name}</h3>
                     <div className="flex items-center gap-1.5 text-[11px] text-gray-500 mt-0.5">
                       <MapPin className="size-3" />
-                      {facility.location}
+                      {facility.location || 'No location'}
                     </div>
                   </div>
                 </div>
@@ -397,42 +460,42 @@ export default function ProcessorFacilitiesPage() {
                 <div className="flex items-center gap-2">
                   <Badge variant="outline" className={cn(
                     "text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border-none",
-                    facility.status === 'Operational' ? "bg-emerald-50 text-emerald-700" :
-                    facility.status === 'Maintenance' ? "bg-amber-50 text-amber-700" :
+                    facility.status === 'operational' ? "bg-emerald-50 text-emerald-700" :
+                    facility.status === 'maintenance' ? "bg-amber-50 text-amber-700" :
                     "bg-gray-100 text-gray-700"
                   )}>
-                    {facility.status}
+                    {STATUS_OPTIONS.find((option) => option.value === facility.status)?.label || 'Unknown'}
                   </Badge>
-                  <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">{facility.lineType}</span>
+                  <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">{facility.processingLineType || 'No line type'}</span>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 pt-2">
                   <div className="bg-gray-50/50 rounded-xl p-3 border border-transparent group-hover:border-gray-100 transition-colors">
                     <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">Utilization</p>
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-bold text-gray-900">{facility.utilization}%</span>
+                      <span className="text-sm font-bold text-gray-900">{facility.utilizationValue}%</span>
                       <div className="h-1.5 flex-1 bg-gray-200 rounded-full overflow-hidden">
                         <div 
-                          className={cn("h-full transition-all duration-1000", facility.utilization > 70 ? "bg-brand" : "bg-blue-500")}
-                          style={{ width: `${facility.utilization}%` }}
+                          className={cn("h-full transition-all duration-1000", facility.utilizationValue > 70 ? "bg-brand" : "bg-blue-500")}
+                          style={{ width: `${facility.utilizationValue}%` }}
                         />
                       </div>
                     </div>
                   </div>
                   <div className="bg-gray-50/50 rounded-xl p-3 border border-transparent group-hover:border-gray-100 transition-colors">
                     <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">Monthly Capacity</p>
-                    <p className="text-sm font-bold text-gray-900">{facility.monthlyCapacityTons} Tons</p>
+                    <p className="text-sm font-bold text-gray-900">{facility.capacityDisplay} Tons</p>
                   </div>
                 </div>
 
                 <div className="flex items-center justify-between pt-2">
                   <div className="flex items-center gap-2">
                     <div className="size-7 rounded-full bg-brand/10 flex items-center justify-center text-[10px] font-bold text-brand ring-2 ring-white">
-                      {facility.manager.split(' ').map(n => n[0]).join('')}
+                      {facility.managerDisplay.split(' ').map(n => n[0]).join('')}
                     </div>
                     <div className="hidden sm:block">
                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest leading-none">Manager</p>
-                       <p className="text-xs font-bold text-gray-700">{facility.manager}</p>
+                       <p className="text-xs font-bold text-gray-700">{facility.managerDisplay}</p>
                     </div>
                   </div>
                   <Link to={`/processor/facilities/${facility.id}`}>

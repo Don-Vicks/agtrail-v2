@@ -10,6 +10,8 @@ export const cooperativeRoutes: RouteConfig = [
     route('cooperative/farms/:id', 'routes/cooperative/farm-details.tsx'),
     route('cooperative/products', 'routes/cooperative/products/index.tsx'),
     route('cooperative/products/:id', 'routes/cooperative/products/story.tsx'),
+    route('cooperative/inventory', 'routes/cooperative/inventory.tsx'),
+    route('cooperative/personnel', 'routes/cooperative/personnel.tsx'),
     route('cooperative/operations/start', 'routes/cooperative/operations/start.tsx'),
     
     // Operations duplicated from farmer routes

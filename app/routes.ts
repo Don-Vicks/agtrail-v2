@@ -7,6 +7,7 @@ import {
 } from '@react-router/dev/routes'
 import { processorRoutes } from './routes/processor/processor-routes'
 import { cooperativeRoutes } from './routes/cooperative/cooperative-routes'
+import { aggregatorRoutes } from './routes/aggregator/aggregator-routes'
 
 // Triggering re-build for new routes
 
@@ -110,7 +111,7 @@ export default [
       // Compliance Analysis
       // Compliance Analysis Workflow
       ...prefix('compliance', [
-        index('routes/farmer/compliance/risk-assessment.tsx'),
+        index('routes/farmer/compliance/compliance-analysis.tsx'),
         route('market', 'routes/farmer/compliance/market-selection.tsx'),
         route('readiness', 'routes/farmer/compliance/readiness-check.tsx'),
         route('report', 'routes/farmer/compliance/compliance-report.tsx'),
@@ -130,4 +131,5 @@ export default [
 
   ...processorRoutes as any,
   ...cooperativeRoutes as any,
+  ...aggregatorRoutes as any,
 ] satisfies RouteConfig

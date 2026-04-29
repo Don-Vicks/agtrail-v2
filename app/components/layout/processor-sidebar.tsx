@@ -139,6 +139,26 @@ function SidebarIcon({ name }: { name: string }) {
         <path d="M18 20V10M12 20V4M6 20v-6" />
       </svg>
     ),
+    'layers': (
+      <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <polygon points="12 2 2 7 12 12 22 7 12 2" />
+        <polyline points="2 17 12 22 22 17" />
+        <polyline points="2 12 12 17 22 12" />
+      </svg>
+    ),
+    'plus': (
+      <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <line x1="12" y1="5" x2="12" y2="19" />
+        <line x1="5" y1="12" x2="19" y2="12" />
+      </svg>
+    ),
+    'box': (
+      <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z" />
+        <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+        <line x1="12" y1="22.08" x2="12" y2="12" />
+      </svg>
+    ),
     'settings': (
       <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
         <circle cx="12" cy="12" r="3" />
@@ -240,6 +260,7 @@ export function Sidebar() {
             <SelectItem value="Farmer" className="focus:bg-brand/10 focus:text-brand focus-visible:bg-brand/10 focus-visible:text-brand">Farmer</SelectItem>
             <SelectItem value="Processor" className="focus:bg-brand/10 focus:text-brand focus-visible:bg-brand/10 focus-visible:text-brand">Processor</SelectItem>
             <SelectItem value="Cooperative" className="focus:bg-brand/10 focus:text-brand focus-visible:bg-brand/10 focus-visible:text-brand">Cooperative</SelectItem>
+            <SelectItem value="Aggregator" className="focus:bg-brand/10 focus:text-brand focus-visible:bg-brand/10 focus-visible:text-brand">Aggregator</SelectItem>
           </SelectContent>
         </Select>
       </div>

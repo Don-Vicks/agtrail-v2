@@ -1,5 +1,6 @@
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo, useState, type FormEvent } from 'react'
 import { useLocation } from 'react-router'
+import { useQueryClient } from '@tanstack/react-query'
 import { PageHeader } from '~/components/page-header'
 import { StatCard } from '~/components/stat-card'
 import { Badge } from '~/components/ui/badge'
@@ -26,10 +27,25 @@ import {
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
-import { MoreVertical, Search, Plus, UserPlus, Filter, Download, Mail, Phone, Calendar, ShieldCheck, UserCircle, Briefcase, Edit2, Trash2, Users } from 'lucide-react'
+import { MoreVertical, Search, UserPlus, Filter, Download, Calendar, ShieldCheck, Briefcase, Users } from 'lucide-react'
 import { cn } from '~/lib/utils'
 import { EmptyState } from '~/components/empty-state'
 import { toast } from 'sonner'
+import {
+  getGetPersonnelQueryKey,
+  useDeletePersonnelId,
+  useGetPersonnel,
+  usePatchPersonnelId,
+  usePostPersonnel,
+} from '~/lib/api/generated/personnel/personnel'
+import type {
+  CreatePersonnelRequestStatus,
+  CreatePersonnelRequestType,
+  Personnel,
+  UpdatePersonnelRequestStatus,
+  UpdatePersonnelRequestType,
+} from '~/lib/api/generated/models'
+import { getApiErrorMessage } from '~/lib/api/error-message'
 
 interface Person {
   id: string
@@ -48,70 +64,64 @@ interface Person {
   notes: string
 }
 
-const INITIAL_PERSONNEL: Person[] = [
-  {
-    id: '1',
-    fullName: 'Olamide Olutekunbi',
-    phoneNumber: '+234 801 234 5678',
-    emailAddress: 'olamide@example.com',
-    role: 'Farm Manager',
-    farmAssignments: ['Farm A', 'Farm B'],
-    employmentType: 'Permanent',
-    employeeId: 'EMP001',
-    startDate: '2023-01-15',
-    certifications: ['Pesticide License', 'Organic Farming Cert'],
-    emergencyContactName: 'Adebayo Olutekunbi',
-    emergencyContactPhone: '+234 802 345 6789',
-    status: 'Active',
-    notes: 'Experienced manager with 5+ years in agribusiness'
-  },
-  {
-    id: '2',
-    fullName: 'Grace Adebayo',
-    phoneNumber: '+234 803 456 7890',
-    emailAddress: 'grace@example.com',
-    role: 'Supervisor',
-    farmAssignments: ['Farm A'],
-    employmentType: 'Permanent',
-    employeeId: 'EMP002',
-    startDate: '2023-03-01',
-    certifications: ['Safety Training'],
-    emergencyContactName: 'John Adebayo',
-    emergencyContactPhone: '+234 804 567 8901',
-    status: 'Active',
-    notes: 'Dedicated supervisor focused on quality control'
-  },
-  {
-    id: '3',
-    fullName: 'Ahmed Musa',
-    phoneNumber: '+234 805 678 9012',
-    emailAddress: 'ahmed@example.com',
-    role: 'Field Operator',
-    farmAssignments: ['Farm B'],
-    employmentType: 'Seasonal',
-    employeeId: 'EMP003',
-    startDate: '2024-01-01',
-    certifications: [],
-    emergencyContactName: 'Fatima Musa',
-    emergencyContactPhone: '+234 806 789 0123',
-    status: 'Active',
-    notes: 'Seasonal worker specializing in maize cultivation'
-  },
-]
+const typeLabelMap: Record<string, string> = {
+  permanent: 'Permanent',
+  seasonal: 'Seasonal',
+  contract: 'Contract',
+}
+
+const statusLabelMap: Record<string, string> = {
+  active: 'Active',
+  inactive: 'Inactive',
+}
+
+const toPersonnelType = (
+  value: string,
+): CreatePersonnelRequestType | UpdatePersonnelRequestType =>
+  value.toLowerCase() as CreatePersonnelRequestType | UpdatePersonnelRequestType
+
+const toPersonnelStatus = (
+  value: string,
+): CreatePersonnelRequestStatus | UpdatePersonnelRequestStatus =>
+  value.toLowerCase() as CreatePersonnelRequestStatus | UpdatePersonnelRequestStatus
+
+const mapApiPersonnel = (item: Personnel): Person => ({
+  id: item.id,
+  fullName: item.fullName,
+  phoneNumber: item.phoneNumber ?? '',
+  emailAddress: item.emailAddress ?? '',
+  role: item.designatedRole ?? 'Staff',
+  farmAssignments: item.farmId ? [item.farmId] : ['Default Assignment'],
+  employmentType: typeLabelMap[item.type] ?? 'Permanent',
+  employeeId: item.employeeId ?? '',
+  startDate: item.startDate?.split('T')[0] ?? '',
+  certifications: [],
+  emergencyContactName: item.emergencyContactName ?? '',
+  emergencyContactPhone: item.emergencyContactPhone ?? '',
+  status: statusLabelMap[item.status] ?? 'Active',
+  notes: item.professionalNotes ?? '',
+})
 
 export function meta() {
   return [{ title: 'Personnel | Agtrail' }]
 }
 
 export default function FarmerPersonnel() {
-  const [personnel, setPersonnel] = useState<Person[]>(INITIAL_PERSONNEL)
-  const [isLoading, setIsLoading] = useState(true)
+  const queryClient = useQueryClient()
+  const { data: personnelResponse, isLoading, isError, refetch } = useGetPersonnel()
+  const { mutateAsync: createPersonnel, isPending: isCreating } = usePostPersonnel()
+  const { mutateAsync: updatePersonnel, isPending: isUpdating } = usePatchPersonnelId()
+  const { mutateAsync: removePersonnel, isPending: isDeleting } = useDeletePersonnelId()
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState('All')
   const [statusFilter, setStatusFilter] = useState('All')
   const [employmentFilter, setEmploymentFilter] = useState('All')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingPerson, setEditingPerson] = useState<Person | null>(null)
+  const [employmentTypeValue, setEmploymentTypeValue] =
+    useState<CreatePersonnelRequestType>('permanent')
+  const [statusValue, setStatusValue] =
+    useState<CreatePersonnelRequestStatus>('active')
 
   const location = useLocation()
   const basePath = location.pathname.startsWith('/processor')
@@ -120,10 +130,10 @@ export default function FarmerPersonnel() {
       ? '/cooperative'
       : '/farmer'
 
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 800)
-    return () => clearTimeout(timer)
-  }, [])
+  const personnel = useMemo(
+    () => (personnelResponse?.data?.data ?? []).map(mapApiPersonnel),
+    [personnelResponse],
+  )
 
   const roles = useMemo(() => {
     const uniqueRoles = Array.from(new Set(personnel.map(p => p.role)))
@@ -148,7 +158,7 @@ export default function FarmerPersonnel() {
     return { total, active, permanent, seasonal }
   }, [personnel])
 
-  const handleSavePerson = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSavePerson = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const formData = new FormData(e.currentTarget)
     const fullName = String(formData.get('fullName') ?? '').trim()
@@ -178,49 +188,70 @@ export default function FarmerPersonnel() {
       return
     }
 
-    const data = {
-      fullName,
-      emailAddress,
-      phoneNumber: String(formData.get('phone') ?? '').trim(),
-      role,
-      employmentType: formData.get('employmentType') as string,
-      employeeId,
-      status: formData.get('status') as string,
-      startDate: formData.get('startDate') as string || new Date().toISOString().split('T')[0],
-      farmAssignments: editingPerson ? editingPerson.farmAssignments : ['Default Assignment'],
-      certifications: editingPerson ? editingPerson.certifications : [],
-      emergencyContactName: formData.get('emergencyName') as string,
-      emergencyContactPhone: formData.get('emergencyPhone') as string,
-      notes: formData.get('notes') as string,
-    }
-
-    if (editingPerson) {
-      setPersonnel(personnel.map(p => p.id === editingPerson.id ? { ...p, ...data } : p))
-      toast.success('Personnel record updated')
-    } else {
-      const newPerson: Person = {
-        id: Math.random().toString(36).substr(2, 9),
-        ...data,
+    try {
+      const payload = {
+        fullName,
+        emailAddress,
+        phoneNumber: String(formData.get('phone') ?? '').trim(),
+        designatedRole: role,
+        type: employmentTypeValue as CreatePersonnelRequestType | UpdatePersonnelRequestType,
+        employeeId,
+        status: statusValue as CreatePersonnelRequestStatus | UpdatePersonnelRequestStatus,
+        startDate: String(formData.get('startDate') ?? '') || new Date().toISOString().split('T')[0],
+        emergencyContactName: String(formData.get('emergencyName') ?? ''),
+        emergencyContactPhone: String(formData.get('emergencyPhone') ?? ''),
+        professionalNotes: String(formData.get('notes') ?? ''),
       }
-      setPersonnel([newPerson, ...personnel])
-      toast.success('New personnel added successfully')
+
+      if (editingPerson) {
+        await updatePersonnel({ id: editingPerson.id, data: payload })
+        toast.success('Personnel record updated')
+      } else {
+        await createPersonnel({ data: payload })
+        toast.success('New personnel added successfully')
+      }
+
+      await queryClient.invalidateQueries({ queryKey: getGetPersonnelQueryKey() })
+      handleCloseModal()
+    } catch (error) {
+      console.error('Failed to save personnel record', error)
+      toast.error(
+        getApiErrorMessage(error, 'Unable to save personnel record. Please try again.'),
+      )
     }
-    handleCloseModal()
   }
 
   const handleEditClick = (p: Person) => {
     setEditingPerson(p)
+    setEmploymentTypeValue(toPersonnelType(p.employmentType))
+    setStatusValue(toPersonnelStatus(p.status))
     setIsModalOpen(true)
   }
 
   const handleDelete = (id: string) => {
-    setPersonnel(personnel.filter(p => p.id !== id))
-    toast.success('Personnel record removed')
+    void (async () => {
+      try {
+        await removePersonnel({ id })
+        await queryClient.invalidateQueries({ queryKey: getGetPersonnelQueryKey() })
+        toast.success('Personnel record removed')
+      } catch (error) {
+        console.error('Failed to remove personnel record', error)
+        toast.error(
+          getApiErrorMessage(
+            error,
+            'Unable to remove personnel record. Please try again.',
+          ),
+        )
+      }
+    })()
   }
 
   const handleCloseModal = () => {
+    if (isCreating || isUpdating) return
     setIsModalOpen(false)
     setEditingPerson(null)
+    setEmploymentTypeValue('permanent')
+    setStatusValue('active')
   }
 
   const handleExport = () => {
@@ -258,9 +289,19 @@ export default function FarmerPersonnel() {
             <span className="hidden sm:inline">Export Staff List</span>
           </Button>
           
-          <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+          <Dialog
+            open={isModalOpen}
+            onOpenChange={(open) => (open ? setIsModalOpen(true) : handleCloseModal())}
+          >
             <DialogTrigger render={
-              <Button onClick={() => setEditingPerson(null)} className="bg-[#1d3d1e] hover:bg-black text-white flex items-center gap-2">
+              <Button
+                onClick={() => {
+                  setEditingPerson(null)
+                  setEmploymentTypeValue('permanent')
+                  setStatusValue('active')
+                }}
+                className="bg-[#1d3d1e] hover:bg-black text-white flex items-center gap-2"
+              >
                 <UserPlus className="size-4" />
                 <span>Add Personnel</span>
               </Button>
@@ -298,26 +339,36 @@ export default function FarmerPersonnel() {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Type</Label>
-                      <Select name="employmentType" defaultValue={editingPerson?.employmentType || 'Permanent'}>
+                      <Select
+                        value={employmentTypeValue}
+                        onValueChange={(value) =>
+                          setEmploymentTypeValue(value as CreatePersonnelRequestType)
+                        }
+                      >
                         <SelectTrigger className="w-full">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="Permanent">Permanent</SelectItem>
-                          <SelectItem value="Seasonal">Seasonal</SelectItem>
-                          <SelectItem value="Contract">Contract</SelectItem>
+                          <SelectItem value="permanent">Permanent</SelectItem>
+                          <SelectItem value="seasonal">Seasonal</SelectItem>
+                          <SelectItem value="contract">Contract</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                     <div className="space-y-2">
                       <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Status</Label>
-                      <Select name="status" defaultValue={editingPerson?.status || 'Active'}>
+                      <Select
+                        value={statusValue}
+                        onValueChange={(value) =>
+                          setStatusValue(value as CreatePersonnelRequestStatus)
+                        }
+                      >
                         <SelectTrigger className="w-full">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="Active">Active</SelectItem>
-                          <SelectItem value="Inactive">Inactive</SelectItem>
+                          <SelectItem value="active">Active</SelectItem>
+                          <SelectItem value="inactive">Inactive</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -348,8 +399,8 @@ export default function FarmerPersonnel() {
 
                 <DialogFooter className="md:col-span-2 pt-4">
                   <Button type="button" variant="ghost" onClick={handleCloseModal} className="font-bold uppercase tracking-widest text-[10px]">Cancel</Button>
-                  <Button type="submit" form="person-form" className="bg-[#1d3d1e] hover:bg-black text-white px-10 font-bold uppercase tracking-widest text-[10px] shadow-md">
-                    {editingPerson ? 'Update Personnel' : 'Add to Staff'}
+                  <Button type="submit" form="person-form" disabled={isCreating || isUpdating} className="bg-[#1d3d1e] hover:bg-black text-white px-10 font-bold uppercase tracking-widest text-[10px] shadow-md">
+                    {isCreating || isUpdating ? 'Saving...' : editingPerson ? 'Update Personnel' : 'Add to Staff'}
                   </Button>
                 </DialogFooter>
               </form>
@@ -439,6 +490,7 @@ export default function FarmerPersonnel() {
                     <DropdownMenuRadioItem value="All">All Types</DropdownMenuRadioItem>
                     <DropdownMenuRadioItem value="Permanent">Permanent</DropdownMenuRadioItem>
                     <DropdownMenuRadioItem value="Seasonal">Seasonal</DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="Contract">Contract</DropdownMenuRadioItem>
                   </DropdownMenuRadioGroup>
                 </DropdownMenuGroup>
                 {(roleFilter !== 'All' || statusFilter !== 'All' || employmentFilter !== 'All') && (
@@ -477,6 +529,17 @@ export default function FarmerPersonnel() {
                     <td colSpan={6} className="px-6 py-8"><div className="h-8 bg-gray-50 rounded-lg w-full" /></td>
                   </tr>
                 ))
+              ) : isError ? (
+                <tr>
+                  <td colSpan={6} className="py-20 text-center">
+                    <EmptyState
+                      icon={<Search className="size-10" />}
+                      title="Personnel failed to load"
+                      description="Check your connection and retry."
+                      action={{ label: 'Retry', onClick: () => refetch() }}
+                    />
+                  </td>
+                </tr>
               ) : filtered.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="py-20 text-center">
@@ -566,7 +629,7 @@ export default function FarmerPersonnel() {
                         <DropdownMenuItem onClick={() => handleEditClick(person)} className="cursor-pointer">Edit Profile</DropdownMenuItem>
                         <DropdownMenuItem className="cursor-pointer">Manage Assignments</DropdownMenuItem>
                         <DropdownMenuItem className="cursor-pointer">View Emergency Contact</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleDelete(person.id)} className="cursor-pointer text-red-600">Deactivate Staff</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleDelete(person.id)} disabled={isDeleting} className="cursor-pointer text-red-600">Deactivate Staff</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </td>

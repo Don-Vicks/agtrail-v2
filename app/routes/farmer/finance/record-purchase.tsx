@@ -43,7 +43,7 @@ export default function RecordPurchasePage() {
   const [beneficiary, setBeneficiary] = useState('')
   const [description, setDescription] = useState('')
   const [productType, setProductType] =
-    useState<PostPurchasesBodyProductType>('crop')
+    useState<PostPurchasesBodyProductType>('farm_product')
   const [quantity, setQuantity] = useState('')
   const [unit, setUnit] = useState('kg')
   const [pricePerUnit, setPricePerUnit] = useState('')
@@ -222,11 +222,8 @@ export default function RecordPurchasePage() {
                   required
                   className='h-10 w-full appearance-none rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white'
                 >
-                  <option value='crop'>Crop</option>
-                  <option value='livestock'>Livestock</option>
-                  <option value='aquaculture'>Aquaculture</option>
-                  <option value='apiary'>Apiary</option>
-                  <option value='processed_batch'>Processed Batch</option>
+                  <option value='farm_product'>Farm Product</option>
+                  <option value='batch_product'>Batch Product</option>
                 </select>
                 <div className='pointer-events-none absolute inset-y-0 right-3 flex items-center'>
                   <ChevronDown className='size-3 text-gray-400' />
