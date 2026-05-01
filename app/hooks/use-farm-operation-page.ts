@@ -15,11 +15,12 @@ import type { Farm } from '~/lib/api/generated/models/farm'
 import type { GetFarmsCropCyclesId200 } from '~/lib/api/generated/models/getFarmsCropCyclesId200'
 import type { GetFarmsId200 } from '~/lib/api/generated/models/getFarmsId200'
 import type { LogFarmOperationRequest } from '~/lib/api/generated/models/logFarmOperationRequest'
-import { FarmOperationOperationType } from '~/lib/api/generated/models/farmOperationOperationType'
+import { LogFarmOperationRequestOperationCategory } from '~/lib/api/generated/models/logFarmOperationRequestOperationCategory'
 import { buildLogFarmOperationRequest, type FarmOperationRouteSlug } from '~/lib/farm-operation-log'
 import type { OperationLayoutCropCycle } from '~/lib/operation-layout-types'
 import { getOperationsListPath } from '~/lib/operations-list-path'
 import { formatFarmLocation } from '~/lib/record-operation-dashboard'
+import type { OperationFormFooterValues } from '~/lib/operation-form-footer'
 
 function cropCycleFromQueryData(
   queryData: { data: GetFarmsCropCyclesId200 } | undefined,
@@ -33,9 +34,48 @@ function farmFromQueryData(queryData: { data: GetFarmsId200 } | undefined): Farm
   return body?.data ?? null
 }
 
+function parseFarmCoordinates(
+  gpsCoordinates: unknown | null | undefined,
+): { latitude: number | null; longitude: number | null } {
+  if (!gpsCoordinates) {
+    return { latitude: null, longitude: null }
+  }
+  const parsedInput =
+    typeof gpsCoordinates === 'string'
+      ? (() => {
+          try {
+            return JSON.parse(gpsCoordinates) as unknown
+          } catch {
+            return null
+          }
+        })()
+      : gpsCoordinates
+  if (!parsedInput || typeof parsedInput !== 'object') {
+    return { latitude: null, longitude: null }
+  }
+  const point = parsedInput as {
+    coordinates?: unknown
+    lat?: unknown
+    lng?: unknown
+    latitude?: unknown
+    longitude?: unknown
+  }
+  const maybeCoordinates = Array.isArray(point.coordinates) ? point.coordinates : null
+  const longitude = Number(
+    maybeCoordinates?.[0] ?? point.lng ?? point.longitude,
+  )
+  const latitude = Number(
+    maybeCoordinates?.[1] ?? point.lat ?? point.latitude,
+  )
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+    return { latitude: null, longitude: null }
+  }
+  return { latitude, longitude }
+}
+
 function compactOperationRequest(
   payload: LogFarmOperationRequest,
-): LogFarmOperationRequest {
+): Partial<LogFarmOperationRequest> {
   if (payload.cropCycleId) return payload
   const { cropCycleId: _ignored, ...rest } = payload
   return rest
@@ -43,16 +83,11 @@ function compactOperationRequest(
 
 function buildFallbackRequests(
   baseRequest: LogFarmOperationRequest,
-): LogFarmOperationRequest[] {
+): Partial<LogFarmOperationRequest>[] {
   const dateOnly = new Date().toISOString().slice(0, 10)
   const candidates: LogFarmOperationRequest[] = [
     baseRequest,
     { ...baseRequest, operationDate: dateOnly },
-    {
-      ...baseRequest,
-      operationType: FarmOperationOperationType.other,
-      operationDate: dateOnly,
-    },
   ]
   const seen = new Set<string>()
   return candidates
@@ -131,17 +166,20 @@ export function useFarmOperationPage(operationSlug: FarmOperationRouteSlug) {
 
   const layoutCropCycle: OperationLayoutCropCycle | null = useMemo(() => {
     if (!cycle) return null
+    const { latitude, longitude } = parseFarmCoordinates(farm?.gpsCoordinates)
     const farmerName = user?.email?.split('@')[0] ?? 'Operator'
     const initials = farmerName.slice(0, 2).toUpperCase()
     return {
       id: cycle.id,
       farmId: cycle.farmId,
-      productName: cycle.cropName || 'Crop',
+      latitude,
+      longitude,
+      productName: (cycle as CropCycle & { cropName?: string }).cropName || 'Crop',
       variety: cycle.variety,
       plantedDate: cycle.plantingDate
         ? new Date(cycle.plantingDate).toLocaleDateString()
         : null,
-      area: cycle.areaPlantedHectares ?? null,
+      area: (cycle as CropCycle & { areaPlantedHectares?: number | null }).areaPlantedHectares ?? null,
       season: cycle.season,
       farmName: farm?.name ?? 'Farm',
       farmLocation: formatFarmLocation(farm),
@@ -154,16 +192,21 @@ export function useFarmOperationPage(operationSlug: FarmOperationRouteSlug) {
 
   const { mutateAsync: postOperation, isPending } = usePostFarmsIdOperations()
 
-  const submitLog = async (description: string) => {
+  const submitLog = async (
+    description: string,
+    footer: OperationFormFooterValues,
+    extraData?: Partial<LogFarmOperationRequest>,
+  ) => {
     if (!cycle) throw new Error('Crop cycle not loaded')
     if (!farmId) throw new Error('Farm ID is missing for this crop cycle')
-    const data = buildLogFarmOperationRequest(operationSlug, description, cycle.id)
-    const requestAttempts = buildFallbackRequests(data)
+    const data = buildLogFarmOperationRequest(operationSlug, description, cycle.id, footer)
+    const finalData = { ...data, ...extraData }
+    const requestAttempts = buildFallbackRequests(finalData)
     let lastServerError: unknown = null
 
     for (const requestData of requestAttempts) {
       try {
-        await postOperation({ id: farmId, data: requestData })
+        await postOperation({ id: farmId, data: requestData as LogFarmOperationRequest })
         lastServerError = null
         break
       } catch (error: unknown) {

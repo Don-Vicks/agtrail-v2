@@ -5,36 +5,34 @@
  * API Documentation for AgTrail Backend V2
  * OpenAPI spec version: 1.0.0
  */
+import type { CropCycleAreaUnit } from './cropCycleAreaUnit';
 import type { CropCycleStatus } from './cropCycleStatus';
 
 export interface CropCycle {
   id: string;
   farmId: string;
-  cropName: string;
+  /** Crop / product name stored in DB (use cropName in request for backwards compat) */
+  productName: string;
   /** @nullable */
   variety?: string | null;
-  /** @nullable */
-  seedSource?: string | null;
-  /** @nullable */
-  seedTreatment?: string | null;
   /** @nullable */
   season?: string | null;
   plantingDate: string;
   /** @nullable */
   expectedHarvestDate?: string | null;
   /** @nullable */
-  areaPlantedHectares?: number | null;
+  actualHarvestDate?: string | null;
+  /**
+   * Numeric string
+   * @nullable
+   */
+  areaPlanted?: string | null;
+  /** @nullable */
+  areaUnit?: CropCycleAreaUnit;
   status?: CropCycleStatus;
+  isOrganic?: boolean;
   /** @nullable */
-  cropCondition?: string | null;
-  /** @nullable */
-  lastInspectionDate?: string | null;
-  /** @nullable */
-  totalCostExpected?: number | null;
-  /** @nullable */
-  expectedYieldKg?: number | null;
-  /** @nullable */
-  actualYieldKg?: number | null;
+  notes?: string | null;
   createdAt: string;
   updatedAt: string;
   /**

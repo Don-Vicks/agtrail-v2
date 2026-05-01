@@ -5,13 +5,18 @@
  * API Documentation for AgTrail Backend V2
  * OpenAPI spec version: 1.0.0
  */
+import type { CreateBatchRequestStorageConditions } from './createBatchRequestStorageConditions';
 
 export interface CreateBatchRequest {
   outputProductName: string;
   outputProductType: string;
+  /** Preferred. Resolves facilityName and facilityLocation automatically. */
+  facilityId?: string;
+  /** Used only when facilityId is not provided. */
   facilityName?: string;
   facilityLocation?: string;
   packagingDate?: string;
   shelfLifeDays?: number;
-  storageConditions?: string;
+  /** Free JSON e.g. { "temperature": "20-25C", "humidity": "below 60%" } */
+  storageConditions?: CreateBatchRequestStorageConditions;
 }

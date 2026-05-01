@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
 import type { OperationFormFooterValues } from '~/lib/operation-form-footer'
-import { formatOperationLogDescription } from '~/lib/operation-form-footer'
+ 
 import { OperationFormLayout } from '~/components/operation-form-layout'
-import { InventoryField } from '~/components/inventory-field'
+import { InventoryField, type InventoryOption } from '~/components/inventory-field'
 import { PersonField } from '~/components/person-field'
 import { OperationFormError, OperationFormLoading } from '~/components/operation-form-load-state'
 import { useFarmOperationPage } from '~/hooks/use-farm-operation-page'
@@ -19,6 +19,8 @@ export function meta({ }: Route.MetaArgs) {
 export default function Planting() {
   const { layoutCropCycle, isLoading, isError, submitLog, isPending } = useFarmOperationPage(OPERATION_SLUG)
   const [description, setDescription] = useState('')
+  const [selectedSeed, setSelectedSeed] = useState<InventoryOption | undefined>(undefined)
+  const [quantityUsed, setQuantityUsed] = useState('')
 
   if (isLoading) return <OperationFormLoading />
   if (isError || !layoutCropCycle) {
@@ -32,8 +34,23 @@ export default function Planting() {
       toast.error('Description is required.')
       return
     }
+    const quantity = parseFloat(quantityUsed) || 0
+    const extraData = {
+      materialsUsed: selectedSeed
+        ? [
+            {
+              inventoryItemId: selectedSeed.id,
+              name: selectedSeed.itemName,
+              quantity,
+              unit: selectedSeed.unitOfMeasurement || 'unit',
+              cost: selectedSeed.unitCost * quantity,
+              currency: selectedSeed.currency || 'NGN',
+            },
+          ]
+        : [],
+    }
     try {
-      await submitLog(formatOperationLogDescription(description.trim(), footer))
+      await submitLog(description.trim(), footer, extraData)
       toast.success('Planting logged successfully.')
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Unknown error'
@@ -54,7 +71,7 @@ export default function Planting() {
       {/* 2-column: Operator & Supervisor */}
       <div className="grid grid-cols-2 gap-6">
         <PersonField
-          id="operator-name"
+          id="operator-personnel-id"
           label="Operator Name"
           defaultValue=""
           placeholder="Select operator"
@@ -78,12 +95,13 @@ export default function Planting() {
             id="seed-item"
             label="Select Seed from Inventory"
             defaultValue=""
+            onChange={(_, item) => setSelectedSeed(item)}
             placeholder="Select seed item"
             categoryFilter="Seeds"
           />
           <div>
             <label className="mb-1.5 block text-sm font-semibold text-gray-900">Quantity Used (kg)</label>
-            <input type="number" placeholder="Enter quantity" className="w-full rounded-md border border-gray-200 px-3.5 py-2.5 text-sm placeholder:text-gray-400" />
+            <input type="number" value={quantityUsed} onChange={(e) => setQuantityUsed(e.target.value)} placeholder="Enter quantity" className="w-full rounded-md border border-gray-200 px-3.5 py-2.5 text-sm placeholder:text-gray-400" />
           </div>
         </div>
 
@@ -91,22 +109,22 @@ export default function Planting() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="mb-1.5 block text-sm font-semibold text-gray-900">Brand / Supplier Name</label>
-            <input type="text" placeholder="Auto-filled from inventory" className="w-full rounded-md border border-gray-200 px-3.5 py-2.5 text-sm placeholder:text-gray-400 bg-gray-50" readOnly />
+            <input type="text" value={selectedSeed?.supplierName || ''} placeholder="Auto-filled from inventory" className="w-full rounded-md border border-gray-200 px-3.5 py-2.5 text-sm placeholder:text-gray-400 bg-gray-50" readOnly />
           </div>
           <div>
             <label className="mb-1.5 block text-sm font-semibold text-gray-900">Batch Number</label>
-            <input type="text" placeholder="Auto-filled from inventory" className="w-full rounded-md border border-gray-200 px-3.5 py-2.5 text-sm placeholder:text-gray-400 bg-gray-50" readOnly />
+            <input type="text" value={selectedSeed?.batchNumber || ''} placeholder="Auto-filled from inventory" className="w-full rounded-md border border-gray-200 px-3.5 py-2.5 text-sm placeholder:text-gray-400 bg-gray-50" readOnly />
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="mb-1.5 block text-sm font-semibold text-gray-900">Unit Cost</label>
-            <input type="text" placeholder="Auto-filled from inventory" className="w-full rounded-md border border-gray-200 px-3.5 py-2.5 text-sm placeholder:text-gray-400 bg-gray-50" readOnly />
+            <input type="text" value={selectedSeed?.unitCost != null ? `₦${selectedSeed.unitCost.toLocaleString()}` : ''} placeholder="Auto-filled from inventory" className="w-full rounded-md border border-gray-200 px-3.5 py-2.5 text-sm placeholder:text-gray-400 bg-gray-50" readOnly />
           </div>
           <div>
             <label className="mb-1.5 block text-sm font-semibold text-gray-900">Certification Status</label>
-            <input type="text" placeholder="Auto-filled from inventory" className="w-full rounded-md border border-gray-200 px-3.5 py-2.5 text-sm placeholder:text-gray-400 bg-gray-50" readOnly />
+            <input type="text" value={selectedSeed?.certificationStatus || ''} placeholder="Auto-filled from inventory" className="w-full rounded-md border border-gray-200 px-3.5 py-2.5 text-sm placeholder:text-gray-400 bg-gray-50" readOnly />
           </div>
         </div>
       </div>

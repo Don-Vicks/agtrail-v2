@@ -15,7 +15,8 @@ import {
   ChevronRight,
   MapPin,
   Sprout,
-  Archive
+  Archive,
+  Eye
 } from 'lucide-react'
 import { PageHeader } from '~/components/page-header'
 import { Button } from '~/components/ui/button'
@@ -112,7 +113,7 @@ export default function AggregatorBatchQrScanPage() {
               </div>
             </div>
 
-            <div className="aspect-[2/1] rounded-xl bg-[#1a4332] flex flex-col items-center justify-center text-white border border-[#2e7d32]/20">
+            <div className="aspect-2/1 rounded-xl bg-[#1a4332] flex flex-col items-center justify-center text-white border border-[#2e7d32]/20">
               <ScanLine className="size-8 text-white/20 mb-2" />
               <p className="text-xs font-bold tracking-tight">Camera Off</p>
               <p className="text-[9px] font-bold uppercase tracking-widest text-white/60 mt-0.5">Use the buttons below</p>
@@ -176,9 +177,9 @@ export default function AggregatorBatchQrScanPage() {
               <p className="text-[9px] text-gray-400 font-bold max-w-xs leading-relaxed uppercase tracking-widest">
                 verified batches will appear here, ready to consolidation into a lot
               </p>
-              <Button asChild variant="link" className="mt-4 text-brand font-bold text-[10px] uppercase tracking-widest">
-                <Link to="/aggregator/draft-lot">View Empty Draft Page</Link>
-              </Button>
+              <Link to="/aggregator/draft-lot" className="mt-4 text-brand font-bold text-[10px] uppercase tracking-widest hover:underline underline-offset-4">
+                View Empty Draft Page
+              </Link>
             </div>
           ) : (
             <>
@@ -222,17 +223,13 @@ export default function AggregatorBatchQrScanPage() {
               </div>
               
               <div className="mt-auto pt-6 space-y-4">
-                <Button asChild className="w-full h-12 bg-brand hover:bg-brand/90 text-white font-bold rounded-xl shadow-sm">
-                  <Link to="/aggregator/draft-lot">
-                    See Draft
-                  </Link>
-                </Button>
+                <Link to="/aggregator/draft-lot" className="flex items-center justify-center w-full h-12 bg-brand hover:bg-brand/90 text-white font-bold rounded-xl shadow-sm">
+                  See Draft
+                </Link>
                 <div className="grid grid-cols-2 gap-4">
-                  <Button asChild className="h-12 bg-[#1a4332] hover:bg-[#122e22] text-white font-bold rounded-xl shadow-sm">
-                    <Link to="/aggregator/lot-consolidation">
-                      Create Lot
-                    </Link>
-                  </Button>
+                  <Link to="/aggregator/lot-consolidation" className="flex items-center justify-center h-12 bg-[#1a4332] hover:bg-[#122e22] text-white font-bold rounded-xl shadow-sm px-4">
+                    Create Lot
+                  </Link>
                   <Button 
                     onClick={() => setIsScanModalOpen(true)}
                     variant="outline" 
@@ -318,7 +315,7 @@ export default function AggregatorBatchQrScanPage() {
               <div className='flex gap-4 pt-4'>
                 <Button
                   onClick={() => setIsScanModalOpen(false)}
-                  className='h-12 flex-1 rounded-xl bg-[#dc2626] text-sm font-bold text-white hover:bg-[#b91c1c] shadow-md transition-all active:scale-95'
+                  className='h-12 flex-1 rounded-xl bg-brand-accent text-sm font-bold text-white hover:bg-[#b91c1c] shadow-md transition-all active:scale-95'
                 >
                   Cancel
                 </Button>

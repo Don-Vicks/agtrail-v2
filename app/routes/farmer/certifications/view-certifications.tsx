@@ -92,6 +92,7 @@ interface CertificationInfo {
   expiryDate: string;
   appliedTo: string;
   type: CertType;
+  documentUrl: string;
 }
 
 /* ─── Page Component ─── */
@@ -111,6 +112,7 @@ export default function ViewCertificationsPage() {
       expiryDate: cert.expiryDate || cert.expiresAt || 'N/A',
       appliedTo: cert.appliedTo || cert.entityName || (cert.certifiedEntityType === 'FARM' ? 'Farm' : 'Product'),
       type: cert.type || (cert.certifiedEntityType === 'FARM' ? 'Farm' : 'Product'),
+      documentUrl: cert?.documentUrl,
     })) as CertificationInfo[]
   }, [certsResp])
   const [activeTab, setActiveTab] = useState<'All' | 'Farm' | 'Product'>('All')
@@ -383,7 +385,9 @@ export default function ViewCertificationsPage() {
                   <div className="flex items-end justify-end sm:col-span-4 lg:col-span-1">
                     <button className="flex items-center gap-2 text-sm font-bold text-brand hover:text-brand-light">
                       <ExternalLinkIcon />
-                      View Document
+                      <Link to={cert.documentUrl}>
+                        View Document
+                      </Link>
                     </button>
                   </div>
                 </div>

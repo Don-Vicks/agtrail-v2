@@ -18,7 +18,15 @@ export interface ProcessorBatch {
   startedAt?: string | null;
   /** @nullable */
   completedAt?: string | null;
-  /** @nullable */
+  /**
+   * If provided, facilityName and facilityLocation are auto-resolved from the facility record
+   * @nullable
+   */
+  facilityId?: string | null;
+  /**
+   * Auto-populated from facilityId. Can be provided directly if facilityId is omitted.
+   * @nullable
+   */
   facilityName?: string | null;
   /** @nullable */
   facilityLocation?: string | null;

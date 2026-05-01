@@ -7,17 +7,30 @@ export type OperationFormFooterValues = {
   renewableEnergy: string
   mainEnergySource: string
   weatherConditions: string
+  weatherData: {
+    temperature: string
+    rainfall: string
+    notes: string
+  }
   areaHectares: string
   costNgn: string
+  currency: string
   additionalNotes: string
+  personnelId?: string
 }
 
 export const DEFAULT_OPERATION_FOOTER: OperationFormFooterValues = {
   renewableEnergy: 'no_traditional',
   mainEnergySource: '',
   weatherConditions: 'sunny',
+  weatherData: {
+    temperature: '34°C',
+    rainfall: 'none',
+    notes: 'Partly cloudy',
+  },
   areaHectares: '',
   costNgn: '',
+  currency: 'NGN',
   additionalNotes: '',
 }
 

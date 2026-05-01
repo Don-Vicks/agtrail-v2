@@ -10,9 +10,10 @@ export type CropCycleStatus = typeof CropCycleStatus[keyof typeof CropCycleStatu
 
 
 export const CropCycleStatus = {
-  planned: 'planned',
-  active: 'active',
-  harvested: 'harvested',
-  failed: 'failed',
-  abandoned: 'abandoned',
+  planning: 'planning',
+  planted: 'planted',
+  growing: 'growing',
+  harvesting: 'harvesting',
+  completed: 'completed',
+  cancelled: 'cancelled',
 } as const;

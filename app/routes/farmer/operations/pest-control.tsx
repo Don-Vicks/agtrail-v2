@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
 import type { OperationFormFooterValues } from '~/lib/operation-form-footer'
-import { formatOperationLogDescription } from '~/lib/operation-form-footer'
+ 
 import { OperationFormLayout } from '~/components/operation-form-layout'
-import { InventoryField } from '~/components/inventory-field'
+import { InventoryField, type InventoryOption } from '~/components/inventory-field'
 import { PersonField } from '~/components/person-field'
 import { OperationFormError, OperationFormLoading } from '~/components/operation-form-load-state'
 import { useFarmOperationPage } from '~/hooks/use-farm-operation-page'
@@ -19,6 +19,8 @@ export function meta({ }: Route.MetaArgs) {
 export default function PestControl() {
   const { layoutCropCycle, isLoading, isError, submitLog, isPending } = useFarmOperationPage(OPERATION_SLUG)
   const [description, setDescription] = useState('')
+  const [selectedItem, setSelectedItem] = useState<InventoryOption | undefined>(undefined)
+  const [quantityApplied, setQuantityApplied] = useState('')
 
   if (isLoading) return <OperationFormLoading />
   if (isError || !layoutCropCycle) {
@@ -32,8 +34,23 @@ export default function PestControl() {
       toast.error('Description is required.')
       return
     }
+    const quantity = parseFloat(quantityApplied) || 0
+    const extraData = {
+      materialsUsed: selectedItem
+        ? [
+            {
+              inventoryItemId: selectedItem.id,
+              name: selectedItem.itemName,
+              quantity,
+              unit: selectedItem.unitOfMeasurement || 'unit',
+              cost: selectedItem.unitCost * quantity,
+              currency: selectedItem.currency || 'NGN',
+            },
+          ]
+        : [],
+    }
     try {
-      await submitLog(formatOperationLogDescription(description.trim(), footer))
+      await submitLog(description.trim(), footer, extraData)
       toast.success('Pest control logged successfully.')
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Unknown error'
@@ -54,7 +71,7 @@ export default function PestControl() {
       {/* 2-column: Operator & Supervisor */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <PersonField
-          id="operator-name"
+          id="operator-personnel-id"
           label="Operator Name"
           defaultValue=""
           placeholder="Select operator"
@@ -95,12 +112,13 @@ export default function PestControl() {
           id="pesticide-item"
           label="Select Pesticide from Inventory"
           defaultValue=""
+          onChange={(_, item) => setSelectedItem(item)}
           placeholder="Select pesticide item"
           categoryFilter="Pesticide"
         />
         <div>
           <label className="mb-1.5 block text-sm font-semibold text-gray-900">Quantity Applied</label>
-          <input type="text" placeholder="Enter quantity" className="w-full rounded-md border border-gray-200 px-3.5 py-2.5 text-sm placeholder:text-gray-400" />
+          <input type="text" value={quantityApplied} onChange={(e) => setQuantityApplied(e.target.value)} placeholder="Enter quantity" className="w-full rounded-md border border-gray-200 px-3.5 py-2.5 text-sm placeholder:text-gray-400" />
         </div>
       </div>
 
@@ -108,11 +126,11 @@ export default function PestControl() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <label className="mb-1.5 block text-sm font-semibold text-gray-900">Brand / Product Name</label>
-          <input type="text" placeholder="Auto-filled from inventory" className="w-full rounded-md border border-gray-200 px-3.5 py-2.5 text-sm placeholder:text-gray-400 bg-gray-50" readOnly />
+          <input type="text" value={selectedItem?.itemName || ''} placeholder="Auto-filled from inventory" className="w-full rounded-md border border-gray-200 px-3.5 py-2.5 text-sm placeholder:text-gray-400 bg-gray-50" readOnly />
         </div>
         <div>
           <label className="mb-1.5 block text-sm font-semibold text-gray-900">Batch Number</label>
-          <input type="text" placeholder="Auto-filled from inventory" className="w-full rounded-md border border-gray-200 px-3.5 py-2.5 text-sm placeholder:text-gray-400 bg-gray-50" readOnly />
+          <input type="text" value={selectedItem?.batchNumber || ''} placeholder="Auto-filled from inventory" className="w-full rounded-md border border-gray-200 px-3.5 py-2.5 text-sm placeholder:text-gray-400 bg-gray-50" readOnly />
         </div>
       </div>
 

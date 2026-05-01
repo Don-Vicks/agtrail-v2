@@ -1,5 +1,6 @@
 import type { LogFarmOperationRequest } from '~/lib/api/generated/models/logFarmOperationRequest'
-import { FarmOperationOperationType } from '~/lib/api/generated/models/farmOperationOperationType'
+import { LogFarmOperationRequestOperationCategory } from '~/lib/api/generated/models/logFarmOperationRequestOperationCategory'
+import type { OperationFormFooterValues } from './operation-form-footer'
 
 /** URL segment under `.../operations/new/:cropCycleId/<slug>` */
 export type FarmOperationRouteSlug =
@@ -17,48 +18,52 @@ export type FarmOperationRouteSlug =
   | 'packaging'
   | 'storage'
 
-const SLUG_TO_TYPE: Partial<Record<FarmOperationRouteSlug, FarmOperationOperationType>> = {
-  'land-prep': FarmOperationOperationType.land_clearing,
-  planting: FarmOperationOperationType.planting,
-  fertilizer: FarmOperationOperationType.fertilizer_application,
-  irrigation: FarmOperationOperationType.irrigation,
-  weeding: FarmOperationOperationType.weeding,
-  'pest-control': FarmOperationOperationType.pesticide_application,
-  harvesting: FarmOperationOperationType.harvesting,
-}
-
-const OTHER_LABEL: Partial<Record<FarmOperationRouteSlug, string>> = {
-  pruning: 'Pruning',
-  sorting: 'Sorting & grading',
-  drying: 'Drying',
-  processing: 'Post-harvest processing',
-  packaging: 'Packaging',
-  storage: 'Storage',
+const SLUG_TO_CATEGORY: Record<FarmOperationRouteSlug, LogFarmOperationRequestOperationCategory> = {
+  'land-prep': LogFarmOperationRequestOperationCategory.land_preparation,
+  planting: LogFarmOperationRequestOperationCategory.planting,
+  fertilizer: LogFarmOperationRequestOperationCategory.fertilizer,
+  irrigation: LogFarmOperationRequestOperationCategory.irrigation,
+  weeding: LogFarmOperationRequestOperationCategory.weeding,
+  'pest-control': LogFarmOperationRequestOperationCategory.pest_control,
+  pruning: LogFarmOperationRequestOperationCategory.pruning,
+  harvesting: LogFarmOperationRequestOperationCategory.harvesting,
+  sorting: LogFarmOperationRequestOperationCategory.general,
+  drying: LogFarmOperationRequestOperationCategory.general,
+  processing: LogFarmOperationRequestOperationCategory.general,
+  packaging: LogFarmOperationRequestOperationCategory.general,
+  storage: LogFarmOperationRequestOperationCategory.general,
 }
 
 export function buildLogFarmOperationRequest(
   routeSlug: FarmOperationRouteSlug,
   description: string,
   cropCycleId: string,
-  operationDate: string = new Date().toISOString(),
+  footer?: OperationFormFooterValues,
+  operationDate: string = new Date().toISOString().slice(0, 10),
 ): LogFarmOperationRequest {
   const trimmed = description.trim()
-  const mapped = SLUG_TO_TYPE[routeSlug]
-  if (mapped) {
-    return {
-      cropCycleId,
-      operationType: mapped,
-      description: trimmed,
-      operationDate,
-    }
-  }
-  const label =
-    OTHER_LABEL[routeSlug] ??
-    routeSlug.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
-  return {
+  const category = SLUG_TO_CATEGORY[routeSlug]
+  
+  const baseRequest: LogFarmOperationRequest = {
     cropCycleId,
-    operationType: FarmOperationOperationType.other,
-    description: `${label}: ${trimmed}`,
+    operationCategory: category,
+    operationType: routeSlug.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()),
+    description: trimmed,
     operationDate,
   }
+
+  if (footer) {
+    const costRaw = String(footer.costNgn).replace(/,/g, '').trim()
+    return {
+      ...baseRequest,
+      cost: costRaw || undefined as any,
+      currency: footer.currency || 'NGN',
+      personnelId: footer.personnelId,
+      weatherConditions: footer.weatherData as any,
+      areaCovered: footer.areaHectares,
+      areaUnit: 'hectares',
+    }
+  }
+
+  return baseRequest
 }

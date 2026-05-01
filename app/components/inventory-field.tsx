@@ -1,87 +1,53 @@
 import { Label } from '~/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
+import type { SuppliesInventory } from '~/lib/api/generated/models'
+import { useGetSuppliesInventory } from '~/lib/api/generated/supplies-inventory/supplies-inventory'
 
 import { useCallback, useState } from 'react'
 
-// Mock inventory data - in a real app, this would come from an API or context
-const mockInventory = [
-  {
-    id: '1',
-    itemName: 'NPK 15-15-15 Fertilizer',
-    category: 'Fertilizer',
-    brand: 'Dangote',
-    supplierName: 'Agro Supplies Ltd',
-    supplierPhone: '+234 801 234 5678',
-    purchaseLocation: 'Lagos Central Market',
-    unitOfMeasurement: 'kg',
-    quantityPurchased: 100,
-    unitCost: 2500,
-    totalCost: 250000,
-    purchaseDate: '2024-01-15',
-    invoiceNumber: 'INV-2024-001',
-    batchNumber: 'BATCH-FERT-001',
-    expiryDate: '2025-01-15',
-    storageLocation: 'Warehouse A',
-    currentStockLevel: 85,
-    minimumStockLevel: 20,
-    certificationStatus: 'Conventional',
-    assignedFarms: ['Farm A', 'Farm B'],
-    notes: 'High-quality NPK fertilizer for maize cultivation'
-  },
-  {
-    id: '2',
-    itemName: 'Maize Seed - Hybrid 1',
-    category: 'Seeds',
-    brand: 'Premier Seeds',
-    supplierName: 'Seed Distributors Nigeria',
-    supplierPhone: '+234 802 345 6789',
-    purchaseLocation: 'Ibadan Seed Market',
-    unitOfMeasurement: 'kg',
-    quantityPurchased: 50,
-    unitCost: 15000,
-    totalCost: 750000,
-    purchaseDate: '2024-02-01',
-    invoiceNumber: 'INV-2024-002',
-    batchNumber: 'BATCH-SEED-001',
-    expiryDate: '2025-02-01',
-    storageLocation: 'Cold Storage B',
-    currentStockLevel: 45,
-    minimumStockLevel: 10,
-    certificationStatus: 'Organic',
-    assignedFarms: ['Farm A'],
-    notes: 'High-yield hybrid maize seeds'
-  },
-  {
-    id: '3',
-    itemName: 'Pesticide - Insecticide',
-    category: 'Pesticide',
-    brand: 'AgroChem',
-    supplierName: 'Chemical Supplies Co',
-    supplierPhone: '+234 803 456 7890',
-    purchaseLocation: 'Kano Agro Mall',
-    unitOfMeasurement: 'litres',
-    quantityPurchased: 20,
-    unitCost: 8000,
-    totalCost: 160000,
-    purchaseDate: '2024-01-20',
-    invoiceNumber: 'INV-2024-003',
-    batchNumber: 'BATCH-PEST-001',
-    expiryDate: '2024-12-20',
-    storageLocation: 'Pesticide Storage',
-    currentStockLevel: 18,
-    minimumStockLevel: 5,
-    certificationStatus: 'Conventional',
-    assignedFarms: ['Farm B'],
-    notes: 'Effective against common maize pests'
-  },
-]
+export type InventoryOption = {
+  id: string
+  itemName: string
+  category: string
+  supplierName: string
+  unitOfMeasurement: string
+  unitCost: number
+  currency: string
+  batchNumber: string
+  currentStockLevel: number
+  certificationStatus: string
+}
+
+const categoryMap: Record<string, string> = {
+  seeds: 'seed',
+  seed: 'seed',
+  fertilizer: 'fertilizer',
+  pesticide: 'pesticide',
+}
+
+function toInventoryOption(item: SuppliesInventory): InventoryOption {
+  const unitCost = Number(item.unitCost ?? 0)
+  const currentStockLevel = Number(item.currentLevel ?? 0)
+  return {
+    id: item.id,
+    itemName: item.itemName,
+    category: item.category,
+    supplierName: item.supplierName ?? 'N/A',
+    unitOfMeasurement: item.unit,
+    unitCost: Number.isFinite(unitCost) ? unitCost : 0,
+    currency: item.unitCostCurrency ?? 'NGN',
+    batchNumber: `BATCH-${item.id.slice(0, 6).toUpperCase()}`,
+    currentStockLevel: Number.isFinite(currentStockLevel) ? currentStockLevel : 0,
+    certificationStatus: item.certification === 'organic' ? 'Organic' : 'Conventional',
+  }
+}
 
 interface InventoryFieldProps {
   id: string
   label: string
   value?: string
   defaultValue?: string
-  onChange?: (value: string, item?: typeof mockInventory[0]) => void
+  onChange?: (value: string, item?: InventoryOption) => void
   placeholder?: string
   className?: string
   categoryFilter?: string // Optional filter for specific categories like 'Seeds', 'Fertilizer'
@@ -98,11 +64,13 @@ export function InventoryField({
   categoryFilter,
 }: InventoryFieldProps) {
   const [internalValue, setInternalValue] = useState(defaultValue ?? '')
+  const { data } = useGetSuppliesInventory()
+  const inventory = (data?.data?.data ?? []).map(toInventoryOption)
 
   const handleChange = useCallback(
     (val: string | null) => {
       if (val === null) return
-      const selectedItem = mockInventory.find(item => item.itemName === val)
+      const selectedItem = inventory.find(item => item.id === val)
       if (onChange) {
         onChange(val, selectedItem)
       }
@@ -110,15 +78,27 @@ export function InventoryField({
         setInternalValue(val)
       }
     },
-    [onChange, value]
+    [inventory, onChange, value]
   )
 
   const inputValue = value !== undefined ? value : internalValue
 
   // Filter inventory based on category if specified
   const filteredInventory = categoryFilter
-    ? mockInventory.filter(item => item.category.toLowerCase().includes(categoryFilter.toLowerCase()))
-    : mockInventory
+    ? (() => {
+        const apiCategory = categoryMap[categoryFilter.toLowerCase()]
+        if (!apiCategory) return inventory
+        const exactMatch = inventory.filter(
+          (item) => String(item.category).toLowerCase() === apiCategory.toLowerCase(),
+        )
+        // Keep dropdown populated even if category naming differs in backend data.
+        return exactMatch.length > 0 ? exactMatch : inventory
+      })()
+    : inventory
+  const selectedItem = inventory.find((item) => item.id === inputValue)
+  const selectedLabel = selectedItem
+    ? `${selectedItem.itemName} - ${selectedItem.supplierName} (${selectedItem.category})`
+    : undefined
 
   return (
     <div className={className}>
@@ -131,16 +111,17 @@ export function InventoryField({
         onValueChange={handleChange}
       >
         <SelectTrigger>
-          <SelectValue placeholder={placeholder} />
+          <SelectValue placeholder={placeholder}>{selectedLabel}</SelectValue>
         </SelectTrigger>
         <SelectContent>
           {filteredInventory.map((item) => (
-            <SelectItem key={item.id} value={item.itemName}>
-              {item.itemName} - {item.brand} ({item.category})
+            <SelectItem key={item.id} value={item.id}>
+              {item.itemName} - {item.supplierName} ({item.category})
             </SelectItem>
           ))}
         </SelectContent>
       </Select>
+      <input type="hidden" name={id} value={inputValue} />
     </div>
   )
 }

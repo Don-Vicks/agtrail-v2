@@ -2,6 +2,8 @@
 export type OperationLayoutCropCycle = {
   id: string
   farmId: string
+  latitude?: number | null
+  longitude?: number | null
   productName: string
   variety?: string | null
   plantedDate?: string | null

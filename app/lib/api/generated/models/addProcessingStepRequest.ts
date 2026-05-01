@@ -11,12 +11,20 @@ export interface AddProcessingStepRequest {
   stepOrder: number;
   stepName: string;
   description?: string;
+  /** ISO datetime e.g. 2026-04-29T08:00:00Z */
   startTime?: string;
+  /** ISO datetime e.g. 2026-04-29T12:00:00Z */
   endTime?: string;
   temperature?: number;
   pressure?: number;
   humidity?: number;
-  equipmentUsed?: string;
+  /** Optional. Validates existence of facility before insert. */
+  facilityId?: string;
+  /** Optional. Resolves fullName → personnelResponsible automatically. */
+  personnelId?: string;
+  /** Single string or array — coerced to array internally */
+  equipmentUsed?: string | string[];
+  /** Ignored when personnelId is provided. */
   personnelResponsible?: string;
   parameters?: AddProcessingStepRequestParameters;
   notes?: string;

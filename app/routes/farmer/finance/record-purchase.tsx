@@ -14,10 +14,11 @@ import {
 import { EmptyState } from '~/components/empty-state'
 import { Button } from '~/components/ui/button'
 import { Badge } from '~/components/ui/badge'
-import { ShoppingCart, Plus, Search, ChevronDown } from 'lucide-react'
+import { Pagination } from '~/components/pagination'
+import { ArrowUpDown, ArrowUp, ArrowDown, ShoppingCart, Plus, Search, ChevronDown } from 'lucide-react'
 import type { Route } from './+types/record-purchase'
 
-export function meta({}: Route.MetaArgs) {
+export function meta({ }: Route.MetaArgs) {
   return [
     { title: 'Record Purchase | Agtrail Finance' },
     { name: 'description', content: 'Log farm payments and purchases' },
@@ -51,10 +52,17 @@ export default function RecordPurchasePage() {
     useGetPurchases()
   const purchases = purchasesResponse?.data?.data || []
 
+  // Pagination & Sorting State
+  const [currentPage, setCurrentPage] = useState(1)
+  const [rowsPerPage, setRowsPerPage] = useState(10)
+  const [sortBy, setSortBy] = useState<string>('date')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
+
   const tablePurchases = useMemo(() => {
     return purchases.map((p) => ({
       id: p.id,
       date: p.createdAt ? new Date(p.createdAt).toLocaleDateString() : 'N/A',
+      rawDate: p.createdAt ? new Date(p.createdAt).getTime() : 0,
       farmer: p.fromUserId || 'Unknown',
       farm: p.farmProductId || p.batchProductId || 'N/A',
       beneficiary: p.toUserId || 'N/A',
@@ -68,16 +76,68 @@ export default function RecordPurchasePage() {
   }, [purchases])
 
   const filteredPurchases = useMemo(() => {
-    return tablePurchases.filter((p) => {
+    let result = tablePurchases.filter((p) => {
       const term = search.toLowerCase()
       return (
         p.farmer.toLowerCase().includes(term) ||
         p.farm.toLowerCase().includes(term) ||
         p.beneficiary.toLowerCase().includes(term) ||
-        p.amount.includes(term)
+        p.amount.toLowerCase().includes(term) ||
+        p.account.toLowerCase().includes(term)
       )
     })
-  }, [search, tablePurchases])
+
+    // Sorting
+    result = [...result].sort((a, b) => {
+      let comparison = 0
+      switch (sortBy) {
+        case 'date':
+          comparison = a.rawDate - b.rawDate
+          break
+        case 'beneficiary':
+          comparison = a.beneficiary.localeCompare(b.beneficiary)
+          break
+        case 'details':
+          comparison = a.account.localeCompare(b.account)
+          break
+        case 'amount': {
+          const valA = parseFloat(a.amount.replace(/[^\d.]/g, '')) || 0
+          const valB = parseFloat(b.amount.replace(/[^\d.]/g, '')) || 0
+          comparison = valA - valB
+          break
+        }
+        default:
+          comparison = 0
+      }
+      return sortOrder === 'asc' ? comparison : -comparison
+    })
+
+    return result
+  }, [search, tablePurchases, sortBy, sortOrder])
+
+  const totalPages = Math.ceil(filteredPurchases.length / rowsPerPage)
+  const paginatedPurchases = useMemo(() => {
+    const start = (currentPage - 1) * rowsPerPage
+    return filteredPurchases.slice(start, start + rowsPerPage)
+  }, [filteredPurchases, currentPage, rowsPerPage])
+
+  const handleSort = (column: string) => {
+    if (sortBy === column) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
+    } else {
+      setSortBy(column)
+      setSortOrder('desc')
+    }
+  }
+
+  const SortIcon = ({ column }: { column: string }) => {
+    if (sortBy !== column) return <ArrowUpDown className="size-3 ml-1 opacity-50" />
+    return sortOrder === 'asc' ? (
+      <ArrowUp className="size-3 ml-1 text-brand" />
+    ) : (
+      <ArrowDown className="size-3 ml-1 text-brand" />
+    )
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -124,7 +184,8 @@ export default function RecordPurchasePage() {
       await queryClient.invalidateQueries({ queryKey: ['/purchases'] })
       toast.success('Purchase recorded successfully!')
 
-      // Reset form
+      // Reset form and go to first page
+      setCurrentPage(1)
       setDate('')
       setBeneficiary('')
       setDescription('')
@@ -344,7 +405,10 @@ export default function RecordPurchasePage() {
               id='table-search'
               type='text'
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => {
+                setSearch(e.target.value)
+                setCurrentPage(1)
+              }}
               placeholder='Search purchases...'
               className='w-full rounded-lg border border-gray-200 pl-10 pr-4 py-2 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white'
             />
@@ -380,22 +444,42 @@ export default function RecordPurchasePage() {
               <table className='w-full text-left text-sm'>
                 <thead>
                   <tr className='bg-gray-50/50 border-b border-gray-100'>
-                    <th className='px-6 py-4 font-bold text-gray-500 uppercase tracking-wider text-[10px]'>
-                      Date
+                    <th
+                      className='px-6 py-4 font-bold text-gray-500 uppercase tracking-wider text-[10px] cursor-pointer hover:bg-gray-100/50 transition-colors'
+                      onClick={() => handleSort('date')}
+                    >
+                      <div className='flex items-center'>
+                        Date <SortIcon column='date' />
+                      </div>
                     </th>
-                    <th className='px-6 py-4 font-bold text-gray-500 uppercase tracking-wider text-[10px]'>
-                      Merchant / Seller
+                    <th
+                      className='px-6 py-4 font-bold text-gray-500 uppercase tracking-wider text-[10px] cursor-pointer hover:bg-gray-100/50 transition-colors'
+                      onClick={() => handleSort('beneficiary')}
+                    >
+                      <div className='flex items-center'>
+                        Merchant / Seller <SortIcon column='beneficiary' />
+                      </div>
                     </th>
-                    <th className='px-6 py-4 font-bold text-gray-500 uppercase tracking-wider text-[10px]'>
-                      Details
+                    <th
+                      className='px-6 py-4 font-bold text-gray-500 uppercase tracking-wider text-[10px] cursor-pointer hover:bg-gray-100/50 transition-colors'
+                      onClick={() => handleSort('details')}
+                    >
+                      <div className='flex items-center'>
+                        Details <SortIcon column='details' />
+                      </div>
                     </th>
-                    <th className='px-6 py-4 font-bold text-gray-500 uppercase tracking-wider text-[10px] text-right'>
-                      Amount
+                    <th
+                      className='px-6 py-4 font-bold text-gray-500 uppercase tracking-wider text-[10px] text-right cursor-pointer hover:bg-gray-100/50 transition-colors'
+                      onClick={() => handleSort('amount')}
+                    >
+                      <div className='flex items-center justify-end'>
+                        Amount <SortIcon column='amount' />
+                      </div>
                     </th>
                   </tr>
                 </thead>
                 <tbody className='divide-y divide-gray-50'>
-                  {filteredPurchases.map((purchase) => (
+                  {paginatedPurchases.map((purchase) => (
                     <tr
                       key={purchase.id}
                       className='hover:bg-gray-50/50 transition-colors group'
@@ -446,29 +530,21 @@ export default function RecordPurchasePage() {
           )}
         </div>
 
-        <div className='p-4 border-t border-gray-100 bg-gray-50/30 text-xs font-medium text-gray-500 flex justify-between items-center text-left'>
-          <div className='flex items-center gap-2 text-left'>
-            <span className='size-2 rounded-full bg-brand/30 animate-pulse text-left' />
-            <span>
-              Showing audit trail for {filteredPurchases.length} record(s)
-            </span>
-          </div>
-          <div className='flex items-center gap-2'>
-            <Button
-              variant='ghost'
-              size='sm'
-              className='h-7 text-[10px] font-bold uppercase transition-all hover:bg-white hover:shadow-sm px-4'
-            >
-              Download PDF
-            </Button>
-            <Button
-              variant='ghost'
-              size='sm'
-              className='h-7 text-[10px] font-bold uppercase transition-all hover:bg-white hover:shadow-sm px-4'
-            >
-              View All
-            </Button>
-          </div>
+        <div className='p-4 border-t border-gray-100 bg-gray-50/30'>
+          {!isLoadingPurchases && filteredPurchases.length > 0 && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={filteredPurchases.length}
+              itemsPerPage={rowsPerPage}
+              onPageChange={setCurrentPage}
+              onItemsPerPageChange={(count) => {
+                setRowsPerPage(count)
+                setCurrentPage(1)
+              }}
+              itemLabel='purchase(s)'
+            />
+          )}
         </div>
       </div>
     </div>

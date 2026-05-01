@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
 import type { OperationFormFooterValues } from '~/lib/operation-form-footer'
-import { formatOperationLogDescription } from '~/lib/operation-form-footer'
+ 
 import { OperationFormLayout } from '~/components/operation-form-layout'
 import { PersonField } from '~/components/person-field'
 import { OperationFormError, OperationFormLoading } from '~/components/operation-form-load-state'
@@ -32,7 +32,7 @@ export default function Pruning() {
       return
     }
     try {
-      await submitLog(formatOperationLogDescription(description.trim(), footer))
+      await submitLog(description.trim(), footer)
       toast.success('Pruning logged successfully.')
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Unknown error'

@@ -132,4 +132,11 @@ export default [
   ...processorRoutes as any,
   ...cooperativeRoutes as any,
   ...aggregatorRoutes as any,
+
+  // Transporter tenant
+  layout('routes/transporter/layout.tsx', [
+    ...prefix('transporter', [
+      index('routes/transporter/dashboard.tsx'),
+    ]),
+  ]),
 ] satisfies RouteConfig

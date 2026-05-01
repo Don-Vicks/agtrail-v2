@@ -5,31 +5,43 @@
  * API Documentation for AgTrail Backend V2
  * OpenAPI spec version: 1.0.0
  */
+import type { BatchInputMaterialMaterialType } from './batchInputMaterialMaterialType';
+import type { BatchInputMaterialQualityAssessment } from './batchInputMaterialQualityAssessment';
 
 export interface BatchInputMaterial {
   id: string;
   processorBatchId: string;
-  materialType: string;
+  materialType: BatchInputMaterialMaterialType;
   /** @nullable */
   sourceFarmProductId?: string | null;
   /** @nullable */
   sourceBatchProductId?: string | null;
-  /** @nullable */
+  /**
+   * Reference to supplies_inventory. Resolves name/supplier automatically.
+   * @nullable
+   */
+  inventoryItemId?: string | null;
+  /**
+   * Auto-populated from inventoryItemId.itemName when inventoryItemId is provided.
+   * @nullable
+   */
   externalMaterialName?: string | null;
-  /** @nullable */
+  /**
+   * Auto-populated from inventoryItemId.supplierName when inventoryItemId is provided.
+   * @nullable
+   */
   externalSupplierName?: string | null;
-  quantityUsed: number;
+  quantityUsed: string;
   unit: string;
   /** @nullable */
-  percentageOfBatch?: number | null;
+  percentageOfBatch?: string | null;
   /** @nullable */
-  qualityAssessment?: string | null;
+  qualityAssessment?: BatchInputMaterialQualityAssessment;
   /** @nullable */
   lotNumber?: string | null;
   /** @nullable */
   notes?: string | null;
   createdAt: string;
-  updatedAt: string;
   /**
    * Legacy generic blockchain transaction hash
    * @nullable

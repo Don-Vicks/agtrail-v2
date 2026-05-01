@@ -5,12 +5,21 @@
  * API Documentation for AgTrail Backend V2
  * OpenAPI spec version: 1.0.0
  */
+import type { CreateCropCycleRequestAreaUnit } from './createCropCycleRequestAreaUnit';
 
 export interface CreateCropCycleRequest {
-  cropName: string;
+  /** Alias for productName — use either */
+  cropName?: string;
+  /** Stored in DB as productName. One of cropName or productName is required. */
+  productName?: string;
   variety?: string;
   season?: string;
+  /** Required. ISO date e.g. 2026-04-20 */
   plantingDate: string;
   expectedHarvestDate?: string;
-  areaPlantedHectares?: number;
+  /** Numeric value for planted area */
+  areaPlanted?: number;
+  areaUnit?: CreateCropCycleRequestAreaUnit;
+  isOrganic?: boolean;
+  notes?: string;
 }

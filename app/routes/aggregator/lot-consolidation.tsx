@@ -6,7 +6,8 @@ import {
   FileText,
   Search,
   MoreVertical,
-  User
+  User,
+  CheckCircle2
 } from 'lucide-react'
 import { PageHeader } from '~/components/page-header'
 import { Button } from '~/components/ui/button'

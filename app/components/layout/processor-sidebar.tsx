@@ -261,6 +261,7 @@ export function Sidebar() {
             <SelectItem value="Processor" className="focus:bg-brand/10 focus:text-brand focus-visible:bg-brand/10 focus-visible:text-brand">Processor</SelectItem>
             <SelectItem value="Cooperative" className="focus:bg-brand/10 focus:text-brand focus-visible:bg-brand/10 focus-visible:text-brand">Cooperative</SelectItem>
             <SelectItem value="Aggregator" className="focus:bg-brand/10 focus:text-brand focus-visible:bg-brand/10 focus-visible:text-brand">Aggregator</SelectItem>
+            <SelectItem value="Transporter" className="focus:bg-brand/10 focus:text-brand focus-visible:bg-brand/10 focus-visible:text-brand">Transporter</SelectItem>
           </SelectContent>
         </Select>
       </div>

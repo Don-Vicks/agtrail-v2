@@ -5,6 +5,7 @@
  * API Documentation for AgTrail Backend V2
  * OpenAPI spec version: 1.0.0
  */
+import type { CreateFarmRequestAreaUnit } from './createFarmRequestAreaUnit';
 
 export interface CreateFarmRequest {
   name: string;
@@ -13,6 +14,10 @@ export interface CreateFarmRequest {
   state?: string;
   lga?: string;
   region?: string;
+  /** Farm size as a number */
+  totalArea?: number;
+  areaUnit?: CreateFarmRequestAreaUnit;
+  soilType?: string;
   gpsCoordinates?: unknown | null;
   boundaries?: unknown | null;
 }

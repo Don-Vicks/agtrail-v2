@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router'
 import { toast } from 'sonner'
 import { PageHeader } from '~/components/page-header'
@@ -9,6 +9,8 @@ import {
 } from '~/lib/operation-form-footer'
 import type { OperationLayoutCropCycle } from '~/lib/operation-layout-types'
 import { getOperationsListPath } from '~/lib/operations-list-path'
+import { useWeather } from '~/hooks/use-weather'
+import { cn } from '~/lib/utils'
 
 interface OperationFormLayoutProps {
   title: string
@@ -37,6 +39,18 @@ export function OperationFormLayout({
   const navigate = useNavigate()
   const location = useLocation()
   const areaInputRef = useRef<HTMLInputElement>(null)
+  
+  const {
+    weather,
+    isLoading: isWeatherLoading,
+    error: weatherError,
+    hasCoordinates,
+    refreshWeather,
+  } = useWeather({
+    latitude: cropCycle.latitude,
+    longitude: cropCycle.longitude,
+    locationQuery: `${cropCycle.farmName} ${cropCycle.farmLocation}`.trim(),
+  })
 
   const [renewableEnergy, setRenewableEnergy] = useState(
     DEFAULT_OPERATION_FOOTER.renewableEnergy,
@@ -80,6 +94,14 @@ export function OperationFormLayout({
   const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const formEl = e.currentTarget
+    
+    // Extract operator name from the children fields if present
+    const formData = new FormData(formEl)
+    const personnelId =
+      (formData.get('operator-personnel-id') as string) ||
+      (formData.get('operator-name') as string) ||
+      undefined
+
     if (!formEl.checkValidity()) {
       formEl.reportValidity()
       return
@@ -89,9 +111,16 @@ export function OperationFormLayout({
       renewableEnergy,
       mainEnergySource,
       weatherConditions,
+      weatherData: {
+        temperature: weather.temperature,
+        rainfall: weather.rainfall,
+        notes: weather.notes,
+      },
       areaHectares,
       costNgn,
+      currency: 'NGN',
       additionalNotes,
+      personnelId,
     }
 
     const footerCheck = validateOperationFormFooter(footer)
@@ -236,30 +265,38 @@ export function OperationFormLayout({
               <div>
                 <div className="mb-2 flex items-center justify-between">
                   <h3 className="text-sm font-semibold text-gray-900">Weather Conditions</h3>
-                  <button type="button" className="flex items-center gap-1.5 text-xs font-semibold text-brand hover:text-[#1f3c0f] transition-colors">
-                    <svg className="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <button
+                    type="button" 
+                    disabled={isWeatherLoading || !hasCoordinates}
+                    onClick={refreshWeather}
+                    className="flex items-center gap-1.5 text-xs font-semibold text-brand hover:text-[#1f3c0f] transition-colors disabled:opacity-50"
+                  >
+                    <svg className={cn("size-3.5", isWeatherLoading && "animate-spin")} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
                     </svg>
-                    Refresh
+                    {isWeatherLoading ? 'Fetching...' : 'Refresh'}
                   </button>
                 </div>
                 <div className="rounded-md border border-gray-100 bg-gray-50 p-4">
+                  {weatherError && (
+                    <p className="mb-2 text-xs text-red-600">{weatherError}</p>
+                  )}
                   <div className="mb-4 grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div>
                       <p className="text-[10px] uppercase text-gray-500">Temperature</p>
-                      <p className="font-semibold text-gray-900">34°C</p>
+                      <p className="font-semibold text-gray-900">{weather.temperature}</p>
                     </div>
                     <div>
                       <p className="text-[10px] uppercase text-gray-500">Humidity</p>
-                      <p className="font-semibold text-gray-900">13%</p>
+                      <p className="font-semibold text-gray-900">{weather.humidity}</p>
                     </div>
                     <div>
                       <p className="text-[10px] uppercase text-gray-500">Wind</p>
-                      <p className="font-semibold text-gray-900">10 km/h</p>
+                      <p className="font-semibold text-gray-900">{weather.wind}</p>
                     </div>
                     <div>
                       <p className="text-[10px] uppercase text-gray-500">Source</p>
-                      <p className="font-semibold text-gray-900">Farm coordinates</p>
+                      <p className="font-semibold text-gray-900">{weather.source}</p>
                     </div>
                   </div>
                   <select

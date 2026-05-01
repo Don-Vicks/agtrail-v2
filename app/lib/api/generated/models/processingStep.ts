@@ -18,22 +18,37 @@ export interface ProcessingStep {
   startTime?: string | null;
   /** @nullable */
   endTime?: string | null;
+  /**
+   * Numeric string, e.g. "180"
+   * @nullable
+   */
+  temperature?: string | null;
   /** @nullable */
-  temperature?: number | null;
+  pressure?: string | null;
   /** @nullable */
-  pressure?: number | null;
+  humidity?: string | null;
+  /**
+   * Facility where this step was performed
+   * @nullable
+   */
+  facilityId?: string | null;
+  /**
+   * Personnel record — fullName auto-resolved to personnelResponsible
+   * @nullable
+   */
+  personnelId?: string | null;
   /** @nullable */
-  humidity?: number | null;
-  /** @nullable */
-  equipmentUsed?: string | null;
-  /** @nullable */
+  equipmentUsed?: string[] | null;
+  /**
+   * Auto-populated from personnelId.fullName when personnelId is provided.
+   * @nullable
+   */
   personnelResponsible?: string | null;
   /** @nullable */
   parameters?: ProcessingStepParameters;
   /** @nullable */
   notes?: string | null;
   createdAt: string;
-  updatedAt: string;
   /**
    * Legacy generic blockchain transaction hash
    * @nullable

@@ -12,6 +12,7 @@ export type ProcessorBatchStatus = typeof ProcessorBatchStatus[keyof typeof Proc
 export const ProcessorBatchStatus = {
   pending: 'pending',
   in_progress: 'in_progress',
+  quality_check: 'quality_check',
   completed: 'completed',
   cancelled: 'cancelled',
 } as const;

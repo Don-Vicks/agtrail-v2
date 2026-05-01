@@ -477,6 +477,12 @@ export function AggregatorSidebar() {
               >
                 Aggregator
               </SelectItem>
+              <SelectItem
+                value='Transporter'
+                className='focus:bg-brand/10 focus:text-brand'
+              >
+                Transporter
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>

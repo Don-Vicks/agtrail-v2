@@ -5,17 +5,21 @@
  * API Documentation for AgTrail Backend V2
  * OpenAPI spec version: 1.0.0
  */
+import type { AddInputMaterialRequestMaterialType } from './addInputMaterialRequestMaterialType';
+import type { AddInputMaterialRequestQualityAssessment } from './addInputMaterialRequestQualityAssessment';
 
 export interface AddInputMaterialRequest {
-  materialType: string;
+  materialType: AddInputMaterialRequestMaterialType;
   sourceFarmProductId?: string;
   sourceBatchProductId?: string;
+  /** Preferred for internal supplies. Resolves externalMaterialName and externalSupplierName automatically. */
+  inventoryItemId?: string;
   externalMaterialName?: string;
   externalSupplierName?: string;
   quantityUsed: number;
   unit: string;
   percentageOfBatch?: number;
-  qualityAssessment?: string;
+  qualityAssessment?: AddInputMaterialRequestQualityAssessment;
   lotNumber?: string;
   notes?: string;
 }

@@ -5,36 +5,54 @@
  * API Documentation for AgTrail Backend V2
  * OpenAPI spec version: 1.0.0
  */
-import type { FarmOperationOperationType } from './farmOperationOperationType';
+import type { FarmOperationMaterialsUsedItem } from './farmOperationMaterialsUsedItem';
+import type { FarmOperationOperationCategory } from './farmOperationOperationCategory';
 
 export interface FarmOperation {
   id: string;
-  farmId: string;
   /** @nullable */
   cropCycleId?: string | null;
-  operationType: FarmOperationOperationType;
+  operationCategory: FarmOperationOperationCategory;
+  /** Free-text label (defaults to operationCategory if omitted) */
+  operationType: string;
+  /** ISO date string e.g. 2026-04-20 */
   operationDate: string;
-  /** @nullable */
-  operationTime?: string | null;
   description: string;
+  /**
+   * Optional facility where the operation took place
+   * @nullable
+   */
+  facilityId?: string | null;
+  /**
+   * Optional personnel record — fullName is auto-resolved to operatorName
+   * @nullable
+   */
+  personnelId?: string | null;
+  /**
+   * Auto-populated from personnelId.fullName if personnelId is provided
+   * @nullable
+   */
+  operatorName?: string | null;
   /** @nullable */
-  performedBy?: string | null;
+  materialsUsed?: FarmOperationMaterialsUsedItem[] | null;
   /** @nullable */
-  inputUsed?: string | null;
+  equipmentUsed?: string[] | null;
+  /** Free-text or JSON e.g. "Sunny, 30°C" */
+  weatherConditions?: unknown | null;
+  /**
+   * Numeric string e.g. "28000"
+   * @nullable
+   */
+  cost?: string | null;
   /** @nullable */
-  inputQuantity?: number | null;
+  currency?: string | null;
   /** @nullable */
-  inputUnit?: string | null;
+  areaCovered?: string | null;
   /** @nullable */
-  equipmentUsed?: string | null;
+  areaUnit?: string | null;
+  qualityAssessment?: unknown | null;
   /** @nullable */
-  weatherConditions?: string | null;
-  /** @nullable */
-  costIncurred?: number | null;
-  /** @nullable */
-  photos?: string[] | null;
-  /** @nullable */
-  notes?: string | null;
+  createdBy?: string | null;
   createdAt: string;
   updatedAt: string;
   /**

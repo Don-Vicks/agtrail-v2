@@ -1,11 +1,17 @@
 import type { AuthResponseDataUser } from '~/lib/api/generated/models/authResponseDataUser'
 
-export type TenantRole = 'farmer' | 'processor' | 'cooperative' | 'aggregator'
+export type TenantRole =
+  | 'farmer'
+  | 'processor'
+  | 'cooperative'
+  | 'aggregator'
+  | 'transporter'
 
 export function getTenantFromPathname(pathname: string): TenantRole {
   if (pathname.startsWith('/aggregator')) return 'aggregator'
   if (pathname.startsWith('/processor')) return 'processor'
   if (pathname.startsWith('/cooperative')) return 'cooperative'
+  if (pathname.startsWith('/transporter')) return 'transporter'
   return 'farmer'
 }
 
@@ -13,6 +19,7 @@ export function getTenantSelectValue(role: TenantRole): string {
   if (role === 'aggregator') return 'Aggregator'
   if (role === 'processor') return 'Processor'
   if (role === 'cooperative') return 'Cooperative'
+  if (role === 'transporter') return 'Transporter'
   return 'Farmer'
 }
 
