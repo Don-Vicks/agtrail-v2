@@ -1,35 +1,34 @@
-import { useMemo, useState } from 'react'
-import { Link } from 'react-router'
 import { useQueryClient } from '@tanstack/react-query'
 import {
-  Building2, 
-  Layers, 
-  Search, 
-  ShieldCheck, 
-  Wrench, 
-  Plus, 
-  MoreVertical, 
-  Edit2, 
-  Trash2, 
-  ArrowRight, 
   Activity,
-  MapPin,
+  ArrowRight,
+  Building2,
+  Edit2,
+  Layers,
   Loader2,
+  MapPin,
+  MoreVertical,
+  Plus,
+  Search,
+  ShieldCheck,
+  Trash2,
+  Wrench,
 } from 'lucide-react'
-import { Badge } from '~/components/ui/badge'
-import { Button } from '~/components/ui/button'
+import { useMemo, useState } from 'react'
+import { Link } from 'react-router'
+import { toast } from 'sonner'
 import { EmptyState } from '~/components/empty-state'
 import { PageHeader } from '~/components/page-header'
 import { StatCard } from '~/components/stat-card'
-import { Input } from '~/components/ui/input'
-import { Label } from '~/components/ui/label'
+import { Badge } from '~/components/ui/badge'
+import { Button } from '~/components/ui/button'
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogFooter,
 } from '~/components/ui/dialog'
 import {
   DropdownMenu,
@@ -37,6 +36,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '~/components/ui/dropdown-menu'
+import { Input } from '~/components/ui/input'
+import { Label } from '~/components/ui/label'
 import {
   Select,
   SelectContent,
@@ -44,8 +45,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '~/components/ui/select'
-import { cn } from '~/lib/utils'
-import { toast } from 'sonner'
 import {
   getGetFacilitiesIdQueryKey,
   getGetFacilitiesQueryKey,
@@ -55,11 +54,12 @@ import {
   usePostFacilities,
 } from '~/lib/api/generated/facilities/facilities'
 import type {
-  Facility,
   CreateFacilityRequestStatus,
+  Facility,
   UpdateFacilityRequestStatus,
 } from '~/lib/api/generated/models'
 import { getOrganizationHeaders } from '~/lib/organization-context'
+import { cn } from '~/lib/utils'
 
 type FacilityStatus = CreateFacilityRequestStatus | UpdateFacilityRequestStatus
 type FacilityRecord = Facility & {
@@ -327,7 +327,7 @@ export default function ProcessorFacilitiesPage() {
         <StatCard title="Utilization" value={`${stats.avgUtil}%`} icon={<Activity className="size-4 text-blue-500" />} />
       </div>
 
-      <div className="rounded-xl border border-gray-100 p-4 shadow-sm flex flex-col lg:flex-row items-center justify-between gap-4 sticky top-0 z-10 backdrop-blur-md bg-white/80">
+      <div className="rounded-md border border-gray-100 p-4 shadow-sm flex flex-col lg:flex-row items-center justify-between gap-4 sticky top-0 z-10 backdrop-blur-md bg-white/80">
         <div className="relative w-full lg:max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
           <input
@@ -335,7 +335,7 @@ export default function ProcessorFacilitiesPage() {
             placeholder="Search by name, location, or manager..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full h-11 rounded-xl border border-gray-100 bg-gray-50/50 pl-10 pr-4 py-2 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white transition-all shadow-none"
+            className="w-full h-11 rounded-md border border-gray-100 bg-gray-50/50 pl-10 pr-4 py-2 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white transition-all shadow-none"
           />
         </div>
 
@@ -420,10 +420,10 @@ export default function ProcessorFacilitiesPage() {
               <div className="flex justify-between items-start mb-4">
                 <div className="flex items-center gap-3">
                   <div className={cn(
-                    "size-10 rounded-xl flex items-center justify-center transition-colors",
+                    "size-10 rounded-md flex items-center justify-center transition-colors",
                     facility.status === 'operational' ? "bg-emerald-50 text-emerald-600 group-hover:bg-emerald-100" :
-                    facility.status === 'maintenance' ? "bg-amber-50 text-amber-600 group-hover:bg-amber-100" :
-                    "bg-gray-50 text-gray-600 group-hover:bg-gray-100"
+                      facility.status === 'maintenance' ? "bg-amber-50 text-amber-600 group-hover:bg-amber-100" :
+                        "bg-gray-50 text-gray-600 group-hover:bg-gray-100"
                   )}>
                     <Building2 className="size-5" />
                   </div>
@@ -435,14 +435,14 @@ export default function ProcessorFacilitiesPage() {
                     </div>
                   </div>
                 </div>
-                
+
                 <DropdownMenu>
                   <DropdownMenuTrigger render={
                     <Button variant="ghost" size="icon" className="size-8 text-gray-400 hover:text-gray-900 rounded-full h-8 w-8 hover:bg-gray-50">
                       <MoreVertical className="size-4" />
                     </Button>
                   } />
-                  <DropdownMenuContent align="end" className="w-40 rounded-xl shadow-lg ring-1 ring-black/5">
+                  <DropdownMenuContent align="end" className="w-40 rounded-md shadow-lg ring-1 ring-black/5">
                     <DropdownMenuItem onClick={() => handleEditClick(facility)} className="gap-2 cursor-pointer font-medium py-2">
                       <Edit2 className="size-3.5 text-blue-500" />
                       <span>Edit Site</span>
@@ -461,8 +461,8 @@ export default function ProcessorFacilitiesPage() {
                   <Badge variant="outline" className={cn(
                     "text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border-none",
                     facility.status === 'operational' ? "bg-emerald-50 text-emerald-700" :
-                    facility.status === 'maintenance' ? "bg-amber-50 text-amber-700" :
-                    "bg-gray-100 text-gray-700"
+                      facility.status === 'maintenance' ? "bg-amber-50 text-amber-700" :
+                        "bg-gray-100 text-gray-700"
                   )}>
                     {STATUS_OPTIONS.find((option) => option.value === facility.status)?.label || 'Unknown'}
                   </Badge>
@@ -470,19 +470,19 @@ export default function ProcessorFacilitiesPage() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 pt-2">
-                  <div className="bg-gray-50/50 rounded-xl p-3 border border-transparent group-hover:border-gray-100 transition-colors">
+                  <div className="bg-gray-50/50 rounded-md p-3 border border-transparent group-hover:border-gray-100 transition-colors">
                     <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">Utilization</p>
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-bold text-gray-900">{facility.utilizationValue}%</span>
                       <div className="h-1.5 flex-1 bg-gray-200 rounded-full overflow-hidden">
-                        <div 
+                        <div
                           className={cn("h-full transition-all duration-1000", facility.utilizationValue > 70 ? "bg-brand" : "bg-blue-500")}
                           style={{ width: `${facility.utilizationValue}%` }}
                         />
                       </div>
                     </div>
                   </div>
-                  <div className="bg-gray-50/50 rounded-xl p-3 border border-transparent group-hover:border-gray-100 transition-colors">
+                  <div className="bg-gray-50/50 rounded-md p-3 border border-transparent group-hover:border-gray-100 transition-colors">
                     <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">Monthly Capacity</p>
                     <p className="text-sm font-bold text-gray-900">{facility.capacityDisplay} Tons</p>
                   </div>
@@ -494,8 +494,8 @@ export default function ProcessorFacilitiesPage() {
                       {facility.managerDisplay.split(' ').map(n => n[0]).join('')}
                     </div>
                     <div className="hidden sm:block">
-                       <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest leading-none">Manager</p>
-                       <p className="text-xs font-bold text-gray-700">{facility.managerDisplay}</p>
+                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest leading-none">Manager</p>
+                      <p className="text-xs font-bold text-gray-700">{facility.managerDisplay}</p>
                     </div>
                   </div>
                   <Link to={`/processor/facilities/${facility.id}`}>

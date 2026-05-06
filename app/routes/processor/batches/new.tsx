@@ -1,16 +1,16 @@
+import { Package } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
-import { PageHeader } from '~/components/page-header';
 import { EmptyState } from '~/components/empty-state';
-import { Package } from 'lucide-react';
+import { PageHeader } from '~/components/page-header';
 import type { CreateBatchRequest } from '~/lib/api/generated/models';
 import { usePostProcessorsBatches } from '~/lib/api/generated/processors-batches/processors-batches';
 import { getClientOrganizationId } from '~/lib/organization-context';
 
 function SectionCard({ title, subtitle, icon, action, children }: { title: string; subtitle: string; icon: React.ReactNode; action?: React.ReactNode; children: React.ReactNode }) {
   return (
-    <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden mb-6">
+    <div className="rounded-md border border-gray-200 bg-white shadow-sm overflow-hidden mb-6">
       <div className="p-6 border-b border-gray-100 flex items-start justify-between">
         <div className="flex items-start gap-3">
           <div className="mt-0.5 text-gray-800">{icon}</div>
@@ -147,14 +147,14 @@ export default function CreateNewBatch() {
       {/* Page Header */}
       {!organizationId ? (
         <EmptyState
-          className="rounded-xl border border-dashed border-amber-200 bg-amber-50/40 py-8 mb-6"
+          className="rounded-md border border-dashed border-amber-200 bg-amber-50/40 py-8 mb-6"
           icon={<Package className="size-8 text-amber-700" />}
           title="Organization context is missing"
           description="Batch creation requires `X-Organization-Id`. Set `VITE_DEFAULT_ORGANIZATION_ID` and restart dev server."
         />
       ) : null}
       <div className="flex items-start gap-4 mb-8">
-        <div className="text-brand bg-brand/10 p-2 rounded-lg shrink-0">
+        <div className="text-brand bg-brand/10 p-2 rounded-md shrink-0">
           <svg className="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.5l4-4 4 4 4-4 6 6M3 10.5V21h18V10.5M3 10.5l4-4 4 4 4-4 6 6" />
           </svg>
@@ -252,7 +252,7 @@ export default function CreateNewBatch() {
             <button
               type="submit"
               disabled={isPending}
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-[#1b4332] hover:bg-[#0f2e20] px-6 text-sm font-semibold text-white shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-[#1b4332] hover:bg-[#0f2e20] px-6 text-sm font-semibold text-white shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isPending ? 'Creating Batch...' : 'Create Batch'}
             </button>
@@ -314,7 +314,7 @@ export default function CreateNewBatch() {
 
           <div className="flex flex-col mb-4">
             <span className="text-sm font-semibold text-gray-900 mb-2">Product Photo</span>
-            <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50/50 p-8 text-center transition-colors hover:bg-gray-50 flex flex-col items-center justify-center max-w-[400px]">
+            <div className="rounded-md border border-dashed border-gray-300 bg-gray-50/50 p-8 text-center transition-colors hover:bg-gray-50 flex flex-col items-center justify-center max-w-[400px]">
               <div className="mb-4 flex size-12 items-center justify-center rounded-full bg-[#1b4332]/10 text-brand">
                 <svg className="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />

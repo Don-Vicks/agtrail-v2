@@ -1,6 +1,6 @@
-import { cn } from '~/lib/utils'
+import { TrendingDown, TrendingUp } from 'lucide-react'
 import { Skeleton } from '~/components/ui/skeleton'
-import { TrendingUp, TrendingDown } from 'lucide-react'
+import { cn } from '~/lib/utils'
 
 interface StatCardProps {
   title?: string // Backward compatibility
@@ -14,22 +14,22 @@ interface StatCardProps {
   isLoading?: boolean
 }
 
-export function StatCard({ 
-  title, 
-  label, 
-  value, 
-  subtitle, 
-  description, 
-  icon, 
-  trend = 'neutral', 
-  className, 
-  isLoading 
+export function StatCard({
+  title,
+  label,
+  value,
+  subtitle,
+  description,
+  icon,
+  trend = 'neutral',
+  className,
+  isLoading
 }: StatCardProps) {
   const displayLabel = label || title
-  
+
   return (
     <div className={cn(
-      'rounded-xl border border-gray-100 bg-white p-5 shadow-sm hover:shadow-md transition-all group flex flex-col justify-between h-full',
+      'rounded-md border border-gray-100 bg-white p-5 shadow-sm hover:shadow-md transition-all group flex flex-col justify-between h-full',
       className
     )}>
       <div className="flex items-start justify-between mb-4">
@@ -41,7 +41,7 @@ export function StatCard({
             {isLoading ? <Skeleton className="h-8 w-24" /> : value}
           </div>
         </div>
-        <div className="flex size-10 items-center justify-center rounded-xl bg-gray-50 border border-gray-100 text-gray-400 group-hover:text-brand transition-colors">
+        <div className="flex size-10 items-center justify-center rounded-md bg-gray-50 border border-gray-100 text-gray-400 group-hover:text-brand transition-colors">
           {icon}
         </div>
       </div>

@@ -1,32 +1,47 @@
-import { useMemo, useState, type ReactNode } from 'react'
-import { PageHeader } from '~/components/page-header'
-import { Button } from '~/components/ui/button'
-import { Badge } from '~/components/ui/badge'
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from '~/components/ui/dialog'
 import {
   AlertTriangle,
   CheckCircle2,
   ChevronDown,
   ClipboardCheck,
   Download,
+  ExternalLink,
   FileText,
-  MapPin,
+  Globe,
+  Info,
+  RefreshCcw,
   Search,
   ShieldAlert,
   ShieldCheck,
   Upload,
-  Globe,
-  RefreshCcw,
-  Zap,
-  ExternalLink,
-  ArrowRight,
-  Info,
-  Circle,
-  CheckCircle
+  MapPin,
+  User,
+  Calendar,
+  History,
+  Sprout,
+  AlertCircle,
+  Lock,
+  FileSearch,
+  Award,
+  ChevronRight
 } from 'lucide-react'
-import type { Route } from './+types/compliance-analysis'
+import { useMemo, useState, type ReactNode } from 'react'
 import { FarmMap } from '~/components/farm-map.client'
+import { PageHeader } from '~/components/page-header'
+import { Badge } from '~/components/ui/badge'
+import { Button } from '~/components/ui/button'
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from '~/components/ui/dialog'
 import { cn } from '~/lib/utils'
+
+import { ReportMetricsBar } from '~/components/compliance/report-metrics'
+import { ReportSidebar } from '~/components/compliance/report-sidebar'
+import { ReportOverview } from '~/components/compliance/report-overview'
+import { ReportGeolocation } from '~/components/compliance/report-geolocation'
+import { ReportRegulatory } from '~/components/compliance/report-regulatory'
+
+import { ReadinessHeader } from '~/components/compliance/readiness-header'
+import { StatusItem, VerifiedRequirementCard, ActionRequiredCard } from '~/components/compliance/common'
+
+import type { Route } from './+types/compliance-analysis'
 
 type ComplianceStage = 'risk' | 'target-market' | 'readiness' | 'report'
 
@@ -85,10 +100,10 @@ function MiniStatCard({ label, value, icon, color }: { label: string; value: str
   }
 
   return (
-    <div className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm group hover:shadow-md transition-all">
+    <div className="rounded-md border border-gray-100 bg-white p-5 shadow-sm group hover:shadow-md transition-all">
       <div className="flex items-center justify-between mb-3">
         <SectionLabel>{label}</SectionLabel>
-        <div className={cn('size-8 rounded-lg flex items-center justify-center', iconColors[color])}>
+        <div className={cn('size-8 rounded-md flex items-center justify-center', iconColors[color])}>
           {icon}
         </div>
       </div>
@@ -100,7 +115,7 @@ function MiniStatCard({ label, value, icon, color }: { label: string; value: str
 function RiskStage({ setStage }: { setStage: (value: ComplianceStage) => void }) {
   const [search, setSearch] = useState('')
   const [selectedCheck, setSelectedCheck] = useState<RiskRow | null>(null)
-  
+
   const filteredRows = useMemo(
     () =>
       riskRows.filter((r) =>
@@ -120,13 +135,13 @@ function RiskStage({ setStage }: { setStage: (value: ComplianceStage) => void })
         </div>
         <div className="flex items-center gap-3">
           <div className="relative">
-            <select className="h-9 appearance-none rounded-lg border border-gray-200 bg-white px-4 pr-10 text-[11px] font-bold text-gray-600 outline-none focus:border-brand shadow-sm transition-all hover:bg-gray-50">
+            <select className="h-9 appearance-none rounded-md border border-gray-200 bg-white px-4 pr-10 text-[11px] font-bold text-gray-600 outline-none focus:border-brand shadow-sm transition-all hover:bg-gray-50">
               <option>Filter: European Union</option>
               <option>Filter: United Kingdom</option>
             </select>
             <ChevronDown className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-gray-400" />
           </div>
-          <Button className="h-9 bg-brand hover:bg-brand/90 text-white font-bold text-[11px] uppercase tracking-widest rounded-lg shadow-sm px-5">
+          <Button className="h-9 bg-brand hover:bg-brand/90 text-white font-bold text-[11px] uppercase tracking-widest rounded-md shadow-sm px-5">
             <RefreshCcw className="size-3.5 mr-2" /> Sync Satellite
           </Button>
         </div>
@@ -139,7 +154,7 @@ function RiskStage({ setStage }: { setStage: (value: ComplianceStage) => void })
         <MiniStatCard label="Blocked" value="1" icon={<ShieldAlert className="size-4" />} color="red" />
       </div>
 
-      <div className="rounded-xl border border-gray-100 bg-white overflow-hidden shadow-sm">
+      <div className="rounded-md border border-gray-100 bg-white overflow-hidden shadow-sm">
         <div className="p-6 border-b border-gray-50 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between bg-gray-50/20">
           <div>
             <h2 className="text-sm font-bold uppercase tracking-tight text-gray-900">Risk Overview</h2>
@@ -152,10 +167,10 @@ function RiskStage({ setStage }: { setStage: (value: ComplianceStage) => void })
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search farm, product or ID..."
-                className="h-10 w-full rounded-lg border border-gray-200 bg-white pl-11 pr-4 text-sm outline-none focus:border-brand shadow-sm transition-all"
+                className="h-10 w-full rounded-md border border-gray-200 bg-white pl-11 pr-4 text-sm outline-none focus:border-brand shadow-sm transition-all"
               />
             </div>
-            <Button variant="outline" className="h-10 border-gray-200 text-gray-600 font-bold px-5 rounded-lg hover:bg-gray-50 text-xs">
+            <Button variant="outline" className="h-10 border-gray-200 text-gray-600 font-bold px-5 rounded-md hover:bg-gray-50 text-xs">
               <Download className="size-4 mr-2" /> Export
             </Button>
           </div>
@@ -186,8 +201,8 @@ function RiskStage({ setStage }: { setStage: (value: ComplianceStage) => void })
                   <td className="px-6 py-5 font-bold text-gray-600 text-sm">{row.area}</td>
                   <td className="px-6 py-5">
                     <Badge className={cn(
-                      "font-bold px-3 py-1 text-[9px] uppercase rounded-lg border-none",
-                      row.status === 'Eligible' 
+                      "font-bold px-3 py-1 text-[9px] uppercase rounded-md border-none",
+                      row.status === 'Eligible'
                         ? "bg-green-100 text-green-700"
                         : "bg-amber-100 text-amber-700"
                     )}>
@@ -198,9 +213,9 @@ function RiskStage({ setStage }: { setStage: (value: ComplianceStage) => void })
                     <div className="flex items-center gap-3">
                       <span className="font-bold text-gray-900 text-sm">{row.canopyLoss}</span>
                       <div className="h-1.5 w-16 rounded-full bg-gray-100 overflow-hidden">
-                        <div 
-                          className={cn("h-full", row.status === 'Eligible' ? "bg-brand" : "bg-amber-500")} 
-                          style={{ width: row.canopyLoss === '0%' ? '5%' : row.canopyLoss }} 
+                        <div
+                          className={cn("h-full", row.status === 'Eligible' ? "bg-brand" : "bg-amber-500")}
+                          style={{ width: row.canopyLoss === '0%' ? '5%' : row.canopyLoss }}
                         />
                       </div>
                     </div>
@@ -209,7 +224,7 @@ function RiskStage({ setStage }: { setStage: (value: ComplianceStage) => void })
                   <td className="px-6 py-5 text-right">
                     <Button
                       onClick={() => setSelectedCheck(row)}
-                      className="h-8 bg-brand text-white px-4 text-[10px] font-bold uppercase tracking-widest rounded-lg hover:bg-brand/90 transition-all"
+                      className="h-8 bg-brand text-white px-4 text-[10px] font-bold uppercase tracking-widest rounded-md hover:bg-brand/90 transition-all"
                     >
                       Audit Check
                     </Button>
@@ -251,7 +266,7 @@ function CheckResultModal({
     <Dialog open={open} onOpenChange={(next) => { if (!next) onClose() }}>
       <DialogContent
         showCloseButton={false}
-        className="overflow-hidden rounded-xl border-none bg-white p-0 sm:max-w-[650px] shadow-2xl"
+        className="overflow-hidden rounded-md border-none bg-white p-0 sm:max-w-[650px] shadow-2xl"
       >
         <div className="relative bg-brand p-8 text-white">
           <div className="absolute top-6 right-6">
@@ -266,7 +281,7 @@ function CheckResultModal({
             </button>
           </div>
           <div className="flex items-center gap-4">
-            <div className="size-14 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center text-white border border-white/20">
+            <div className="size-14 rounded-md bg-white/10 backdrop-blur-md flex items-center justify-center text-white border border-white/20">
               <ShieldCheck className="size-7" />
             </div>
             <div className="space-y-0.5">
@@ -288,7 +303,7 @@ function CheckResultModal({
 
           <div className="mt-10 pt-8 border-t border-gray-100">
             <SectionLabel>Decision Narrative</SectionLabel>
-            <div className="mt-2 bg-gray-50 rounded-xl p-5 border border-gray-100 italic text-sm text-gray-700 leading-relaxed">
+            <div className="mt-2 bg-gray-50 rounded-md p-5 border border-gray-100 italic text-sm text-gray-700 leading-relaxed">
               "Satellite imagery analysis confirms zero canopy loss in plot polygons since the December 2020 EUDR cutoff. Land tenure documentation matches on-chain geolocation coordinates. Plot is cleared for export."
             </div>
           </div>
@@ -297,13 +312,13 @@ function CheckResultModal({
             <Button
               variant="outline"
               onClick={onClose}
-              className="h-12 flex-1 border-gray-200 text-gray-600 font-bold rounded-xl hover:bg-gray-50 text-xs"
+              className="h-12 flex-1 border-gray-200 text-gray-600 font-bold rounded-md hover:bg-gray-50 text-xs"
             >
               Close
             </Button>
             <Button
               onClick={onRerun}
-              className="h-12 flex-1 bg-brand hover:bg-brand/90 text-white font-bold rounded-xl shadow-md transition-all active:scale-95 text-xs"
+              className="h-12 flex-1 bg-brand hover:bg-brand/90 text-white font-bold rounded-md shadow-md transition-all active:scale-95 text-xs"
             >
               Proceed to Market
             </Button>
@@ -332,65 +347,50 @@ function TargetMarketStage({ setStage }: { setStage: (value: ComplianceStage) =>
   return (
     <div className="space-y-10">
       <div className="space-y-1">
-        <h1 className="text-2xl font-bold text-brand tracking-tight">Select Target Market</h1>
-        <p className="text-xs text-gray-500 font-medium leading-relaxed">
+        <h1 className="text-2xl font-bold text-[#2e7d32] tracking-tight">Select Target Market</h1>
+        <p className="text-sm text-gray-500 font-medium leading-relaxed">
           Choose your trade destination to automatically align documentation and logistics with regional trade agreements.
         </p>
       </div>
 
-      {/* User Profile Section */}
-      <div className="flex items-center gap-3">
-        <div className="size-10 overflow-hidden rounded-full border-2 border-brand/20">
-          <img src="https://github.com/shadcn.png" alt="Profile" className="size-full object-cover" />
+      <div className="flex items-center gap-4">
+        <div className="size-12 rounded-full overflow-hidden border-2 border-white shadow-sm">
+          <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Tunde" alt="User" className="size-full object-cover" />
         </div>
-        <div>
-          <h3 className="text-sm font-bold text-gray-900 tracking-tight">Mr. Tunde Fashola</h3>
-          <p className="text-[10px] font-medium text-gray-400">Kano, Nigeria</p>
-        </div>
-      </div>
-
-      {/* Metrics Row - Horizontal Flex */}
-      <div className="flex flex-wrap items-start gap-x-16 gap-y-6 py-2 border-b border-gray-50 pb-8">
-        <div className="space-y-1">
-          <SectionLabel className="text-gray-400 font-black">Product</SectionLabel>
-          <p className="text-2xl font-black text-brand tracking-tighter">Maize</p>
-        </div>
-        <div className="space-y-1">
-          <SectionLabel className="text-gray-400 font-black">Batch Number</SectionLabel>
-          <p className="text-2xl font-black text-gray-900 tracking-tighter">BT192372320323</p>
-        </div>
-        <div className="space-y-1">
-          <SectionLabel className="text-gray-400 font-black">Total Quantity</SectionLabel>
-          <p className="text-2xl font-black text-gray-900 tracking-tighter">1,340 MT</p>
-        </div>
-        <div className="space-y-1">
-          <SectionLabel className="text-gray-400 font-black">Market Readiness</SectionLabel>
-          <p className="text-2xl font-black text-brand tracking-tighter">94%</p>
+        <div className="space-y-0.5">
+          <h2 className="text-sm font-bold text-gray-900">Mr. Tunde Fashola</h2>
+          <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider">Kaduna, Nigeria</p>
         </div>
       </div>
 
-      {/* Market List - Vertical Stack (NO GRID) */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-8 py-4">
+        <StatusItem label="PRODUCT" value="Maize" valueColor="text-[#2e7d32]" />
+        <StatusItem label="BATCH NUMBER" value="BT192372320323" />
+        <StatusItem label="TOTAL QUANTITY" value="1,340 MT" />
+        <StatusItem label="MARKET READINESS" value="94%" valueColor="text-[#2e7d32]" />
+      </div>
+
       <div className="space-y-4">
         {[
-          { 
+          {
             id: 'eu',
-            name: 'European Union (EU)', 
-            desc: 'Compliance focused on EUDR (Deforestation) and ISO quality standards. High transparency requirements.', 
-            icon: <Globe className="size-5" />, 
+            name: 'European Union (EU)',
+            desc: 'Compliance focused on EUDR (Deforestation) and ISO quality standards. High transparency requirements.',
+            icon: <Globe className="size-5" />,
             active: true,
             badge: 'ACTIVE TRADE ZONE'
           },
-          { 
+          {
             id: 'af',
-            name: 'African Continental Free Trade Area (AfCFTA)', 
-            desc: 'Inter-continental trade with reduced tariffs. Requires Certificate of Origin documentation.', 
+            name: 'African Continental Free Trade Area (AfCFTA)',
+            desc: 'Inter-continental trade with reduced tariffs. Requires Certificate of Origin documentation.',
             icon: <LandmarkIcon className="size-5" />,
             badge: null
           },
-          { 
+          {
             id: 'us',
-            name: 'North America (USMCA)', 
-            desc: 'Labor and environmental standards focus. Requires specific phytosanitary certification.', 
+            name: 'North America (USMCA)',
+            desc: 'Labor and environmental standards focus. Requires specific phytosanitary certification.',
             icon: <Globe className="size-5" />,
             badge: null
           },
@@ -398,24 +398,24 @@ function TargetMarketStage({ setStage }: { setStage: (value: ComplianceStage) =>
           <div
             key={market.id}
             className={cn(
-              "group relative flex items-center gap-6 rounded-xl border p-6 transition-all cursor-pointer bg-white w-full",
-              market.active 
-                ? "border-brand ring-1 ring-brand/5 shadow-sm" 
-                : "border-gray-100 hover:border-brand/40"
+              "group relative flex items-center gap-6 rounded-md border p-6 transition-all cursor-pointer bg-white w-full",
+              market.active
+                ? "border-[#2e7d32] ring-1 ring-[#2e7d32]/5 shadow-sm"
+                : "border-gray-100 hover:border-[#2e7d32]/40"
             )}
             onClick={() => setStage('readiness')}
           >
             <div className={cn(
               "size-10 rounded-full flex items-center justify-center transition-colors",
-              market.active ? "bg-brand/5 text-brand" : "bg-gray-50 text-gray-400 group-hover:bg-brand/5 group-hover:text-brand"
+              market.active ? "bg-[#2e7d32]/5 text-[#2e7d32]" : "bg-gray-50 text-gray-400 group-hover:bg-[#2e7d32]/5 group-hover:text-[#2e7d32]"
             )}>
               {market.icon}
             </div>
-            <div className="flex-1 space-y-1">
+            <div className="flex-1 space-y-1 text-left">
               <div className="flex items-center gap-3">
                 <h3 className="text-sm font-bold text-gray-900 tracking-tight">{market.name}</h3>
                 {market.badge && (
-                  <Badge className="bg-brand text-white font-bold px-3 py-1 text-[8px] uppercase tracking-widest rounded-lg border-none">
+                  <Badge className="bg-[#2e7d32] text-white font-bold px-3 py-1 text-[8px] uppercase tracking-widest rounded-md border-none">
                     {market.badge}
                   </Badge>
                 )}
@@ -423,49 +423,48 @@ function TargetMarketStage({ setStage }: { setStage: (value: ComplianceStage) =>
               <p className="text-[11px] text-gray-500 font-medium leading-relaxed max-w-2xl">{market.desc}</p>
             </div>
             <div className="flex items-center justify-center ml-4">
-               {market.active ? (
-                 <div className="size-5 rounded-full border-2 border-brand flex items-center justify-center shadow-[0_0_8px_rgba(38,77,16,0.1)]">
-                    <div className="size-2.5 rounded-full bg-brand" />
-                 </div>
-               ) : (
-                 <div className="size-5 rounded-full border-2 border-gray-200 group-hover:border-brand/40 transition-colors" />
-               )}
+              {market.active ? (
+                <div className="size-5 rounded-full border-2 border-[#2e7d32] flex items-center justify-center shadow-[0_0_8px_rgba(38,77,16,0.1)]">
+                  <div className="size-2.5 rounded-full bg-[#2e7d32]" />
+                </div>
+              ) : (
+                <div className="size-5 rounded-full border-2 border-gray-200 group-hover:border-[#2e7d32]/40 transition-colors" />
+              )}
             </div>
           </div>
         ))}
       </div>
 
-      {/* Regulatory Requirements */}
       <div className="space-y-6 pt-10 border-t border-gray-50">
         <div className="flex items-center gap-2">
-          <div className="size-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600 border border-blue-100">
+          <div className="size-8 rounded-md bg-blue-50 flex items-center justify-center text-blue-600 border border-blue-100">
             <Info className="size-5" />
           </div>
           <h3 className="text-base font-bold text-gray-900 tracking-tight uppercase tracking-wider">Specific Regulatory Requirements</h3>
         </div>
-        
+
         <div className="space-y-4">
-           <SectionLabel className="text-gray-400 font-black">Mandatory for European Union (EU)</SectionLabel>
-           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="flex items-start gap-4 p-6 bg-white rounded-xl border border-gray-100 shadow-sm group hover:shadow-md transition-all">
-                <div className="size-10 rounded-lg bg-green-50 flex items-center justify-center text-brand border border-green-100 shrink-0">
-                  <ShieldCheck className="size-6" />
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-bold text-gray-900 tracking-tight">EU Deforestation-free regulation (EUDR)</p>
-                  <p className="text-[11px] text-gray-500 font-medium leading-relaxed">Requires geolocation coordinates of the production plots and verified satellite audit proof.</p>
-                </div>
+          <SectionLabel className="text-gray-400 font-black">Mandatory for European Union (EU)</SectionLabel>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="flex items-start gap-4 p-6 bg-white rounded-md border border-gray-100 shadow-sm group hover:shadow-md transition-all">
+              <div className="size-10 rounded-md bg-green-50 flex items-center justify-center text-[#2e7d32] border border-green-100 shrink-0">
+                <ShieldCheck className="size-6" />
               </div>
-              <div className="flex items-start gap-4 p-6 bg-white rounded-xl border border-gray-100 shadow-sm group hover:shadow-md transition-all">
-                <div className="size-10 rounded-lg bg-green-50 flex items-center justify-center text-brand border border-green-100 shrink-0">
-                  <FileText className="size-6" />
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-bold text-gray-900 tracking-tight">ISO 22005:2007</p>
-                  <p className="text-[11px] text-gray-500 font-medium leading-relaxed">Traceability in the food and feed chain certification. Batch-level identification and movement log.</p>
-                </div>
+              <div className="space-y-1 text-left">
+                <p className="text-sm font-bold text-gray-900 tracking-tight">EU Deforestation-free regulation (EUDR)</p>
+                <p className="text-[11px] text-gray-500 font-medium leading-relaxed">Requires geolocation coordinates of the production plots and verified satellite audit proof.</p>
               </div>
-           </div>
+            </div>
+            <div className="flex items-start gap-4 p-6 bg-white rounded-md border border-gray-100 shadow-sm group hover:shadow-md transition-all">
+              <div className="size-10 rounded-md bg-green-50 flex items-center justify-center text-[#2e7d32] border border-green-100 shrink-0">
+                <FileText className="size-6" />
+              </div>
+              <div className="space-y-1 text-left">
+                <p className="text-sm font-bold text-gray-900 tracking-tight">ISO 22005:2007</p>
+                <p className="text-[11px] text-gray-500 font-medium leading-relaxed">Traceability in the food and feed chain certification. Batch-level identification and movement log.</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -473,7 +472,7 @@ function TargetMarketStage({ setStage }: { setStage: (value: ComplianceStage) =>
         <Button
           variant="outline"
           onClick={() => setStage('risk')}
-          className="h-11 px-8 border-gray-200 text-gray-600 font-bold rounded-xl hover:bg-gray-50 text-[11px] uppercase tracking-widest transition-all"
+          className="h-11 px-8 border-gray-200 text-gray-600 font-bold rounded-md hover:bg-gray-50 text-[11px] uppercase tracking-widest transition-all"
         >
           Back to Analysis
         </Button>
@@ -498,87 +497,70 @@ function LandmarkIcon({ className }: { className?: string }) {
 
 function ReadinessStage({ setStage }: { setStage: (value: ComplianceStage) => void }) {
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div className="space-y-1">
-          <h1 className="text-xl font-bold text-brand tracking-tight">Compliance Readiness Review</h1>
-          <p className="text-[12px] text-gray-500 font-medium flex items-center gap-2">
-            <Badge className="bg-brand/10 text-brand font-bold px-3 py-1 text-[9px] uppercase rounded-lg border-none">European Union</Badge>
-            Evidence requirement summary for batch BT19237320323
-          </p>
+    <div className="w-full space-y-8 pb-12 text-left">
+      <ReadinessHeader onReport={() => setStage('report')} />
+
+      <div className="bg-white border-y border-gray-50 px-8 py-4 space-y-4 -mx-8">
+        <div className="flex items-center gap-4">
+          <div className="size-12 rounded-full overflow-hidden border-2 border-white shadow-sm">
+            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Tunde" alt="User" className="size-full object-cover" />
+          </div>
+          <div className="space-y-0.5">
+            <h2 className="text-sm font-black text-gray-900 tracking-tight">Mr. Tunde Fashola</h2>
+            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Kaduna, Nigeria</p>
+          </div>
         </div>
-        <div className="flex items-center gap-3">
-          <Button variant="outline" className="h-10 border-gray-200 text-gray-600 font-bold px-6 rounded-xl hover:bg-gray-50 text-xs">
-            <Download className="size-4 mr-2" /> Save Draft
-          </Button>
-          <Button
-            onClick={() => setStage('report')}
-            className="h-10 bg-brand hover:bg-brand/90 text-white font-bold px-6 rounded-xl shadow-sm transition-all active:scale-95 text-xs"
-          >
-            Generate Final Report
-          </Button>
-        </div>
+        <ReportMetricsBar />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
-          <RequirementCard title="EU Deforestation Regulation (EUDR)" status="verified">
-            {['Geolocation Coordinates', 'Plot Ownership Proof', 'Harvest Timestamp', 'Deforestation Check'].map((item) => (
-              <CheckItem key={item} label={item} />
-            ))}
-          </RequirementCard>
-
-          <RequirementCard title="ISO 22005:2007 Standards" status="verified">
-            {['Batch History Log', 'Feed Source Verification', 'Processing Logs'].map((item) => (
-              <CheckItem key={item} label={item} />
-            ))}
-          </RequirementCard>
-
-          <RequirementCard title="Market Specific Lab Testing" status="action">
-            <div className="flex items-center justify-between p-5 rounded-xl border border-amber-100 bg-amber-50/20">
-              <div className="space-y-1">
-                <p className="text-sm font-bold text-gray-900 tracking-tight">Heavy Metal Analysis Required</p>
-                <p className="text-xs text-gray-500 font-medium">Laboratory result upload is pending for this target market.</p>
-              </div>
-              <Button className="h-9 bg-brand hover:bg-brand/90 text-white font-bold px-5 rounded-lg shadow-sm text-[10px] uppercase tracking-widest">
-                Upload Result
-              </Button>
+      <div className="space-y-6">
+        <div className="space-y-4">
+          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">OVERALL READINESS</p>
+          <div className="flex items-end gap-3">
+            <span className="text-5xl font-black text-[#2e7d32] leading-none">94%</span>
+            <span className="text-sm font-bold text-[#2e7d32] pb-1 uppercase tracking-widest">Target: 100%</span>
+          </div>
+          <div className="space-y-2">
+            <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
+              <div className="h-full bg-[#2e7d32] rounded-full" style={{ width: '94%' }} />
             </div>
-          </RequirementCard>
+            <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">14 of 15 criteria successfully met</p>
+          </div>
         </div>
 
-        <div className="space-y-6">
-          <div className="rounded-2xl border border-gray-100 bg-white p-8 shadow-sm space-y-8">
-            <div className="space-y-3">
-              <SectionLabel>Overall Readiness</SectionLabel>
-              <div className="flex items-end gap-2">
-                <p className="text-5xl font-black text-brand tracking-tighter">94<span className="text-2xl font-bold">%</span></p>
-                <Badge className="bg-green-50 text-green-600 font-bold text-[10px] mb-2 border-none">+12%</Badge>
-              </div>
-              <div className="h-2 w-full rounded-full bg-gray-50 overflow-hidden border border-gray-100/50">
-                <div className="h-full w-[94%] bg-brand shadow-[0_0_8px_rgba(38,77,16,0.2)]" />
-              </div>
-            </div>
+        <div className="grid grid-cols-1 gap-6">
+          <VerifiedRequirementCard 
+            title="EU Deforestation-free Regulation (EUDR)" 
+            description="Mandatory for all timber, cocoa, and rubber exports."
+            items={[
+              { icon: <MapPin className="size-4" />, label: 'Geolocation Coordinates' },
+              { icon: <User className="size-4" />, label: 'Plot Ownership' },
+              { icon: <Calendar className="size-4" />, label: 'Time of Harvest' },
+            ]}
+          />
+          <VerifiedRequirementCard 
+            title="ISO 22005:2007 (Traceability)" 
+            description="International standard for food and feed chain traceability."
+            items={[
+              { icon: <History className="size-4" />, label: 'Batch History' },
+              { icon: <Sprout className="size-4" />, label: 'Feed Source' },
+            ]}
+          />
 
-            <div className="grid grid-cols-2 gap-y-6 gap-x-4">
-              <PanelStat label="Product" value="Maize" />
-              <PanelStat label="Batch ID" value="BT1923..." />
-              <PanelStat label="Quantity" value="1,340 MT" />
-              <PanelStat label="Risk Level" value="Low" />
-            </div>
-          </div>
+          <ActionRequiredCard icon={<FileSearch className="size-5" />} title="Lab Report" description="Phytosanitary inspection and health clearance." />
+          <ActionRequiredCard icon={<Award className="size-5" />} title="GAP Certifications" description="Phytosanitary inspection and health clearance." />
+          <ActionRequiredCard icon={<FileSearch className="size-5" />} title="NAFDAC Phytosanitary Certificate" description="Phytosanitary inspection and health clearance." />
+        </div>
 
-          <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center space-y-5">
-            <div className="size-14 rounded-2xl bg-white shadow-sm border border-gray-100 flex items-center justify-center text-brand mx-auto">
-              <Upload className="size-6" />
+        <div className="space-y-4 pt-6">
+          <h3 className="text-base font-bold text-gray-900 tracking-tight uppercase tracking-wider">Supporting Annex</h3>
+          <div className="border border-brand-surface rounded-md p-12 flex flex-col items-center justify-center bg-brand-surface/30 group hover:border-brand/20 transition-all cursor-pointer">
+            <div className="size-14 rounded-md bg-white border border-brand-surface flex items-center justify-center text-brand mb-4 shadow-sm group-hover:scale-110 transition-transform">
+              <Upload className="size-7" />
             </div>
-            <div className="space-y-1">
-              <p className="text-sm font-bold text-gray-900 tracking-tight">Supporting Annex</p>
-              <p className="text-xs text-gray-500 font-medium">Drag & drop certification PDFs or results</p>
-            </div>
-            <Button variant="outline" className="h-10 w-full bg-white border-gray-200 text-gray-600 font-bold rounded-xl text-[10px] uppercase tracking-widest">
-              Browse Files
-            </Button>
+            <p className="text-base font-bold text-gray-900 mb-1 text-center">Drag and drop supporting documents</p>
+            <p className="text-xs font-semibold text-gray-400 text-center uppercase tracking-tighter">Accepted formats: PDF, JPG, PNG (Max 10MB each)</p>
+            <p className="mt-4 text-xs font-black text-brand uppercase tracking-widest hover:underline">Browse Local Files</p>
           </div>
         </div>
       </div>
@@ -588,199 +570,90 @@ function ReadinessStage({ setStage }: { setStage: (value: ComplianceStage) => vo
 
 function ReportStage({ setStage }: { setStage: (value: ComplianceStage) => void }) {
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div className="space-y-1">
-          <div className="flex items-center gap-3 mb-1">
-            <button onClick={() => setStage('readiness')} className="text-gray-400 hover:text-brand transition-colors">
-              <ChevronDown className="size-5 rotate-90" />
-            </button>
-            <h1 className="text-xl font-bold text-brand tracking-tight">Compliance Document Preview</h1>
-          </div>
-          <p className="text-[12px] text-gray-500 font-medium flex items-center gap-2">
-            <ShieldCheck className="size-4 text-brand" /> Document ID: AGT-REP-2026-X992
+    <div className="w-full space-y-6 pb-20 text-left">
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-0">
+        <div className="space-y-0.5">
+          <h1 className="text-2xl font-black text-[#2e7d32] tracking-tight">EUDR Compliance Report</h1>
+          <p className="flex items-center gap-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+            <Globe className="size-3" /> Region: South America
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <Button variant="outline" className="h-10 border-gray-200 text-gray-600 font-bold px-6 rounded-xl hover:bg-gray-50 text-xs">
-            <Download className="size-4 mr-2" /> Download PDF
+          <Button variant="outline" className="h-9 border-gray-200 text-gray-700 font-bold text-[9px] uppercase tracking-widest px-5 rounded shadow-sm hover:bg-gray-50">
+            <Download className="size-3.5 mr-2" /> Download PDF
           </Button>
-          <Button className="h-10 bg-brand hover:bg-brand/90 text-white font-bold px-6 rounded-xl shadow-md transition-all active:scale-95 text-xs">
-            <ExternalLink className="size-4 mr-2" /> Share with Regulator
+          <Button className="h-9 bg-brand hover:bg-brand-light text-white font-bold text-[9px] uppercase tracking-widest px-5 rounded shadow-lg transition-all active:scale-95">
+            <ExternalLink className="size-3.5 mr-2" /> Export for Regulator
           </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        <div className="space-y-1.5">
-          <SectionLabel>Navigation</SectionLabel>
-          <SectionButton active>Executive Summary</SectionButton>
-          <SectionButton>Geolocation Proof</SectionButton>
-          <SectionButton>Deforestation Audit</SectionButton>
-          <SectionButton>Human Rights Check</SectionButton>
-          <SectionButton>On-Chain Hash Log</SectionButton>
+      {/* User & Metrics Section - Extremely Compact */}
+      <div className="bg-white border-y border-gray-100 -mx-8 px-8 py-3 space-y-3">
+        <div className="flex items-center gap-3">
+          <div className="size-10 rounded-full overflow-hidden border-2 border-white shadow-sm">
+            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Tunde" alt="User" className="size-full object-cover" />
+          </div>
+          <div className="space-y-0">
+            <h2 className="text-xs font-black text-gray-900 tracking-tight">Mr. Tunde Fashola</h2>
+            <p className="text-[9px] text-gray-400 font-bold uppercase tracking-wider">Kaduna, Nigeria</p>
+          </div>
+        </div>
+        <ReportMetricsBar />
+      </div>
+
+      {/* Main Layout: Sidebar + Content */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 pt-2 items-start">
+        {/* Local Sidebar */}
+        <div className="lg:col-span-3 lg:sticky lg:top-24">
+          <ReportSidebar />
+        </div>
+
+        {/* Report Content */}
+        <div className="lg:col-span-9 space-y-12">
+          <ReportOverview />
+          <ReportGeolocation />
+          <ReportRegulatory />
           
-          <div className="mt-10 p-6 rounded-2xl bg-brand text-white space-y-5 relative overflow-hidden">
-            <ShieldCheck className="size-10 opacity-20 absolute -right-2 -bottom-2" />
-            <div className="space-y-1.5 relative z-10">
-              <p className="text-[10px] font-black uppercase tracking-[0.2em]">Immutable Status</p>
-              <p className="text-[11px] opacity-80 leading-relaxed font-medium">This report is hashed on the AgTrail Public Ledger. Tamper-evident proof is publicly verifiable.</p>
-            </div>
-            <Button className="w-full h-9 bg-white/10 hover:bg-white/20 text-white text-[10px] font-bold uppercase tracking-widest rounded-lg border border-white/20 relative z-10">
-              Verify Hash
+          <div className="flex justify-between pt-10 border-t border-gray-100">
+            <Button
+              variant="outline"
+              onClick={() => setStage('readiness')}
+              className="h-10 px-6 border-gray-200 text-gray-600 font-bold rounded-md hover:bg-gray-50 text-[9px] uppercase tracking-widest transition-all"
+            >
+              Back to Readiness
             </Button>
           </div>
         </div>
-
-        <div className="lg:col-span-3">
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="h-1.5 bg-brand" />
-            <div className="p-12 space-y-12">
-              <div className="flex items-start justify-between border-b border-gray-100 pb-10">
-                <div className="space-y-5">
-                  <div className="size-14 bg-gray-50 rounded-2xl flex items-center justify-center border border-gray-100 shadow-inner">
-                    <FileText className="size-7 text-brand" />
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-bold text-gray-900 tracking-tight uppercase">EUDR Compliance Report</h2>
-                    <SectionLabel>Generated: April 29, 2026 - 10:42 AM</SectionLabel>
-                  </div>
-                </div>
-                <div className="text-right space-y-3">
-                  <Badge className="bg-green-100 text-green-700 font-bold px-4 py-1.5 text-[10px] uppercase rounded-lg border-none shadow-sm">
-                    Certified Compliant
-                  </Badge>
-                  <p className="text-[10px] font-mono text-gray-400 bg-gray-50 px-2 py-1 rounded">0x92f...a1b2</p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-10">
-                <PanelStat label="Origin" value="Ogun, Nigeria" />
-                <PanelStat label="Product" value="Maize (Grain)" />
-                <PanelStat label="Target Market" value="European Union" />
-                <PanelStat label="Consignment" value="1,340 MT" />
-              </div>
-
-              <div className="space-y-4">
-                <SectionLabel>Audit Summary</SectionLabel>
-                <p className="text-gray-700 leading-relaxed font-medium text-sm">
-                  The consignment identified as batch BT19237320323 has been subjected to rigorous on-chain and satellite audit. Analysis of plot polygons using high-resolution satellite imagery (Sentinel-2) confirms no forest conversion since Dec 31, 2020. Geolocation accuracy is verified within &lt;5m tolerance.
-                </p>
-              </div>
-
-              <div className="space-y-6">
-                <SectionLabel>Polygon Geolocation</SectionLabel>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
-                  <div className="space-y-4">
-                    <CoordinateItem label="LAT" value="7.1475° N" />
-                    <CoordinateItem label="LONG" value="3.3619° E" />
-                    <CoordinateItem label="ALTITUDE" value="42m MSL" />
-                  </div>
-                  <div className="h-48 rounded-2xl bg-gray-100 border border-gray-100 shadow-inner overflow-hidden relative">
-                     <FarmMap farms={[]} className="size-full grayscale opacity-80" />
-                     <div className="absolute inset-0 bg-brand/5 pointer-events-none" />
-                  </div>
-                </div>
-              </div>
-
-              <div className="pt-10 border-t border-gray-100 flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="size-12 rounded-2xl bg-brand flex items-center justify-center text-white font-black text-sm shadow-lg shadow-brand/20">
-                    AL
-                  </div>
-                  <div className="space-y-0.5">
-                    <p className="text-[12px] font-bold text-gray-900 tracking-tight uppercase">AgTrail Compliance Engine</p>
-                    <SectionLabel>Digital Handoff Verified</SectionLabel>
-                  </div>
-                </div>
-                <img src="/logo.png" alt="Logo" className="h-7 opacity-20 grayscale" />
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   )
 }
 
-function CoordinateItem({ label, value }: { label: string; value: string }) {
+function RiskLine({ label, status }: { label: string; status: string }) {
   return (
-    <div className="flex items-center justify-between p-5 rounded-xl border border-gray-50 bg-gray-50/30 font-mono text-xs">
-      <span className="text-gray-400 uppercase font-bold tracking-widest">{label}</span>
-      <span className="text-gray-900 font-bold">{value}</span>
+    <div className="flex items-center justify-between border-b border-gray-50 pb-2 md:border-0 md:pb-0">
+      <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">{label}</span>
+      <span className="text-[10px] font-black text-[#2e7d32] uppercase tracking-widest">{status}</span>
     </div>
   )
 }
 
-function RequirementCard({
-  title,
-  status,
-  children,
-}: {
-  title: string
-  status: 'verified' | 'action'
-  children: ReactNode
-}) {
+function InfoBlock({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-gray-100 bg-white overflow-hidden shadow-sm">
-      <div className="px-6 py-4 border-b border-gray-50 flex items-center justify-between bg-gray-50/20">
-        <div className="flex items-center gap-3">
-          <div className={cn(
-            "size-8 rounded-lg flex items-center justify-center",
-            status === 'verified' ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
-          )}>
-            <ClipboardCheck className="size-4" />
-          </div>
-          <p className="text-sm font-bold text-gray-900 tracking-tight">{title}</p>
-        </div>
-        <Badge className={cn(
-          "font-bold px-3 py-1 text-[9px] uppercase rounded-lg border-none shadow-sm",
-          status === 'verified' ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
-        )}>
-          {status === 'verified' ? 'Verified' : 'Action Required'}
-        </Badge>
-      </div>
-      <div className="p-6 grid gap-4 md:grid-cols-2 xl:grid-cols-2">{children}</div>
+    <div className="bg-gray-50/50 border border-gray-100 rounded-lg p-4 space-y-1">
+      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{label}</p>
+      <p className="text-sm font-bold text-gray-900 tracking-tight uppercase">{value}</p>
     </div>
-  )
-}
-
-function CheckItem({ label }: { label: string }) {
-  return (
-    <div className="flex items-center gap-3 p-4 rounded-xl border border-gray-50 bg-gray-50/30 group hover:border-brand/20 hover:bg-white transition-all shadow-sm hover:shadow-md">
-      <div className="size-6 rounded-full bg-green-50 flex items-center justify-center text-brand border border-green-100">
-        <CheckCircle2 className="size-3.5" />
-      </div>
-      <span className="text-xs font-bold text-gray-700 tracking-tight">{label}</span>
-    </div>
-  )
-}
-
-function SectionButton({ active = false, children }: { active?: boolean; children: ReactNode }) {
-  return (
-    <button
-      type="button"
-      className={cn(
-        "w-full rounded-xl px-5 py-3.5 text-left transition-all text-xs font-bold flex items-center gap-3",
-        active 
-          ? "bg-brand text-white shadow-lg shadow-brand/20" 
-          : "text-gray-600 hover:bg-gray-50 border border-transparent hover:border-gray-100"
-      )}
-    >
-      <div className={cn(
-        "size-2 rounded-full",
-        active ? "bg-white" : "bg-gray-200"
-      )} />
-      {children}
-    </button>
   )
 }
 
 function PanelStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="space-y-1.5">
-      <SectionLabel>{label}</SectionLabel>
-      <p className="text-sm font-bold text-gray-900 tracking-tight">{value}</p>
+    <div className="space-y-1.5 text-left">
+      <SectionLabel className="font-black text-gray-400">{label}</SectionLabel>
+      <p className="text-sm font-bold text-gray-900 tracking-tight uppercase">{value}</p>
     </div>
   )
 }
@@ -796,29 +669,23 @@ export default function ComplianceAnalysisPage() {
   }, [stage])
 
   return (
-    <div className="space-y-6 pb-20">
+    <div className="pb-20">
       <PageHeader
         items={[
           {
             label: 'Dashboard',
             href: '/farmer',
-            icon: (
-              <svg className="size-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <rect x="3" y="3" width="7" height="7" rx="1" />
-                <rect x="14" y="3" width="7" height="7" rx="1" />
-                <rect x="3" y="14" width="7" height="7" rx="1" />
-                <rect x="14" y="14" width="7" height="7" rx="1" />
-              </svg>
-            ),
           },
           { label: breadcrumbLabel },
         ]}
       />
 
-      {stage === 'risk' ? <RiskStage setStage={setStage} /> : null}
-      {stage === 'target-market' ? <TargetMarketStage setStage={setStage} /> : null}
-      {stage === 'readiness' ? <ReadinessStage setStage={setStage} /> : null}
-      {stage === 'report' ? <ReportStage setStage={setStage} /> : null}
+      <div className="mt-6">
+        {stage === 'risk' ? <RiskStage setStage={setStage} /> : null}
+        {stage === 'target-market' ? <TargetMarketStage setStage={setStage} /> : null}
+        {stage === 'readiness' ? <ReadinessStage setStage={setStage} /> : null}
+        {stage === 'report' ? <ReportStage setStage={setStage} /> : null}
+      </div>
     </div>
   )
 }

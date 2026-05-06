@@ -1,28 +1,27 @@
+import {
+  AlertCircle,
+  Award,
+  CheckCircle2,
+  ChevronDown,
+  ClipboardList,
+  Clock,
+  ExternalLink,
+  FileText,
+  LayoutDashboard,
+  MapPin,
+  Package,
+  Plus,
+  Search,
+  ShieldCheck
+} from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router'
-import { PageHeader } from '~/components/page-header'
 import { EmptyState } from '~/components/empty-state'
+import { PageHeader } from '~/components/page-header'
 import { StatCard } from '~/components/stat-card'
-import { Button } from '~/components/ui/button'
 import { Badge } from '~/components/ui/badge'
+import { Button } from '~/components/ui/button'
 import { useGetCertifications } from '~/lib/api/generated/certifications/certifications'
-import { 
-  Plus, 
-  Search, 
-  Filter, 
-  LayoutDashboard, 
-  Award, 
-  CheckCircle2, 
-  Clock, 
-  AlertCircle, 
-  ChevronDown, 
-  ExternalLink,
-  ShieldCheck,
-  Package,
-  MapPin,
-  ClipboardList,
-  FileText
-} from 'lucide-react'
 import { cn } from '~/lib/utils'
 import type { Route } from './+types/index'
 
@@ -205,10 +204,10 @@ export default function ViewCertificationsPage() {
       </div>
 
       {/* Main Registry Section */}
-      <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm overflow-hidden flex flex-col">
+      <div className="rounded-md border border-gray-200 bg-white p-6 shadow-sm overflow-hidden flex flex-col">
         {/* Filters */}
         <div className="mb-8 flex flex-col lg:flex-row lg:items-center justify-between gap-6 border-b border-gray-50 pb-6">
-          <div className="inline-flex rounded-xl bg-gray-50/80 p-1 border border-gray-100">
+          <div className="inline-flex rounded-md bg-gray-50/80 p-1 border border-gray-100">
             {[
               { id: 'All', label: 'All', count: totalCerts },
               { id: 'Farm', label: 'Farm Units', count: farmCertsCount },
@@ -218,7 +217,7 @@ export default function ViewCertificationsPage() {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
                 className={cn(
-                  "flex h-9 items-center justify-center rounded-lg px-6 text-[10px] font-bold uppercase tracking-widest transition-all",
+                  "flex h-9 items-center justify-center rounded-md px-6 text-[10px] font-bold uppercase tracking-widest transition-all",
                   activeTab === tab.id ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400 hover:text-gray-600'
                 )}
               >
@@ -235,7 +234,7 @@ export default function ViewCertificationsPage() {
                 placeholder="Search standards, serials..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-11 rounded-xl border border-gray-100 bg-gray-50/50 pl-10 pr-4 py-2 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white transition-all shadow-none"
+                className="w-full h-11 rounded-md border border-gray-100 bg-gray-50/50 pl-10 pr-4 py-2 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white transition-all shadow-none"
               />
             </div>
 
@@ -243,7 +242,7 @@ export default function ViewCertificationsPage() {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="h-11 rounded-xl border border-gray-100 bg-gray-50/50 pl-4 pr-10 text-[11px] font-bold uppercase tracking-wider text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand appearance-none min-w-[140px]"
+                className="h-11 rounded-md border border-gray-100 bg-gray-50/50 pl-4 pr-10 text-[11px] font-bold uppercase tracking-wider text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand appearance-none min-w-[140px]"
               >
                 <option value="">Status: All</option>
                 <option value="Active">Active Only</option>
@@ -281,9 +280,9 @@ export default function ViewCertificationsPage() {
                         </h3>
                         <Badge className={cn(
                           "px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-widest border shadow-none",
-                          cert.status === 'Active' ? 'bg-green-50 text-emerald-600 border-green-100' : 
-                          cert.status === 'Pending' ? 'bg-amber-50 text-amber-600 border-amber-100' : 
-                          'bg-red-50 text-red-600 border-red-100'
+                          cert.status === 'Active' ? 'bg-green-50 text-emerald-600 border-green-100' :
+                            cert.status === 'Pending' ? 'bg-amber-50 text-amber-600 border-amber-100' :
+                              'bg-red-50 text-red-600 border-red-100'
                         )}>
                           {cert.status}
                         </Badge>
@@ -309,7 +308,7 @@ export default function ViewCertificationsPage() {
                     </div>
                     <div className="space-y-1">
                       <span className="flex items-center gap-2 italic text-gray-300">
-                        {cert.type === 'Farm' ? <MapPin className="size-3" /> : <Package className="size-3" />} 
+                        {cert.type === 'Farm' ? <MapPin className="size-3" /> : <Package className="size-3" />}
                         Target
                       </span>
                       <span className="text-brand block truncate lowercase">{cert.appliedTo}</span>

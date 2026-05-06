@@ -45,6 +45,18 @@ interface SelectOperationModalProps {
 
 export function SelectOperationModal({ isOpen, onClose, cropCycle, basePath = '/farmer/operations/new' }: SelectOperationModalProps) {
   const navigate = useNavigate()
+  const inferBasePath = () => {
+    if (typeof window === 'undefined') return '/farmer/operations/new'
+    const pathname = window.location.pathname
+    if (pathname.startsWith('/cooperative')) return '/cooperative/operations/new'
+    if (pathname.startsWith('/processor')) return '/processor/operations/new'
+    if (pathname.startsWith('/field-agent')) return '/farmer/operations/new'
+    return '/farmer/operations/new'
+  }
+  const resolvedBasePath =
+    basePath === '/farmer/operations/new'
+      ? inferBasePath()
+      : basePath
 
   if (!isOpen || !cropCycle) return null
 
@@ -144,7 +156,7 @@ export function SelectOperationModal({ isOpen, onClose, cropCycle, basePath = '/
             search.set('farmId', cropCycle.farmId)
           }
           const query = search.toString()
-          navigate(`${basePath}/${cropCycle!.id}/${op.id}${query ? `?${query}` : ''}`)
+          navigate(`${resolvedBasePath}/${cropCycle!.id}/${op.id}${query ? `?${query}` : ''}`)
         }}
         className="group flex items-start gap-3 rounded-md border border-gray-200 p-4 text-left transition-all hover:border-brand-light hover:shadow-sm"
       >

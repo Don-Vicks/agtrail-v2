@@ -6,8 +6,10 @@ export type TenantRole =
   | 'cooperative'
   | 'aggregator'
   | 'transporter'
+  | 'field-agent'
 
 export function getTenantFromPathname(pathname: string): TenantRole {
+  if (pathname.startsWith('/field-agent')) return 'field-agent'
   if (pathname.startsWith('/aggregator')) return 'aggregator'
   if (pathname.startsWith('/processor')) return 'processor'
   if (pathname.startsWith('/cooperative')) return 'cooperative'
@@ -16,6 +18,7 @@ export function getTenantFromPathname(pathname: string): TenantRole {
 }
 
 export function getTenantSelectValue(role: TenantRole): string {
+  if (role === 'field-agent') return 'Field Agent'
   if (role === 'aggregator') return 'Aggregator'
   if (role === 'processor') return 'Processor'
   if (role === 'cooperative') return 'Cooperative'
@@ -24,6 +27,12 @@ export function getTenantSelectValue(role: TenantRole): string {
 }
 
 export function getTenantOperationAction(role: TenantRole) {
+  if (role === 'field-agent') {
+    return {
+      href: '/field-agent/record-operation',
+      label: 'Record Operation',
+    }
+  }
   if (role === 'processor') {
     return {
       href: '/processor/batches',
@@ -40,14 +49,21 @@ export function getTenantOperationAction(role: TenantRole) {
 
   if (role === 'aggregator') {
     return {
-      href: '/cooperative/farmers',
-      label: 'Add Farmer',
+      href: '/aggregator/transfer/product-transfer',
+      label: 'Initiate Transfer',
+    }
+  }
+
+  if (role === 'transporter') {
+    return {
+      href: '/transporter/transfer/product-transfer',
+      label: 'View Offers',
     }
   }
 
   return {
     href: '/farmer/operations/new',
-    label: 'Log Operation',
+    label: 'Record Operation',
   }
 }
 

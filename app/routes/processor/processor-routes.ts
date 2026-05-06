@@ -19,6 +19,7 @@ export const processorRoutes: RouteConfig = [
       route('batches/:id', 'routes/processor/batches/detail.tsx'),
       route('materials', 'routes/processor/materials.tsx'),
       route('products', 'routes/processor/products.tsx'),
+      route('products/:id', 'routes/processor/products/story.tsx'),
       route(
         'certifications/processor',
         'routes/processor/certifications/processor.tsx',
@@ -49,6 +50,11 @@ export const processorRoutes: RouteConfig = [
         route('storage', 'routes/processor/operations/storage.tsx'),
       ]),
       route('settings', 'routes/processor/settings/settings-root.tsx'),
+      
+      // Transfer
+      route('transfer/product-transfer', 'routes/processor/processor-product-transfer.tsx'),
+      route('transfer/pickup', 'routes/processor/processor-pickup.tsx'),
+      route('transfer/history', 'routes/processor/processor-transfer-history.tsx'),
     ]),
   ]),
 ]

@@ -1,9 +1,9 @@
 import { Outlet, useLocation } from 'react-router'
 import { Sidebar } from '~/components/layout/sidebar'
 import { SidebarProvider, useSidebar } from '~/components/layout/sidebar-context'
-import { Topbar } from '~/components/layout/topbar'
 import { AuthGuard } from '~/components/auth-guard'
 import { cn } from '~/lib/utils'
+import { sidebarNavigation } from '~/lib/mock-data/farmer'
 
 function FarmerLayoutContent() {
   const location = useLocation()
@@ -14,7 +14,7 @@ function FarmerLayoutContent() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
-      <Sidebar />
+      <Sidebar navigation={sidebarNavigation} roleLabel="Farmer" />
 
       {/* Mobile Backdrop */}
       {isOpenMobile && (
@@ -29,7 +29,6 @@ function FarmerLayoutContent() {
         "ml-0",
         isCollapsedDesktop ? "lg:ml-0" : "lg:ml-64"
       )}>
-        {isDashboard && <Topbar />}
         <main className="p-4 md:p-6 lg:p-8">
           <Outlet />
         </main>

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { AggregatorBatch, AggregatorStats } from './types'
 
-const DRAFT_LOT_KEY = 'aggregator_draft_lot_v1'
+const DRAFT_LOT_KEY = 'aggregator_draft_lot_v2'
 
 const MOCK_BATCHES: AggregatorBatch[] = [
   {
@@ -46,11 +46,11 @@ function readStoredDraftLot(): AggregatorBatch[] {
   if (typeof window === 'undefined') return []
   try {
     const raw = window.localStorage.getItem(DRAFT_LOT_KEY)
-    if (!raw) return MOCK_BATCHES
+    if (!raw) return []
     const parsed = JSON.parse(raw)
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : MOCK_BATCHES
+    return Array.isArray(parsed) ? parsed : []
   } catch {
-    return MOCK_BATCHES
+    return []
   }
 }
 

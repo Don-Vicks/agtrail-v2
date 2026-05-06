@@ -55,7 +55,7 @@ export default function SettingsPage() {
         <p className="mt-1 text-sm text-gray-500 mb-6">Manage your account and application preferences</p>
 
         {/* Tabs */}
-        <div className="inline-flex overflow-hidden rounded-lg bg-[#f1f4eb] p-1">
+        <div className="inline-flex overflow-hidden rounded-md bg-[#f1f4eb] p-1">
           {(['Account', 'Identity Verification', 'Notifications'] as TabType[]).map((tab) => (
             <button
               key={tab}
@@ -72,7 +72,7 @@ export default function SettingsPage() {
       </div>
 
       {/* Main Content Area */}
-      <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+      <div className="rounded-md border border-gray-200 bg-white p-6 shadow-sm">
         {activeTab === 'Account' && <AccountSettingsTab />}
         {activeTab === 'Identity Verification' && <IdentityVerificationTab />}
         {activeTab === 'Notifications' && <NotificationsTab />}
@@ -96,7 +96,7 @@ function AccountSettingsTab() {
           <input
             type="text"
             defaultValue="Agrolinking Administrator"
-            className="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+            className="h-10 w-full rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
           />
         </div>
 
@@ -105,7 +105,7 @@ function AccountSettingsTab() {
           <input
             type="email"
             defaultValue="admin@agrolinking.com"
-            className="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+            className="h-10 w-full rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
           />
         </div>
 
@@ -114,7 +114,7 @@ function AccountSettingsTab() {
           <input
             type="text"
             defaultValue="Agrolinking Platform"
-            className="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+            className="h-10 w-full rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
           />
         </div>
 
@@ -123,14 +123,14 @@ function AccountSettingsTab() {
           <input
             type="tel"
             placeholder="Your phone number"
-            className="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+            className="h-10 w-full rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
           />
         </div>
 
         <div className="pt-2">
           <button
             type="button"
-            className="flex h-10 items-center justify-center gap-2 rounded-lg bg-[#2e7d32] px-5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-[#1b5e20]"
+            className="flex h-10 items-center justify-center gap-2 rounded-md bg-[#2e7d32] px-5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-[#1b5e20]"
           >
             <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
@@ -205,7 +205,7 @@ function IdentityVerificationTab() {
             Country <span className="text-red-500">*</span>
           </label>
           <div className="relative">
-            <select className="h-11 w-full appearance-none rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand">
+            <select className="h-11 w-full appearance-none rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand">
               <option value="">Select your country</option>
               <option value="NG">Nigeria</option>
               <option value="KE">Kenya</option>
@@ -267,19 +267,19 @@ function NotificationsTab() {
       <div className="grid grid-cols-1 gap-6 pt-6 md:grid-cols-2">
         <div className="space-y-1.5">
           <label className="block text-sm font-bold text-gray-900">Expiry Alert Days</label>
-          <input type="number" defaultValue="30" className="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand" />
+          <input type="number" defaultValue="30" className="h-10 w-full rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand" />
           <p className="text-xs text-gray-500">Days before expiry to send alerts</p>
         </div>
         <div className="space-y-1.5">
           <label className="block text-sm font-bold text-gray-900">Alert Email</label>
-          <input type="email" defaultValue="admin@agrolinking.com" className="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand" />
+          <input type="email" defaultValue="admin@agrolinking.com" className="h-10 w-full rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand" />
         </div>
       </div>
 
       <div className="pt-4">
         <button
           type="button"
-          className="flex h-10 items-center justify-center gap-2 rounded-lg bg-[#2e7d32] px-5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-[#1b5e20]"
+          className="flex h-10 items-center justify-center gap-2 rounded-md bg-[#2e7d32] px-5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-[#1b5e20]"
         >
           <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
@@ -305,7 +305,7 @@ function ToggleCard({
   const [checked, setChecked] = useState(defaultChecked)
 
   return (
-    <div className={`flex items-center justify-between rounded-xl border border-gray-200 bg-white p-4 shadow-sm ${disabled ? 'opacity-60' : ''}`}>
+    <div className={`flex items-center justify-between rounded-md border border-gray-200 bg-white p-4 shadow-sm ${disabled ? 'opacity-60' : ''}`}>
       <div>
         <h4 className={`text-sm font-bold ${disabled ? 'text-gray-400' : 'text-gray-900'}`}>{title}</h4>
         <p className="mt-0.5 text-xs text-gray-500">{description}</p>

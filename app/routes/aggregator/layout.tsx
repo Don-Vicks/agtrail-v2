@@ -1,9 +1,9 @@
 import { Outlet, useLocation } from 'react-router'
 import { AuthGuard } from '~/components/auth-guard'
-import { AggregatorSidebar } from '~/components/layout/aggregator-sidebar'
+import { Sidebar } from '~/components/layout/sidebar'
 import { SidebarProvider, useSidebar } from '~/components/layout/sidebar-context'
-import { Topbar } from '~/components/layout/topbar'
 import { cn } from '~/lib/utils'
+import { aggregatorSidebarNavigation } from '~/lib/mock-data/aggregator'
 import type { Route } from './+types/layout'
 
 export function meta({}: Route.MetaArgs) {
@@ -19,7 +19,7 @@ function AggregatorLayoutContent() {
 
   return (
     <div className='min-h-screen bg-gray-50 flex'>
-      <AggregatorSidebar />
+      <Sidebar navigation={aggregatorSidebarNavigation} roleLabel="Aggregator" />
 
       {isOpenMobile && (
         <div

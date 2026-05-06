@@ -48,5 +48,10 @@ export const cooperativeRoutes: RouteConfig = [
 
     // Settings
     route('cooperative/settings', 'routes/cooperative/settings/settings-root.tsx'),
+
+    // Transfer
+    route('cooperative/transfer/product-transfer', 'routes/cooperative/cooperative-product-transfer.tsx'),
+    route('cooperative/transfer/pickup', 'routes/cooperative/cooperative-pickup.tsx'),
+    route('cooperative/transfer/history', 'routes/cooperative/cooperative-transfer-history.tsx'),
   ])
 ]

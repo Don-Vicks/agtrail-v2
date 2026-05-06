@@ -1,39 +1,29 @@
 import {
    CheckCircle2,
-   Printer,
    Download,
+   Printer,
    QrCode
-} from 'lucide-react'
-import { PageHeader } from '~/components/page-header'
-import { Button } from '~/components/ui/button'
+} from 'lucide-react';
+import { PageHeader } from '~/components/page-header';
+import { Button } from '~/components/ui/button';
 
 export default function AggregatorTransferManifestPage() {
    return (
       <div className="space-y-6 pb-20">
          <PageHeader
             items={[
-               {
-                  label: 'Dashboard',
-                  href: '/aggregator',
-                  icon: (
-                     <svg className="size-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <rect x="3" y="3" width="7" height="7" rx="1" />
-                        <rect x="14" y="3" width="7" height="7" rx="1" />
-                        <rect x="3" y="14" width="7" height="7" rx="1" />
-                        <rect x="14" y="14" width="7" height="7" rx="1" />
-                     </svg>
-                  ),
-               },
-               { label: 'Add Farmer' }
+               { label: 'Aggregator', href: '/aggregator' },
+               { label: 'Transfer' },
+               { label: 'Transit Manifest' }
             ]}
             action={
                <div className="flex items-center gap-3">
-                  <Button variant="outline" className="h-9 px-4 text-xs font-bold text-gray-600 rounded-lg border-gray-200 gap-2">
+                  <Button variant="outline" className="h-9 px-4 text-xs font-bold text-gray-600 rounded-md border-gray-200 gap-2">
                      <Printer className="size-4" />
                      Print Document
                   </Button>
                   <Button
-                     className="bg-brand hover:bg-brand/90 text-white rounded-lg h-9 px-4 text-xs font-bold gap-2"
+                     className="bg-brand hover:bg-brand/90 text-white rounded-md h-9 px-4 text-xs font-bold gap-2"
                   >
                      <Download className="size-4" />
                      Download PDF
@@ -99,7 +89,7 @@ export default function AggregatorTransferManifestPage() {
             </div>
 
             <div className="rounded-[10px] bg-gray-50 p-4 flex items-center gap-5 mb-12 max-w-[420px]">
-               <div className="size-12 rounded-lg bg-white border border-gray-200 p-1.5 shadow-sm shrink-0">
+               <div className="size-12 rounded-md bg-white border border-gray-200 p-1.5 shadow-sm shrink-0">
                   <QrCode className="size-full text-gray-300 stroke-[1.5]" />
                </div>
                <div>

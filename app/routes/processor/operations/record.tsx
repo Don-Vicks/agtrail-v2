@@ -1,15 +1,14 @@
-import { useState, useMemo } from 'react'
-import { PageHeader } from '~/components/page-header'
-import { EmptyState } from '~/components/empty-state'
+import { useQueries } from '@tanstack/react-query'
 import { Package } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { EmptyState } from '~/components/empty-state'
+import { PageHeader } from '~/components/page-header'
 import { Pagination } from '~/components/pagination'
 import { SelectOperationModal } from '~/components/select-operation-modal'
 import { ViewActivitiesModal } from '~/components/view-activities-modal'
 import { useAuth } from '~/context/auth-context'
-import { useQueries } from '@tanstack/react-query'
-import { useGetFarms } from '~/lib/api/generated/farms/farms'
 import { getGetFarmsIdCropCyclesQueryOptions } from '~/lib/api/generated/farms-crop-cycles/farms-crop-cycles'
-import type { Route } from './+types/record'
+import { useGetFarms } from '~/lib/api/generated/farms/farms'
 import type { CropCycle } from '~/lib/api/generated/models'
 import {
   RECORD_OPERATION_STATUS_OPTIONS,
@@ -21,6 +20,7 @@ import {
   sortRecordOperationCycles,
   type RecordOperationSort,
 } from '~/lib/record-operation-dashboard'
+import type { Route } from './+types/record'
 
 export function meta({ }: Route.MetaArgs) {
   return [
@@ -134,7 +134,7 @@ export default function RecordOperation() {
   const loadError =
     isFarmsError || isCyclesError
       ? (farmsError as Error | undefined)?.message ||
-        'Could not load farms or crop cycles. Try again later.'
+      'Could not load farms or crop cycles. Try again later.'
       : null
 
   if (loadError && !isLoadingCycles) {
@@ -157,7 +157,7 @@ export default function RecordOperation() {
           ]}
         />
         <EmptyState
-          className="rounded-xl border border-dashed border-red-200 bg-red-50/40 py-16"
+          className="rounded-md border border-dashed border-red-200 bg-red-50/40 py-16"
           icon={<Package className="size-8 text-red-400" />}
           title="Something went wrong"
           description={loadError}
@@ -245,7 +245,7 @@ export default function RecordOperation() {
       ) : paginatedCycles.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {paginatedCycles.map((cycle) => (
-            <div key={cycle.id} className="group relative rounded-xl border border-gray-200 bg-white p-6 shadow-sm hover:border-brand/40 hover:shadow-lg transition-all flex flex-col">
+            <div key={cycle.id} className="group relative rounded-md border border-gray-200 bg-white p-6 shadow-sm hover:border-brand/40 hover:shadow-lg transition-all flex flex-col">
               <div className="mb-4 flex items-center justify-between relative z-10">
                 <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${cropCycleStatusPillClass(cycle.status)}`}>
                   {cropCycleStatusLabel(cycle.status)}
@@ -287,7 +287,7 @@ export default function RecordOperation() {
                 <button
                   type="button"
                   onClick={() => setViewActivitiesCycle(cycle)}
-                  className="flex w-full h-10 items-center justify-center gap-1.5 rounded-lg border border-gray-100 py-2.5 text-[10px] font-bold uppercase tracking-wider text-gray-600 hover:bg-gray-50 transition-colors shadow-none"
+                  className="flex w-full h-10 items-center justify-center gap-1.5 rounded-md border border-gray-100 py-2.5 text-[10px] font-bold uppercase tracking-wider text-gray-600 hover:bg-gray-50 transition-colors shadow-none"
                 >
                   <svg className="size-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" />
@@ -297,7 +297,7 @@ export default function RecordOperation() {
                 <button
                   type="button"
                   onClick={() => setSelectedUICycle(cycle)}
-                  className="flex w-full h-10 items-center justify-center gap-1.5 rounded-lg bg-brand py-2.5 text-[10px] font-bold uppercase tracking-wider text-white hover:bg-brand/90 transition-colors shadow-none"
+                  className="flex w-full h-10 items-center justify-center gap-1.5 rounded-md bg-brand py-2.5 text-[10px] font-bold uppercase tracking-wider text-white hover:bg-brand/90 transition-colors shadow-none"
                 >
                   <svg className="size-3.5 shadow-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <rect x="8" y="2" width="8" height="4" rx="1" /><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2" />
@@ -310,7 +310,7 @@ export default function RecordOperation() {
         </div>
       ) : (
         <EmptyState
-          className="rounded-xl border border-dashed border-gray-200 bg-white py-16"
+          className="rounded-md border border-dashed border-gray-200 bg-white py-16"
           icon={<Package className="size-8 text-brand/50" />}
           title="No crop cycles found"
           description="There are no crop cycles matching your filters, or none exist yet."

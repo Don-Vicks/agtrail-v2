@@ -537,69 +537,104 @@ export const regions = [
   { name: 'Bagary Coconut Area', count: 1, color: '#E0F7FA' },
 ]
 
-export const sidebarNavigation = {
-  platform: [
-    { label: 'Dashboard', icon: 'layout-dashboard', href: '/farmer' },
-    { label: 'My Farms', icon: 'home', href: '/farmer/farms' },
-    { label: 'Products', icon: 'package', href: '/farmer/products' },
-    { label: 'Inventory', icon: 'jar', href: '/farmer/inventory' },
-    { label: 'Personnel', icon: 'clipboard-list', href: '/farmer/personnel' },
-  ],
-  operations: [
-    { label: 'Start Crop Cycle', icon: 'sprout', href: '/farmer/crop-cycle' },
-    {
-      label: 'Record Operation',
-      icon: 'clipboard-list',
-      href: '/farmer/operations/new',
-    },
-  ],
-  certification: [
-    {
-      label: 'Product Certification',
-      icon: 'upload',
-      href: '/farmer/certifications/product',
-    },
-    {
-      label: 'Farm Certification',
-      icon: 'upload',
-      href: '/farmer/certifications/farm',
-    },
-    // {
-    //   label: 'Certification Readiness',
-    //   icon: 'check-circle',
-    //   href: '/farmer/certifications/readiness',
-    // },
-    {
-      label: 'View Certifications',
-      icon: 'award',
-      href: '/farmer/certifications/view',
-    },
-  ],
-  finance: [
-    {
-      label: 'Record Purchase',
-      icon: 'receipt',
-      href: '/farmer/finance/record-purchase',
-    },
-    {
-      label: 'Receivables',
-      icon: 'banknote',
-      href: '/farmer/finance/receivables',
-    },
-  ],
-  reports: [
-    {
-      label: 'Reports & Analytics',
-      icon: 'bar-chart-3',
-      href: '/farmer/reports',
-    },
-    {
-      label: 'Compliance Analysis',
-      icon: 'shield-check',
-      href: '/farmer/compliance',
-    },
-  ],
-}
+export const sidebarNavigation = [
+  {
+    title: 'Platform',
+    items: [
+      { id: 'dashboard', label: 'Dashboard', icon: 'layout-dashboard', href: '/farmer' },
+      { id: 'farms', label: 'My Farms', icon: 'home', href: '/farmer/farms' },
+      { id: 'products', label: 'Products', icon: 'package', href: '/farmer/products' },
+      { id: 'inventory', label: 'Inventory', icon: 'package', href: '/farmer/inventory' },
+      { id: 'personnel', label: 'Personnel', icon: 'users', href: '/farmer/personnel' },
+    ],
+  },
+  {
+    title: 'Operations',
+    items: [
+      { id: 'start-crop', label: 'Start Crop Cycle', icon: 'sprout', href: '/farmer/crop-cycle' },
+      {
+        id: 'record-op',
+        label: 'Record Operation',
+        icon: 'file-text',
+        href: '/farmer/operations/new',
+      },
+    ],
+  },
+  {
+    title: 'Certification',
+    items: [
+      {
+        id: 'cert-product',
+        label: 'Product Certification',
+        icon: 'award',
+        href: '/farmer/certifications/product',
+      },
+      {
+        id: 'cert-farm',
+        label: 'Farm Certification',
+        icon: 'file-badge',
+        href: '/farmer/certifications/farm',
+      },
+      {
+        id: 'cert-view',
+        label: 'View Certifications',
+        icon: 'eye',
+        href: '/farmer/certifications/view',
+      },
+    ],
+  },
+  {
+    title: 'Finance',
+    items: [
+      {
+        id: 'finance-purchase',
+        label: 'Record Purchase',
+        icon: 'receipt',
+        href: '/farmer/finance/record-purchase',
+      },
+      {
+        id: 'finance-receivables',
+        label: 'Receivables',
+        icon: 'banknote',
+        href: '/farmer/finance/receivables',
+      },
+    ],
+  },
+  {
+    title: 'Reports',
+    items: [
+      {
+        id: 'reports-analytics',
+        label: 'Reports & Analytics',
+        icon: 'bar-chart-3',
+        href: '/farmer/reports',
+      },
+      {
+        id: 'compliance-analysis',
+        label: 'Compliance Analysis',
+        icon: 'shield-check',
+        href: '/farmer/compliance',
+      },
+    ],
+  },
+  {
+    title: 'Transfer',
+    items: [
+      {
+        id: 'product-transfer',
+        label: 'Product Transfer',
+        icon: 'send',
+        href: '/farmer/transfer/product-transfer',
+      },
+      {
+        id: 'products-pickup',
+        label: 'Products Pickup',
+        icon: 'truck',
+        href: '/farmer/transfer/pickup',
+      },
+    ],
+  },
+]
 
 export const currentUser = {
   name: 'Agrolinking Administrator',

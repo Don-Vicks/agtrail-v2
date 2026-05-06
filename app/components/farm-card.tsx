@@ -10,9 +10,10 @@ interface FarmCardProps {
   onAction?: (farmId: string) => void
   basePath?: string
   ownerName?: string
+  actionLabel?: string
 }
 
-export function FarmCard({ farm, action = 'view', onAction, basePath = '/farmer/farms', ownerName }: FarmCardProps) {
+export function FarmCard({ farm, action = 'view', onAction, basePath = '/farmer/farms', ownerName, actionLabel }: FarmCardProps) {
   // Normalise fields — supports both API Farm and legacy mock shapes
   const location = (farm as any).state || (farm as any).lga || (farm as any).region || (farm as any).location || (farm as any).address || 'No location'
   const hectares = (farm as any).sizeHectares ?? (farm as any).hectares ?? (farm as any).totalArea ?? 0
@@ -73,7 +74,7 @@ export function FarmCard({ farm, action = 'view', onAction, basePath = '/farmer/
           <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
           </svg>
-          Start Crop Cycle
+          {actionLabel || 'Start Crop Cycle'}
         </button>
       )}
     </div>

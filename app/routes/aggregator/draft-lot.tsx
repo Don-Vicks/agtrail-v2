@@ -1,12 +1,12 @@
-import { Eye, Plus, MapPin, CheckCircle2, ClipboardCheck, PackageCheck } from 'lucide-react'
-import { PageHeader } from '~/components/page-header'
-import { Button } from '~/components/ui/button'
-import { useDraftLot } from '~/lib/aggregator/use-draft-lot'
-import { Link } from 'react-router'
+import { CheckCircle2, ClipboardCheck, Eye, MapPin, PackageCheck } from 'lucide-react'
 import { useState } from 'react'
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from '~/components/ui/dialog'
-import { Badge } from '~/components/ui/badge'
+import { Link } from 'react-router'
 import { FarmMap } from '~/components/farm-map.client'
+import { PageHeader } from '~/components/page-header'
+import { Badge } from '~/components/ui/badge'
+import { Button } from '~/components/ui/button'
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from '~/components/ui/dialog'
+import { useDraftLot } from '~/lib/aggregator/use-draft-lot'
 
 export default function AggregatorDraftLotPage() {
   const { draftLotBatches, stats } = useDraftLot()
@@ -40,7 +40,7 @@ export default function AggregatorDraftLotPage() {
         <h1 className="text-xl font-bold text-gray-900 tracking-tight">Draft Lot</h1>
       </div>
 
-      <div className="rounded-xl border border-gray-100 bg-white overflow-hidden shadow-sm">
+      <div className="rounded-md border border-gray-100 bg-white overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>

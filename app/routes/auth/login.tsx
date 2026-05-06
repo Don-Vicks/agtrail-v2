@@ -2,8 +2,8 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 
 import { AgrolinkingLogo } from '~/components/agrolinking-logo'
-import { usePostAuthLogin } from '~/lib/api/generated/default/default'
 import { useAuth } from '~/context/auth-context'
+import { usePostAuthLogin } from '~/lib/api/generated/default/default'
 import type { Route } from './+types/login'
 
 export function meta({ }: Route.MetaArgs) {
@@ -83,7 +83,7 @@ export default function LoginPage() {
 
           {/* Error Message */}
           {errorMsg && (
-            <div className="mt-4 w-full rounded-lg bg-red-50 p-3 text-sm text-red-600 border border-red-200">
+            <div className="mt-4 w-full rounded-md bg-red-50 p-3 text-sm text-red-600 border border-red-200">
               {errorMsg}
             </div>
           )}
@@ -104,7 +104,7 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="m@example.com or +234 801 234 5678"
-                className="h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+                className="h-11 w-full rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
               />
             </div>
 
@@ -129,7 +129,7 @@ export default function LoginPage() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+                className="h-11 w-full rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
               />
             </div>
 
@@ -137,7 +137,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isPending}
-              className="h-11 w-full rounded-lg bg-brand text-sm font-semibold text-white transition-colors hover:bg-brand-light focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2 disabled:opacity-70 disabled:cursor-not-allowed"
+              className="h-11 w-full rounded-md bg-brand text-sm font-semibold text-white transition-colors hover:bg-brand-light focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2 disabled:opacity-70 disabled:cursor-not-allowed"
             >
               {isPending ? 'Logging in...' : 'Login'}
             </button>

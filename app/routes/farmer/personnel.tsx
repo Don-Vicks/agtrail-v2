@@ -1,43 +1,36 @@
+import { useQueryClient } from '@tanstack/react-query'
+import { Briefcase, Calendar, Download, Filter, MoreVertical, Search, ShieldCheck, UserPlus, Users } from 'lucide-react'
 import { useMemo, useState, type FormEvent } from 'react'
 import { useLocation } from 'react-router'
-import { useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
+import { EmptyState } from '~/components/empty-state'
 import { PageHeader } from '~/components/page-header'
 import { StatCard } from '~/components/stat-card'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuGroup
-} from '~/components/ui/dropdown-menu'
-import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogFooter,
 } from '~/components/ui/dialog'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
+} from '~/components/ui/dropdown-menu'
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
-import { MoreVertical, Search, UserPlus, Filter, Download, Calendar, ShieldCheck, Briefcase, Users } from 'lucide-react'
-import { cn } from '~/lib/utils'
-import { EmptyState } from '~/components/empty-state'
-import { toast } from 'sonner'
-import {
-  getGetPersonnelQueryKey,
-  useDeletePersonnelId,
-  useGetPersonnel,
-  usePatchPersonnelId,
-  usePostPersonnel,
-} from '~/lib/api/generated/personnel/personnel'
+import { getApiErrorMessage } from '~/lib/api/error-message'
 import type {
   CreatePersonnelRequestStatus,
   CreatePersonnelRequestType,
@@ -45,7 +38,14 @@ import type {
   UpdatePersonnelRequestStatus,
   UpdatePersonnelRequestType,
 } from '~/lib/api/generated/models'
-import { getApiErrorMessage } from '~/lib/api/error-message'
+import {
+  getGetPersonnelQueryKey,
+  useDeletePersonnelId,
+  useGetPersonnel,
+  usePatchPersonnelId,
+  usePostPersonnel,
+} from '~/lib/api/generated/personnel/personnel'
+import { cn } from '~/lib/utils'
 
 interface Person {
   id: string
@@ -288,7 +288,7 @@ export default function FarmerPersonnel() {
             <Download className="size-4" />
             <span className="hidden sm:inline">Export Staff List</span>
           </Button>
-          
+
           <Dialog
             open={isModalOpen}
             onOpenChange={(open) => (open ? setIsModalOpen(true) : handleCloseModal())}
@@ -411,31 +411,31 @@ export default function FarmerPersonnel() {
 
       {/* Summary Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <StatCard 
-          title="Total Personnel" 
-          value={stats.total.toString()} 
+        <StatCard
+          title="Total Personnel"
+          value={stats.total.toString()}
           subtitle="Registered staff"
           description="Total workforce size"
           icon={<Users className="size-4" />}
         />
-        <StatCard 
-          title="Active Staff" 
-          value={stats.active.toString()} 
+        <StatCard
+          title="Active Staff"
+          value={stats.active.toString()}
           subtitle="Currently on duty"
           description="Ready for operations"
           icon={<ShieldCheck className="size-4" />}
           className="border-green-100 bg-green-50/10"
         />
-        <StatCard 
-          title="Permanent" 
-          value={stats.permanent.toString()} 
+        <StatCard
+          title="Permanent"
+          value={stats.permanent.toString()}
           subtitle="Full-time employees"
           description="Long-term contracts"
           icon={<Briefcase className="size-4" />}
         />
-        <StatCard 
-          title="Seasonal" 
-          value={stats.seasonal.toString()} 
+        <StatCard
+          title="Seasonal"
+          value={stats.seasonal.toString()}
           subtitle="Temporary workers"
           description="Peak season support"
           icon={<Calendar className="size-4" />}
@@ -443,7 +443,7 @@ export default function FarmerPersonnel() {
       </div>
 
       {/* Main Container */}
-      <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden flex flex-col">
+      <div className="rounded-md border border-gray-200 bg-white shadow-sm overflow-hidden flex flex-col">
         {/* Filters Header */}
         <div className="p-5 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="relative w-full sm:w-80">
@@ -453,7 +453,7 @@ export default function FarmerPersonnel() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search by name, role or ID..."
-              className="w-full rounded-lg border border-gray-200 pl-10 pr-4 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white"
+              className="w-full rounded-md border border-gray-200 pl-10 pr-4 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white"
             />
           </div>
           <div className="flex items-center gap-2">
@@ -496,7 +496,7 @@ export default function FarmerPersonnel() {
                 {(roleFilter !== 'All' || statusFilter !== 'All' || employmentFilter !== 'All') && (
                   <>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem 
+                    <DropdownMenuItem
                       onClick={() => { setRoleFilter('All'); setStatusFilter('All'); setEmploymentFilter('All') }}
                       className="text-center justify-center font-bold text-brand cursor-pointer"
                     >
@@ -526,7 +526,7 @@ export default function FarmerPersonnel() {
               {isLoading ? (
                 [1, 2, 3].map(i => (
                   <tr key={i} className="animate-pulse">
-                    <td colSpan={6} className="px-6 py-8"><div className="h-8 bg-gray-50 rounded-lg w-full" /></td>
+                    <td colSpan={6} className="px-6 py-8"><div className="h-8 bg-gray-50 rounded-md w-full" /></td>
                   </tr>
                 ))
               ) : isError ? (
@@ -602,16 +602,16 @@ export default function FarmerPersonnel() {
                     <div className="flex items-center gap-1">
                       {person.certifications.length > 0 ? (
                         <div className="flex -space-x-2">
-                           {person.certifications.slice(0, 2).map((cert, i) => (
-                             <div key={i} title={cert} className="size-6 rounded-full bg-brand border-2 border-white flex items-center justify-center text-[8px] text-white font-bold">
-                               {cert[0]}
-                             </div>
-                           ))}
-                           {person.certifications.length > 2 && (
-                             <div className="size-6 rounded-full bg-gray-100 border-2 border-white flex items-center justify-center text-[8px] text-gray-500 font-bold">
-                               +{person.certifications.length - 2}
-                             </div>
-                           )}
+                          {person.certifications.slice(0, 2).map((cert, i) => (
+                            <div key={i} title={cert} className="size-6 rounded-full bg-brand border-2 border-white flex items-center justify-center text-[8px] text-white font-bold">
+                              {cert[0]}
+                            </div>
+                          ))}
+                          {person.certifications.length > 2 && (
+                            <div className="size-6 rounded-full bg-gray-100 border-2 border-white flex items-center justify-center text-[8px] text-gray-500 font-bold">
+                              +{person.certifications.length - 2}
+                            </div>
+                          )}
                         </div>
                       ) : (
                         <span className="text-xs text-gray-400 italic">No certs</span>
@@ -638,13 +638,13 @@ export default function FarmerPersonnel() {
             </tbody>
           </table>
         </div>
-        
+
         {/* Table Footer */}
         <div className="p-5 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
           <p>Showing 1 to {filtered.length} of {filtered.length} personnel</p>
           <div className="flex items-center gap-1">
-             <Button variant="outline" size="sm" className="h-8 px-3" disabled>Previous</Button>
-             <Button variant="outline" size="sm" className="h-8 px-3" disabled>Next</Button>
+            <Button variant="outline" size="sm" className="h-8 px-3" disabled>Previous</Button>
+            <Button variant="outline" size="sm" className="h-8 px-3" disabled>Next</Button>
           </div>
         </div>
       </div>

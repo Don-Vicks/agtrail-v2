@@ -1,15 +1,14 @@
-import { useState, useMemo } from 'react'
-import { PageHeader } from '~/components/page-header'
-import { EmptyState } from '~/components/empty-state'
+import { useQueries } from '@tanstack/react-query'
 import { Package } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { EmptyState } from '~/components/empty-state'
+import { PageHeader } from '~/components/page-header'
 import { Pagination } from '~/components/pagination'
 import { SelectOperationModal } from '~/components/select-operation-modal'
 import { ViewActivitiesModal } from '~/components/view-activities-modal'
 import { useAuth } from '~/context/auth-context'
-import { useQueries } from '@tanstack/react-query'
-import { useGetFarms } from '~/lib/api/generated/farms/farms'
 import { getGetFarmsIdCropCyclesQueryOptions } from '~/lib/api/generated/farms-crop-cycles/farms-crop-cycles'
-import type { Route } from './+types/record-operation'
+import { useGetFarms } from '~/lib/api/generated/farms/farms'
 import type { CropCycle } from '~/lib/api/generated/models'
 import {
   RECORD_OPERATION_STATUS_OPTIONS,
@@ -21,6 +20,7 @@ import {
   sortRecordOperationCycles,
   type RecordOperationSort,
 } from '~/lib/record-operation-dashboard'
+import type { Route } from './+types/record-operation'
 
 export function meta({ }: Route.MetaArgs) {
   return [
@@ -135,7 +135,7 @@ export default function RecordOperation() {
   const loadError =
     isFarmsError || isCyclesError
       ? (farmsError as Error | undefined)?.message ||
-        'Could not load farms or crop cycles. Try again later.'
+      'Could not load farms or crop cycles. Try again later.'
       : null
 
   if (loadError && !isLoadingCycles) {
@@ -157,7 +157,7 @@ export default function RecordOperation() {
           ]}
         />
         <EmptyState
-          className="rounded-lg border border-dashed border-red-200 bg-red-50/40 py-16"
+          className="rounded-md border border-dashed border-red-200 bg-red-50/40 py-16"
           icon={<Package className="size-8 text-red-400" />}
           title="Something went wrong"
           description={loadError}
@@ -300,7 +300,7 @@ export default function RecordOperation() {
         </div>
       ) : (
         <EmptyState
-          className="rounded-lg border border-dashed border-gray-200 bg-white py-16"
+          className="rounded-md border border-dashed border-gray-200 bg-white py-16"
           icon={<Package className="size-8 text-brand/50" />}
           title="No crop cycles found"
           description="There are no crop cycles matching your filters, or none exist yet. Start a crop cycle to begin recording operations."

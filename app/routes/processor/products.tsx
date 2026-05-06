@@ -1,32 +1,28 @@
-import { useState, useMemo } from 'react'
-import { cn } from '~/lib/utils'
+import {
+  Activity,
+  ArrowRight,
+  Boxes as BoxesIcon,
+  CheckCircle,
+  ChevronDown,
+  Clock,
+  LayoutDashboard,
+  Package,
+  Plus,
+  QrCode,
+  Search,
+  Send,
+  Settings
+} from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { Link } from 'react-router'
+import { EmptyState } from '~/components/empty-state'
 import { PageHeader } from '~/components/page-header'
 import { StatCard } from '~/components/stat-card'
-import { EmptyState } from '~/components/empty-state'
-import { Link } from 'react-router'
-import {
-  Search,
-  Plus,
-  Send,
-  Package,
-  CheckCircle,
-  Clock,
-  Trash2,
-  QrCode,
-  Eye,
-  ArrowRight,
-  Filter,
-  ChevronDown,
-  Activity,
-  LayoutDashboard,
-  Boxes as BoxesIcon,
-  Settings,
-} from 'lucide-react'
-import { Button } from '~/components/ui/button'
 import { Badge } from '~/components/ui/badge'
-import type { Route } from './+types/products'
+import { Button } from '~/components/ui/button'
 import { useGetProcessorsBatches } from '~/lib/api/generated/processors-batches/processors-batches'
-import type { ProcessorBatch } from '~/lib/api/generated/models'
+import { cn } from '~/lib/utils'
+import type { Route } from './+types/products'
 
 export function meta({ }: Route.MetaArgs) {
   return [
@@ -181,7 +177,7 @@ function InventoryTab() {
       </div>
 
       {/* Advanced Toolbar */}
-      <div className='rounded-xl border border-gray-100 bg-white p-4 shadow-sm flex flex-col lg:flex-row items-center justify-between gap-4'>
+      <div className='rounded-md border border-gray-100 bg-white p-4 shadow-sm flex flex-col lg:flex-row items-center justify-between gap-4'>
         <div className='relative w-full lg:max-w-md'>
           <Search className='absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400' />
           <input
@@ -189,7 +185,7 @@ function InventoryTab() {
             placeholder='Search products by name or batch identity...'
             value={search}
             onChange={(e) => { setSearch(e.target.value); setCurrentPage(1) }}
-            className='w-full h-11 rounded-xl border border-gray-100 bg-gray-50/50 pl-10 pr-4 py-2 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white transition-all shadow-none'
+            className='w-full h-11 rounded-md border border-gray-100 bg-gray-50/50 pl-10 pr-4 py-2 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white transition-all shadow-none'
           />
         </div>
 
@@ -202,7 +198,7 @@ function InventoryTab() {
               <select
                 value={statusFilter}
                 onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1) }}
-                className='h-11 rounded-xl border border-gray-100 pl-3 pr-8 text-[11px] font-bold uppercase tracking-wider text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand bg-gray-50/50 appearance-none min-w-[140px]'
+                className='h-11 rounded-md border border-gray-100 pl-3 pr-8 text-[11px] font-bold uppercase tracking-wider text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand bg-gray-50/50 appearance-none min-w-[140px]'
               >
                 <option value='all'>All Status</option>
                 <option value='completed'>Completed</option>
@@ -333,7 +329,7 @@ function InventoryTab() {
 
       {/* Pagination Footer */}
       {!isLoading && filteredBatches.length > 0 && (
-        <div className="mt-8 border-t border-gray-100 px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-gray-400 font-bold uppercase tracking-tight bg-gray-50/20 rounded-xl">
+        <div className="mt-8 border-t border-gray-100 px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-gray-400 font-bold uppercase tracking-tight bg-gray-50/20 rounded-md">
           <div className="flex items-center gap-2">
             <span className="text-gray-300">Total Batches:</span>
             <span className="text-gray-900">{filteredBatches.length} items</span>
@@ -415,7 +411,7 @@ function TransfersTab() {
     <div className='space-y-6'>
       <div className='flex items-center justify-between mb-2'>
         <div className='flex items-center gap-4 text-left'>
-          <div className='size-10 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600'>
+          <div className='size-10 rounded-md bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600'>
             <Activity className='size-5' />
           </div>
           <div>
@@ -430,7 +426,7 @@ function TransfersTab() {
       </div>
 
       {/* Transfers Toolbar */}
-      <div className='rounded-xl border border-gray-100 bg-white p-4 shadow-sm flex flex-col lg:flex-row items-center justify-between gap-4'>
+      <div className='rounded-md border border-gray-100 bg-white p-4 shadow-sm flex flex-col lg:flex-row items-center justify-between gap-4'>
         <div className='relative w-full lg:max-w-md'>
           <Search className='absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400' />
           <input
@@ -438,7 +434,7 @@ function TransfersTab() {
             placeholder='Search transfers by reference or product...'
             value={search}
             onChange={(e) => { setSearch(e.target.value); setCurrentPage(1) }}
-            className='w-full h-11 rounded-xl border border-gray-100 bg-gray-50/50 pl-10 pr-4 py-2 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white transition-all shadow-none'
+            className='w-full h-11 rounded-md border border-gray-100 bg-gray-50/50 pl-10 pr-4 py-2 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white transition-all shadow-none'
           />
         </div>
 
@@ -451,7 +447,7 @@ function TransfersTab() {
               <select
                 value={statusFilter}
                 onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1) }}
-                className='h-11 rounded-xl border border-gray-100 pl-3 pr-8 text-[11px] font-bold uppercase tracking-wider text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand bg-gray-50/50 appearance-none min-w-[140px]'
+                className='h-11 rounded-md border border-gray-100 pl-3 pr-8 text-[11px] font-bold uppercase tracking-wider text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand bg-gray-50/50 appearance-none min-w-[140px]'
               >
                 <option value='all'>All Status</option>
                 <option value='completed'>Completed</option>
@@ -556,7 +552,7 @@ function TransfersTab() {
 
       {/* Pagination Footer */}
       {filteredTransfers.length > 0 && (
-        <div className="mt-8 border-t border-gray-100 px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-gray-400 font-bold uppercase tracking-tight bg-gray-50/20 rounded-xl">
+        <div className="mt-8 border-t border-gray-100 px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-gray-400 font-bold uppercase tracking-tight bg-gray-50/20 rounded-md">
           <div className="flex items-center gap-2">
             <span className="text-gray-300">Total Transfers:</span>
             <span className="text-gray-900">{filteredTransfers.length} items</span>
@@ -612,12 +608,7 @@ export default function ProcessorProducts() {
     <>
       <PageHeader
         items={[
-          {
-            label: 'Dashboard',
-            href: '/processor',
-            icon: <LayoutDashboard className='size-4 text-gray-400' />,
-          },
-          { label: 'Inventory' },
+          { label: 'Dashboard', href: '/processor' },
           { label: 'Products' },
         ]}
       />
@@ -635,11 +626,11 @@ export default function ProcessorProducts() {
 
           <div className='flex flex-wrap items-center gap-4'>
             {/* Tabs */}
-            <div className='inline-flex rounded-xl bg-gray-50/80 p-1 border border-gray-100 shadow-sm'>
+            <div className='inline-flex rounded-md bg-gray-50/80 p-1 border border-gray-100 shadow-sm'>
               <button
                 onClick={() => setActiveTab('inventory')}
                 className={cn(
-                  'flex h-9 items-center justify-center rounded-lg px-6 text-[10px] font-bold uppercase tracking-widest transition-all',
+                  'flex h-9 items-center justify-center rounded-md px-6 text-[10px] font-bold uppercase tracking-widest transition-all',
                   activeTab === 'inventory'
                     ? 'bg-white text-gray-900 shadow-sm font-bold'
                     : 'text-gray-400 hover:text-gray-600',
@@ -650,7 +641,7 @@ export default function ProcessorProducts() {
               <button
                 onClick={() => setActiveTab('transfers')}
                 className={cn(
-                  'flex h-9 items-center justify-center rounded-lg px-6 text-[10px] font-bold uppercase tracking-widest transition-all',
+                  'flex h-9 items-center justify-center rounded-md px-6 text-[10px] font-bold uppercase tracking-widest transition-all',
                   activeTab === 'transfers'
                     ? 'bg-white text-gray-900 shadow-sm font-bold'
                     : 'text-gray-400 hover:text-gray-600',

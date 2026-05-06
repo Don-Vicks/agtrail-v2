@@ -124,6 +124,23 @@ export const sidebarNavigation = [
       },
     ],
   },
+  {
+    title: 'Transfer',
+    items: [
+      {
+        id: 'product-transfer',
+        label: 'Product Transfer',
+        href: '/cooperative/transfer/product-transfer',
+        icon: 'send',
+      },
+      {
+        id: 'products-pickup',
+        label: 'Products Pickup',
+        href: '/cooperative/transfer/pickup',
+        icon: 'truck',
+      },
+    ],
+  },
 ]
 
 export const cooperativeDashboardStats = {

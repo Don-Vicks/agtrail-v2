@@ -39,4 +39,15 @@ export const transporterSidebarNavigation = [
       },
     ],
   },
+  {
+    title: 'Transfer',
+    items: [
+      {
+        id: 'product-transfer',
+        label: 'Transfer Offers',
+        href: '/transporter/transfer/product-transfer',
+        icon: 'send',
+      },
+    ],
+  },
 ]

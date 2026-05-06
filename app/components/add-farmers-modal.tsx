@@ -1,9 +1,9 @@
-import { useMemo, useState } from 'react'
-import { Plus, Search, Mail } from 'lucide-react'
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from '~/components/ui/dialog'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
-import { toast } from 'sonner'
+import { Mail, Plus, Search } from 'lucide-react'
 import { getStateByCode } from 'ng-geo-data'
+import { useMemo, useState } from 'react'
+import { toast } from 'sonner'
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from '~/components/ui/dialog'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
 import { sortedLgasForStateCode, sortedNigeriaStates } from '~/lib/nigeria-geo-options'
 
 interface AddFarmersModalProps {
@@ -59,11 +59,10 @@ export function AddFarmersModal({ isOpen, onClose }: AddFarmersModalProps) {
             <button
               type="button"
               onClick={() => setActiveTab('search')}
-              className={`py-4 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${
-                activeTab === 'search'
+              className={`py-4 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${activeTab === 'search'
                   ? 'border-brand text-brand'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
+                }`}
             >
               <Search className="size-4" />
               Search Existing Farmers
@@ -71,11 +70,10 @@ export function AddFarmersModal({ isOpen, onClose }: AddFarmersModalProps) {
             <button
               type="button"
               onClick={() => setActiveTab('invite')}
-              className={`py-4 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${
-                activeTab === 'invite'
+              className={`py-4 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${activeTab === 'invite'
                   ? 'border-brand text-brand'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
+                }`}
             >
               <Plus className="size-4" />
               Invite New Farmer
@@ -138,7 +136,7 @@ export function AddFarmersModal({ isOpen, onClose }: AddFarmersModalProps) {
             </div>
           ) : (
             <div className="space-y-6">
-              <div className="rounded-lg bg-green-50 p-4 flex items-start gap-3">
+              <div className="rounded-md bg-green-50 p-4 flex items-start gap-3">
                 <div className="rounded-full bg-green-100 p-1 shrink-0 mt-0.5">
                   <Plus className="size-4 text-green-700" />
                 </div>

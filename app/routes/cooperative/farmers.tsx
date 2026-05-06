@@ -1,27 +1,25 @@
 import {
+  ArrowRight,
+  Calendar,
+  ChevronDown,
+  Clock,
+  Download,
   Eye,
+  LayoutDashboard,
+  Mail,
   Plus,
   Search,
   Trash2,
   UserCheck,
-  Clock,
   Users,
-  Download,
-  LayoutDashboard,
-  ArrowRight,
-  ChevronDown,
-  Mail,
-  Calendar,
 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router'
 import { AddFarmersModal } from '~/components/add-farmers-modal'
 import { CreateFarmModal } from '~/components/create-farm-modal'
+import { EmptyState } from '~/components/empty-state'
 import { PageHeader } from '~/components/page-header'
 import { StatCard } from '~/components/stat-card'
-import { Button } from '~/components/ui/button'
-import { Badge } from '~/components/ui/badge'
-import { useGetCooperativesFarmers as useGetCooperativeFarmers } from '~/lib/api/generated/cooperatives/cooperatives'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,10 +30,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '~/components/ui/alert-dialog'
-import { EmptyState } from '~/components/empty-state'
+import { Badge } from '~/components/ui/badge'
+import { Button } from '~/components/ui/button'
+import { useGetCooperativesFarmers as useGetCooperativeFarmers } from '~/lib/api/generated/cooperatives/cooperatives'
 import type { Route } from './+types/farmers'
 
-export function meta({}: Route.MetaArgs) {
+export function meta({ }: Route.MetaArgs) {
   return [
     { title: 'Farmers | Agtrail' },
     { name: 'description', content: 'Manage cooperative farmers' },
@@ -165,11 +165,7 @@ export default function CooperativeFarmers() {
     <div className='space-y-6 pb-10 px-1'>
       <PageHeader
         items={[
-          {
-            label: 'Dashboard',
-            href: '/cooperative',
-            icon: <LayoutDashboard className='size-4 text-gray-400' />,
-          },
+          { label: 'Dashboard', href: '/cooperative' },
           { label: 'Farmers' },
         ]}
       />
@@ -233,7 +229,7 @@ export default function CooperativeFarmers() {
       </div>
 
       {/* Global Filter Toolbar */}
-      <div className='rounded-xl border border-gray-200 bg-white p-6 shadow-sm'>
+      <div className='rounded-md border border-gray-200 bg-white p-6 shadow-sm'>
         <div className='flex flex-col lg:flex-row lg:items-center justify-between gap-6'>
           <div className='relative w-full lg:max-w-md'>
             <Search className='absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400' />
@@ -242,7 +238,7 @@ export default function CooperativeFarmers() {
               placeholder='Search members by identity, role, or serial...'
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className='w-full rounded-lg border border-gray-200 pl-10 pr-4 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white transition-all shadow-sm'
+              className='w-full rounded-md border border-gray-200 pl-10 pr-4 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white transition-all shadow-sm'
             />
           </div>
 
@@ -255,7 +251,7 @@ export default function CooperativeFarmers() {
                 <select
                   value={roleFilter}
                   onChange={(e) => setRoleFilter(e.target.value)}
-                  className='h-10 rounded-lg border border-gray-200 pl-3 pr-8 text-[11px] font-bold uppercase tracking-wider text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand bg-gray-50/50 appearance-none min-w-[160px]'
+                  className='h-10 rounded-md border border-gray-200 pl-3 pr-8 text-[11px] font-bold uppercase tracking-wider text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand bg-gray-50/50 appearance-none min-w-[160px]'
                 >
                   {roles.map((r) => (
                     <option key={r} value={r}>
@@ -285,7 +281,7 @@ export default function CooperativeFarmers() {
         {filteredMembers.map((member) => (
           <div
             key={member.id}
-            className='relative rounded-xl border border-gray-200 bg-white p-6 flex flex-col items-center text-center group hover:border-brand/40 hover:shadow-lg transition-all'
+            className='relative rounded-md border border-gray-200 bg-white p-6 flex flex-col items-center text-center group hover:border-brand/40 hover:shadow-lg transition-all'
           >
             <div className='absolute top-4 right-4 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity'>
               <Button
@@ -309,7 +305,7 @@ export default function CooperativeFarmers() {
                   className='size-full object-cover'
                 />
               </div>
-              <div className='absolute -bottom-2 -right-2 size-6 rounded-lg bg-white border border-gray-100 shadow-sm flex items-center justify-center'>
+              <div className='absolute -bottom-2 -right-2 size-6 rounded-md bg-white border border-gray-100 shadow-sm flex items-center justify-center'>
                 <UserCheck className='size-3.5 text-brand' />
               </div>
             </div>
@@ -398,7 +394,7 @@ export default function CooperativeFarmers() {
       </div>
 
       {/* Standardized Table Footer */}
-      <div className='mt-12 border-t border-gray-100 px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-gray-400 font-bold uppercase tracking-tight bg-gray-50/20 rounded-xl'>
+      <div className='mt-12 border-t border-gray-100 px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-gray-400 font-bold uppercase tracking-tight bg-gray-50/20 rounded-md'>
         <div className='flex items-center gap-2'>
           <span className='text-gray-300'>Total Farmers:</span>
           <span className='text-gray-900'>

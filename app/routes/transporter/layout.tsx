@@ -1,9 +1,9 @@
 import { Outlet, useLocation } from 'react-router'
-import { TransporterSidebar } from '~/components/layout/transporter-sidebar'
+import { Sidebar } from '~/components/layout/sidebar'
 import { SidebarProvider, useSidebar } from '~/components/layout/sidebar-context'
-import { Topbar } from '~/components/layout/topbar'
 import { AuthGuard } from '~/components/auth-guard'
 import { cn } from '~/lib/utils'
+import { transporterSidebarNavigation } from '~/lib/mock-data/transporter'
 
 function TransporterLayoutContent() {
   const location = useLocation()
@@ -14,7 +14,7 @@ function TransporterLayoutContent() {
 
   return (
     <div className="min-h-screen bg-white flex">
-      <TransporterSidebar />
+      <Sidebar navigation={transporterSidebarNavigation} roleLabel="Transporter" />
 
       {/* Mobile Backdrop */}
       {isOpenMobile && (
@@ -29,7 +29,6 @@ function TransporterLayoutContent() {
         "ml-0",
         isCollapsedDesktop ? "lg:ml-0" : "lg:ml-64"
       )}>
-        {isDashboard && <Topbar />}
         <main className="p-4 md:p-6 lg:p-8">
           <Outlet />
         </main>

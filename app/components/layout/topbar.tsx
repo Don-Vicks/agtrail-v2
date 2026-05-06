@@ -58,14 +58,6 @@ export function Topbar() {
     <>
       <header className="sticky top-0 z-20 flex h-16 w-full items-center justify-between gap-4 border-b border-gray-200 bg-white px-4 md:px-6 lg:px-8">
         <div className="flex min-w-0 items-center gap-3">
-          <button
-            onClick={() => sidebarCtx?.toggleMobile()}
-            className="lg:hidden rounded-md p-1.5 text-gray-500 transition-colors hover:bg-gray-100"
-          >
-            <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
           <h1 className="hidden min-w-0 truncate text-base font-medium text-gray-800 sm:block">
             {getGreeting()}, <span className="font-semibold">{displayName}</span>
           </h1>

@@ -1,21 +1,21 @@
-import { useState, useMemo } from 'react'
-import { toast } from 'sonner'
 import { useQueryClient } from '@tanstack/react-query'
+import { ArrowDown, ArrowUp, ArrowUpDown, ChevronDown, Plus, Search, ShoppingCart } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { toast } from 'sonner'
+import { EmptyState } from '~/components/empty-state'
 import { PageHeader } from '~/components/page-header'
+import { Pagination } from '~/components/pagination'
+import { Badge } from '~/components/ui/badge'
+import { Button } from '~/components/ui/button'
 import { DatePicker } from '~/components/ui/date-picker'
 import type {
   PostPurchasesBody,
   PostPurchasesBodyProductType,
 } from '~/lib/api/generated/models'
 import {
-  usePostPurchases,
   useGetPurchases,
+  usePostPurchases,
 } from '~/lib/api/generated/purchases/purchases'
-import { EmptyState } from '~/components/empty-state'
-import { Button } from '~/components/ui/button'
-import { Badge } from '~/components/ui/badge'
-import { Pagination } from '~/components/pagination'
-import { ArrowUpDown, ArrowUp, ArrowDown, ShoppingCart, Plus, Search, ChevronDown } from 'lucide-react'
 import type { Route } from './+types/record-purchase'
 
 export function meta({ }: Route.MetaArgs) {
@@ -245,9 +245,9 @@ export default function RecordPurchasePage() {
       </div>
 
       {/* Entry Form Card */}
-      <div className='rounded-xl border border-gray-200 bg-white p-6 shadow-sm'>
+      <div className='rounded-md border border-gray-200 bg-white p-6 shadow-sm'>
         <div className='flex items-center gap-2 mb-6 text-left'>
-          <div className='size-8 rounded-lg bg-brand-surface flex items-center justify-center text-brand'>
+          <div className='size-8 rounded-md bg-brand-surface flex items-center justify-center text-brand'>
             <Plus className='size-4' />
           </div>
           <h2 className='text-lg font-bold text-gray-900 uppercase tracking-tight'>
@@ -264,7 +264,7 @@ export default function RecordPurchasePage() {
               <DatePicker
                 value={date}
                 onChange={setDate}
-                className='h-10 w-full rounded-lg border border-gray-200 focus:border-brand focus:ring-1 focus:ring-brand focus:bg-white'
+                className='h-10 w-full rounded-md border border-gray-200 focus:border-brand focus:ring-1 focus:ring-brand focus:bg-white'
               />
             </div>
 
@@ -281,7 +281,7 @@ export default function RecordPurchasePage() {
                     )
                   }
                   required
-                  className='h-10 w-full appearance-none rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white'
+                  className='h-10 w-full appearance-none rounded-md border border-gray-200 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white'
                 >
                   <option value='farm_product'>Farm Product</option>
                   <option value='batch_product'>Batch Product</option>
@@ -302,7 +302,7 @@ export default function RecordPurchasePage() {
                 value={beneficiary}
                 onChange={(e) => setBeneficiary(e.target.value)}
                 placeholder='Enter user ID'
-                className='h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white'
+                className='h-10 w-full rounded-md border border-gray-200 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white'
               />
             </div>
           </div>
@@ -318,7 +318,7 @@ export default function RecordPurchasePage() {
                 value={quantity}
                 onChange={(e) => setQuantity(e.target.value)}
                 placeholder='0'
-                className='h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white'
+                className='h-10 w-full rounded-md border border-gray-200 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white'
               />
             </div>
 
@@ -331,7 +331,7 @@ export default function RecordPurchasePage() {
                   value={unit}
                   onChange={(e) => setUnit(e.target.value)}
                   required
-                  className='h-10 w-full appearance-none rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white'
+                  className='h-10 w-full appearance-none rounded-md border border-gray-200 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white'
                 >
                   <option value='kg'>kg</option>
                   <option value='bags'>bags</option>
@@ -353,7 +353,7 @@ export default function RecordPurchasePage() {
                 value={pricePerUnit}
                 onChange={(e) => setPricePerUnit(e.target.value)}
                 placeholder='0.00'
-                className='h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white'
+                className='h-10 w-full rounded-md border border-gray-200 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white'
               />
             </div>
           </div>
@@ -367,7 +367,7 @@ export default function RecordPurchasePage() {
               placeholder='Provide more context about this purchase...'
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className='w-full resize-none rounded-lg border border-gray-200 bg-white p-3 text-sm text-gray-900 placeholder:text-gray-300 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white'
+              className='w-full resize-none rounded-md border border-gray-200 bg-white p-3 text-sm text-gray-900 placeholder:text-gray-300 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white'
             />
           </div>
 
@@ -384,10 +384,10 @@ export default function RecordPurchasePage() {
       </div>
 
       {/* History Table Card */}
-      <div className='rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden flex flex-col'>
+      <div className='rounded-md border border-gray-200 bg-white shadow-sm overflow-hidden flex flex-col'>
         <div className='p-6 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between bg-white text-left gap-4'>
           <div className='flex items-center gap-2'>
-            <div className='size-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400'>
+            <div className='size-8 rounded-md bg-gray-50 flex items-center justify-center text-gray-400'>
               <ShoppingCart className='size-4' />
             </div>
             <div>
@@ -410,7 +410,7 @@ export default function RecordPurchasePage() {
                 setCurrentPage(1)
               }}
               placeholder='Search purchases...'
-              className='w-full rounded-lg border border-gray-200 pl-10 pr-4 py-2 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white'
+              className='w-full rounded-md border border-gray-200 pl-10 pr-4 py-2 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white'
             />
           </div>
         </div>

@@ -14,7 +14,7 @@ export function OperationFormError({ message }: { message: string }) {
   return (
     <div className="py-12">
       <EmptyState
-        className="rounded-lg border border-dashed border-red-200 bg-red-50/50 py-14"
+        className="rounded-md border border-dashed border-red-200 bg-red-50/50 py-14"
         title="Could not load crop cycle"
         description={message}
       />

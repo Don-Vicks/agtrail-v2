@@ -73,6 +73,8 @@ export function OperationFormLayout({
     ? '/cooperative'
     : location.pathname.startsWith('/processor')
       ? '/processor'
+      : location.pathname.startsWith('/field-agent')
+        ? '/field-agent'
       : '/farmer'
   const operationsListHref = getOperationsListPath(location.pathname)
 

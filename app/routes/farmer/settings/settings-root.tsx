@@ -15,7 +15,7 @@ import {
 } from '~/lib/api/generated/users/users'
 import type { Route } from './+types/settings-root'
 
-export function meta({}: Route.MetaArgs) {
+export function meta({ }: Route.MetaArgs) {
   return [
     { title: 'Settings | Agtrail' },
     {
@@ -79,18 +79,17 @@ export default function SettingsPage() {
         </p>
 
         {/* Tabs */}
-        <div className='inline-flex overflow-hidden rounded-lg bg-[#f1f4eb] p-1'>
+        <div className='inline-flex overflow-hidden rounded-md bg-[#f1f4eb] p-1'>
           {(
             ['Account', 'Identity Verification', 'Notifications'] as TabType[]
           ).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`flex h-9 items-center justify-center rounded-md px-4 text-sm font-semibold transition-colors ${
-                activeTab === tab
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
+              className={`flex h-9 items-center justify-center rounded-md px-4 text-sm font-semibold transition-colors ${activeTab === tab
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+                }`}
             >
               {tab}
             </button>
@@ -99,7 +98,7 @@ export default function SettingsPage() {
       </div>
 
       {/* Main Content Area */}
-      <div className='rounded-xl border border-gray-200 bg-white p-6 shadow-sm'>
+      <div className='rounded-md border border-gray-200 bg-white p-6 shadow-sm'>
         {activeTab === 'Account' && <AccountSettingsTab />}
         {activeTab === 'Identity Verification' && <IdentityVerificationTab />}
         {activeTab === 'Notifications' && <NotificationsTab />}
@@ -199,7 +198,7 @@ function AccountSettingsTab() {
             type='text'
             name='name'
             defaultValue={profile?.name || ''}
-            className='h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand'
+            className='h-10 w-full rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand'
             required
           />
         </div>
@@ -210,7 +209,7 @@ function AccountSettingsTab() {
             type='email'
             defaultValue={profile?.email || org?.email || user?.email || ''}
             readOnly
-            className='h-10 w-full rounded-lg border border-gray-300 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none cursor-not-allowed'
+            className='h-10 w-full rounded-md border border-gray-300 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none cursor-not-allowed'
           />
           <p className='text-[10px] text-gray-500'>
             Email cannot be changed directly due to security policies.
@@ -225,7 +224,7 @@ function AccountSettingsTab() {
             type='text'
             name='organization'
             defaultValue={org?.name || ''}
-            className='h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand'
+            className='h-10 w-full rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand'
           />
         </div>
 
@@ -238,7 +237,7 @@ function AccountSettingsTab() {
             name='phoneNumber'
             placeholder='Your phone number'
             defaultValue={profile?.phoneNumber || ''}
-            className='h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand'
+            className='h-10 w-full rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand'
           />
         </div>
 
@@ -246,7 +245,7 @@ function AccountSettingsTab() {
           <button
             type='submit'
             disabled={isUpdatingProfile || isUpdatingOrg}
-            className='flex h-10 items-center justify-center gap-2 rounded-lg bg-[#2e7d32] px-5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-[#1b5e20] disabled:opacity-50'
+            className='flex h-10 items-center justify-center gap-2 rounded-md bg-[#2e7d32] px-5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-[#1b5e20] disabled:opacity-50'
           >
             {isUpdatingProfile || isUpdatingOrg ? (
               'Saving...'
@@ -283,6 +282,8 @@ function IdentityVerificationTab() {
   const { data: profileResp } = useGetUsersProfile()
   const profileUser = profileResp?.data?.user as any
   const [kycErrorDetail, setKycErrorDetail] = useState<string>('')
+  const [isDeviceGuardBlocked, setIsDeviceGuardBlocked] = useState(false)
+  const [activeSessionRef, setActiveSessionRef] = useState('')
 
   const { mutate: linkKyc } = usePostUsersKyc({
     mutation: {
@@ -295,8 +296,60 @@ function IdentityVerificationTab() {
     },
   })
 
+  const buildStableBrowserId = () => {
+    if (typeof window === 'undefined') return 'server'
+    const key = 'dojah_browser_id_v1'
+    const existing = window.localStorage.getItem(key)
+    if (existing) return existing
+    const created = `dg-${Math.random().toString(36).slice(2)}-${Date.now().toString(36)}`
+    window.localStorage.setItem(key, created)
+    return created
+  }
+
+  const buildStableKycSessionRef = () => {
+    if (typeof window === 'undefined') return `kyc-${Date.now()}`
+    const baseUserId = user?.id || profileUser?.id || user?.email || 'anonymous'
+    const storageKey = `dojah_kyc_session_ref_${baseUserId}`
+    const existing = window.sessionStorage.getItem(storageKey)
+    if (existing) return existing
+    const created = `kyc-${String(baseUserId).replace(/[^a-zA-Z0-9]/g, '').slice(0, 18)}-${Date.now().toString(36)}`
+    window.sessionStorage.setItem(storageKey, created)
+    return created
+  }
+
+  const clearStableKycSessionRef = () => {
+    if (typeof window === 'undefined') return
+    const baseUserId = user?.id || profileUser?.id || user?.email || 'anonymous'
+    const storageKey = `dojah_kyc_session_ref_${baseUserId}`
+    window.sessionStorage.removeItem(storageKey)
+  }
+
+  const getDeviceGuardErrorDetail = (data: any): string => {
+    const reason =
+      data?.message ||
+      data?.response?.message ||
+      data?.error?.message ||
+      data?.reason ||
+      ''
+    const deviceInfo = data?.deviceInfo || data?.response?.deviceInfo
+    const normalized = String(reason).toLowerCase()
+    const blocked =
+      normalized.includes('deviceguard') ||
+      normalized.includes('multiple device') ||
+      normalized.includes('different device') ||
+      normalized.includes('same device') ||
+      normalized.includes('verification failed')
+    if (!blocked) return ''
+    return deviceInfo
+      ? `Dojah DeviceGuard blocked this session. Please continue on one device/browser only. Device info: ${deviceInfo}`
+      : 'Dojah DeviceGuard blocked this session. Please continue on one device/browser only.'
+  }
+
   const syncKyc = (data: any) => {
     setShouldLaunchKyc(false)
+    setIsDeviceGuardBlocked(false)
+    setActiveSessionRef('')
+    clearStableKycSessionRef()
     toast.success('Identity verified successfully by Dojah!')
     linkKyc({
       data: {
@@ -311,6 +364,7 @@ function IdentityVerificationTab() {
     console.log('Dojah event:', type, data)
     if (type === 'success') {
       setKycErrorDetail('')
+      setIsDeviceGuardBlocked(false)
       syncKyc(data)
       return
     }
@@ -323,16 +377,13 @@ function IdentityVerificationTab() {
         data?.error?.message ||
         data?.reason ||
         'Identity verification failed. Please try again.'
-      const deviceInfo = data?.deviceInfo
-      const looksLikeDeviceGuardBlock =
-        typeof reason === 'string' && reason.toLowerCase().includes('verification failed')
-      if (looksLikeDeviceGuardBlock) {
-        const detail = deviceInfo
-          ? `Dojah DeviceGuard blocked this session. Complete KYC on one device/browser only. Device info: ${deviceInfo}`
-          : 'Dojah DeviceGuard blocked this session. Complete KYC on one device/browser only.'
+      const detail = getDeviceGuardErrorDetail(data)
+      if (detail) {
+        setIsDeviceGuardBlocked(true)
         setKycErrorDetail(detail)
         toast.error('Verification blocked by Dojah security checks. Use same device/browser and retry.')
       } else {
+        setIsDeviceGuardBlocked(false)
         setKycErrorDetail(String(reason))
         toast.error(reason)
       }
@@ -343,10 +394,12 @@ function IdentityVerificationTab() {
       // Some Dojah flows close the widget after a completed check.
       if (data?.status === 'success' || data?.verification_status === 'success') {
         setKycErrorDetail('')
+        setIsDeviceGuardBlocked(false)
         syncKyc(data)
         return
       }
       setShouldLaunchKyc(false)
+      setActiveSessionRef('')
       console.log('Dojah widget closed.')
     }
   }
@@ -361,6 +414,7 @@ function IdentityVerificationTab() {
 
   const config = {
     debug: import.meta.env.DEV || sandboxMode,
+    reference_id: activeSessionRef || buildStableKycSessionRef(),
     pages: [
       {
         page: 'government-data',
@@ -384,6 +438,13 @@ function IdentityVerificationTab() {
         : '',
     email: user?.email || profileUser?.email || '',
     phone_number: profileUser?.phoneNumber || '',
+  }
+
+  const metadata = {
+    user_id: user?.id || 'unknown',
+    browser_id: buildStableBrowserId(),
+    session_ref: activeSessionRef || buildStableKycSessionRef(),
+    source: 'farmer_settings_kyc',
   }
 
   return (
@@ -424,11 +485,14 @@ function IdentityVerificationTab() {
           <div className='w-full space-y-3'>
             <button
               type='button'
+              disabled={shouldLaunchKyc}
               onClick={() => {
+                const stableRef = buildStableKycSessionRef()
+                setActiveSessionRef(stableRef)
                 setKycLaunchCount((v) => v + 1)
                 setShouldLaunchKyc(true)
               }}
-              className='inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-brand bg-white px-4 py-2 text-sm font-semibold text-brand transition-colors hover:bg-brand-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2'
+              className='inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-brand bg-white px-4 py-2 text-sm font-semibold text-brand transition-colors hover:bg-brand-surface disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2'
             >
               <svg
                 className='size-4'
@@ -443,7 +507,7 @@ function IdentityVerificationTab() {
                   d='M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z'
                 />
               </svg>
-              Start KYC Flow
+              {shouldLaunchKyc ? 'KYC Flow Running...' : 'Start KYC Flow'}
             </button>
             {shouldLaunchKyc ? (
               <DojahWidget
@@ -455,20 +519,36 @@ function IdentityVerificationTab() {
                 env={dojahEnv}
                 config={config}
                 userData={userData}
-                metadata={{ user_id: user?.id || 'unknown' }}
+                metadata={metadata}
               />
             ) : null}
             {kycErrorDetail ? (
-              <div className='rounded-lg border border-amber-200 bg-amber-50 p-3 text-left'>
+              <div className='rounded-md border border-amber-200 bg-amber-50 p-3 text-left'>
                 <p className='text-xs font-semibold uppercase tracking-widest text-amber-800'>
                   Verification issue
                 </p>
                 <p className='mt-1 text-xs text-amber-700'>{kycErrorDetail}</p>
+                {isDeviceGuardBlocked ? (
+                  <button
+                    type='button'
+                    onClick={() => {
+                      clearStableKycSessionRef()
+                      setActiveSessionRef('')
+                      setShouldLaunchKyc(false)
+                      setKycErrorDetail('')
+                      setIsDeviceGuardBlocked(false)
+                      toast.success('DeviceGuard session reset. Retry on this same device/browser only.')
+                    }}
+                    className='mt-2 inline-flex items-center rounded-md border border-amber-300 bg-white px-2.5 py-1 text-[11px] font-semibold text-amber-800 hover:bg-amber-50'
+                  >
+                    Reset KYC Session
+                  </button>
+                ) : null}
               </div>
             ) : null}
           </div>
         ) : (
-          <div className='w-full rounded-lg border border-amber-200 bg-amber-50 p-4 text-left'>
+          <div className='w-full rounded-md border border-amber-200 bg-amber-50 p-4 text-left'>
             <p className='text-sm font-semibold text-amber-800'>
               KYC setup required
             </p>
@@ -563,7 +643,7 @@ function NotificationsTab() {
           <input
             type='number'
             defaultValue='30'
-            className='h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand'
+            className='h-10 w-full rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand'
           />
           <p className='text-xs text-gray-500'>
             Days before expiry to send alerts
@@ -576,7 +656,7 @@ function NotificationsTab() {
           <input
             type='email'
             defaultValue='admin@agrolinking.com'
-            className='h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand'
+            className='h-10 w-full rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand'
           />
         </div>
       </div>
@@ -584,7 +664,7 @@ function NotificationsTab() {
       <div className='pt-4'>
         <button
           type='button'
-          className='flex h-10 items-center justify-center gap-2 rounded-lg bg-[#2e7d32] px-5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-[#1b5e20]'
+          className='flex h-10 items-center justify-center gap-2 rounded-md bg-[#2e7d32] px-5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-[#1b5e20]'
         >
           <svg
             className='size-4'
@@ -621,7 +701,7 @@ function ToggleCard({
 
   return (
     <div
-      className={`flex items-center justify-between rounded-xl border border-gray-200 bg-white p-4 shadow-sm ${disabled ? 'opacity-60' : ''}`}
+      className={`flex items-center justify-between rounded-md border border-gray-200 bg-white p-4 shadow-sm ${disabled ? 'opacity-60' : ''}`}
     >
       <div>
         <h4
@@ -636,16 +716,14 @@ function ToggleCard({
         type='button'
         disabled={disabled}
         onClick={() => setChecked(!checked)}
-        className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-          checked ? 'bg-[#2e7d32]' : 'bg-gray-200'
-        }`}
+        className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${checked ? 'bg-[#2e7d32]' : 'bg-gray-200'
+          }`}
         role='switch'
         aria-checked={checked}
       >
         <span
-          className={`pointer-events-none inline-block size-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-            checked ? 'translate-x-5' : 'translate-x-0'
-          }`}
+          className={`pointer-events-none inline-block size-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${checked ? 'translate-x-5' : 'translate-x-0'
+            }`}
         />
       </button>
     </div>

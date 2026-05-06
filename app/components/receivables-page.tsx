@@ -1,32 +1,30 @@
+import {
+  Activity,
+  ArrowRight,
+  Calendar,
+  CheckCircle2,
+  ChevronDown,
+  Filter,
+  Layers,
+  LayoutDashboard,
+  Plus,
+  Receipt,
+  Search,
+  User,
+  Wallet
+} from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
-import { PageHeader } from '~/components/page-header'
-import { DatePicker } from '~/components/ui/date-picker'
 import { EmptyState } from '~/components/empty-state'
-import { Button } from '~/components/ui/button'
+import { PageHeader } from '~/components/page-header'
 import { Badge } from '~/components/ui/badge'
+import { Button } from '~/components/ui/button'
+import { DatePicker } from '~/components/ui/date-picker'
 import { Input } from '~/components/ui/input'
 import { useGetFarmersProducts } from '~/lib/api/generated/farm-products/farm-products'
 import { useGetFarms } from '~/lib/api/generated/farms/farms'
 import { useGetPaymentsReceivables } from '~/lib/api/generated/payments/payments'
 import { normalizeReceivables } from '~/lib/receivables'
-import { 
-  Receipt, 
-  Plus, 
-  Search, 
-  ChevronDown, 
-  LayoutDashboard, 
-  Wallet, 
-  ArrowRight,
-  CheckCircle2,
-  Activity,
-  Calendar,
-  Layers,
-  FileText,
-  User,
-  Filter
-} from 'lucide-react'
-import { cn } from '~/lib/utils'
 
 
 interface ReceivablesPageProps {
@@ -148,8 +146,8 @@ export function ReceivablesPage({ dashboardHref, dashboardLabel = 'Dashboard' }:
           <p className="text-sm text-gray-500 mt-1">Log and track expected payments from farm produce sales</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             className="flex items-center gap-2 h-11 px-4 text-[11px] font-bold uppercase tracking-wider text-gray-600 border-gray-200"
             onClick={() => document.getElementById('table-search')?.focus()}
           >
@@ -161,10 +159,10 @@ export function ReceivablesPage({ dashboardHref, dashboardLabel = 'Dashboard' }:
 
 
       {/* Entry Form Card: High Density Layout */}
-      <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+      <div className="rounded-md border border-gray-200 bg-white p-6 shadow-sm">
         <div className="flex items-center justify-between mb-8 pb-4 border-b border-gray-50 text-left">
           <div className="flex items-center gap-3">
-            <div className="size-10 rounded-xl bg-brand/5 border border-brand/10 flex items-center justify-center text-brand">
+            <div className="size-10 rounded-md bg-brand/5 border border-brand/10 flex items-center justify-center text-brand">
               <Plus className="size-5" />
             </div>
             <div>
@@ -173,7 +171,7 @@ export function ReceivablesPage({ dashboardHref, dashboardLabel = 'Dashboard' }:
             </div>
           </div>
         </div>
-        
+
         <form className="space-y-6 text-left" onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="space-y-2">
@@ -183,7 +181,7 @@ export function ReceivablesPage({ dashboardHref, dashboardLabel = 'Dashboard' }:
               <DatePicker
                 value={date}
                 onChange={setDate}
-                className="h-11 w-full rounded-lg border border-gray-100 bg-gray-50/50 px-4 focus:border-brand focus:ring-1 focus:ring-brand focus:bg-white transition-all shadow-none"
+                className="h-11 w-full rounded-md border border-gray-100 bg-gray-50/50 px-4 focus:border-brand focus:ring-1 focus:ring-brand focus:bg-white transition-all shadow-none"
               />
             </div>
 
@@ -197,7 +195,7 @@ export function ReceivablesPage({ dashboardHref, dashboardLabel = 'Dashboard' }:
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 placeholder="0.00"
-                className="h-11 w-full rounded-lg border border-gray-100 bg-gray-50/50 px-4 text-sm font-bold text-gray-700 focus:border-brand focus:ring-1 focus:ring-brand focus:bg-white transition-all shadow-none"
+                className="h-11 w-full rounded-md border border-gray-100 bg-gray-50/50 px-4 text-sm font-bold text-gray-700 focus:border-brand focus:ring-1 focus:ring-brand focus:bg-white transition-all shadow-none"
               />
             </div>
 
@@ -210,7 +208,7 @@ export function ReceivablesPage({ dashboardHref, dashboardLabel = 'Dashboard' }:
                   value={farm}
                   onChange={(e) => setFarm(e.target.value)}
                   required
-                  className="h-11 w-full flex items-center justify-between rounded-lg border border-gray-100 bg-gray-50/50 px-4 py-2 text-sm font-bold uppercase tracking-wider text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand appearance-none"
+                  className="h-11 w-full flex items-center justify-between rounded-md border border-gray-100 bg-gray-50/50 px-4 py-2 text-sm font-bold uppercase tracking-wider text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand appearance-none"
                 >
                   <option value="">Select farm unit...</option>
                   {farms.map((f: any) => (
@@ -232,7 +230,7 @@ export function ReceivablesPage({ dashboardHref, dashboardLabel = 'Dashboard' }:
                   value={product}
                   onChange={(e) => setProduct(e.target.value)}
                   required
-                  className="h-11 w-full flex items-center justify-between rounded-lg border border-gray-100 bg-gray-50/50 px-4 py-2 text-sm font-bold uppercase tracking-wider text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand appearance-none"
+                  className="h-11 w-full flex items-center justify-between rounded-md border border-gray-100 bg-gray-50/50 px-4 py-2 text-sm font-bold uppercase tracking-wider text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand appearance-none"
                 >
                   <option value="">Select commodity...</option>
                   {products.map((p: any) => (
@@ -253,7 +251,7 @@ export function ReceivablesPage({ dashboardHref, dashboardLabel = 'Dashboard' }:
                 value={quantity}
                 onChange={(e) => setQuantity(e.target.value)}
                 placeholder="0.00"
-                className="h-11 w-full rounded-lg border border-gray-100 bg-gray-50/50 px-4 text-sm font-bold text-gray-700 focus:border-brand focus:ring-1 focus:ring-brand focus:bg-white transition-all shadow-none"
+                className="h-11 w-full rounded-md border border-gray-100 bg-gray-50/50 px-4 text-sm font-bold text-gray-700 focus:border-brand focus:ring-1 focus:ring-brand focus:bg-white transition-all shadow-none"
               />
             </div>
 
@@ -264,7 +262,7 @@ export function ReceivablesPage({ dashboardHref, dashboardLabel = 'Dashboard' }:
               <Input
                 type="text"
                 placeholder="ID (Optional)"
-                className="h-11 w-full rounded-lg border border-gray-100 bg-gray-50/50 px-4 text-sm font-bold uppercase text-gray-700 focus:border-brand focus:ring-1 focus:ring-brand focus:bg-white transition-all shadow-none"
+                className="h-11 w-full rounded-md border border-gray-100 bg-gray-50/50 px-4 text-sm font-bold uppercase text-gray-700 focus:border-brand focus:ring-1 focus:ring-brand focus:bg-white transition-all shadow-none"
               />
             </div>
           </div>
@@ -278,7 +276,7 @@ export function ReceivablesPage({ dashboardHref, dashboardLabel = 'Dashboard' }:
               placeholder="Add any relevant notes for this receivable..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full resize-none rounded-xl border border-gray-100 bg-gray-50/50 p-4 text-sm font-medium text-gray-700 placeholder:text-gray-300 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white transition-all"
+              className="w-full resize-none rounded-md border border-gray-100 bg-gray-50/50 p-4 text-sm font-medium text-gray-700 placeholder:text-gray-300 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white transition-all"
             />
           </div>
 
@@ -293,10 +291,10 @@ export function ReceivablesPage({ dashboardHref, dashboardLabel = 'Dashboard' }:
           </div>
         </form>
       </div>      {/* Audit History Card: Professional High Density */}
-      <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden flex flex-col">
+      <div className="rounded-md border border-gray-200 bg-white shadow-sm overflow-hidden flex flex-col">
         <div className="p-6 border-b border-gray-100 flex flex-col lg:flex-row lg:items-center justify-between bg-white text-left gap-6">
           <div className="flex items-center gap-4">
-            <div className="size-11 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-400">
+            <div className="size-11 rounded-md bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-400">
               <Receipt className="size-5" />
             </div>
             <div>
@@ -304,7 +302,7 @@ export function ReceivablesPage({ dashboardHref, dashboardLabel = 'Dashboard' }:
               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">List of all expected payments</p>
             </div>
           </div>
-          
+
           <div className="flex flex-col sm:flex-row items-center gap-4">
             <div className="relative w-full sm:w-80">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
@@ -314,7 +312,7 @@ export function ReceivablesPage({ dashboardHref, dashboardLabel = 'Dashboard' }:
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search records..."
-                className="w-full h-10 rounded-lg border border-gray-100 bg-gray-50/50 pl-10 pr-4 py-2 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white transition-all shadow-none"
+                className="w-full h-10 rounded-md border border-gray-100 bg-gray-50/50 pl-10 pr-4 py-2 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white transition-all shadow-none"
               />
             </div>
             <Button variant="outline" className="h-10 px-4 text-[11px] font-bold uppercase tracking-wider text-gray-400 border-gray-100">
@@ -384,7 +382,7 @@ export function ReceivablesPage({ dashboardHref, dashboardLabel = 'Dashboard' }:
             </div>
           )}
         </div>
-        
+
         {!isLoading && filteredReceivables.length > 0 && (
           <div className="px-6 py-6 border-t border-gray-50 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-gray-400 font-bold uppercase tracking-tight bg-gray-50/20">
             <div className="flex items-center gap-3">

@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router'
 import { PageHeader } from '~/components/page-header'
+import { Skeleton } from '~/components/ui/skeleton'
 import { useGetCertifications } from '~/lib/api/generated/certifications/certifications'
 import type { Route } from './+types/view-certifications'
 
@@ -73,6 +74,14 @@ function ExternalLinkIcon() {
   return (
     <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+    </svg>
+  )
+}
+
+function UploadIcon() {
+  return (
+    <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 16V4m0 0l-4 4m4-4l4 4M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2" />
     </svg>
   )
 }
@@ -181,22 +190,21 @@ export default function ViewCertificationsPage() {
           <div className="flex items-center gap-3">
             <Link
               to="/farmer/certifications/farm"
-              className="flex h-10 items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 transition-colors"
+              aria-label="Upload farm certification"
+              title="Upload farm certification"
+              className="flex h-10 items-center justify-center gap-2 rounded-md border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm transition-colors hover:bg-gray-50"
             >
-              <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                <polyline points="9 22 9 12 15 12 15 22" />
-              </svg>
-              Upload Farm Cert
+              <UploadIcon />
+              Farm Cert
             </Link>
             <Link
               to="/farmer/certifications/product"
-              className="flex h-10 items-center justify-center gap-2 rounded-lg bg-brand px-4 text-sm font-semibold text-white shadow-sm hover:bg-brand-light transition-colors"
+              aria-label="Upload product certification"
+              title="Upload product certification"
+              className="flex h-10 items-center justify-center gap-2 rounded-md bg-brand px-4 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-light"
             >
-              <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-              </svg>
-              Upload Product Cert
+              <UploadIcon />
+              Product Cert
             </Link>
           </div>
         </div>
@@ -205,8 +213,8 @@ export default function ViewCertificationsPage() {
       {/* 4 Summary Cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {/* Total */}
-        <div className="flex items-center gap-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-          <div className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-blue-50/80">
+        <div className="flex items-center gap-4 rounded-md border border-gray-200 bg-white p-4 shadow-sm">
+          <div className="flex size-12 shrink-0 items-center justify-center rounded-md bg-blue-50/80">
             <CertRibbonIcon />
           </div>
           <div>
@@ -215,8 +223,8 @@ export default function ViewCertificationsPage() {
           </div>
         </div>
         {/* Active */}
-        <div className="flex items-center gap-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-          <div className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-green-50/80">
+        <div className="flex items-center gap-4 rounded-md border border-gray-200 bg-white p-4 shadow-sm">
+          <div className="flex size-12 shrink-0 items-center justify-center rounded-md bg-green-50/80">
             <ActiveCertIcon />
           </div>
           <div>
@@ -225,8 +233,8 @@ export default function ViewCertificationsPage() {
           </div>
         </div>
         {/* Expired */}
-        <div className="flex items-center gap-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-          <div className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-red-50/80">
+        <div className="flex items-center gap-4 rounded-md border border-gray-200 bg-white p-4 shadow-sm">
+          <div className="flex size-12 shrink-0 items-center justify-center rounded-md bg-red-50/80">
             <ExpiredCertIcon />
           </div>
           <div>
@@ -235,8 +243,8 @@ export default function ViewCertificationsPage() {
           </div>
         </div>
         {/* Pending */}
-        <div className="flex items-center gap-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-          <div className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-yellow-50/80">
+        <div className="flex items-center gap-4 rounded-md border border-gray-200 bg-white p-4 shadow-sm">
+          <div className="flex size-12 shrink-0 items-center justify-center rounded-md bg-yellow-50/80">
             <PendingCertIcon />
           </div>
           <div>
@@ -247,12 +255,12 @@ export default function ViewCertificationsPage() {
       </div>
 
       {/* Main List Section */}
-      <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+      <div className="rounded-md border border-gray-200 bg-white p-6 shadow-sm">
         {/* Toolbar */}
         <div className="mb-6 flex flex-col justify-between gap-4 border-b border-gray-100 pb-4 sm:flex-row sm:items-center">
 
           {/* Segmented Control / Tabs */}
-          <div className="inline-flex rounded-lg bg-gray-100 p-1">
+          <div className="inline-flex max-w-full overflow-x-auto rounded-md bg-gray-100 p-1">
             <button
               onClick={() => setActiveTab('All')}
               className={`flex h-8 items-center justify-center rounded-md px-4 text-sm font-medium transition-colors ${activeTab === 'All' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
@@ -277,7 +285,7 @@ export default function ViewCertificationsPage() {
           </div>
 
           {/* Filters */}
-          <div className="flex items-center gap-3">
+          <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
             <div className="relative">
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
                 <SearchIcon />
@@ -287,7 +295,7 @@ export default function ViewCertificationsPage() {
                 placeholder="Search certifications..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="h-10 w-64 rounded-lg border border-gray-300 bg-white pl-10 pr-3 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+                className="h-10 w-full rounded-md border border-gray-300 bg-white pl-10 pr-3 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand sm:w-64"
               />
             </div>
 
@@ -295,7 +303,7 @@ export default function ViewCertificationsPage() {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="h-10 appearance-none rounded-lg border border-gray-300 bg-white pl-4 pr-10 text-sm font-medium text-gray-700 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+                className="h-10 appearance-none rounded-md border border-gray-300 bg-white pl-4 pr-10 text-sm font-medium text-gray-700 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
               >
                 <option value="">All Status</option>
                 <option value="Active">Active</option>
@@ -312,20 +320,58 @@ export default function ViewCertificationsPage() {
         {/* List of Certs */}
         <div className="space-y-4">
           {isLoading ? (
-            <div className="py-12 text-center text-sm font-medium text-gray-500">
-              Loading certifications...
+            <div className="space-y-4">
+              {Array.from({ length: 3 }).map((_, index) => (
+                <div key={index} className="overflow-hidden rounded-md border border-gray-200 bg-white p-5">
+                  <div className="flex flex-wrap items-start justify-between gap-4 border-b border-gray-100 pb-4">
+                    <div className="flex min-w-0 items-start gap-4">
+                      <Skeleton className="size-12 rounded-md" />
+                      <div className="min-w-0 space-y-2">
+                        <Skeleton className="h-5 w-56 max-w-full" />
+                        <Skeleton className="h-4 w-44 max-w-full" />
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end gap-2">
+                      <Skeleton className="h-6 w-20 rounded-full" />
+                      <Skeleton className="h-6 w-24 rounded-full" />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 pt-4 sm:grid-cols-4 lg:grid-cols-5">
+                    <div className="space-y-2">
+                      <Skeleton className="h-3 w-24" />
+                      <Skeleton className="h-4 w-28" />
+                    </div>
+                    <div className="space-y-2">
+                      <Skeleton className="h-3 w-16" />
+                      <Skeleton className="h-4 w-24" />
+                    </div>
+                    <div className="space-y-2">
+                      <Skeleton className="h-3 w-16" />
+                      <Skeleton className="h-4 w-24" />
+                    </div>
+                    <div className="space-y-2">
+                      <Skeleton className="h-3 w-20" />
+                      <Skeleton className="h-4 w-28" />
+                    </div>
+                    <div className="flex items-end justify-end sm:col-span-4 lg:col-span-1">
+                      <Skeleton className="h-4 w-28" />
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           ) : filteredCerts.length > 0 ? (
             filteredCerts.map((cert) => (
-              <div key={cert.id} className="rounded-xl border border-gray-200 bg-white p-5 transition-shadow hover:shadow-md">
+              <div key={cert.id} className="overflow-hidden rounded-md border border-gray-200 bg-white p-5 transition-shadow hover:shadow-md">
                 <div className="flex flex-wrap items-start justify-between gap-4 border-b border-gray-100 pb-4">
-                  <div className="flex items-start gap-4">
-                    <div className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-[#e8f5e9]">
+                  <div className="flex min-w-0 items-start gap-4">
+                    <div className="flex size-12 shrink-0 items-center justify-center rounded-md bg-[#e8f5e9]">
                       <ListBadgeIcon />
                     </div>
-                    <div>
-                      <h3 className="text-lg font-bold text-gray-900">{cert.title}</h3>
-                      <p className="text-sm text-gray-500">{cert.subtitle}</p>
+                    <div className="min-w-0">
+                      <h3 className="break-words text-lg font-bold text-gray-900">{cert.title}</h3>
+                      <p className="break-words text-sm text-gray-500">{cert.subtitle}</p>
                     </div>
                   </div>
 
@@ -355,7 +401,7 @@ export default function ViewCertificationsPage() {
                 <div className="grid grid-cols-2 gap-4 pt-4 sm:grid-cols-4 lg:grid-cols-5">
                   <div>
                     <p className="mb-1 text-xs font-medium text-gray-500">Certificate No.</p>
-                    <p className="text-sm font-semibold text-gray-900">{cert.certNo}</p>
+                    <p className="break-words text-sm font-semibold text-gray-900">{cert.certNo}</p>
                   </div>
                   <div>
                     <p className="mb-1 text-xs font-medium text-gray-500">Issue Date</p>
@@ -367,7 +413,7 @@ export default function ViewCertificationsPage() {
                   </div>
                   <div>
                     <p className="mb-1 text-xs font-medium text-gray-500">Applied To</p>
-                    <p className="flex items-center gap-1.5 text-sm font-semibold text-gray-900">
+                    <p className="flex min-w-0 items-center gap-1.5 break-words text-sm font-semibold text-gray-900">
                       {cert.type === 'Farm' ? (
                         <svg className="size-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                           <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
@@ -383,12 +429,13 @@ export default function ViewCertificationsPage() {
                   </div>
 
                   <div className="flex items-end justify-end sm:col-span-4 lg:col-span-1">
-                    <button className="flex items-center gap-2 text-sm font-bold text-brand hover:text-brand-light">
+                    <Link
+                      to={cert.documentUrl || '#'}
+                      className="inline-flex items-center gap-2 break-words text-sm font-bold text-brand hover:text-brand-light"
+                    >
                       <ExternalLinkIcon />
-                      <Link to={cert.documentUrl}>
-                        View Document
-                      </Link>
-                    </button>
+                      View Document
+                    </Link>
                   </div>
                 </div>
               </div>

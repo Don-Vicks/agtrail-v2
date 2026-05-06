@@ -1,32 +1,29 @@
+import {
+  Activity,
+  ArrowRight,
+  Calendar,
+  ChevronDown,
+  Layers,
+  LayoutDashboard,
+  Leaf,
+  MapPin,
+  Maximize,
+  Plus,
+  Search
+} from 'lucide-react'
 import { useState } from 'react'
 import { useParams } from 'react-router'
-import { 
-  Plus, 
-  Search, 
-  Filter, 
-  LayoutDashboard, 
-  MapPin, 
-  Leaf, 
-  ArrowRight,
-  ClipboardList,
-  Calendar,
-  Layers,
-  MoreHorizontal,
-  ChevronDown,
-  Activity,
-  Maximize
-} from 'lucide-react'
-import { Button } from '~/components/ui/button'
-import { Badge } from '~/components/ui/badge'
 import { PageHeader } from '~/components/page-header'
-import { useGetFarmsIdCropCycles } from '~/lib/api/generated/farms-crop-cycles/farms-crop-cycles'
-import { farmCropCycles, type CropCycle } from '~/lib/mock-data/farmer'
-import type { Route } from './+types/farm-detail'
-import { useGetFarmsId } from '~/lib/api/generated/farms/farms'
-import { useAuth } from '~/context/auth-context'
-import { StartCropCycleModal } from '~/components/start-crop-cycle-modal'
 import { SelectOperationModal } from '~/components/select-operation-modal'
+import { StartCropCycleModal } from '~/components/start-crop-cycle-modal'
+import { Badge } from '~/components/ui/badge'
+import { Button } from '~/components/ui/button'
+import { useAuth } from '~/context/auth-context'
+import { useGetFarmsIdCropCycles } from '~/lib/api/generated/farms-crop-cycles/farms-crop-cycles'
+import { useGetFarmsId } from '~/lib/api/generated/farms/farms'
+import { type CropCycle } from '~/lib/mock-data/farmer'
 import { cn } from '~/lib/utils'
+import type { Route } from './+types/farm-detail'
 
 export function meta({ }: Route.MetaArgs) {
   return [
@@ -94,11 +91,7 @@ export default function FarmDetail() {
     <div className="space-y-6 pb-10 px-1">
       <PageHeader
         items={[
-          {
-            label: 'Dashboard',
-            href: '/farmer',
-            icon: <LayoutDashboard className="size-4 text-gray-400" />,
-          },
+          { label: 'Dashboard', href: '/farmer' },
           { label: 'Farms', href: '/farmer/farms' },
           { label: farm?.name || 'Farm Details' },
         ]}
@@ -111,7 +104,7 @@ export default function FarmDetail() {
           <p className="text-sm text-gray-500 mt-1">Manage your crops and log activities for this farm</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button 
+          <Button
             onClick={() => setIsCropCycleModalOpen(true)}
             className="bg-[#1d3d1e] hover:bg-black text-white flex items-center gap-2 h-11 px-6 shadow-sm"
           >
@@ -122,10 +115,10 @@ export default function FarmDetail() {
       </div>
 
       {/* Farm Information */}
-      <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+      <div className="rounded-md border border-gray-200 bg-white p-6 shadow-sm">
         {isLoading ? (
           <div className="flex items-center gap-6 animate-pulse">
-            <div className="size-16 rounded-xl bg-gray-50"></div>
+            <div className="size-16 rounded-md bg-gray-50"></div>
             <div className="space-y-3 flex-1">
               <div className="h-4 w-32 bg-gray-100 rounded"></div>
               <div className="h-3 w-64 bg-gray-50 rounded"></div>
@@ -134,7 +127,7 @@ export default function FarmDetail() {
         ) : farm ? (
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="flex items-center gap-6">
-              <div className="flex size-16 items-center justify-center rounded-xl bg-brand/5 border border-brand/10 text-xl font-bold text-brand shadow-inner">
+              <div className="flex size-16 items-center justify-center rounded-md bg-brand/5 border border-brand/10 text-xl font-bold text-brand shadow-inner">
                 {farm.name.slice(0, 2).toUpperCase()}
               </div>
               <div>
@@ -154,7 +147,7 @@ export default function FarmDetail() {
                 </div>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-4 border-t md:border-t-0 md:border-l border-gray-100 pt-4 md:pt-0 md:pl-8">
               <div className="text-right hidden sm:block">
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Authenticated Holder</p>
@@ -166,20 +159,20 @@ export default function FarmDetail() {
             </div>
           </div>
         ) : (
-          <div className="py-8 text-center bg-gray-50/50 rounded-xl border border-dashed border-gray-200">
+          <div className="py-8 text-center bg-gray-50/50 rounded-md border border-dashed border-gray-200">
             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Farm details not found</p>
           </div>
         )}
       </div>
 
       {/* Crop Cycles */}
-      <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+      <div className="rounded-md border border-gray-200 bg-white p-6 shadow-sm">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8">
           <div>
             <h2 className="text-base font-bold text-gray-900 uppercase tracking-tight">Crops</h2>
             <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Current crop cycles and activities</p>
           </div>
-          
+
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
             <div className="relative w-full sm:min-w-[300px]">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
@@ -188,17 +181,17 @@ export default function FarmDetail() {
                 placeholder="Search cycles by product or variety..."
                 value={searchQuery}
                 onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1) }}
-                className="w-full rounded-lg border border-gray-200 pl-10 pr-4 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white transition-all shadow-sm"
+                className="w-full rounded-md border border-gray-200 pl-10 pr-4 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white transition-all shadow-sm"
               />
             </div>
-            
+
             <div className="flex items-center gap-2">
               <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest px-1 shrink-0">Sort By</span>
               <div className="relative">
-                <select 
+                <select
                   value={sortOption}
                   onChange={(e) => { setSortOption(e.target.value); setCurrentPage(1) }}
-                  className="h-10 rounded-lg border border-gray-200 pl-3 pr-8 text-[11px] font-bold uppercase tracking-wider text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand bg-gray-50/50 appearance-none min-w-[120px]"
+                  className="h-10 rounded-md border border-gray-200 pl-3 pr-8 text-[11px] font-bold uppercase tracking-wider text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand bg-gray-50/50 appearance-none min-w-[120px]"
                 >
                   <option value="name">Product Name</option>
                   <option value="date">Date Planted</option>
@@ -214,20 +207,20 @@ export default function FarmDetail() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {isLoadingCycles ? (
             Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="h-64 rounded-xl border border-gray-100 bg-gray-50/50 animate-pulse" />
+              <div key={i} className="h-64 rounded-md border border-gray-100 bg-gray-50/50 animate-pulse" />
             ))
           ) : filteredCycles.length === 0 ? (
-            <div className="col-span-full py-16 text-center rounded-xl border border-dashed border-gray-100 italic font-bold uppercase tracking-widest text-[10px] text-gray-400">
+            <div className="col-span-full py-16 text-center rounded-md border border-dashed border-gray-100 italic font-bold uppercase tracking-widest text-[10px] text-gray-400">
               No crop cycles found
             </div>
           ) : (
             filteredCycles.map((cycle) => (
-              <div key={cycle.id} className="rounded-xl border border-gray-200 bg-white p-5 group hover:border-brand/40 hover:shadow-md transition-all flex flex-col">
+              <div key={cycle.id} className="rounded-md border border-gray-200 bg-white p-5 group hover:border-brand/40 hover:shadow-md transition-all flex flex-col">
                 <div className="flex items-start justify-between mb-4">
-                  <div className="size-10 rounded-lg bg-green-50 flex items-center justify-center text-brand">
+                  <div className="size-10 rounded-md bg-green-50 flex items-center justify-center text-brand">
                     <Leaf className="size-5" />
                   </div>
-                  <Badge 
+                  <Badge
                     className={cn(
                       "text-[10px] font-bold uppercase tracking-widest px-2 py-0 border-none",
                       cycle.status === 'active' ? "bg-brand text-white" : "bg-gray-100 text-gray-500"
@@ -259,7 +252,7 @@ export default function FarmDetail() {
                   </div>
                 </div>
 
-                <Button 
+                <Button
                   onClick={() => setSelectedCropCycle(cycle)}
                   className="mt-6 w-full bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 h-10 font-bold uppercase tracking-widest text-[10px]"
                 >
@@ -279,18 +272,18 @@ export default function FarmDetail() {
           <div className="flex items-center gap-4">
             <span className="text-gray-300">Page {currentPage} / {totalPages}</span>
             <div className="flex items-center gap-1">
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="size-7 text-gray-300" 
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-7 text-gray-300"
                 disabled={currentPage === 1}
                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
               >
                 <ArrowRight className="size-3.5 rotate-180" />
               </Button>
-              <Button 
-                variant="ghost" 
-                size="icon" 
+              <Button
+                variant="ghost"
+                size="icon"
                 className="size-7 text-gray-400 hover:text-brand"
                 disabled={currentPage >= totalPages}
                 onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}

@@ -69,10 +69,10 @@ function ReportCard({
   description: string;
 }) {
   return (
-    <div className="flex items-center justify-between rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md">
+    <div className="flex items-center justify-between rounded-md border border-gray-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md">
       <div className="flex items-center gap-4">
         {/* Icon container */}
-        <div className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-brand/10">
+        <div className="flex size-12 shrink-0 items-center justify-center rounded-md bg-brand/10">
           {icon}
         </div>
         {/* Text */}
@@ -82,7 +82,7 @@ function ReportCard({
         </div>
       </div>
       {/* View Button */}
-      <button className="flex h-9 items-center justify-center gap-2 rounded-lg bg-brand px-4 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#1b5e20]">
+      <button className="flex h-9 items-center justify-center gap-2 rounded-md bg-brand px-4 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#1b5e20]">
         <EyeIcon />
         View
       </button>

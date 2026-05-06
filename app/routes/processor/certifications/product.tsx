@@ -1,10 +1,9 @@
+import { useQueries, useQuery, useQueryClient } from '@tanstack/react-query'
 import { QRCodeSVG } from 'qrcode.react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useQueries, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { PageHeader } from '~/components/page-header'
 import { EmptyState } from '~/components/empty-state'
-import { CERTIFICATION_TYPES } from '~/lib/data/certification-types'
+import { PageHeader } from '~/components/page-header'
 import { DatePicker } from '~/components/ui/date-picker'
 import { API_BASE_URL, resolveDocumentUrlForApi } from '~/lib/api/custom-fetch'
 import {
@@ -12,11 +11,12 @@ import {
   useGetCertifications,
   usePostCertificationsUpload,
 } from '~/lib/api/generated/certifications/certifications'
+import type { PostCertificationsUploadBody, ProcessorBatch } from '~/lib/api/generated/models'
 import {
   getGetProcessorsBatchesQueryKey,
   useGetProcessorsBatches,
 } from '~/lib/api/generated/processors-batches/processors-batches'
-import type { PostCertificationsUploadBody, ProcessorBatch } from '~/lib/api/generated/models'
+import { CERTIFICATION_TYPES } from '~/lib/data/certification-types'
 import type { Route } from './+types/product'
 
 const ITEMS_PER_PAGE = 10
@@ -36,8 +36,8 @@ async function postBatchProductCertificateUpload(file: File): Promise<string[]> 
   const orgId =
     typeof window !== 'undefined'
       ? localStorage.getItem('agrolinking_organization_id') ||
-        (import.meta.env.VITE_DEFAULT_ORGANIZATION_ID as string | undefined) ||
-        undefined
+      (import.meta.env.VITE_DEFAULT_ORGANIZATION_ID as string | undefined) ||
+      undefined
       : (import.meta.env.VITE_DEFAULT_ORGANIZATION_ID as string | undefined)
   const formData = new FormData()
   formData.append('batchProductCertificate', file)
@@ -67,8 +67,8 @@ async function fetchProcessorBatchProducts(batchId: string) {
   const orgId =
     typeof window !== 'undefined'
       ? localStorage.getItem('agrolinking_organization_id') ||
-        (import.meta.env.VITE_DEFAULT_ORGANIZATION_ID as string | undefined) ||
-        undefined
+      (import.meta.env.VITE_DEFAULT_ORGANIZATION_ID as string | undefined) ||
+      undefined
       : (import.meta.env.VITE_DEFAULT_ORGANIZATION_ID as string | undefined)
   const res = await fetch(
     `${cleanBase}/processors/batches/${encodeURIComponent(batchId)}/products`,
@@ -237,7 +237,7 @@ function UploadCertModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
 
-      <div className="relative z-10 w-full max-w-lg overflow-hidden rounded-xl bg-white shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+      <div className="relative z-10 w-full max-w-lg overflow-hidden rounded-md bg-white shadow-2xl animate-in fade-in zoom-in-95 duration-200">
         <div className="border-b border-gray-100 px-6 py-4">
           <div className="flex items-start justify-between">
             <div>
@@ -249,7 +249,7 @@ function UploadCertModal({
             <button
               type="button"
               onClick={onClose}
-              className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
+              className="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
             >
               <CloseIcon />
             </button>
@@ -345,7 +345,7 @@ function UploadCertModal({
               Upload Document<span className="text-red-500">*</span>
             </label>
             <div
-              className={`flex flex-col items-center justify-center rounded-xl border-2 border-dashed px-4 py-10 transition-all cursor-pointer ${dragOver ? 'border-brand bg-brand/5 scale-[1.01]' : 'border-gray-200 bg-gray-50/50 hover:border-gray-300 hover:bg-white'}`}
+              className={`flex flex-col items-center justify-center rounded-md border-2 border-dashed px-4 py-10 transition-all cursor-pointer ${dragOver ? 'border-brand bg-brand/5 scale-[1.01]' : 'border-gray-200 bg-gray-50/50 hover:border-gray-300 hover:bg-white'}`}
               onDragOver={(e) => {
                 e.preventDefault()
                 setDragOver(true)
@@ -563,7 +563,7 @@ export default function ProductCertifications() {
       {batchesLoading && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-64 animate-pulse rounded-xl bg-gray-100" />
+            <div key={i} className="h-64 animate-pulse rounded-md bg-gray-100" />
           ))}
         </div>
       )}
@@ -587,7 +587,7 @@ export default function ProductCertifications() {
             return (
               <div
                 key={batch.id}
-                className="group rounded-xl border border-gray-100 bg-white p-6 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col"
+                className="group rounded-md border border-gray-100 bg-white p-6 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col"
               >
                 <div className="flex justify-between items-start mb-6">
                   <div className="rounded-md border border-gray-100 p-1.5 bg-white shadow-sm ring-1 ring-gray-900/5">

@@ -1,24 +1,23 @@
-import { Link, useParams } from 'react-router'
-import { cooperativeFarmers } from '~/lib/mock-data/cooperative'
-import { 
-  Plus, 
-  User, 
-  MapPin, 
-  Phone, 
-  Mail, 
-  LayoutDashboard, 
-  Users, 
-  ArrowRight, 
-  Activity, 
-  Maximize, 
-  Package, 
-  ClipboardList 
+import {
+  Activity,
+  ClipboardList,
+  LayoutDashboard,
+  Mail,
+  MapPin,
+  Maximize,
+  Package,
+  Phone,
+  Plus,
+  User,
+  Users
 } from 'lucide-react'
-import { PageHeader } from '~/components/page-header'
+import { Link, useParams } from 'react-router'
 import { EmptyState } from '~/components/empty-state'
+import { PageHeader } from '~/components/page-header'
 import { StatCard } from '~/components/stat-card'
-import { Button } from '~/components/ui/button'
 import { Badge } from '~/components/ui/badge'
+import { Button } from '~/components/ui/button'
+import { cooperativeFarmers } from '~/lib/mock-data/cooperative'
 import type { Route } from './+types/farmer-details'
 
 export function meta({ params }: Route.MetaArgs) {
@@ -67,25 +66,25 @@ export default function CooperativeFarmerDetails() {
       </div>
 
       {/* High Density Profile Card */}
-      <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+      <div className="rounded-md border border-gray-200 bg-white p-6 shadow-sm">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
           <div className="flex items-center gap-6">
             <div className="relative">
               <div className="size-20 rounded-2xl overflow-hidden bg-gray-50 border-2 border-white shadow-sm ring-1 ring-gray-100">
-                <img 
-                  src={farmer.avatar} 
-                  alt={farmer.name} 
-                  className="size-full object-cover" 
+                <img
+                  src={farmer.avatar}
+                  alt={farmer.name}
+                  className="size-full object-cover"
                   onError={(e) => {
                     (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(farmer.name)}&background=random&color=fff`
                   }}
                 />
               </div>
-              <div className="absolute -bottom-1 -right-1 size-5 rounded-lg bg-white border border-gray-100 shadow-sm flex items-center justify-center">
+              <div className="absolute -bottom-1 -right-1 size-5 rounded-md bg-white border border-gray-100 shadow-sm flex items-center justify-center">
                 <Badge variant="ghost" className="p-0 text-brand"><User className="size-3" /></Badge>
               </div>
             </div>
-            
+
             <div className="space-y-1">
               <div className="flex items-center gap-3">
                 <h2 className="text-xl font-bold text-gray-900 tracking-tight">{farmer.name}</h2>
@@ -151,7 +150,7 @@ export default function CooperativeFarmerDetails() {
       {/* High Density Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Dynamic Crop Cycles */}
-        <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm flex flex-col min-h-[320px]">
+        <div className="rounded-md border border-gray-200 bg-white p-6 shadow-sm flex flex-col min-h-[320px]">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h3 className="text-sm font-bold text-gray-900 uppercase tracking-tight">Product Monitoring</h3>
@@ -159,16 +158,16 @@ export default function CooperativeFarmerDetails() {
             </div>
             <Button variant="ghost" size="icon" className="size-8 text-gray-300 hover:text-brand"><Activity className="size-4" /></Button>
           </div>
-          
+
           <div className="mb-6">
             <EmptyState
-              className="rounded-xl border-2 border-dashed border-gray-50 bg-gray-50/10 py-10"
+              className="rounded-md border-2 border-dashed border-gray-50 bg-gray-50/10 py-10"
               icon={<Package className="size-7 text-gray-300" />}
               title="No active cycles"
               description="Start a new production cycle to begin tracking performance."
             />
           </div>
-          
+
           <Link to={`/cooperative/farmers/${farmer.id}/farms`} className="block">
             <Button className="w-full bg-brand/5 text-brand hover:bg-brand hover:text-white border border-brand/10 shadow-none font-bold uppercase tracking-wider text-[11px] h-11">
               <Plus className="size-4 me-2" />
@@ -179,7 +178,7 @@ export default function CooperativeFarmerDetails() {
 
         {/* Commodity Distribution Cluster */}
         <div className="flex flex-col gap-6">
-          <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm flex flex-col">
+          <div className="rounded-md border border-gray-200 bg-white p-6 shadow-sm flex flex-col">
             <h3 className="text-sm font-bold text-gray-900 uppercase tracking-tight mb-6">Products</h3>
             <div className="flex-1 flex items-center justify-center py-8">
               <div className="text-center group cursor-default">
@@ -188,8 +187,8 @@ export default function CooperativeFarmerDetails() {
               </div>
             </div>
           </div>
-          
-          <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm flex flex-col">
+
+          <div className="rounded-md border border-gray-200 bg-white p-6 shadow-sm flex flex-col">
             <h3 className="text-sm font-bold text-gray-900 uppercase tracking-tight mb-6">Farm Inventory</h3>
             <div className="space-y-4">
               <div className="flex items-center justify-between border-b border-gray-50 pb-3">
@@ -209,9 +208,9 @@ export default function CooperativeFarmerDetails() {
         </div>
 
         {/* Insights */}
-        <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm flex flex-col min-h-[320px]">
+        <div className="rounded-md border border-gray-200 bg-white p-6 shadow-sm flex flex-col min-h-[320px]">
           <div className="flex items-center gap-2 mb-6">
-            <div className="flex size-8 items-center justify-center rounded-lg bg-blue-50 text-blue-500 shadow-sm">
+            <div className="flex size-8 items-center justify-center rounded-md bg-blue-50 text-blue-500 shadow-sm">
               <ClipboardList className="size-4" />
             </div>
             <div>
@@ -219,9 +218,9 @@ export default function CooperativeFarmerDetails() {
               <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">Important updates</p>
             </div>
           </div>
-          
+
           <EmptyState
-            className="rounded-xl border-2 border-dashed border-gray-50 bg-gray-50/10 py-10"
+            className="rounded-md border-2 border-dashed border-gray-50 bg-gray-50/10 py-10"
             icon={<ClipboardList className="size-7 text-gray-300" />}
             title="Status: clear"
             description="No critical deviations flagged for this view."

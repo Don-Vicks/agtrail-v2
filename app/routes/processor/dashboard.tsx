@@ -1,30 +1,28 @@
+import {
+  Activity,
+  AlertCircle,
+  ArrowRight,
+  Building2,
+  CheckCircle,
+  Clock,
+  Layers,
+  Package,
+  Plus,
+  Search
+} from 'lucide-react';
+import { useMemo } from 'react';
 import { Link } from 'react-router';
-import { useMemo } from 'react'
+import { EmptyState } from '~/components/empty-state';
+import { PageHeader } from '~/components/page-header';
+import { StatCard } from '~/components/stat-card';
+import { Badge } from '~/components/ui/badge';
+import { Button } from '~/components/ui/button';
+import { useGetFacilities } from '~/lib/api/generated/facilities/facilities';
 import type { ProcessorBatch } from '~/lib/api/generated/models';
 import { useGetProcessorsBatches } from '~/lib/api/generated/processors-batches/processors-batches';
 import { useGetProcessorsDashboardStats } from '~/lib/api/generated/processors-dashboard/processors-dashboard';
-import { useGetFacilities } from '~/lib/api/generated/facilities/facilities';
+import { getOrganizationHeaders } from '~/lib/organization-context';
 import { cn } from '~/lib/utils';
-import { StatCard } from '~/components/stat-card';
-import { Button } from '~/components/ui/button';
-import { Badge } from '~/components/ui/badge';
-import { EmptyState } from '~/components/empty-state';
-import { PageHeader } from '~/components/page-header';
-import {
-  Package,
-  CheckCircle,
-  Clock,
-  AlertCircle,
-  Plus,
-  Search,
-  Layers,
-  Activity,
-  ClipboardList,
-  ArrowRight,
-  LayoutDashboard,
-  Building2,
-} from 'lucide-react';
-import { getOrganizationHeaders } from '~/lib/organization-context'
 
 /* ─── Components ─── */
 // Local StatCard and ActionButton removed as shared components are now used
@@ -52,10 +50,10 @@ function StatusBadge({ status }: { status: string | undefined }) {
 
 function BatchTable({ title, count, data, emptyMessage }: { title: string; count: number; data: ProcessorBatch[]; emptyMessage?: string }) {
   return (
-    <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden flex flex-col">
+    <div className="rounded-md border border-gray-200 bg-white shadow-sm overflow-hidden flex flex-col">
       <div className="border-b border-gray-100 p-5 bg-white">
         <div className="flex items-center gap-2 mb-4">
-          <div className="size-8 rounded-lg bg-gray-50 flex items-center justify-center text-amber-500">
+          <div className="size-8 rounded-md bg-gray-50 flex items-center justify-center text-amber-500">
             <Layers className="size-4" />
           </div>
           <div>
@@ -69,7 +67,7 @@ function BatchTable({ title, count, data, emptyMessage }: { title: string; count
           <input
             type="text"
             placeholder="Search by batch ID, product, or farm..."
-            className="w-full rounded-lg border border-gray-200 pl-10 pr-4 py-2 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white"
+            className="w-full rounded-md border border-gray-200 pl-10 pr-4 py-2 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white"
           />
         </div>
       </div>
@@ -170,24 +168,41 @@ export default function ProcessorDashboard() {
   return (
     <div className="space-y-6 pb-10 px-1 text-left w-full overflow-x-hidden">
 
-      {/* Page Title Section */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 uppercase tracking-tight">Processor Dashboard</h1>
-          <p className="text-sm text-gray-500 mt-1">Manage your production batches and inventory</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Link to="/processor/batches/new">
-            <Button className="bg-[#1d3d1e] hover:bg-black text-white flex items-center gap-2 h-11 px-6 shadow-sm">
-              <Plus className="size-4" />
-              <span className="font-bold uppercase tracking-wide text-xs">Start New Batch</span>
-            </Button>
-          </Link>
-        </div>
+      <PageHeader
+        items={[
+          {
+            label: 'Processor',
+            href: '/processor',
+            icon: (
+              <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <rect x="3" y="3" width="7" height="7" rx="1" />
+                <rect x="14" y="3" width="7" height="7" rx="1" />
+                <rect x="3" y="14" width="7" height="7" rx="1" />
+                <rect x="14" y="14" width="7" height="7" rx="1" />
+              </svg>
+            ),
+          },
+          { label: 'Dashboard' },
+        ]}
+        action={
+          <div className="flex items-center gap-2">
+            <Link to="/processor/batches/new">
+              <Button className="bg-[#1d3d1e] hover:bg-black text-white flex items-center gap-2 h-11 px-6 shadow-sm">
+                <Plus className="size-4" />
+                <span className="font-bold uppercase tracking-wide text-xs">Start New Batch</span>
+              </Button>
+            </Link>
+          </div>
+        }
+      />
+
+      <div className="px-1">
+        <h1 className="text-2xl font-bold text-gray-900 uppercase tracking-tight">Processor Dashboard</h1>
+        <p className="text-sm text-gray-500 mt-1">Manage your production batches and inventory</p>
       </div>
       {!hasOrganizationContext ? (
         <EmptyState
-          className="rounded-xl border border-dashed border-amber-200 bg-amber-50/40 py-14"
+          className="rounded-md border border-dashed border-amber-200 bg-amber-50/40 py-14"
           icon={<AlertCircle className="size-9 text-amber-600" />}
           title="Organization context is missing"
           description="Set `VITE_DEFAULT_ORGANIZATION_ID` or log in to an organization-aware account."
@@ -195,7 +210,7 @@ export default function ProcessorDashboard() {
       ) : null}
       {hasLoadError ? (
         <EmptyState
-          className="rounded-xl border border-dashed border-red-200 bg-red-50/30 py-14"
+          className="rounded-md border border-dashed border-red-200 bg-red-50/30 py-14"
           icon={<AlertCircle className="size-9 text-red-500" />}
           title="Failed to load processor data"
           description="Dashboard data could not be loaded. Verify organization header setup and refresh."
@@ -207,7 +222,7 @@ export default function ProcessorDashboard() {
         {isStatsLoading ? (
           <>
             {[...Array(5)].map((_, i) => (
-              <div key={i} className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+              <div key={i} className="rounded-md border border-gray-200 bg-white p-5 shadow-sm">
                 <div className="h-4 w-24 bg-gray-200 rounded animate-pulse"></div>
                 <div className="mt-3 h-8 w-16 bg-gray-200 rounded animate-pulse"></div>
                 <div className="mt-2 h-3 w-32 bg-gray-200 rounded animate-pulse"></div>
@@ -261,7 +276,7 @@ export default function ProcessorDashboard() {
         {/* Left Column: Tables */}
         <div className="lg:col-span-2 space-y-6">
           {isBatchesLoading ? (
-            <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden flex flex-col">
+            <div className="rounded-md border border-gray-200 bg-white shadow-sm overflow-hidden flex flex-col">
               <div className="border-b border-gray-200 p-4">
                 <div className="flex items-center gap-2 mb-4">
                   <div className="size-5 rounded-full bg-gray-200 animate-pulse"></div>
@@ -291,12 +306,12 @@ export default function ProcessorDashboard() {
 
         {/* Right Column: Actions */}
         <div className="lg:col-span-1 space-y-6">
-          <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="rounded-md border border-gray-200 bg-white p-6 shadow-sm">
             <h2 className="text-base font-bold text-gray-900 uppercase tracking-tight mb-5">Quick Actions</h2>
             <div className="space-y-3">
               <Link to="/processor/materials" className="block">
                 <Button variant="outline" className="w-full justify-start gap-3 h-12 font-bold text-gray-700 hover:text-brand transition-all border-gray-200">
-                  <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-brand-surface text-brand">
+                  <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-brand-surface text-brand">
                     <Package className="size-4" />
                   </div>
                   <span className="text-xs uppercase tracking-tight">Receive Harvest</span>
@@ -304,7 +319,7 @@ export default function ProcessorDashboard() {
               </Link>
               <Link to="/processor/batches/new" className="block">
                 <Button variant="outline" className="w-full justify-start gap-3 h-12 font-bold text-gray-700 hover:text-brand transition-all border-gray-200">
-                  <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                  <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-blue-50 text-blue-600">
                     <Plus className="size-4" />
                   </div>
                   <span className="text-xs uppercase tracking-tight">Start New Batch</span>
@@ -312,7 +327,7 @@ export default function ProcessorDashboard() {
               </Link>
               <Link to="/processor/certifications/readiness" className="block">
                 <Button variant="outline" className="w-full justify-start gap-3 h-12 font-bold text-gray-700 hover:text-brand transition-all border-gray-200">
-                  <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-orange-50 text-orange-600">
+                  <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-orange-50 text-orange-600">
                     <AlertCircle className="size-4" />
                   </div>
                   <span className="text-xs uppercase tracking-tight">QA/QC Test</span>
@@ -320,7 +335,7 @@ export default function ProcessorDashboard() {
               </Link>
               <Link to="/processor/facilities" className="block">
                 <Button variant="outline" className="w-full justify-start gap-3 h-12 font-bold text-gray-700 hover:text-brand transition-all border-gray-200">
-                  <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
+                  <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-emerald-50 text-emerald-600">
                     <Building2 className="size-4" />
                   </div>
                   <span className="text-xs uppercase tracking-tight">Manage Facilities</span>
@@ -332,13 +347,13 @@ export default function ProcessorDashboard() {
       </div>
 
       {/* Production Output Chart */}
-      <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm mt-6">
+      <div className="rounded-md border border-gray-200 bg-white p-6 shadow-sm mt-6">
         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-8">
           <div>
             <h2 className="text-lg font-bold text-gray-900 uppercase tracking-tight">Production Summary</h2>
             <p className="text-xs text-gray-500 mt-1 font-medium">Overview of your batch processing</p>
           </div>
-          <select className="rounded-lg border border-gray-200 py-2 pl-3 pr-10 text-xs font-bold uppercase tracking-wider text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand bg-white">
+          <select className="rounded-md border border-gray-200 py-2 pl-3 pr-10 text-xs font-bold uppercase tracking-wider text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand bg-white">
             <option>Current Month</option>
             <option>Last 3 Months</option>
             <option>Last Year</option>
@@ -347,22 +362,22 @@ export default function ProcessorDashboard() {
 
         {/* Summary Stats */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div className="rounded-xl border border-gray-100 p-5 bg-gray-50/50">
+          <div className="rounded-md border border-gray-100 p-5 bg-gray-50/50">
             <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">Total Batches</p>
             <p className="text-2xl font-bold text-gray-900 tracking-tight">{allBatches.length}</p>
             <p className="text-[10px] text-gray-500 mt-2 font-medium">Active processing batches</p>
           </div>
-          <div className="rounded-xl border-2 border-green-100/50 p-5 bg-green-50/30">
+          <div className="rounded-md border-2 border-green-100/50 p-5 bg-green-50/30">
             <p className="text-[10px] text-green-600 font-bold uppercase tracking-widest mb-1">Completed</p>
             <p className="text-2xl font-bold text-green-700 tracking-tight">{completedBatches.length}</p>
             <p className="text-[10px] text-green-600/70 mt-2 font-medium">Ready for dispatch</p>
           </div>
-          <div className="rounded-xl border border-blue-100/50 p-5 bg-blue-50/30">
+          <div className="rounded-md border border-blue-100/50 p-5 bg-blue-50/30">
             <p className="text-[10px] text-blue-600 font-bold uppercase tracking-widest mb-1">In Progress</p>
             <p className="text-2xl font-bold text-blue-700 tracking-tight">{wipBatches.length}</p>
             <p className="text-[10px] text-blue-600/70 mt-2 font-medium">Currently processing</p>
           </div>
-          <div className="rounded-xl border border-amber-100/50 p-5 bg-amber-50/30">
+          <div className="rounded-md border border-amber-100/50 p-5 bg-amber-50/30">
             <p className="text-[10px] text-amber-600 font-bold uppercase tracking-widest mb-1">Incoming</p>
             <p className="text-2xl font-bold text-amber-700 tracking-tight">{incomingBatches.length}</p>
             <p className="text-[10px] text-amber-600/70 mt-2 font-medium">Awaiting processing</p>

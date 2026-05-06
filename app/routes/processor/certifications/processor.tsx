@@ -1,8 +1,8 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { PageHeader } from '~/components/page-header'
-import { CERTIFICATION_TYPES } from '~/lib/data/certification-types'
 import { DatePicker } from '~/components/ui/date-picker'
 import { useGetCertifications } from '~/lib/api/generated/certifications/certifications'
+import { CERTIFICATION_TYPES } from '~/lib/data/certification-types'
 
 /* ─── Icons ─── */
 function SearchIcon() {
@@ -83,7 +83,7 @@ function AddCertModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => voi
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
 
-      <div className="relative z-10 w-full max-w-lg overflow-hidden rounded-xl bg-white shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+      <div className="relative z-10 w-full max-w-lg overflow-hidden rounded-md bg-white shadow-2xl animate-in fade-in zoom-in-95 duration-200">
         <div className="border-b border-gray-100 px-6 py-4">
           <div className="flex items-start justify-between">
             <div>
@@ -93,7 +93,7 @@ function AddCertModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => voi
             <button
               type="button"
               onClick={onClose}
-              className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
+              className="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
             >
               <CloseIcon />
             </button>
@@ -143,7 +143,7 @@ function AddCertModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => voi
           <div className="space-y-2">
             <label className="block text-xs font-bold uppercase tracking-wider text-gray-700">Certificate Document<span className="text-red-500">*</span></label>
             <div
-              className={`flex flex-col items-center justify-center rounded-xl border-2 border-dashed px-4 py-8 transition-all cursor-pointer ${dragOver ? 'border-brand bg-brand/5 scale-[1.01]' : 'border-gray-200 bg-gray-50/50 hover:border-gray-300 hover:bg-white'}`}
+              className={`flex flex-col items-center justify-center rounded-md border-2 border-dashed px-4 py-8 transition-all cursor-pointer ${dragOver ? 'border-brand bg-brand/5 scale-[1.01]' : 'border-gray-200 bg-gray-50/50 hover:border-gray-300 hover:bg-white'}`}
               onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
               onDragLeave={() => setDragOver(false)}
               onDrop={handleFileDrop}
@@ -337,12 +337,12 @@ export default function ProcessorCertifications() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {isLoading ? (
           Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm animate-pulse h-72" />
+            <div key={i} className="rounded-md border border-gray-100 bg-white p-6 shadow-sm animate-pulse h-72" />
           ))
         ) : filteredCerts.map(cert => (
-          <div key={cert.id} className="group flex flex-col rounded-xl border border-gray-100 bg-white p-6 shadow-sm hover:shadow-md transition-all duration-200">
+          <div key={cert.id} className="group flex flex-col rounded-md border border-gray-100 bg-white p-6 shadow-sm hover:shadow-md transition-all duration-200">
             <div className="mb-5 flex items-start justify-between">
-              <div className="flex size-14 items-center justify-center rounded-lg bg-brand shadow-lg shadow-brand/10">
+              <div className="flex size-14 items-center justify-center rounded-md bg-brand shadow-lg shadow-brand/10">
                 <ProcessorIcon />
               </div>
               <span className="inline-flex items-center gap-1.5 rounded-full border border-green-200 bg-green-50 px-2.5 py-1 text-[11px] font-bold text-green-700 uppercase tracking-wide">
@@ -363,10 +363,10 @@ export default function ProcessorCertifications() {
             </div>
 
             <div className="mt-6 flex flex-col gap-4">
-               <div className="flex items-center gap-2 text-xs font-bold text-gray-900 border-t border-gray-50 pt-4">
-                  <svg className="size-4 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                  Expires: {cert.expires}
-               </div>
+              <div className="flex items-center gap-2 text-xs font-bold text-gray-900 border-t border-gray-50 pt-4">
+                <svg className="size-4 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                Expires: {cert.expires}
+              </div>
               <button
                 disabled={!cert.documentUrl}
                 className="flex h-11 w-full items-center justify-center gap-2 rounded-md border border-gray-200 bg-white text-sm font-bold text-gray-700 transition-all hover:bg-brand hover:text-white hover:border-brand shadow-sm disabled:opacity-50 disabled:pointer-events-none"
@@ -383,20 +383,20 @@ export default function ProcessorCertifications() {
         <span>{filteredCerts.length} certification(s) total</span>
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-3">
-             <span>Rows per page</span>
-             <div className="relative">
-               <select className="h-8 appearance-none rounded-md border border-gray-200 bg-white pl-3 pr-8 font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all">
-                 <option>10</option>
-               </select>
-               <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                 <svg className="size-3 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
-               </div>
-             </div>
+            <span>Rows per page</span>
+            <div className="relative">
+              <select className="h-8 appearance-none rounded-md border border-gray-200 bg-white pl-3 pr-8 font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all">
+                <option>10</option>
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                <svg className="size-3 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
+              </div>
+            </div>
           </div>
           <span>Page 1 of 1</span>
           <div className="flex items-center gap-1">
-             <button className="size-7 flex items-center justify-center rounded border border-gray-200 bg-white text-gray-400 disabled:opacity-50 hover:bg-gray-50 transition-colors"><svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><polyline points="15 18 9 12 15 6" /></svg></button>
-             <button className="size-7 flex items-center justify-center rounded border border-gray-200 bg-white text-gray-400 disabled:opacity-50 hover:bg-gray-50 transition-colors"><svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><polyline points="9 18 15 12 9 6" /></svg></button>
+            <button className="size-7 flex items-center justify-center rounded border border-gray-200 bg-white text-gray-400 disabled:opacity-50 hover:bg-gray-50 transition-colors"><svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><polyline points="15 18 9 12 15 6" /></svg></button>
+            <button className="size-7 flex items-center justify-center rounded border border-gray-200 bg-white text-gray-400 disabled:opacity-50 hover:bg-gray-50 transition-colors"><svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><polyline points="9 18 15 12 9 6" /></svg></button>
           </div>
         </div>
       </div>

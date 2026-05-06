@@ -1,32 +1,27 @@
 import { useQueries, useQueryClient } from '@tanstack/react-query'
-import { useMemo, useState } from 'react'
-import { 
-  Plus, 
-  Search, 
-  Filter, 
-  LayoutDashboard, 
-  MapPin, 
-  Package, 
+import {
   ArrowRight,
-  ClipboardList,
-  Layers,
-  ChevronDown
+  ChevronDown,
+  LayoutDashboard,
+  Package,
+  Plus,
+  Search
 } from 'lucide-react'
-import { 
-  getGetFarmersProductsQueryKey, 
-  useGetFarmersProducts 
+import { useMemo, useState } from 'react'
+import { CreateProductModal } from '~/components/create-product-modal'
+import { EmptyState } from '~/components/empty-state'
+import { PageHeader } from '~/components/page-header'
+import { ProductCardSkeleton } from '~/components/product-card-skeleton'
+import { ProductGridCard } from '~/components/product-grid-card'
+import { Button } from '~/components/ui/button'
+import {
+  useGetFarmersProducts
 } from '~/lib/api/generated/farm-products/farm-products'
 import { getGetFarmsIdCropCyclesQueryOptions } from '~/lib/api/generated/farms-crop-cycles/farms-crop-cycles'
 import { useGetFarms } from '~/lib/api/generated/farms/farms'
 import type { CropCycle } from '~/lib/api/generated/models'
-import { PageHeader } from '~/components/page-header'
-import { Button } from '~/components/ui/button'
-import { ProductGridCard } from '~/components/product-grid-card'
-import { ProductCardSkeleton } from '~/components/product-card-skeleton'
-import { CreateProductModal } from '~/components/create-product-modal'
-import { EmptyState } from '~/components/empty-state'
-import { cn } from '~/lib/utils'
 import { extractCropCyclesFromQueries } from '~/lib/record-operation-dashboard'
+import { cn } from '~/lib/utils'
 
 /* ─── Page ─── */
 export default function ProductsIndex() {
@@ -141,11 +136,7 @@ export default function ProductsIndex() {
     <div className="space-y-6 pb-10 px-1">
       <PageHeader
         items={[
-          {
-            label: 'Dashboard',
-            href: '/farmer',
-            icon: <LayoutDashboard className="size-4 text-gray-400" />,
-          },
+          { label: 'Dashboard', href: '/farmer' },
           { label: 'Products' },
         ]}
       />
@@ -157,7 +148,7 @@ export default function ProductsIndex() {
           <p className="text-sm text-gray-500 mt-1">Manage your crops and harvested products</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button 
+          <Button
             onClick={() => setIsCreateModalOpen(true)}
             className="bg-[#1d3d1e] hover:bg-black text-white flex items-center gap-2 h-11 px-6 shadow-sm"
           >
@@ -168,12 +159,12 @@ export default function ProductsIndex() {
       </div>
 
       {/* Tab Interface */}
-      <div className="rounded-xl border border-gray-200 bg-white p-1.5 shadow-sm inline-flex w-fit mb-6">
+      <div className="rounded-md border border-gray-200 bg-white p-1.5 shadow-sm inline-flex w-fit mb-6">
         <div className="flex flex-wrap gap-1">
           <button
             onClick={() => setActiveTab('products')}
             className={cn(
-              "px-6 py-2.5 text-xs font-bold uppercase tracking-wider rounded-lg transition-all",
+              "px-6 py-2.5 text-xs font-bold uppercase tracking-wider rounded-md transition-all",
               activeTab === 'products' ? "bg-brand text-white shadow-sm" : "text-gray-400 hover:text-gray-600"
             )}
           >
@@ -182,7 +173,7 @@ export default function ProductsIndex() {
           <button
             onClick={() => setActiveTab('ongoing')}
             className={cn(
-              "px-6 py-2.5 text-xs font-bold uppercase tracking-wider rounded-lg transition-all",
+              "px-6 py-2.5 text-xs font-bold uppercase tracking-wider rounded-md transition-all",
               activeTab === 'ongoing' ? "bg-brand text-white shadow-sm" : "text-gray-400 hover:text-gray-600"
             )}
           >
@@ -194,7 +185,7 @@ export default function ProductsIndex() {
       {activeTab === 'products' ? (
         <>
           {/* Filtration Block */}
-          <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm mb-6">
+          <div className="rounded-md border border-gray-200 bg-white p-6 shadow-sm mb-6">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
               <div className="relative w-full lg:max-w-md">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
@@ -203,7 +194,7 @@ export default function ProductsIndex() {
                   placeholder="Search products..."
                   value={search}
                   onChange={(e) => { setSearch(e.target.value); setCurrentPage(1) }}
-                  className="w-full rounded-lg border border-gray-200 pl-10 pr-4 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white transition-all shadow-sm"
+                  className="w-full rounded-md border border-gray-200 pl-10 pr-4 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white transition-all shadow-sm"
                 />
               </div>
 
@@ -211,10 +202,10 @@ export default function ProductsIndex() {
                 <div className="flex items-center gap-2">
                   <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest px-1">Farm</span>
                   <div className="relative">
-                    <select 
-                      value={farmFilter} 
+                    <select
+                      value={farmFilter}
                       onChange={(e) => { setFarmFilter(e.target.value); setCurrentPage(1) }}
-                      className="h-10 rounded-lg border border-gray-200 pl-3 pr-8 text-[11px] font-bold uppercase tracking-wider text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand bg-gray-50/50 appearance-none min-w-[140px]"
+                      className="h-10 rounded-md border border-gray-200 pl-3 pr-8 text-[11px] font-bold uppercase tracking-wider text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand bg-gray-50/50 appearance-none min-w-[140px]"
                     >
                       <option value="all">All Farms</option>
                       {uniqueFarms.map(([id, name]) => (
@@ -228,10 +219,10 @@ export default function ProductsIndex() {
                 <div className="flex items-center gap-2">
                   <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest px-1">Product</span>
                   <div className="relative">
-                    <select 
-                      value={productFilter} 
+                    <select
+                      value={productFilter}
                       onChange={(e) => { setProductFilter(e.target.value); setCurrentPage(1) }}
-                      className="h-10 rounded-lg border border-gray-200 pl-3 pr-8 text-[11px] font-bold uppercase tracking-wider text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand bg-gray-50/50 appearance-none min-w-[140px]"
+                      className="h-10 rounded-md border border-gray-200 pl-3 pr-8 text-[11px] font-bold uppercase tracking-wider text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand bg-gray-50/50 appearance-none min-w-[140px]"
                     >
                       <option value="all">All Products</option>
                       {uniqueProductNames.map(name => (
@@ -284,7 +275,7 @@ export default function ProductsIndex() {
 
           {/* Standardized Table Footer */}
           {!isLoading && filteredProducts.length > 0 && (
-            <div className="mt-8 border-t border-gray-100 px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-gray-400 font-bold uppercase tracking-tight bg-gray-50/20 rounded-xl">
+            <div className="mt-8 border-t border-gray-100 px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-gray-400 font-bold uppercase tracking-tight bg-gray-50/20 rounded-md">
               <div className="flex items-center gap-2">
                 <span className="text-gray-300">Total Products:</span>
                 <span className="text-gray-900">{filteredProducts.length} Products</span>
@@ -292,7 +283,7 @@ export default function ProductsIndex() {
               <div className="flex items-center gap-6">
                 <div className="flex items-center gap-2">
                   <span className="text-gray-300">Show</span>
-                  <select 
+                  <select
                     value={rowsPerPage}
                     onChange={(e) => setRowsPerPage(Number(e.target.value))}
                     className="bg-transparent border-none outline-none text-gray-900 font-bold"
@@ -304,18 +295,18 @@ export default function ProductsIndex() {
                 <div className="flex items-center gap-4">
                   <span className="text-gray-300">Page {currentPage} / {totalPages}</span>
                   <div className="flex items-center gap-1">
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="size-7 text-gray-300" 
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="size-7 text-gray-300"
                       disabled={currentPage === 1}
                       onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                     >
                       <ArrowRight className="size-3.5 rotate-180" />
                     </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
+                    <Button
+                      variant="ghost"
+                      size="icon"
                       className="size-7 text-gray-400 hover:text-brand"
                       disabled={currentPage >= totalPages}
                       onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
@@ -330,7 +321,7 @@ export default function ProductsIndex() {
         </>
       ) : (
         <>
-          <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm mb-6">
+          <div className="rounded-md border border-gray-200 bg-white p-6 shadow-sm mb-6">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
               <div className="relative w-full lg:max-w-md">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
@@ -339,7 +330,7 @@ export default function ProductsIndex() {
                   placeholder="Search crop cycles..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="w-full rounded-lg border border-gray-200 pl-10 pr-4 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white transition-all shadow-sm"
+                  className="w-full rounded-md border border-gray-200 pl-10 pr-4 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white transition-all shadow-sm"
                 />
               </div>
               <div className="flex flex-wrap items-center gap-4">
@@ -349,7 +340,7 @@ export default function ProductsIndex() {
                     <select
                       value={cycleStatusFilter}
                       onChange={(e) => setCycleStatusFilter(e.target.value)}
-                      className="h-10 rounded-lg border border-gray-200 pl-3 pr-8 text-[11px] font-bold uppercase tracking-wider text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand bg-gray-50/50 appearance-none min-w-[140px]"
+                      className="h-10 rounded-md border border-gray-200 pl-3 pr-8 text-[11px] font-bold uppercase tracking-wider text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand bg-gray-50/50 appearance-none min-w-[140px]"
                     >
                       <option value="all">All Statuses</option>
                       <option value="planned">Planned</option>
@@ -386,9 +377,9 @@ export default function ProductsIndex() {
         </>
       )}
 
-      <CreateProductModal 
-        isOpen={isCreateModalOpen} 
-        onClose={() => setIsCreateModalOpen(false)} 
+      <CreateProductModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
       />
     </div>
   )
@@ -405,7 +396,7 @@ function FarmerCropCycleCard({ cycle }: { cycle: FarmerUICropCycle }) {
         : 'border border-blue-200 bg-blue-50 text-blue-700'
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm hover:shadow-md transition-shadow">
+    <div className="rounded-md border border-gray-200 bg-white p-5 shadow-sm hover:shadow-md transition-shadow">
       <div className="mb-3 flex items-center justify-between">
         <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${badgeClass}`}>
           {(cycle.status || 'planned').toUpperCase()}

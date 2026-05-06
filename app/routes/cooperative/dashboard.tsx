@@ -1,30 +1,27 @@
-import { FarmMap } from '~/components/farm-map.client'
 import {
-  Users,
+  Activity,
+  ArrowRight,
+  CheckCircle2,
+  ChevronDown,
+  ClipboardList,
+  Hexagon,
   Map,
   MapPin,
-  Package,
-  Activity,
   Maximize,
-  ArrowRight,
-  Search,
-  Filter,
-  Plus,
-  LayoutDashboard,
-  ClipboardList,
-  ChevronDown,
   MoreHorizontal,
-  Hexagon,
-  CheckCircle2
+  Package,
+  Plus,
+  Search,
+  Users
 } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router'
-import { StatCard } from '~/components/stat-card'
+import { FarmMap } from '~/components/farm-map.client'
 import { PageHeader } from '~/components/page-header'
-import { Button } from '~/components/ui/button'
+import { StatCard } from '~/components/stat-card'
 import { Badge } from '~/components/ui/badge'
+import { Button } from '~/components/ui/button'
 import { useGetCooperativesDashboard } from '~/lib/api/generated/cooperatives/cooperatives'
-import { cn } from '~/lib/utils'
 import type { Route } from './+types/dashboard'
 
 export function meta({ }: Route.MetaArgs) {
@@ -114,28 +111,36 @@ export default function CooperativeDashboard() {
 
   return (
     <div className="space-y-6 pb-10 px-1">
-      {/* <PageHeader
+
+      <PageHeader
         items={[
           {
-            label: 'Dashboard',
+            label: 'Cooperative',
             href: '/cooperative',
-            icon: <LayoutDashboard className="size-4 text-gray-400" />,
+            icon: (
+              <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <rect x="3" y="3" width="7" height="7" rx="1" />
+                <rect x="14" y="3" width="7" height="7" rx="1" />
+                <rect x="3" y="14" width="7" height="7" rx="1" />
+                <rect x="14" y="14" width="7" height="7" rx="1" />
+              </svg>
+            ),
           },
+          { label: 'Dashboard' },
         ]}
-      /> */}
+        action={
+          <div className="flex items-center gap-2">
+            <Button className="bg-[#1d3d1e] hover:bg-black text-white flex items-center gap-2 h-11 px-6 shadow-sm">
+              <Plus className="size-4" />
+              <span className="font-bold uppercase tracking-wide text-xs">Register Farmer</span>
+            </Button>
+          </div>
+        }
+      />
 
-      {/* Page Title Section */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 uppercase tracking-tight">Cooperative Dashboard</h1>
-          <p className="text-sm text-gray-500 mt-1">Overview of members, farms, and production records</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button className="bg-[#1d3d1e] hover:bg-black text-white flex items-center gap-2 h-11 px-6 shadow-sm">
-            <Plus className="size-4" />
-            <span className="font-bold uppercase tracking-wide text-xs">Register Farmer</span>
-          </Button>
-        </div>
+      <div className="px-1">
+        <h1 className="text-2xl font-bold text-gray-900 uppercase tracking-tight">Cooperative Dashboard</h1>
+        <p className="text-sm text-gray-500 mt-1">Overview of members, farms, and production records</p>
       </div>
 
       {/* Global Stats Overview */}
@@ -185,9 +190,9 @@ export default function CooperativeDashboard() {
       {/* Widgets Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Insights */}
-        <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div className="rounded-md border border-gray-200 bg-white p-6 shadow-sm">
           <div className="flex items-center gap-2 mb-6">
-            <div className="flex size-8 items-center justify-center rounded-lg bg-blue-50 text-blue-500 shadow-sm">
+            <div className="flex size-8 items-center justify-center rounded-md bg-blue-50 text-blue-500 shadow-sm">
               <ClipboardList className="size-4" />
             </div>
             <div>
@@ -196,12 +201,12 @@ export default function CooperativeDashboard() {
             </div>
           </div>
 
-          <div className="rounded-xl border-l-4 border-blue-400 bg-blue-50/50 p-4">
+          <div className="rounded-md border-l-4 border-blue-400 bg-blue-50/50 p-4">
             <p className="text-sm font-bold text-gray-900 uppercase tracking-tight mb-1">Standard Operations</p>
             <p className="text-xs text-gray-500 leading-relaxed font-medium">No critical harvest deviations or compliance risks detected in the 30-day forecast.</p>
           </div>
         </div>        {/* Product Category Distribution */}
-        <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm flex flex-col justify-between">
+        <div className="rounded-md border border-gray-200 bg-white p-6 shadow-sm flex flex-col justify-between">
           <div>
             <h3 className="text-sm font-bold text-gray-900 uppercase tracking-tight mb-6">Product Categories</h3>
 
@@ -259,12 +264,12 @@ export default function CooperativeDashboard() {
         </div>
 
         {/* Quick Actions */}
-        <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm overflow-hidden">
+        <div className="rounded-md border border-gray-200 bg-white p-6 shadow-sm overflow-hidden">
           <h3 className="text-base font-bold text-gray-900 uppercase tracking-tight mb-6">Quick Actions</h3>
           <div className="flex flex-col gap-3">
-            <Link to="/cooperative/products" className="flex items-center justify-between group rounded-xl border border-gray-100 p-4 hover:border-brand/40 hover:bg-brand/5 transition-all">
+            <Link to="/cooperative/products" className="flex items-center justify-between group rounded-md border border-gray-100 p-4 hover:border-brand/40 hover:bg-brand/5 transition-all">
               <div className="flex items-center gap-4">
-                <div className="size-9 rounded-lg bg-green-50 flex items-center justify-center text-brand">
+                <div className="size-9 rounded-md bg-green-50 flex items-center justify-center text-brand">
                   <Package className="size-4" />
                 </div>
                 <div>
@@ -274,9 +279,9 @@ export default function CooperativeDashboard() {
               </div>
               <ArrowRight className="size-4 text-gray-300 group-hover:text-brand transition-colors" />
             </Link>
-            <Link to="/cooperative/farms" className="flex items-center justify-between group rounded-xl border border-gray-100 p-4 hover:border-brand/40 hover:bg-brand/5 transition-all">
+            <Link to="/cooperative/farms" className="flex items-center justify-between group rounded-md border border-gray-100 p-4 hover:border-brand/40 hover:bg-brand/5 transition-all">
               <div className="flex items-center gap-4">
-                <div className="size-9 rounded-lg bg-green-50 flex items-center justify-center text-brand">
+                <div className="size-9 rounded-md bg-green-50 flex items-center justify-center text-brand">
                   <MapPin className="size-4" />
                 </div>
                 <div>
@@ -286,9 +291,9 @@ export default function CooperativeDashboard() {
               </div>
               <ArrowRight className="size-4 text-gray-300 group-hover:text-brand transition-colors" />
             </Link>
-            <Link to="/cooperative/farmers" className="flex items-center justify-between group rounded-xl border border-gray-100 p-4 hover:border-brand/40 hover:bg-brand/5 transition-all">
+            <Link to="/cooperative/farmers" className="flex items-center justify-between group rounded-md border border-gray-100 p-4 hover:border-brand/40 hover:bg-brand/5 transition-all">
               <div className="flex items-center gap-4">
-                <div className="size-9 rounded-lg bg-green-50 flex items-center justify-center text-brand">
+                <div className="size-9 rounded-md bg-green-50 flex items-center justify-center text-brand">
                   <Users className="size-4" />
                 </div>
                 <div>
@@ -301,7 +306,7 @@ export default function CooperativeDashboard() {
           </div>
         </div>
       </div>      {/* Farm Performance Summary Table */}
-      <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden flex flex-col">
+      <div className="rounded-md border border-gray-200 bg-white shadow-sm overflow-hidden flex flex-col">
         <div className="p-6 bg-white border-b border-gray-100">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <div>
@@ -313,7 +318,7 @@ export default function CooperativeDashboard() {
               <input
                 type="text"
                 placeholder="Search lots by identity or name..."
-                className="w-full rounded-lg border border-gray-200 pl-10 pr-4 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white transition-all shadow-sm"
+                className="w-full rounded-md border border-gray-200 pl-10 pr-4 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white transition-all shadow-sm"
               />
             </div>
           </div>
@@ -323,13 +328,13 @@ export default function CooperativeDashboard() {
             <div className="flex items-center gap-2">
               <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Filter:</span>
               <div className="relative">
-                <select className="h-9 rounded-lg border border-gray-200 pl-3 pr-8 text-[11px] font-bold uppercase tracking-wider text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand bg-gray-50/50 appearance-none">
+                <select className="h-9 rounded-md border border-gray-200 pl-3 pr-8 text-[11px] font-bold uppercase tracking-wider text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand bg-gray-50/50 appearance-none">
                   <option>All Statuses</option>
                 </select>
                 <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 size-3 text-gray-400" />
               </div>
               <div className="relative">
-                <select className="h-9 rounded-lg border border-gray-200 pl-3 pr-8 text-[11px] font-bold uppercase tracking-wider text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand bg-gray-50/50 appearance-none">
+                <select className="h-9 rounded-md border border-gray-200 pl-3 pr-8 text-[11px] font-bold uppercase tracking-wider text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand bg-gray-50/50 appearance-none">
                   <option>Risk Level</option>
                 </select>
                 <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 size-3 text-gray-400" />
@@ -429,7 +434,7 @@ export default function CooperativeDashboard() {
         </div>
       </div>
       {/* Geographic Asset Distribution */}
-      <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden p-6">
+      <div className="rounded-md border border-gray-200 bg-white shadow-sm overflow-hidden p-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
             <h2 className="text-base font-bold text-gray-900 uppercase tracking-tight">Farms by Location</h2>
@@ -439,7 +444,7 @@ export default function CooperativeDashboard() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
             <input
               placeholder="Search locations..."
-              className="w-full rounded-lg border border-gray-200 pl-10 pr-4 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white transition-all shadow-sm"
+              className="w-full rounded-md border border-gray-200 pl-10 pr-4 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white transition-all shadow-sm"
             />
           </div>
         </div>
@@ -452,7 +457,7 @@ export default function CooperativeDashboard() {
               <Badge
                 key={idx}
                 variant="outline"
-                className="flex items-center gap-2 rounded-lg px-4 py-1.5 font-bold uppercase tracking-tight text-[11px] border-gray-100 bg-gray-50/50 text-gray-700"
+                className="flex items-center gap-2 rounded-md px-4 py-1.5 font-bold uppercase tracking-tight text-[11px] border-gray-100 bg-gray-50/50 text-gray-700"
               >
                 {region.name}
                 <span className="flex size-5 items-center justify-center rounded-md bg-white border border-gray-100 text-[10px] text-brand shadow-sm">
@@ -464,7 +469,7 @@ export default function CooperativeDashboard() {
         </div>
 
         {/* GPS Mapping */}
-        <div className="mb-8 rounded-xl overflow-hidden border border-gray-100 h-64">
+        <div className="mb-8 rounded-md overflow-hidden border border-gray-100 h-64">
           <FarmMap farms={farmsData.map(farm => ({
             id: farm.id,
             name: farm.name,
@@ -488,7 +493,7 @@ export default function CooperativeDashboard() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {isLoading ? (
               Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="rounded-xl border border-gray-100 bg-gray-50/30 p-4 animate-pulse h-24" />
+                <div key={i} className="rounded-md border border-gray-100 bg-gray-50/30 p-4 animate-pulse h-24" />
               ))
             ) : farmsData.length === 0 ? (
               <div className="col-span-full py-8 text-center text-[10px] font-bold text-gray-400 uppercase tracking-widest">
@@ -496,7 +501,7 @@ export default function CooperativeDashboard() {
               </div>
             ) : (
               farmsData.slice(0, 4).map((farm) => (
-                <div key={farm.id} className="rounded-xl border border-gray-100 bg-gray-50/30 p-5 group hover:bg-white hover:shadow-md transition-all">
+                <div key={farm.id} className="rounded-md border border-gray-100 bg-gray-50/30 p-5 group hover:bg-white hover:shadow-md transition-all">
                   <h4 className="text-sm font-bold text-gray-900 tracking-tight uppercase mb-1 truncate">{farm.name}</h4>
                   <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-1">
                     <MapPin className="size-3 text-red-400" />

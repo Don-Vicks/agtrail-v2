@@ -1,35 +1,30 @@
-import { useMemo, useState } from 'react'
-import { Link } from 'react-router'
 import {
   Camera,
   CheckCircle2,
   CircleAlert,
+  Eye,
+  Gamepad2,
+  Monitor,
+  PackageCheck,
   QrCode,
   ScanLine,
-  User,
-  XCircle,
-  FileText,
-  Monitor,
-  Gamepad2,
-  PackageCheck,
-  ChevronRight,
-  MapPin,
-  Sprout,
-  Archive,
-  Eye
+  XCircle
 } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { Link, useNavigate } from 'react-router'
 import { PageHeader } from '~/components/page-header'
 import { Button } from '~/components/ui/button'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '~/components/ui/dialog'
+import type { AggregatorBatch } from '~/lib/aggregator/types'
 import { useAggregatorIncomingBatches } from '~/lib/aggregator/use-aggregator-data'
 import { useDraftLot } from '~/lib/aggregator/use-draft-lot'
-import type { AggregatorBatch } from '~/lib/aggregator/types'
 
 export default function AggregatorBatchQrScanPage() {
   const { batches, isLoading } = useAggregatorIncomingBatches()
   const { draftLotBatches, stats, addBatch } = useDraftLot()
   const [isScanModalOpen, setIsScanModalOpen] = useState(false)
   const [selectedBatch, setSelectedBatch] = useState<AggregatorBatch | null>(null)
+
+  const navigate = useNavigate()
 
   const nextScannableBatch = useMemo(
     () => batches.find((batch) => !draftLotBatches.some((existing) => existing.id === batch.id)),
@@ -38,8 +33,7 @@ export default function AggregatorBatchQrScanPage() {
 
   const handleSimulateScan = () => {
     if (!nextScannableBatch) return
-    setSelectedBatch(nextScannableBatch)
-    setIsScanModalOpen(true)
+    navigate(`/aggregator/batch/${nextScannableBatch.id}`)
   }
 
   return (
@@ -74,7 +68,7 @@ export default function AggregatorBatchQrScanPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         <StatCard label="Scanned" value={stats.scanned} />
         <StatCard label="Verified" value={stats.verified} />
         <StatCard label="Flagged" value={stats.flagged} />
@@ -87,7 +81,7 @@ export default function AggregatorBatchQrScanPage() {
           <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center gap-2">
-                <div className="flex size-8 items-center justify-center rounded-lg bg-gray-50 text-gray-400 border border-gray-100">
+                <div className="flex size-8 items-center justify-center rounded-md bg-gray-50 text-gray-400 border border-gray-100">
                   <Camera className="size-4 text-gray-400" />
                 </div>
                 <div>
@@ -113,22 +107,22 @@ export default function AggregatorBatchQrScanPage() {
               </div>
             </div>
 
-            <div className="aspect-2/1 rounded-xl bg-[#1a4332] flex flex-col items-center justify-center text-white border border-[#2e7d32]/20">
+            <div className="aspect-video md:aspect-2/1 rounded-md bg-[#1a4332] flex flex-col items-center justify-center text-white border border-[#2e7d32]/20">
               <ScanLine className="size-8 text-white/20 mb-2" />
               <p className="text-xs font-bold tracking-tight">Camera Off</p>
               <p className="text-[9px] font-bold uppercase tracking-widest text-white/60 mt-0.5">Use the buttons below</p>
             </div>
 
-            <div className="mt-4 grid grid-cols-3 gap-2">
-              <button className="flex items-center justify-center gap-1.5 rounded-xl border border-gray-100 bg-white py-2 px-1 hover:bg-gray-50 hover:shadow-sm transition-all group">
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <button className="flex items-center justify-center gap-1.5 rounded-md border border-gray-100 bg-white py-2 px-1 hover:bg-gray-50 hover:shadow-sm transition-all group">
                 <CheckCircle2 className="size-3.5 text-[#2e7d32]" />
                 <span className="text-[8px] font-bold uppercase tracking-tight text-[#2e7d32]">Valid batch</span>
               </button>
-              <button className="flex items-center justify-center gap-1.5 rounded-xl border border-gray-100 bg-white py-2 px-1 hover:bg-gray-50 hover:shadow-sm transition-all group">
+              <button className="flex items-center justify-center gap-1.5 rounded-md border border-gray-100 bg-white py-2 px-1 hover:bg-gray-50 hover:shadow-sm transition-all group">
                 <CircleAlert className="size-3.5 text-amber-500" />
                 <span className="text-[8px] font-bold uppercase tracking-tight text-amber-600">Flagged Batch</span>
               </button>
-              <button className="flex items-center justify-center gap-1.5 rounded-xl border border-gray-100 bg-white py-2 px-1 hover:bg-gray-50 hover:shadow-sm transition-all group">
+              <button className="flex items-center justify-center gap-1.5 rounded-md border border-gray-100 bg-white py-2 px-1 hover:bg-gray-50 hover:shadow-sm transition-all group">
                 <XCircle className="size-3.5 text-red-500" />
                 <span className="text-[8px] font-bold uppercase tracking-tight text-red-600">Rejected QR</span>
               </button>
@@ -170,7 +164,7 @@ export default function AggregatorBatchQrScanPage() {
 
           {draftLotBatches.length === 0 ? (
             <div className="flex-1 flex flex-col items-center justify-center text-center p-8 rounded-2xl border border-dashed border-gray-200 bg-gray-50/20">
-              <div className="size-10 rounded-xl bg-white border border-gray-100 flex items-center justify-center mb-4 shadow-sm">
+              <div className="size-10 rounded-md bg-white border border-gray-100 flex items-center justify-center mb-4 shadow-sm">
                 <QrCode className="size-5 text-[#2e7d32]" />
               </div>
               <h4 className="text-sm font-bold text-gray-900 tracking-tight mb-1">no batches scanned yet</h4>
@@ -183,8 +177,8 @@ export default function AggregatorBatchQrScanPage() {
             </div>
           ) : (
             <>
-              <div className="flex-1 overflow-x-auto">
-                <table className="w-full text-left text-xs">
+              <div className="flex-1 overflow-x-auto -mx-5 px-5">
+                <table className="w-full text-left text-xs min-w-[600px]">
                   <thead className="border-b border-gray-100 bg-gray-50/30">
                     <tr>
                       <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-brand">Batch Identifier</th>
@@ -221,19 +215,20 @@ export default function AggregatorBatchQrScanPage() {
                   </tbody>
                 </table>
               </div>
-              
+
               <div className="mt-auto pt-6 space-y-4">
-                <Link to="/aggregator/draft-lot" className="flex items-center justify-center w-full h-12 bg-brand hover:bg-brand/90 text-white font-bold rounded-xl shadow-sm">
+                <Link to="/aggregator/draft-lot" className="flex items-center justify-center w-full h-12 bg-brand hover:bg-brand/90 text-white font-bold rounded-md shadow-sm">
                   See Draft
                 </Link>
                 <div className="grid grid-cols-2 gap-4">
-                  <Link to="/aggregator/lot-consolidation" className="flex items-center justify-center h-12 bg-[#1a4332] hover:bg-[#122e22] text-white font-bold rounded-xl shadow-sm px-4">
+                  <Link to="/aggregator/lot-consolidation" className="flex items-center justify-center h-12 bg-[#1a4332] hover:bg-[#122e22] text-white font-bold rounded-md shadow-sm px-4">
                     Create Lot
                   </Link>
-                  <Button 
-                    onClick={() => setIsScanModalOpen(true)}
-                    variant="outline" 
-                    className="h-12 border-gray-200 text-gray-600 font-bold rounded-xl hover:bg-gray-50"
+                  <Button
+                    onClick={handleSimulateScan}
+                    disabled={!nextScannableBatch}
+                    variant="outline"
+                    className="h-12 border-gray-200 text-gray-600 font-bold rounded-md hover:bg-gray-50"
                   >
                     Add More
                   </Button>
@@ -244,96 +239,6 @@ export default function AggregatorBatchQrScanPage() {
         </div>
       </div>
 
-      <Dialog open={isScanModalOpen} onOpenChange={setIsScanModalOpen}>
-        <DialogContent className='sm:max-w-[480px] p-6 overflow-hidden border-none shadow-2xl rounded-[10px] bg-white'>
-          {selectedBatch && (
-            <div className="space-y-6">
-              <div className="space-y-1">
-                <DialogTitle className="text-2xl font-bold text-gray-900 tracking-tight">Batch Scanned</DialogTitle>
-                <div className="flex items-center gap-2">
-                  <div className="flex size-5 items-center justify-center rounded-full bg-gray-100 text-gray-400 border border-gray-200">
-                    <User className="size-3" />
-                  </div>
-                  <p className="text-xs text-gray-500 font-medium">From <span className="font-bold text-gray-900">{selectedBatch.farmerName}</span></p>
-                </div>
-              </div>
-
-              <div className="space-y-6 py-2">
-                {/* Farm Location */}
-                <div className="flex items-start gap-4">
-                  <div className="flex size-11 items-center justify-center rounded-full bg-[#1a4332] text-white shadow-sm">
-                    <MapPin className="size-5" />
-                  </div>
-                  <div className="space-y-0.5">
-                    <p className="text-xs font-bold text-gray-400">Farm Location</p>
-                    <p className="text-base font-bold text-[#1a4332] tracking-tight">{selectedBatch.location}</p>
-                  </div>
-                </div>
-
-                {/* Field Agent */}
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start gap-4">
-                    <div className="flex size-11 items-center justify-center rounded-full bg-red-600 text-white shadow-sm">
-                      <MapPin className="size-5" />
-                    </div>
-                    <div className="space-y-0.5">
-                      <p className="text-xs font-bold text-gray-400">Field Agent</p>
-                      <p className="text-base font-bold text-[#1a4332] tracking-tight">{selectedBatch.fieldAgentName}</p>
-                    </div>
-                  </div>
-                  <div className="mt-2 px-3 py-1 rounded-lg border border-gray-100 bg-white shadow-sm">
-                    <span className="text-[10px] font-bold text-green-700">Approved</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="border-t border-gray-50 pt-6">
-                <div className="grid grid-cols-2 gap-4">
-                  <InfoItem
-                    icon={<Sprout className="size-5" />}
-                    label='Type of Goods'
-                    value={selectedBatch.goodsType}
-                  />
-                  <InfoItem
-                    icon={<Sprout className="size-5" />}
-                    label='Quantity'
-                    value={`${selectedBatch.quantityKg.toFixed(0)}Kg (${(selectedBatch.quantityKg / 50).toFixed(0)} Bags)`}
-                  />
-                  <InfoItem
-                    icon={<Sprout className="size-5" />}
-                    label='Harvest Date'
-                    value={selectedBatch.harvestedAt}
-                  />
-                  <InfoItem
-                    icon={<Sprout className="size-5" />}
-                    label='Est. Time'
-                    value={`${selectedBatch.estimatedInspectionMins} mins`}
-                  />
-                </div>
-              </div>
-
-              <div className='flex gap-4 pt-4'>
-                <Button
-                  onClick={() => setIsScanModalOpen(false)}
-                  className='h-12 flex-1 rounded-xl bg-brand-accent text-sm font-bold text-white hover:bg-[#b91c1c] shadow-md transition-all active:scale-95'
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={() => {
-                    if (!selectedBatch) return
-                    addBatch(selectedBatch)
-                    setIsScanModalOpen(false)
-                  }}
-                  className='h-12 flex-1 rounded-xl bg-[#1a4332] text-sm font-bold text-white hover:bg-[#122e22] shadow-md transition-all active:scale-95'
-                >
-                  Add
-                </Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }
@@ -350,7 +255,7 @@ function StatCard({ label, value }: { label: string; value: number }) {
 function InfoItem({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
     <div className="flex items-center gap-3 p-3 rounded-2xl bg-gray-50/50">
-      <div className="flex size-10 items-center justify-center rounded-xl bg-[#e8f5e9] text-[#1a4332]">
+      <div className="flex size-10 items-center justify-center rounded-md bg-[#e8f5e9] text-[#1a4332]">
         {icon}
       </div>
       <div className="space-y-0.5">

@@ -1,15 +1,15 @@
+import { Activity, CheckCircle, Clock, Eye, Layers, Package, Play, Plus, Search } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router';
-import { useMemo, useState } from 'react'
-import { PageHeader } from '~/components/page-header';
-import { cn } from '~/lib/utils';
-import { useGetProcessorsBatches } from '~/lib/api/generated/processors-batches/processors-batches';
-import type { ProcessorBatch } from '~/lib/api/generated/models';
-import { StatCard } from '~/components/stat-card';
-import { Button } from '~/components/ui/button';
-import { Badge } from '~/components/ui/badge';
 import { EmptyState } from '~/components/empty-state';
-import { Layers, Plus, Search, Package, Clock, Activity, CheckCircle, ArrowRight, Play, Eye } from 'lucide-react';
-import { getOrganizationHeaders } from '~/lib/organization-context'
+import { PageHeader } from '~/components/page-header';
+import { StatCard } from '~/components/stat-card';
+import { Badge } from '~/components/ui/badge';
+import { Button } from '~/components/ui/button';
+import type { ProcessorBatch } from '~/lib/api/generated/models';
+import { useGetProcessorsBatches } from '~/lib/api/generated/processors-batches/processors-batches';
+import { getOrganizationHeaders } from '~/lib/organization-context';
+import { cn } from '~/lib/utils';
 
 // StatItem removed as shared StatCard is now used
 
@@ -29,24 +29,24 @@ function BatchCard({ batch }: { batch: ProcessorBatch }) {
   const quantity = '0kg'
   const type = batch.outputProductType || 'Other'
   const shelfLife = batch.shelfLifeDays ? `${batch.shelfLifeDays} days` : (isCompleted ? '300 days' : '120 days')
-  
+
   const formattedDate = batch.createdAt ? new Date(batch.createdAt).toLocaleDateString('en-US', {
     month: 'short', day: 'numeric', year: 'numeric'
   }) : 'Unknown Date'
 
   return (
-    <div className="flex items-center justify-between rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md">
+    <div className="flex items-center justify-between rounded-md border border-gray-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md">
       <div className="flex items-start gap-4">
         {/* Leaf Box Icon */}
-        <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-brand-surface text-brand">
+        <div className="flex size-10 shrink-0 items-center justify-center rounded-md bg-brand-surface text-brand">
           <Package className="size-5" />
         </div>
 
         <div>
           <div className="flex items-center gap-2 mb-1.5">
             <h3 className="text-base font-bold text-gray-900 uppercase tracking-tight">{batch.outputProductName || (batch as any).productName}</h3>
-            <Badge 
-              variant="outline" 
+            <Badge
+              variant="outline"
               className={cn(
                 "text-[10px] font-bold uppercase tracking-wider px-2 py-0",
                 isCompleted ? "bg-green-50 text-green-700 border-green-200" : "bg-amber-50 text-amber-700 border-amber-200"
@@ -177,7 +177,7 @@ export default function ProcessorBatches() {
       {isLoading ? (
         <div className="space-y-4">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+            <div key={i} className="rounded-md border border-gray-200 bg-white p-5 shadow-sm">
               <div className="h-5 w-1/3 animate-pulse rounded bg-gray-100" />
               <div className="mt-3 grid grid-cols-3 gap-4">
                 <div className="h-4 animate-pulse rounded bg-gray-100" />
@@ -212,7 +212,7 @@ export default function ProcessorBatches() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search batches by ID, product name, or status..."
-                className="w-full rounded-xl border border-gray-200 pl-10 pr-4 py-3 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white shadow-sm"
+                className="w-full rounded-md border border-gray-200 pl-10 pr-4 py-3 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white shadow-sm"
               />
             </div>
             <select
@@ -222,7 +222,7 @@ export default function ProcessorBatches() {
                   e.target.value as 'newest' | 'oldest' | 'product' | 'status',
                 )
               }
-              className="rounded-xl border border-gray-200 px-3 py-3 text-sm text-gray-700 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+              className="rounded-md border border-gray-200 px-3 py-3 text-sm text-gray-700 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
             >
               <option value="newest">Sort: Newest</option>
               <option value="oldest">Sort: Oldest</option>
@@ -234,7 +234,7 @@ export default function ProcessorBatches() {
           {/* Batches List */}
           <div className="space-y-4">
             {filteredBatches.length === 0 ? (
-              <EmptyState 
+              <EmptyState
                 icon={<Package className="size-12" />}
                 title="No batches found"
                 description="Your processing queue is currently empty. Start a new batch to track production."

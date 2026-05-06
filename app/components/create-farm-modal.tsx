@@ -1,20 +1,20 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Link, useLocation } from 'react-router'
+import { useQueryClient } from '@tanstack/react-query'
 import { getStateByCode } from 'ng-geo-data'
-import { sortedLgasForStateCode, sortedNigeriaStates } from '~/lib/nigeria-geo-options'
-import { Button } from '~/components/ui/button'
+import { useCallback, useMemo, useState } from 'react'
+import { Link, useLocation } from 'react-router'
+import { toast } from 'sonner'
+import { GoogleMapPolygonPicker } from '~/components/google-map-polygon-picker.client'
 import { Badge } from '~/components/ui/badge'
+import { Button } from '~/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '~/components/ui/dialog'
 import { Input } from '~/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
 import { Textarea } from '~/components/ui/textarea'
-import { cn } from '~/lib/utils'
 import { usePostFarms } from '~/lib/api/generated/farms/farms'
 import { useGetUsersProfile } from '~/lib/api/generated/users/users'
-import { useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
 import { isVerifiedKycStatus } from '~/lib/kyc'
-import { GoogleMapPolygonPicker } from '~/components/google-map-polygon-picker.client'
+import { sortedLgasForStateCode, sortedNigeriaStates } from '~/lib/nigeria-geo-options'
+import { cn } from '~/lib/utils'
 
 // ─── Area calculation utility ──────────────────────────────────────
 function calculatePolygonArea(points: [number, number][]): number {
@@ -350,7 +350,7 @@ export function CreateFarmModal({ isOpen, onClose }: CreateFarmModalProps) {
 
           {!isProfileLoading && !isKycVerified ? (
             <div className="px-6 pb-6">
-              <div className="rounded-xl border border-amber-200 bg-amber-50/60 p-5">
+              <div className="rounded-md border border-amber-200 bg-amber-50/60 p-5">
                 <p className="text-sm font-semibold text-amber-900">KYC verification required</p>
                 <p className="mt-1 text-xs text-amber-800">
                   You cannot create farm plots until your KYC status is verified.
@@ -692,7 +692,7 @@ export function CreateFarmModal({ isOpen, onClose }: CreateFarmModalProps) {
                     <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-gray-500">
                       Upload Document <span className="text-red-500">*</span>
                     </p>
-                    <label className="flex cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-gray-300 px-4 py-10 text-center hover:bg-gray-50">
+                    <label className="flex cursor-pointer flex-col items-center justify-center rounded-md border border-dashed border-gray-300 px-4 py-10 text-center hover:bg-gray-50">
                       <svg className="mb-3 size-8 text-brand" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path d="M12 16V4m0 0l-4 4m4-4l4 4" />
                         <path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2" />
@@ -719,7 +719,7 @@ export function CreateFarmModal({ isOpen, onClose }: CreateFarmModalProps) {
               {/* ─── Step 4: Deforestation Risk ───────────────── */}
               {step === 4 && (
                 <div className="space-y-4 px-6">
-                  <div className="overflow-hidden rounded-xl border border-gray-200">
+                  <div className="overflow-hidden rounded-md border border-gray-200">
                     <div className="relative min-h-[360px]">
                       <GoogleMapPolygonPicker
                         points={boundaryPoints}
@@ -746,7 +746,7 @@ export function CreateFarmModal({ isOpen, onClose }: CreateFarmModalProps) {
                     </div>
                   </div>
 
-                  <div className="rounded-xl border border-dashed border-gray-200 bg-white px-4 py-4 text-center">
+                  <div className="rounded-md border border-dashed border-gray-200 bg-white px-4 py-4 text-center">
                     <h3 className="text-xl font-bold text-gray-900">Decision Narrative</h3>
                     <p className="mt-2 text-base font-medium italic leading-relaxed text-gray-700">
                       "Geolocation verified and the farm is eligible. No forest conversion detected
@@ -755,25 +755,25 @@ export function CreateFarmModal({ isOpen, onClose }: CreateFarmModalProps) {
                   </div>
 
                   <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-                    <div className="rounded-lg border border-gray-200 bg-white p-3 text-center">
+                    <div className="rounded-md border border-gray-200 bg-white p-3 text-center">
                       <p className="text-xs font-medium text-gray-600">Alert Detected</p>
                       <p className="mt-1 text-xl font-bold text-[#d26e1f]">0</p>
                     </div>
-                    <div className="rounded-lg border border-gray-200 bg-white p-3 text-center">
+                    <div className="rounded-md border border-gray-200 bg-white p-3 text-center">
                       <p className="text-xs font-medium text-gray-600">Intensity</p>
                       <p className="mt-1 text-xl font-bold text-[#d26e1f]">0.00</p>
                     </div>
-                    <div className="rounded-lg border border-gray-200 bg-white p-3 text-center">
+                    <div className="rounded-md border border-gray-200 bg-white p-3 text-center">
                       <p className="text-xs font-medium text-gray-600">Confidence</p>
                       <p className="mt-1 text-xl font-bold text-[#d26e1f]">none</p>
                     </div>
-                    <div className="rounded-lg border border-gray-200 bg-white p-3 text-center">
+                    <div className="rounded-md border border-gray-200 bg-white p-3 text-center">
                       <p className="text-xs font-medium text-gray-600">Canopy loss</p>
                       <p className="mt-1 text-xl font-bold text-[#d26e1f]">0</p>
                     </div>
                   </div>
 
-                  <label className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50/70 p-4 text-left">
+                  <label className="flex items-start gap-3 rounded-md border border-amber-200 bg-amber-50/70 p-4 text-left">
                     <input
                       type="checkbox"
                       checked={deforestationRiskAcknowledged}

@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { Link } from 'react-router'
 
-import { AgrolinkingLogo } from '~/components/agrolinking-logo'
 import { toast } from 'sonner'
+import { AgrolinkingLogo } from '~/components/agrolinking-logo'
 import type { Route } from './+types/forgot-password'
 
-export function meta({}: Route.MetaArgs) {
+export function meta({ }: Route.MetaArgs) {
   return [
     { title: 'Forgot Password | Agtrail' },
     {
@@ -66,14 +66,14 @@ export default function ForgotPasswordPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="m@example.com"
-                className="h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+                className="h-11 w-full rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
               />
             </div>
 
             {/* Submit */}
             <button
               type="submit"
-              className="h-11 w-full rounded-lg bg-brand text-sm font-semibold text-white transition-colors hover:bg-brand-light focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2"
+              className="h-11 w-full rounded-md bg-brand text-sm font-semibold text-white transition-colors hover:bg-brand-light focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2"
             >
               Send Reset Link
             </button>

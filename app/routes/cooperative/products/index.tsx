@@ -1,41 +1,37 @@
+import { useQueries } from '@tanstack/react-query'
+import {
+  Activity,
+  ArrowRight,
+  Bookmark,
+  Calendar,
+  CheckCircle2,
+  ChevronDown,
+  Clock,
+  Layers,
+  LayoutDashboard,
+  Package,
+  Search
+} from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
 import { useMemo, useState } from 'react'
-import { useQueries } from '@tanstack/react-query'
 import { Link } from 'react-router'
+import { EmptyState } from '~/components/empty-state'
 import { PageHeader } from '~/components/page-header'
+import { SelectOperationModal } from '~/components/select-operation-modal'
+import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
-import { SelectOperationModal } from '~/components/select-operation-modal'
 import { ViewActivitiesModal } from '~/components/view-activities-modal'
-import { useGetCooperativesProducts } from '~/lib/api/generated/cooperatives/cooperatives'
-import { useGetCooperativesFarms } from '~/lib/api/generated/cooperatives/cooperatives'
+import { useGetCooperativesFarms, useGetCooperativesProducts } from '~/lib/api/generated/cooperatives/cooperatives'
 import { getGetFarmsIdCropCyclesQueryOptions } from '~/lib/api/generated/farms-crop-cycles/farms-crop-cycles'
 import type { CropCycle, FarmProduct } from '~/lib/api/generated/models'
 import { extractCropCyclesFromQueries, formatFarmLocation } from '~/lib/record-operation-dashboard'
-import { 
-  Plus, 
-  Search, 
-  Filter, 
-  LayoutDashboard, 
-  ArrowRight, 
-  ChevronDown,
-  Activity,
-  Package,
-  Calendar,
-  Layers,
-  CheckCircle2,
-  Clock,
-  MoreHorizontal,
-  Bookmark
-} from 'lucide-react'
-import { Badge } from '~/components/ui/badge'
-import { EmptyState } from '~/components/empty-state'
 import { cn } from '~/lib/utils'
 
 /* ─── Product Card ─── */
 function ProductGridCard({ product }: { product: FarmProduct }) {
   return (
-    <div className="group relative rounded-xl border border-gray-200 bg-white p-6 shadow-sm hover:border-brand/40 hover:shadow-lg transition-all overflow-hidden flex flex-col">
+    <div className="group relative rounded-md border border-gray-200 bg-white p-6 shadow-sm hover:border-brand/40 hover:shadow-lg transition-all overflow-hidden flex flex-col">
       <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none transition-opacity group-hover:opacity-20 scale-125">
         <Package className="size-20 text-brand" />
       </div>
@@ -214,11 +210,11 @@ export default function ProductsIndex() {
 
       {/* Segmented Tab Controls */}
       <div className="flex items-center justify-between border-b border-gray-100 mb-8">
-        <div className="inline-flex rounded-xl bg-gray-50/80 p-1 border border-gray-100 shadow-sm mb-4">
+        <div className="inline-flex rounded-md bg-gray-50/80 p-1 border border-gray-100 shadow-sm mb-4">
           <button
             onClick={() => setActiveTab('products')}
             className={cn(
-              "flex h-9 items-center justify-center rounded-lg px-6 text-[10px] font-bold uppercase tracking-widest transition-all",
+              "flex h-9 items-center justify-center rounded-md px-6 text-[10px] font-bold uppercase tracking-widest transition-all",
               activeTab === 'products' ? "bg-white text-gray-900 shadow-sm font-bold" : "text-gray-400 hover:text-gray-600"
             )}
           >
@@ -227,7 +223,7 @@ export default function ProductsIndex() {
           <button
             onClick={() => setActiveTab('ongoing')}
             className={cn(
-              "flex h-9 items-center justify-center rounded-lg px-6 text-[10px] font-bold uppercase tracking-widest transition-all",
+              "flex h-9 items-center justify-center rounded-md px-6 text-[10px] font-bold uppercase tracking-widest transition-all",
               activeTab === 'ongoing' ? "bg-white text-gray-900 shadow-sm font-bold" : "text-gray-400 hover:text-gray-600"
             )}
           >
@@ -239,7 +235,7 @@ export default function ProductsIndex() {
       {activeTab === 'products' ? (
         <>
           {/* Filter Toolbar: Products */}
-          <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm mb-6">
+          <div className="rounded-md border border-gray-200 bg-white p-6 shadow-sm mb-6">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
               <div className="relative w-full lg:max-w-md">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
@@ -251,7 +247,7 @@ export default function ProductsIndex() {
                     setSearchQuery(e.target.value)
                     setCurrentPage(1)
                   }}
-                  className="bg-white w-full h-10 pl-10 text-sm border-gray-100 rounded-lg focus:ring-1 focus:ring-brand focus:border-brand shadow-none"
+                  className="bg-white w-full h-10 pl-10 text-sm border-gray-100 rounded-md focus:ring-1 focus:ring-brand focus:border-brand shadow-none"
                 />
               </div>
 
@@ -259,7 +255,7 @@ export default function ProductsIndex() {
                 <div className="flex items-center gap-2">
                   <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest px-1">Farm Filter</span>
                   <div className="relative">
-                    <select className="h-10 rounded-lg border border-gray-200 pl-3 pr-8 text-[11px] font-bold uppercase tracking-wider text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand bg-gray-50/50 appearance-none min-w-[160px]">
+                    <select className="h-10 rounded-md border border-gray-200 pl-3 pr-8 text-[11px] font-bold uppercase tracking-wider text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand bg-gray-50/50 appearance-none min-w-[160px]">
                       <option>All Farms</option>
                       <option>IITA FCI4Afric</option>
                       <option>Baba Beji Hub</option>
@@ -292,7 +288,7 @@ export default function ProductsIndex() {
           </div>
 
           {/* Inventory Footer */}
-          <div className="mt-12 border-t border-gray-100 px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-gray-400 font-bold uppercase tracking-tight bg-gray-50/20 rounded-xl">
+          <div className="mt-12 border-t border-gray-100 px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-gray-400 font-bold uppercase tracking-tight bg-gray-50/20 rounded-md">
             <div className="flex items-center gap-2">
               <span className="text-gray-300">Total Products:</span>
               <span className="text-gray-900">{filteredProducts.length} Products</span>
@@ -322,7 +318,7 @@ export default function ProductsIndex() {
       ) : (
         <>
           {/* Filter Toolbar: Cycles */}
-          <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm mb-6">
+          <div className="rounded-md border border-gray-200 bg-white p-6 shadow-sm mb-6">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
               <div className="relative w-full lg:max-w-md">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
@@ -331,7 +327,7 @@ export default function ProductsIndex() {
                   placeholder="Filter by crop cycle, farm name, or owner..."
                   value={cycleSearchQuery}
                   onChange={(e) => setCycleSearchQuery(e.target.value)}
-                  className="bg-white w-full h-10 pl-10 text-sm border-gray-100 rounded-lg focus:ring-1 focus:ring-brand focus:border-brand shadow-none"
+                  className="bg-white w-full h-10 pl-10 text-sm border-gray-100 rounded-md focus:ring-1 focus:ring-brand focus:border-brand shadow-none"
                 />
               </div>
 
@@ -342,7 +338,7 @@ export default function ProductsIndex() {
                     <select
                       value={cycleStatusFilter}
                       onChange={(e) => setCycleStatusFilter(e.target.value)}
-                      className="h-10 rounded-lg border border-gray-200 pl-3 pr-8 text-[11px] font-bold uppercase tracking-wider text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand bg-gray-50/50 appearance-none min-w-[140px]"
+                      className="h-10 rounded-md border border-gray-200 pl-3 pr-8 text-[11px] font-bold uppercase tracking-wider text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand bg-gray-50/50 appearance-none min-w-[140px]"
                     >
                       <option value="all">All Statuses</option>
                       <option value="planned">Planned</option>
@@ -362,9 +358,9 @@ export default function ProductsIndex() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {isLoadingCycles ? (
               <>
-                <div className="h-64 rounded-xl border border-gray-200 bg-white animate-pulse" />
-                <div className="h-64 rounded-xl border border-gray-200 bg-white animate-pulse" />
-                <div className="h-64 rounded-xl border border-gray-200 bg-white animate-pulse" />
+                <div className="h-64 rounded-md border border-gray-200 bg-white animate-pulse" />
+                <div className="h-64 rounded-md border border-gray-200 bg-white animate-pulse" />
+                <div className="h-64 rounded-md border border-gray-200 bg-white animate-pulse" />
               </>
             ) : filteredCycles.length === 0 ? (
               <div className="col-span-3">
@@ -422,11 +418,11 @@ function CropCycleCard({
   onRecordActivity: () => void
 }) {
   return (
-    <div className="group relative rounded-xl border border-gray-200 bg-white p-6 shadow-sm hover:border-brand/40 hover:shadow-lg transition-all overflow-hidden flex flex-col">
+    <div className="group relative rounded-md border border-gray-200 bg-white p-6 shadow-sm hover:border-brand/40 hover:shadow-lg transition-all overflow-hidden flex flex-col">
       <div className="absolute top-0 right-0 p-3 opacity-10 pointer-events-none transition-opacity group-hover:opacity-20 scale-150">
         <Layers className="size-16 text-brand" />
       </div>
-      
+
       <div className="mb-6 flex items-start justify-between relative z-10">
         <div className="flex size-12 items-center justify-center rounded-2xl bg-brand/5 text-brand shadow-sm border border-brand/10">
           <CheckCircle2 className="size-6" />

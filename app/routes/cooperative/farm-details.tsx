@@ -1,36 +1,36 @@
-import { useState } from 'react'
-import { useParams, Link } from 'react-router'
-import { PageHeader } from '~/components/page-header'
-import { EmptyState } from '~/components/empty-state'
-import { StartCropCycleModal } from '~/components/start-crop-cycle-modal'
-import { SelectOperationModal } from '~/components/select-operation-modal'
-import { useGetFarmsIdCropCycles } from '~/lib/api/generated/farms-crop-cycles/farms-crop-cycles'
-import { useGetFarmsId } from '~/lib/api/generated/farms/farms'
-import { useAuth } from '~/context/auth-context'
-import { farmCropCycles, farms } from '~/lib/mock-data/farmer'
 import {
+  Activity,
+  ArrowRight,
+  Calendar,
+  CheckCircle2,
+  ChevronDown,
+  Clock,
+  Layers,
+  LayoutDashboard,
+  MapPin,
+  Maximize,
+  Package,
   Plus,
   Search,
-  MapPin,
   User,
-  Activity,
-  LayoutDashboard,
-  Maximize,
-  ArrowRight,
-  ChevronDown,
-  Calendar,
-  Layers,
-  CheckCircle2,
-  Clock,
-  Package,
 } from 'lucide-react'
-import { Button } from '~/components/ui/button'
+import { useState } from 'react'
+import { useParams } from 'react-router'
+import { EmptyState } from '~/components/empty-state'
+import { PageHeader } from '~/components/page-header'
+import { SelectOperationModal } from '~/components/select-operation-modal'
+import { StartCropCycleModal } from '~/components/start-crop-cycle-modal'
 import { Badge } from '~/components/ui/badge'
+import { Button } from '~/components/ui/button'
 import { Skeleton } from '~/components/ui/skeleton'
+import { useAuth } from '~/context/auth-context'
+import { useGetFarmsIdCropCycles } from '~/lib/api/generated/farms-crop-cycles/farms-crop-cycles'
+import { useGetFarmsId } from '~/lib/api/generated/farms/farms'
+import { farms } from '~/lib/mock-data/farmer'
 import { cn } from '~/lib/utils'
 import type { Route } from './+types/farm-details'
 
-export function meta({}: Route.MetaArgs) {
+export function meta({ }: Route.MetaArgs) {
   return [
     { title: 'Farm Detail | Agrolinking Cooperative' },
     {
@@ -161,7 +161,7 @@ export default function CooperativeFarmDetails() {
       </div>
 
       {/* Asset Identity Card */}
-      <div className='rounded-xl border border-gray-200 bg-white p-6 shadow-sm'>
+      <div className='rounded-md border border-gray-200 bg-white p-6 shadow-sm'>
         {isLoading ? (
           <div className='flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6'>
             <div className='flex items-center gap-5'>
@@ -232,7 +232,7 @@ export default function CooperativeFarmDetails() {
         </div>
 
         {/* Global Action Toolbar */}
-        <div className='rounded-xl border border-gray-200 bg-white p-6 shadow-sm'>
+        <div className='rounded-md border border-gray-200 bg-white p-6 shadow-sm'>
           <div className='flex flex-col lg:flex-row lg:items-center justify-between gap-6'>
             <div className='relative w-full lg:max-w-md'>
               <Search className='absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400' />
@@ -244,7 +244,7 @@ export default function CooperativeFarmDetails() {
                   setSearchQuery(e.target.value)
                   setCurrentPage(1)
                 }}
-                className='w-full rounded-lg border border-gray-200 pl-10 pr-4 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white transition-all shadow-sm'
+                className='w-full rounded-md border border-gray-200 pl-10 pr-4 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white transition-all shadow-sm'
               />
             </div>
 
@@ -260,7 +260,7 @@ export default function CooperativeFarmDetails() {
                       setSortOption(e.target.value)
                       setCurrentPage(1)
                     }}
-                    className='h-10 rounded-lg border border-gray-200 pl-3 pr-8 text-[11px] font-bold uppercase tracking-wider text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand bg-gray-50/50 appearance-none min-w-[140px]'
+                    className='h-10 rounded-md border border-gray-200 pl-3 pr-8 text-[11px] font-bold uppercase tracking-wider text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand bg-gray-50/50 appearance-none min-w-[140px]'
                   >
                     <option value='name'>Crop A-Z</option>
                     <option value='date'>Date</option>
@@ -289,7 +289,7 @@ export default function CooperativeFarmDetails() {
             Array.from({ length: 6 }).map((_, i) => (
               <div
                 key={`cycle-skeleton-${i}`}
-                className='rounded-xl border border-gray-200 bg-white p-6 shadow-sm'
+                className='rounded-md border border-gray-200 bg-white p-6 shadow-sm'
               >
                 <div className='mb-6 flex items-start justify-between'>
                   <Skeleton className='size-12 rounded-2xl' />
@@ -310,7 +310,7 @@ export default function CooperativeFarmDetails() {
           {filteredCycles.map((cycle) => (
             <div
               key={cycle.id}
-              className='relative rounded-xl border border-gray-200 bg-white p-6 shadow-sm hover:border-brand/40 hover:shadow-lg transition-all group overflow-hidden'
+              className='relative rounded-md border border-gray-200 bg-white p-6 shadow-sm hover:border-brand/40 hover:shadow-lg transition-all group overflow-hidden'
             >
               <div className='absolute top-0 right-0 p-3 opacity-10 pointer-events-none transition-opacity group-hover:opacity-20 scale-150'>
                 <Layers className='size-16 text-brand' />
@@ -386,7 +386,7 @@ export default function CooperativeFarmDetails() {
         </div>
 
         {/* Standardized Operational Footer */}
-        <div className='mt-12 border-t border-gray-100 px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-gray-400 font-bold uppercase tracking-tight bg-gray-50/20 rounded-xl'>
+        <div className='mt-12 border-t border-gray-100 px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-gray-400 font-bold uppercase tracking-tight bg-gray-50/20 rounded-md'>
           <div className='flex items-center gap-2'>
             <span className='text-gray-300'>Total:</span>
             <span className='text-gray-900'>

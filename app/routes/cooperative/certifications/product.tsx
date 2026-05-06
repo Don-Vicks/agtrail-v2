@@ -1,14 +1,31 @@
+import { useQueryClient } from '@tanstack/react-query'
+import {
+  ArrowRight,
+  Building2,
+  Calendar,
+  CheckCircle2,
+  ChevronDown,
+  FileText,
+  Filter,
+  LayoutDashboard,
+  Package,
+  Plus,
+  QrCode,
+  Search,
+  ShieldCheck,
+  UploadCloud,
+  X,
+} from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
 import { useCallback, useMemo, useState } from 'react'
-import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { PageHeader } from '~/components/page-header'
 import { EmptyState } from '~/components/empty-state'
-import { CERTIFICATION_TYPES } from '~/lib/data/certification-types'
-import { DatePicker } from '~/components/ui/date-picker'
-import { Button } from '~/components/ui/button'
-import { Input } from '~/components/ui/input'
+import { PageHeader } from '~/components/page-header'
 import { Badge } from '~/components/ui/badge'
+import { Button } from '~/components/ui/button'
+import { DatePicker } from '~/components/ui/date-picker'
+import { Input } from '~/components/ui/input'
+import { resolveDocumentUrlForApi } from '~/lib/api/custom-fetch'
 import {
   getGetCertificationsQueryKey,
   useGetCertifications,
@@ -23,25 +40,8 @@ import {
   useGetFarmersProducts,
 } from '~/lib/api/generated/farm-products/farm-products'
 import type { FarmProduct, PostCertificationsUploadBody } from '~/lib/api/generated/models'
-import { resolveDocumentUrlForApi } from '~/lib/api/custom-fetch'
 import { usePostUpload } from '~/lib/api/generated/upload/upload'
-import {
-  Search,
-  Filter,
-  Plus,
-  Package,
-  Calendar,
-  ShieldCheck,
-  X,
-  CheckCircle2,
-  LayoutDashboard,
-  Building2,
-  FileText,
-  ChevronDown,
-  ArrowRight,
-  UploadCloud,
-  QrCode,
-} from 'lucide-react'
+import { CERTIFICATION_TYPES } from '~/lib/data/certification-types'
 import { cn } from '~/lib/utils'
 import type { Route } from './+types/product'
 
@@ -73,7 +73,7 @@ export default function ProductCertificationPage() {
   const { data: farmsResp } = useGetCooperativesFarms()
   const farmsMap = useMemo(() => {
     const m = new Map<string, string>()
-    ;(farmsResp?.data?.data ?? []).forEach((f) => m.set(f.id, f.name || 'Unknown farm'))
+      ; (farmsResp?.data?.data ?? []).forEach((f) => m.set(f.id, f.name || 'Unknown farm'))
     return m
   }, [farmsResp])
 
@@ -261,7 +261,7 @@ export default function ProductCertificationPage() {
         </div>
       </div>
 
-      <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="rounded-md border border-gray-100 bg-white p-4 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="relative w-full sm:max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
           <input
@@ -269,7 +269,7 @@ export default function ProductCertificationPage() {
             placeholder="Search by batch, product, or farm…"
             value={searchQuery}
             onChange={(e) => updateFilters(setSearchQuery, e.target.value)}
-            className="w-full h-11 rounded-xl border border-gray-100 bg-gray-50/50 pl-10 pr-4 py-2 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white transition-all shadow-none"
+            className="w-full h-11 rounded-md border border-gray-100 bg-gray-50/50 pl-10 pr-4 py-2 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white transition-all shadow-none"
           />
         </div>
 
@@ -278,7 +278,7 @@ export default function ProductCertificationPage() {
             <select
               value={farmFilter}
               onChange={(e) => updateFilters(setFarmFilter, e.target.value)}
-              className="h-11 w-full sm:w-48 rounded-xl border border-gray-100 bg-gray-50/50 pl-4 pr-10 text-[11px] font-bold uppercase tracking-widest text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand appearance-none"
+              className="h-11 w-full sm:w-48 rounded-md border border-gray-100 bg-gray-50/50 pl-4 pr-10 text-[11px] font-bold uppercase tracking-widest text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand appearance-none"
             >
               <option value="">All farms</option>
               {farmNames.map((f) => (
@@ -294,7 +294,7 @@ export default function ProductCertificationPage() {
             <select
               value={productFilter}
               onChange={(e) => updateFilters(setProductFilter, e.target.value)}
-              className="h-11 w-full sm:w-48 rounded-xl border border-gray-100 bg-gray-50/50 pl-4 pr-10 text-[11px] font-bold uppercase tracking-widest text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand appearance-none"
+              className="h-11 w-full sm:w-48 rounded-md border border-gray-100 bg-gray-50/50 pl-4 pr-10 text-[11px] font-bold uppercase tracking-widest text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand appearance-none"
             >
               <option value="">All products</option>
               {productNames.map((p) => (
@@ -465,7 +465,7 @@ export default function ProductCertificationPage() {
                   </p>
                 </div>
               </div>
-              <Button variant="ghost" size="icon" onClick={closeModal} className="rounded-xl text-gray-400 hover:bg-gray-50">
+              <Button variant="ghost" size="icon" onClick={closeModal} className="rounded-md text-gray-400 hover:bg-gray-50">
                 <X className="size-5" />
               </Button>
             </div>
@@ -480,7 +480,7 @@ export default function ProductCertificationPage() {
                     <select
                       value={certType}
                       onChange={(e) => setCertType(e.target.value)}
-                      className="h-11 w-full flex items-center justify-between rounded-xl border border-gray-100 bg-gray-50/50 px-4 text-sm font-bold uppercase tracking-wider text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand appearance-none"
+                      className="h-11 w-full flex items-center justify-between rounded-md border border-gray-100 bg-gray-50/50 px-4 text-sm font-bold uppercase tracking-wider text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand appearance-none"
                     >
                       <option value="">Select type</option>
                       {CERTIFICATION_TYPES.map((t) => (
@@ -502,7 +502,7 @@ export default function ProductCertificationPage() {
                     placeholder="e.g., NAFDAC / SON"
                     value={certOrg}
                     onChange={(e) => setCertOrg(e.target.value)}
-                    className="h-11 w-full rounded-xl border border-gray-100 bg-gray-50/50 px-4 text-sm font-bold uppercase text-gray-700 focus:border-brand shadow-none"
+                    className="h-11 w-full rounded-md border border-gray-100 bg-gray-50/50 px-4 text-sm font-bold uppercase text-gray-700 focus:border-brand shadow-none"
                   />
                 </div>
               </div>
@@ -512,14 +512,14 @@ export default function ProductCertificationPage() {
                   <label className="text-[11px] font-bold uppercase tracking-widest text-gray-400 flex items-center gap-2">
                     <Calendar className="size-3 text-brand" /> Issuance date
                   </label>
-                  <DatePicker value={dateIssued} onChange={setDateIssued} className="h-11 rounded-xl border-gray-100 bg-gray-50/50 shadow-none border" />
+                  <DatePicker value={dateIssued} onChange={setDateIssued} className="h-11 rounded-md border-gray-100 bg-gray-50/50 shadow-none border" />
                 </div>
 
                 <div className="space-y-2">
                   <label className="text-[11px] font-bold uppercase tracking-widest text-gray-400 flex items-center gap-2">
                     <QrCode className="size-3 text-brand" /> Expiry date
                   </label>
-                  <DatePicker value={dateExpiry} onChange={setDateExpiry} className="h-11 rounded-xl border-gray-100 bg-gray-50/50 shadow-none border" />
+                  <DatePicker value={dateExpiry} onChange={setDateExpiry} className="h-11 rounded-md border-gray-100 bg-gray-50/50 shadow-none border" />
                 </div>
               </div>
 
@@ -543,7 +543,7 @@ export default function ProductCertificationPage() {
                 >
                   {uploadedFile ? (
                     <div className="flex flex-col items-center gap-3">
-                      <div className="size-12 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600">
+                      <div className="size-12 rounded-md bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600">
                         <FileText className="size-6" />
                       </div>
                       <div className="text-center">
@@ -562,7 +562,7 @@ export default function ProductCertificationPage() {
                     </div>
                   ) : (
                     <label className="flex w-full cursor-pointer flex-col items-center gap-3">
-                      <div className="size-12 rounded-xl bg-white border border-gray-100 shadow-sm flex items-center justify-center text-brand">
+                      <div className="size-12 rounded-md bg-white border border-gray-100 shadow-sm flex items-center justify-center text-brand">
                         <UploadCloud className="size-6" />
                       </div>
                       <div className="text-center">

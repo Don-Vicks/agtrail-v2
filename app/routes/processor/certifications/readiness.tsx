@@ -1,6 +1,6 @@
-import { PageHeader } from '~/components/page-header'
-import { EmptyState } from '~/components/empty-state'
 import { ShieldCheck } from 'lucide-react'
+import { EmptyState } from '~/components/empty-state'
+import { PageHeader } from '~/components/page-header'
 import { useGetCertificationsReadiness } from '~/lib/api/generated/certifications/certifications'
 
 function StatCard({
@@ -17,13 +17,13 @@ function StatCard({
   iconColor: string
 }) {
   return (
-    <div className='flex items-center justify-between rounded-xl border border-gray-200 bg-white p-5 shadow-sm'>
+    <div className='flex items-center justify-between rounded-md border border-gray-200 bg-white p-5 shadow-sm'>
       <div>
         <h3 className='text-xs font-semibold text-gray-500 mb-1'>{label}</h3>
         <p className='text-3xl font-bold text-gray-900'>{value}</p>
       </div>
       <div
-        className={`flex size-10 items-center justify-center rounded-lg ${iconBg} ${iconColor}`}
+        className={`flex size-10 items-center justify-center rounded-md ${iconBg} ${iconColor}`}
       >
         {icon}
       </div>
@@ -178,7 +178,7 @@ export default function CertificationReadiness() {
         />
       </div>
 
-      <div className='rounded-xl border border-gray-200 bg-white shadow-sm'>
+      <div className='rounded-md border border-gray-200 bg-white shadow-sm'>
         <EmptyState
           className='py-20'
           icon={<ShieldCheck className='size-10 text-[#cfdfd6]' />}

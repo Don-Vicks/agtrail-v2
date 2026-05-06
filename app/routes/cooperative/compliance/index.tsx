@@ -1,25 +1,19 @@
-import { useState } from 'react'
-import { PageHeader } from '~/components/page-header'
-import { EmptyState } from '~/components/empty-state'
-import { StatCard } from '~/components/stat-card'
-import { Button } from '~/components/ui/button'
-import { Badge } from '~/components/ui/badge'
-import { 
-  ShieldCheck, 
-  AlertCircle, 
-  TrendingUp, 
-  CheckCircle, 
-  Search, 
-  ChevronDown, 
-  FileText, 
-  Download,
-  LayoutDashboard,
-  ShieldAlert,
+import {
   Activity,
-  Filter,
-  ArrowRight
+  CheckCircle,
+  ChevronDown,
+  Download,
+  FileText,
+  Search,
+  ShieldAlert,
+  ShieldCheck
 } from 'lucide-react'
-import { cn } from '~/lib/utils'
+import { useState } from 'react'
+import { EmptyState } from '~/components/empty-state'
+import { PageHeader } from '~/components/page-header'
+import { StatCard } from '~/components/stat-card'
+import { Badge } from '~/components/ui/badge'
+import { Button } from '~/components/ui/button'
 import type { Route } from './+types/index'
 
 export function meta({ }: Route.MetaArgs) {
@@ -53,11 +47,7 @@ export default function ComplianceAnalysisPage() {
     <div className="space-y-6 pb-10 px-1">
       <PageHeader
         items={[
-          {
-            label: 'Dashboard',
-            href: '/cooperative',
-            icon: <LayoutDashboard className="size-4 text-gray-400" />,
-          },
+          { label: 'Dashboard', href: '/cooperative' },
           { label: 'Compliance' },
           { label: 'Analysis' },
         ]}
@@ -110,11 +100,11 @@ export default function ComplianceAnalysisPage() {
       </div>
 
       {/* Main Monitoring Section */}
-      <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden flex flex-col">
+      <div className="rounded-md border border-gray-200 bg-white shadow-sm overflow-hidden flex flex-col">
         {/* Filters */}
         <div className="p-6 border-b border-gray-50 flex flex-col lg:flex-row lg:items-center justify-between bg-white text-left gap-6">
           <div className="flex items-center gap-4">
-            <div className="size-11 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-400">
+            <div className="size-11 rounded-md bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-400">
               <ShieldCheck className="size-5" />
             </div>
             <div>
@@ -122,7 +112,7 @@ export default function ComplianceAnalysisPage() {
               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">List of all compliance checks</p>
             </div>
           </div>
-          
+
           <div className="flex flex-col sm:flex-row items-center gap-4">
             <div className="relative w-full sm:w-80">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
@@ -131,14 +121,14 @@ export default function ComplianceAnalysisPage() {
                 placeholder="Search products, batches..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-11 rounded-xl border border-gray-100 bg-gray-50/50 pl-10 pr-4 py-2 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white transition-all shadow-none"
+                className="w-full h-11 rounded-md border border-gray-100 bg-gray-50/50 pl-10 pr-4 py-2 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white transition-all shadow-none"
               />
             </div>
             <div className="relative">
               <select
                 value={riskFilter}
                 onChange={(e) => setRiskFilter(e.target.value)}
-                className="h-11 rounded-xl border border-gray-100 bg-gray-50/50 pl-4 pr-10 text-[11px] font-bold uppercase tracking-widest text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand appearance-none min-w-[160px]"
+                className="h-11 rounded-md border border-gray-100 bg-gray-50/50 pl-4 pr-10 text-[11px] font-bold uppercase tracking-widest text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand appearance-none min-w-[160px]"
               >
                 <option value="">All Risk Levels</option>
                 <option value="High">High Risk</option>
@@ -210,7 +200,7 @@ export default function ComplianceAnalysisPage() {
               ))}
             </tbody>
           </table>
-          
+
           {COMPLIANCE_DATA.length === 0 && (
             <EmptyState
               className="py-16"

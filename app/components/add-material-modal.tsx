@@ -1,17 +1,21 @@
+import { zodResolver } from '@hookform/resolvers/zod'
+import { Camera, Upload } from 'lucide-react'
 import { useRef, useState, type ChangeEvent, type DragEvent } from 'react'
+import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
+import { z } from 'zod/v4'
+import { Button } from '~/components/ui/button'
+import { DatePicker } from '~/components/ui/date-picker'
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
   DialogDescription,
   DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from '~/components/ui/dialog'
-import { Button } from '~/components/ui/button'
-import { Label } from '~/components/ui/label'
 import { Input } from '~/components/ui/input'
-import { Textarea } from '~/components/ui/textarea'
-import { DatePicker } from '~/components/ui/date-picker'
+import { Label } from '~/components/ui/label'
 import {
   Select,
   SelectContent,
@@ -19,11 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '~/components/ui/select'
-import { toast } from 'sonner'
-import { Camera, Upload } from 'lucide-react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod/v4'
+import { Textarea } from '~/components/ui/textarea'
 
 export interface NewMaterialData {
   materialName: string
@@ -131,7 +131,7 @@ export function AddMaterialModal({ isOpen, onClose, onAdd }: AddMaterialModalPro
   const fileInputRef = useRef<HTMLInputElement>(null)
   const sectionTitleClass = 'text-base font-bold text-gray-900 uppercase tracking-tight'
   const labelClass = 'text-[10px] font-bold text-gray-400 uppercase tracking-widest'
-  const inputClass = 'h-11 rounded-lg border border-gray-200 text-sm focus-visible:ring-1 focus-visible:ring-brand focus-visible:border-brand'
+  const inputClass = 'h-11 rounded-md border border-gray-200 text-sm focus-visible:ring-1 focus-visible:ring-brand focus-visible:border-brand'
   const {
     register,
     handleSubmit,
@@ -330,7 +330,7 @@ export function AddMaterialModal({ isOpen, onClose, onAdd }: AddMaterialModalPro
                   autoComplete="street-address"
                   placeholder="Full supplier address..."
                   {...register('supplierAddress')}
-                  className="min-h-20 resize-y rounded-lg border border-gray-200 text-sm focus-visible:ring-1 focus-visible:ring-brand focus-visible:border-brand"
+                  className="min-h-20 resize-y rounded-md border border-gray-200 text-sm focus-visible:ring-1 focus-visible:ring-brand focus-visible:border-brand"
                 />
               </div>
             </div>
@@ -421,7 +421,7 @@ export function AddMaterialModal({ isOpen, onClose, onAdd }: AddMaterialModalPro
               <Input
                 id="certifications"
                 placeholder="e.g. Organic, Fair Trade, Non-GMO (comma separated)"
-                  {...register('certifications')}
+                {...register('certifications')}
                 className={inputClass}
               />
             </div>
@@ -430,8 +430,8 @@ export function AddMaterialModal({ isOpen, onClose, onAdd }: AddMaterialModalPro
               <Textarea
                 id="qualityNotes"
                 placeholder="Any quality observations, test results, or special handling requirements..."
-                  {...register('qualityNotes')}
-                className="min-h-24 resize-y rounded-lg border border-gray-200 text-sm focus-visible:ring-1 focus-visible:ring-brand focus-visible:border-brand"
+                {...register('qualityNotes')}
+                className="min-h-24 resize-y rounded-md border border-gray-200 text-sm focus-visible:ring-1 focus-visible:ring-brand focus-visible:border-brand"
               />
             </div>
           </fieldset>
@@ -442,11 +442,10 @@ export function AddMaterialModal({ isOpen, onClose, onAdd }: AddMaterialModalPro
               <Label htmlFor="materialPhoto" className={labelClass}>Material Receipt or Photo</Label>
               <label
                 htmlFor="materialPhoto"
-                className={`block cursor-pointer rounded-xl border-2 border-dashed p-6 transition-all ${
-                  dragOver
-                    ? 'border-brand bg-brand/5'
-                    : 'border-gray-200 bg-gray-50/50 hover:border-gray-300 hover:bg-white'
-                } ${errors.materialPhoto ? 'border-red-300 bg-red-50/40' : ''}`}
+                className={`block cursor-pointer rounded-md border-2 border-dashed p-6 transition-all ${dragOver
+                  ? 'border-brand bg-brand/5'
+                  : 'border-gray-200 bg-gray-50/50 hover:border-gray-300 hover:bg-white'
+                  } ${errors.materialPhoto ? 'border-red-300 bg-red-50/40' : ''}`}
                 onDragOver={(e) => {
                   e.preventDefault()
                   setDragOver(true)

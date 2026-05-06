@@ -11,10 +11,10 @@ interface ProductGridCardProps {
 
 export function ProductGridCard({ product, farmName, basePath = '/farmer/products' }: ProductGridCardProps) {
   return (
-    <div className="rounded-xl border border-gray-200 bg-white shadow-sm hover:shadow-md transition-shadow relative">
+    <div className="rounded-md border border-gray-200 bg-white shadow-sm hover:shadow-md transition-shadow relative">
       {/* Top row: QR + Info */}
       <div className="flex gap-4 p-4 sm:p-5 pb-3">
-        <div className="flex-shrink-0 w-[80px] h-[80px] sm:w-[100px] sm:h-[100px] rounded-lg border border-gray-200 bg-white p-1 overflow-hidden">
+        <div className="flex-shrink-0 w-[80px] h-[80px] sm:w-[100px] sm:h-[100px] rounded-md border border-gray-200 bg-white p-1 overflow-hidden">
           <QRCodeSVG value={product.batchNumber || product.id} style={{ width: '100%', height: '100%' }} />
         </div>
         <div className="flex-1 min-w-0 pt-0.5">
@@ -39,15 +39,14 @@ export function ProductGridCard({ product, farmName, basePath = '/farmer/product
 
       {/* Status + quantity row */}
       <div className="px-4 sm:px-5 flex items-center justify-between">
-        <span className={`rounded-full border px-2 py-0.5 text-[11px] font-medium ${
-          product.status === 'available'
-            ? 'border-green-200 bg-green-50 text-green-700'
-            : product.status === 'sold'
-              ? 'border-blue-200 bg-blue-50 text-blue-700'
-              : product.status === 'reserved'
-                ? 'border-yellow-200 bg-yellow-50 text-yellow-700'
-                : 'border-gray-200 bg-gray-50 text-gray-600'
-        }`}>
+        <span className={`rounded-full border px-2 py-0.5 text-[11px] font-medium ${product.status === 'available'
+          ? 'border-green-200 bg-green-50 text-green-700'
+          : product.status === 'sold'
+            ? 'border-blue-200 bg-blue-50 text-blue-700'
+            : product.status === 'reserved'
+              ? 'border-yellow-200 bg-yellow-50 text-yellow-700'
+              : 'border-gray-200 bg-gray-50 text-gray-600'
+          }`}>
           {product.status || 'Active'}
         </span>
         <span className="text-xs text-gray-500">
@@ -58,7 +57,7 @@ export function ProductGridCard({ product, farmName, basePath = '/farmer/product
       {/* Full-width button at bottom */}
       <div className="px-4 sm:px-5 pb-4 sm:pb-5 pt-3">
         <Link to={`${basePath}/${product.id}`} className="block">
-          <Button className="w-full bg-[#2E5A27] hover:bg-[#1e3d1a] text-white border-none py-2.5 h-auto text-[13px] font-semibold rounded-lg shadow-none">
+          <Button className="w-full bg-[#2E5A27] hover:bg-[#1e3d1a] text-white border-none py-2.5 h-auto text-[13px] font-semibold rounded-md shadow-none">
             View Product Story
           </Button>
         </Link>

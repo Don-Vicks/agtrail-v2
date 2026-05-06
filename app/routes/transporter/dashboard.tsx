@@ -1,7 +1,6 @@
-import { useState } from 'react'
-import { Badge } from '~/components/ui/badge'
+import { CheckCircle2, Eye, MapPin, Truck } from 'lucide-react'
 import { Button } from '~/components/ui/button'
-import { Eye, CheckCircle2, MapPin, Truck, ChevronRight } from 'lucide-react'
+import { PageHeader } from '~/components/page-header'
 import type { Route } from './+types/dashboard'
 
 export function meta({ }: Route.MetaArgs) {
@@ -101,26 +100,39 @@ const SHIPMENTS = [
 
 export default function TransporterDashboard() {
   return (
-    <div className='space-y-8 pb-10'>
-      {/* Header & Stats */}
-      <div className='flex flex-col lg:flex-row lg:items-center justify-between gap-6'>
+    <div className="space-y-8 pb-10">
+      <PageHeader
+        items={[
+          {
+            label: 'Transporter',
+            href: '/transporter',
+            icon: (
+              <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <rect x="3" y="3" width="7" height="7" rx="1" />
+                <rect x="14" y="3" width="7" height="7" rx="1" />
+                <rect x="3" y="14" width="7" height="7" rx="1" />
+                <rect x="14" y="14" width="7" height="7" rx="1" />
+              </svg>
+            ),
+          },
+          { label: 'Dashboard' },
+        ]}
+      />
+
+      {/* Header & Stats moved below PageHeader */}
+      <div className="px-1 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         <div>
-          <h1 className='text-2xl font-bold text-brand-dark tracking-tight'>
-            Operations Control
-          </h1>
-          <p className='text-sm text-gray-500 mt-1 max-w-md'>
-            Institutional-grade logistics monitoring for the Sitsillia fleet.
-            Ensuring optimal throughput across all supply nodes.
-          </p>
+          <h1 className="text-2xl font-bold text-gray-900 uppercase tracking-tight">Operations Control</h1>
+          <p className="text-sm text-gray-500 mt-1 max-w-md">Institutional-grade logistics monitoring for the fleet.</p>
         </div>
-        <div className='flex items-center gap-4'>
-          <div className='rounded-xl border border-gray-100 bg-white p-5 shadow-sm min-w-[160px]'>
-            <p className='text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2'>Active Fleet</p>
-            <p className='text-3xl font-bold text-gray-900'>156</p>
+        <div className="flex items-center gap-4">
+          <div className="rounded-md border border-gray-100 bg-white p-5 shadow-sm min-w-[160px]">
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Active Fleet</p>
+            <p className="text-2xl font-bold text-gray-900 tracking-tight">156</p>
           </div>
-          <div className='rounded-xl border border-gray-100 bg-white p-5 shadow-sm min-w-[160px]'>
-            <p className='text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2'>Pending</p>
-            <p className='text-3xl font-bold text-gray-900'>24</p>
+          <div className="rounded-md border border-gray-100 bg-white p-5 shadow-sm min-w-[160px]">
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Pending</p>
+            <p className="text-2xl font-bold text-gray-900 tracking-tight">24</p>
           </div>
         </div>
       </div>
@@ -129,7 +141,7 @@ export default function TransporterDashboard() {
       <section className='space-y-4'>
         <div className='flex items-center justify-between'>
           <div className='flex items-center gap-2'>
-            <div className='size-8 rounded-lg bg-brand/10 flex items-center justify-center text-brand'>
+            <div className='size-8 rounded-md bg-brand/10 flex items-center justify-center text-brand'>
               <Truck className='size-4' />
             </div>
             <h2 className='text-lg font-bold text-gray-900'>Available Batches</h2>
@@ -139,7 +151,7 @@ export default function TransporterDashboard() {
           </Button>
         </div>
 
-        <div className='rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden'>
+        <div className='rounded-md border border-gray-100 bg-white shadow-sm overflow-hidden'>
           <table className='w-full text-left text-sm'>
             <thead>
               <tr className='bg-gray-50/50 border-b border-gray-100'>
@@ -161,7 +173,7 @@ export default function TransporterDashboard() {
                   <td className='px-6 py-5 text-gray-600 font-medium'>{batch.weight}</td>
                   <td className='px-6 py-5'>
                     <div className='flex items-center justify-end gap-3'>
-                      <Button className='bg-brand-dark hover:bg-black text-white font-bold text-xs px-6 h-9 rounded-lg'>
+                      <Button className='bg-brand-dark hover:bg-black text-white font-bold text-xs px-6 h-9 rounded-md'>
                         Accept
                       </Button>
                       <button className='text-gray-400 hover:text-brand transition-colors'>
@@ -206,7 +218,7 @@ export default function TransporterDashboard() {
       {/* In-Transit Shipments */}
       <section className='space-y-6'>
         <div className='flex items-center gap-2'>
-          <div className='size-8 rounded-lg bg-brand/10 flex items-center justify-center text-brand'>
+          <div className='size-8 rounded-md bg-brand/10 flex items-center justify-center text-brand'>
             <MapPin className='size-4' />
           </div>
           <h2 className='text-lg font-bold text-gray-900'>In-Transit Shipments</h2>
@@ -216,7 +228,7 @@ export default function TransporterDashboard() {
           {SHIPMENTS.map((shipment) => (
             <div key={shipment.id} className='rounded-2xl border border-gray-100 bg-white p-6 shadow-sm space-y-5'>
               <div className='flex items-center gap-3'>
-                <div className='size-12 rounded-xl bg-gray-50 flex items-center justify-center overflow-hidden shrink-0 border border-gray-100'>
+                <div className='size-12 rounded-md bg-gray-50 flex items-center justify-center overflow-hidden shrink-0 border border-gray-100'>
                   <img src={shipment.image} alt={shipment.driver} className='size-10 object-contain opacity-80' />
                 </div>
                 <div className='min-w-0'>
