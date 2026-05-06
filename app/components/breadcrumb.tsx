@@ -25,16 +25,9 @@ export function Breadcrumb({ items }: BreadcrumbProps) {
             </svg>
           )}
 
-          {(item.icon || (index === 0 && (item.label === 'Dashboard' || item.label === 'Transporter' || item.label === 'Aggregator' || item.label === 'Processor' || item.label === 'Farmer' || item.label === 'Cooperative'))) && (
+          {item.icon && (
             <div className="flex items-center text-gray-400">
-              {item.icon || (
-                <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <rect x="3" y="3" width="7" height="7" rx="1" />
-                  <rect x="14" y="3" width="7" height="7" rx="1" />
-                  <rect x="3" y="14" width="7" height="7" rx="1" />
-                  <rect x="14" y="14" width="7" height="7" rx="1" />
-                </svg>
-              )}
+              {item.icon}
             </div>
           )}
 

@@ -3,6 +3,7 @@ import { Breadcrumb, type BreadcrumbItem } from '~/components/breadcrumb'
 import { useSidebar } from '~/components/layout/sidebar-context'
 import { useOffline } from '~/hooks/use-offline'
 import { PendingActionsDialog } from '~/components/offline/pending-actions-dialog'
+import { cn } from '~/lib/utils'
 
 interface PageHeaderProps {
   items: BreadcrumbItem[]
@@ -48,6 +49,7 @@ export function PageHeader({ items, action }: PageHeaderProps) {
     <>
       <div className="sticky top-0 z-20 w-auto -mt-4 -mx-4 mb-6 md:-mt-6 md:-mx-6 lg:-mt-8 lg:-mx-8 flex h-16 items-center justify-between border-b border-gray-200 bg-white px-4 md:px-6 lg:px-8 shadow-sm">
         <div className="flex items-center gap-1">
+          {/* Mobile Toggle */}
           <button
             onClick={() => sidebarCtx?.toggleMobile()}
             className="lg:hidden rounded-md p-2 text-gray-500 transition-colors hover:bg-gray-100 flex items-center justify-center"
@@ -57,6 +59,25 @@ export function PageHeader({ items, action }: PageHeaderProps) {
               <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
+
+          {/* Desktop Toggle */}
+          <button
+            onClick={() => sidebarCtx?.toggleDesktop()}
+            className="hidden lg:flex rounded-md p-2 text-gray-500 transition-colors hover:bg-gray-100 items-center justify-center mr-1"
+            aria-label="Toggle Sidebar"
+          >
+            <svg
+              className="size-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+              <line x1="9" y1="3" x2="9" y2="21" />
+            </svg>
+          </button>
+
           <Breadcrumb items={items} />
         </div>
         
