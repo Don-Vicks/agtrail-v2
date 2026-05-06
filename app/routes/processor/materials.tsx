@@ -1,15 +1,21 @@
-import { useState } from 'react'
-import { Link } from 'react-router'
-import { cn } from '~/lib/utils'
-import { PageHeader } from '~/components/page-header'
+import { ArrowRight, ChevronDown, ClipboardList, Clock, Download, Filter, LayoutDashboard, MoreHorizontal, Package, Plus, Search } from 'lucide-react'
+import { useMemo, useState } from 'react'
 import { AddMaterialModal, type NewMaterialData } from '~/components/add-material-modal'
+import { EmptyState } from '~/components/empty-state'
+import { PageHeader } from '~/components/page-header'
+import { StatCard } from '~/components/stat-card'
+import { Button } from '~/components/ui/button'
+import { DatePicker } from '~/components/ui/date-picker'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '~/components/ui/dropdown-menu'
-import { DatePicker } from '~/components/ui/date-picker'
+import type { ProcessorBatch } from '~/lib/api/generated/models'
+import { useGetProcessorsBatches } from '~/lib/api/generated/processors-batches/processors-batches'
+import { getOrganizationHeaders } from '~/lib/organization-context'
+import { cn } from '~/lib/utils'
 
 // ─── Mock Data ───
 
@@ -18,75 +24,134 @@ interface Material {
   batchId: string
   material: string
   type: string
+  status?: string
+  sourceType: 'platform' | 'external'
   farmerSource: string
   materialSource: string
   quantity: string
+  quantityValue?: number
+  unit?: string
   harvested: string
   received: string
 }
 
-const mockMaterials: Material[] = [
-  {
-    id: '1',
-    batchId: 'BATCH-fe228318-1764512695673',
-    material: 'Beans',
-    type: 'Agricultural Product',
-    farmerSource: 'Abdullahi Bashir',
-    materialSource: 'Sunshine Farms',
-    quantity: '0kg',
-    harvested: '11/30/2025',
-    received: '11/30/2025',
-  }
-]
+const mockMaterials: Material[] = []
 
-// ─── Shared Components ───
+// ─── Shared Components moved to central directory ───
 
-function StatCard({ value, label }: { value: number | string; label: string }) {
-  return (
-    <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm hover:shadow-md transition-shadow">
-      <div className="text-3xl font-bold text-gray-900 mb-1">{value}</div>
-      <div className="text-sm font-medium text-gray-500">{label}</div>
-    </div>
-  )
-}
-
-function MiniStat({ value, label }: { value: number | string; label: string }) {
-  return (
-    <div className="rounded-lg bg-gray-50 p-4 border border-gray-100 flex flex-col items-center justify-center">
-      <div className="text-2xl font-bold text-gray-900">{value}</div>
-      <div className="text-xs text-gray-500 font-medium text-center leading-snug">{label}</div>
-    </div>
-  )
-}
-
-function TabButton({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
-  return (
-    <button
-      onClick={onClick}
-      className={cn(
-        "flex-1 py-2.5 text-sm font-semibold rounded-md transition-colors",
-        active ? "bg-white text-brand shadow-sm border border-gray-200/60" : "text-gray-500 hover:text-gray-700 hover:bg-gray-100/50"
-      )}
-    >
-      {label}
-    </button>
-  )
-}
+// MiniStat and TabButton removed to use global standards
 
 
 export default function ProcessorMaterials() {
   const [activeTab, setActiveTab] = useState('Platform Materials')
-  const [materials, setMaterials] = useState<Material[]>(mockMaterials)
+  const [manualMaterials, setManualMaterials] = useState<Material[]>(mockMaterials)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
+  const organizationHeaders = getOrganizationHeaders()
+  const {
+    data: batchesResponse,
+    isLoading: isBatchesLoading,
+    isError: isBatchesError,
+  } = useGetProcessorsBatches({
+    request: { headers: organizationHeaders },
+  })
+
+  const platformMaterials = useMemo(() => {
+    const rows = (batchesResponse?.data?.data || []) as ProcessorBatch[]
+    return rows.map((b) => ({
+      id: b.id,
+      batchId: b.batchCode,
+      material: b.outputProductName || 'Batch Material',
+      type: b.outputProductType || 'processed',
+      status: b.status || 'pending',
+      sourceType: 'platform' as const,
+      farmerSource: b.createdBy || 'System',
+      materialSource: b.facilityName || b.facilityLocation || 'Platform',
+      quantity: 'N/A',
+      harvested: b.packagingDate
+        ? new Date(b.packagingDate).toLocaleDateString()
+        : 'N/A',
+      received: b.createdAt
+        ? new Date(b.createdAt).toLocaleDateString()
+        : 'N/A',
+    }))
+  }, [batchesResponse])
+
+  const materials = useMemo(() => {
+    if (activeTab === 'External Materials') return manualMaterials
+    if (activeTab === 'Incoming Materials') {
+      return platformMaterials.filter(
+        (m) =>
+          (m.status || '').toLowerCase() === 'pending' ||
+          (m.status || '').toLowerCase() === 'in_progress',
+      )
+    }
+    return [...platformMaterials, ...manualMaterials]
+  }, [activeTab, platformMaterials, manualMaterials])
+
+  const showPlatformFilters = activeTab === 'Platform Materials'
+  const showExternalSummary = activeTab === 'External Materials'
+
+  const parseDecimal = (value: string) => {
+    const normalized = value.replace(/,/g, '').trim()
+    const parsed = Number.parseFloat(normalized)
+    return Number.isFinite(parsed) ? parsed : 0
+  }
+
+  const unique = (values: string[]) => Array.from(new Set(values.filter(Boolean)))
+
+  const sourceFarmerOptions = useMemo(
+    () => unique(platformMaterials.map((m) => m.farmerSource)),
+    [platformMaterials],
+  )
+  const sourceOptions = useMemo(
+    () => unique(platformMaterials.map((m) => m.materialSource)),
+    [platformMaterials],
+  )
+  const materialOptions = useMemo(
+    () => unique(platformMaterials.map((m) => m.material)),
+    [platformMaterials],
+  )
+
+  const platformInStockCount = useMemo(
+    () =>
+      platformMaterials.filter((m) => {
+        const status = (m.status || '').toLowerCase()
+        return status === 'completed' || status === 'approved' || status === 'done'
+      }).length,
+    [platformMaterials],
+  )
+  const platformLowStockCount = useMemo(
+    () =>
+      platformMaterials.filter((m) => {
+        const status = (m.status || '').toLowerCase()
+        return status === 'pending' || status === 'in_progress' || status === 'in transit'
+      }).length,
+    [platformMaterials],
+  )
+
+  const externalTotalQuantity = useMemo(
+    () => manualMaterials.reduce((sum, m) => sum + (m.quantityValue || 0), 0),
+    [manualMaterials],
+  )
+  const externalBaseUnit = manualMaterials.find((m) => m.unit)?.unit || 'kg'
+  const externalInStockCount = useMemo(
+    () => manualMaterials.filter((m) => (m.quantityValue || 0) > 10).length,
+    [manualMaterials],
+  )
+  const externalLowStockCount = useMemo(
+    () => manualMaterials.filter((m) => (m.quantityValue || 0) > 0 && (m.quantityValue || 0) <= 10).length,
+    [manualMaterials],
+  )
 
   const handleAddMaterial = (data: NewMaterialData) => {
-    // Generate a quick random batch ID
-    const newBatchId = `BATCH-${Math.random().toString(36).substring(2, 10)}-${Date.now()}`
-    
-    // Convert YYYY-MM-DD to localized string mapping (or just keep as is, but our mock is MM/DD/YYYY)
-    const formatMockDate = (d: string) => {
+    const newBatchId = data.lotBatchNumber?.trim()
+      ? data.lotBatchNumber.trim()
+      : `BATCH-${Math.random().toString(36).substring(2, 10)}-${Date.now()}`
+    const quantityValue = parseDecimal(data.quantityPurchased)
+
+    const formatDisplayDate = (d: string) => {
       if (!d) return ''
       const parts = d.split('-')
       if (parts.length === 3) return `${parts[1]}/${parts[2]}/${parts[0]}`
@@ -96,217 +161,363 @@ export default function ProcessorMaterials() {
     const newMaterial: Material = {
       id: Math.random().toString(36).substr(2, 9),
       batchId: newBatchId,
-      material: data.material,
-      type: data.type,
-      farmerSource: 'External Vendor', // default for external materials
-      materialSource: data.materialSource,
-      quantity: data.quantity,
-      harvested: formatMockDate(data.harvested),
-      received: formatMockDate(data.received),
+      material: data.materialName,
+      type: data.certifications || 'External Material',
+      status: quantityValue > 10 ? 'in_stock' : quantityValue > 0 ? 'low_stock' : 'out_of_stock',
+      sourceType: 'external',
+      farmerSource: data.supplierName,
+      materialSource: [data.originRegion, data.originCountry].filter(Boolean).join(', ') || data.originCountry,
+      quantity: `${data.quantityPurchased} ${data.unit}`,
+      quantityValue,
+      unit: data.unit,
+      harvested: formatDisplayDate(data.purchaseDate),
+      received: formatDisplayDate(data.receivedDate || data.purchaseDate),
     }
 
-    setMaterials(prev => [...prev, newMaterial])
+    setManualMaterials(prev => [...prev, newMaterial])
   }
 
   return (
-    <div className="space-y-6 pb-10">
-
+    <>
       <PageHeader
         items={[
-          {
-            label: 'Dashboard',
-            href: '/processor',
-            icon: (
-              <svg className="size-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                <line x1="9" y1="3" x2="9" y2="21" />
-              </svg>
-            ),
-          },
-          { label: 'Materials' },
+          { label: 'Dashboard', href: '/processor' },
+          { label: 'Operations' },
+          { label: 'Raw Materials' },
         ]}
       />
+      <div className="space-y-6 pb-10 px-1 text-left w-full overflow-x-hidden">
 
-      {/* Main Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 pb-4">
-        <div>
-          <h1 className="text-2xl font-bold text-brand">Materials Inventory</h1>
-          <p className="text-sm text-gray-500 mt-1">Manage platform transfers and external materials in one place</p>
-        </div>
-        <button 
-          onClick={() => setIsAddModalOpen(true)}
-          className="inline-flex items-center justify-center gap-2 rounded-md bg-[#1b4332] px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-dark"
-        >
-          <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-          </svg>
-          Add External Material
-        </button>
-      </div>
-
-      {/* 3 Top Stat Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <StatCard value={1} label="Platform Materials" />
-        <StatCard value={materials.length} label="External Materials" />
-        <StatCard value={8} label="Pending Transfers" />
-      </div>
-
-      {/* Material Sources Panel */}
-      <div>
-        <h2 className="text-base font-bold text-gray-900">Material Sources</h2>
-        <p className="text-xs text-gray-500 mb-3">System-wide issues requiring attention</p>
-        <div className="flex p-1 bg-gray-50 border border-gray-200 rounded-lg">
-          <TabButton label="Platform Materials" active={activeTab === 'Platform Materials'} onClick={() => setActiveTab('Platform Materials')} />
-          <TabButton label="External Material" active={activeTab === 'External Material'} onClick={() => setActiveTab('External Material')} />
-          <TabButton label="Incoming Materials" active={activeTab === 'Incoming Materials'} onClick={() => setActiveTab('Incoming Materials')} />
-        </div>
-      </div>
-
-      {/* Raw Materials Inventory Filter Panel */}
-      <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-        <h2 className="text-base font-bold text-gray-900">Raw Materials Inventory</h2>
-        <p className="text-xs text-gray-500 mb-5">Track available raw materials received from farmers for processing</p>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+        {/* Main Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <label className="text-xs font-semibold text-gray-600 mb-1.5 block">Source Name</label>
-            <select className="w-full rounded-md border border-gray-200 py-2 px-3 text-sm text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand">
-              <option>All Sources</option>
-            </select>
+            <h1 className="text-2xl font-bold text-gray-900 uppercase tracking-tight">Raw Materials</h1>
+            <p className="text-sm text-gray-500 mt-1">Manage your raw material intake and inventory</p>
           </div>
-          <div>
-            <label className="text-xs font-semibold text-gray-600 mb-1.5 block">Select Material Source</label>
-            <select className="w-full rounded-md border border-gray-200 py-2 px-3 text-sm text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand">
-              <option>All Sources</option>
-            </select>
-          </div>
-          <div>
-            <label className="text-xs font-semibold text-gray-600 mb-1.5 block">Select Material</label>
-            <select className="w-full rounded-md border border-gray-200 py-2 px-3 text-sm text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand">
-              <option>All Materials</option>
-            </select>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" className="flex items-center gap-2 h-11 text-gray-600 font-bold uppercase tracking-tight text-xs border-gray-200">
+              <Download className="size-4" />
+              <span>Export List</span>
+            </Button>
+            <Button
+              onClick={() => setIsAddModalOpen(true)}
+              className="bg-[#1d3d1e] hover:bg-black text-white flex items-center gap-2 h-11 px-6 shadow-sm"
+            >
+              <Plus className="size-4" />
+              <span className="font-bold uppercase tracking-wide text-xs">Add Material</span>
+            </Button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-[500px] mb-6">
-          <div>
-            <label className="text-xs font-semibold text-gray-600 mb-1.5 block">Start Date</label>
-            <DatePicker 
-              value={startDate} 
-              onChange={setStartDate} 
-              placeholder="Select start date"
-              className="w-full text-gray-700 py-2 h-[38px] rounded-md border border-gray-200 focus:border-brand focus:ring-1 focus:ring-brand outline-none" 
-            />
-          </div>
-          <div>
-            <label className="text-xs font-semibold text-gray-600 mb-1.5 block">End Date</label>
-            <DatePicker 
-              value={endDate} 
-              onChange={setEndDate} 
-              placeholder="Select end date"
-              className="w-full text-gray-700 py-2 h-[38px] rounded-md border border-gray-200 focus:border-brand focus:ring-1 focus:ring-brand outline-none" 
-            />
+        {/* 3 Top Stat Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <StatCard
+            title="Cooperatives"
+            value="1"
+            subtitle="From App"
+            description="Verified cooperative transfers"
+            icon={<Package className="size-4" />}
+          />
+          <StatCard
+            title="Manual Entry"
+            value={manualMaterials.length.toString()}
+            subtitle="Offline"
+            description="Manually added materials"
+            icon={<ClipboardList className="size-4" />}
+          />
+          <StatCard
+            title="In Transit"
+            value={platformMaterials.length.toString()}
+            subtitle="Pending receipt"
+            description="Incoming from cooperatives"
+            icon={<Clock className="size-4" />}
+            trend="neutral"
+          />
+        </div>
+
+        {/* Material Sources Panel */}
+        <div className="rounded-md border border-gray-200 bg-white p-1.5 shadow-sm inline-flex w-fit">
+          <div className="flex flex-wrap gap-1">
+            <button
+              onClick={() => setActiveTab('Platform Materials')}
+              className={cn(
+                "px-5 py-2.5 text-xs font-bold uppercase tracking-wider rounded-md transition-all",
+                activeTab === 'Platform Materials'
+                  ? "bg-brand text-white shadow-sm"
+                  : "text-gray-500 hover:bg-gray-50"
+              )}
+            >
+              Platform Materials
+            </button>
+            <button
+              onClick={() => setActiveTab('External Materials')}
+              className={cn(
+                "px-5 py-2.5 text-xs font-bold uppercase tracking-wider rounded-md transition-all",
+                activeTab === 'External Materials'
+                  ? "bg-brand text-white shadow-sm"
+                  : "text-gray-500 hover:bg-gray-50"
+              )}
+            >
+              External Materials
+            </button>
+            <button
+              onClick={() => setActiveTab('Incoming Materials')}
+              className={cn(
+                "px-5 py-2.5 text-xs font-bold uppercase tracking-wider rounded-md transition-all",
+                activeTab === 'Incoming Materials'
+                  ? "bg-brand text-white shadow-sm"
+                  : "text-gray-500 hover:bg-gray-50"
+              )}
+            >
+              Incoming Materials
+            </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <MiniStat value={1} label="Total Products" />
-          <MiniStat value="0 kg" label="Platform Materials" />
-          <MiniStat value={0} label="In Stock" />
-          <MiniStat value={0} label="Low Stock" />
-        </div>
-      </div>
+        {showPlatformFilters && (
+          <div className="rounded-md border border-gray-200 bg-white p-6 shadow-sm">
+            <div className="flex items-center gap-2 mb-6">
+              <div className="size-8 rounded-md bg-gray-50 flex items-center justify-center text-gray-500">
+                <Filter className="size-4" />
+              </div>
+              <div>
+                <h2 className="text-base font-bold text-gray-900 uppercase tracking-tight">Filters</h2>
+                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Filter raw material records</p>
+              </div>
+            </div>
 
-      {/* Data Table block */}
-      <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm overflow-hidden flex flex-col">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
-          <div>
-            <h2 className="text-base font-bold text-gray-900">Available Raw Materials</h2>
-            <p className="text-xs text-gray-500 mt-1">Materials ready for batch processing</p>
-          </div>
-          <div className="relative w-full sm:w-[250px]">
-            <svg className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            <input
-              type="text"
-              placeholder="Search materials..."
-              className="w-full rounded-md border border-gray-200 pl-9 pr-4 py-2 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
-            />
-          </div>
-        </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              <div>
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 block">Source Farmer</label>
+                <div className="relative">
+                  <select className="w-full h-11 rounded-md border border-gray-200 pl-3 pr-10 text-xs font-bold uppercase tracking-wider text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand bg-white appearance-none">
+                    <option>All System Farmers</option>
+                    {sourceFarmerOptions.map((farmer) => (
+                      <option key={farmer} value={farmer}>
+                        {farmer}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-gray-400 pointer-events-none" />
+                </div>
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 block">Source</label>
+                <div className="relative">
+                  <select className="w-full h-11 rounded-md border border-gray-200 pl-3 pr-10 text-xs font-bold uppercase tracking-wider text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand bg-white appearance-none">
+                    <option>All Sources</option>
+                    {sourceOptions.map((source) => (
+                      <option key={source} value={source}>
+                        {source}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-gray-400 pointer-events-none" />
+                </div>
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 block">Material</label>
+                <div className="relative">
+                  <select className="w-full h-11 rounded-md border border-gray-200 pl-3 pr-10 text-xs font-bold uppercase tracking-wider text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand bg-white appearance-none">
+                    <option>All Materials</option>
+                    {materialOptions.map((materialOption) => (
+                      <option key={materialOption} value={materialOption}>
+                        {materialOption}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-gray-400 pointer-events-none" />
+                </div>
+              </div>
+            </div>
 
-        <div className="overflow-x-auto -mx-5 px-5">
-          <table className="w-full text-left text-sm text-gray-600 min-w-[900px]">
-            <thead className="border-b border-gray-100 text-xs font-semibold text-brand">
-              <tr>
-                <th className="py-3 font-medium">Batch ID</th>
-                <th className="py-3 font-medium flex items-center gap-1">Material <svg className="size-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" /></svg></th>
-                <th className="py-3 font-medium">Type</th>
-                <th className="py-3 font-medium">Farmer/Source</th>
-                <th className="py-3 font-medium">Material Source</th>
-                <th className="py-3 font-medium flex items-center gap-1">Quantity <svg className="size-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" /></svg></th>
-                <th className="py-3 font-medium">Harvested</th>
-                <th className="py-3 font-medium">Received</th>
-                <th className="py-3 font-medium"></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {materials.map((row) => (
-                <tr key={row.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="py-4 font-medium text-brand">{row.batchId}</td>
-                  <td className="py-4 text-brand">{row.material}</td>
-                  <td className="py-4 text-brand font-medium max-w-[120px]">{row.type}</td>
-                  <td className="py-4 text-brand max-w-[120px]">{row.farmerSource}</td>
-                  <td className="py-4 text-brand max-w-[120px]">{row.materialSource}</td>
-                  <td className="py-4 text-brand font-bold">{row.quantity}</td>
-                  <td className="py-4 text-gray-500">{row.harvested}</td>
-                  <td className="py-4 text-gray-500">{row.received}</td>
-                  <td className="py-4 text-center">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger className="text-gray-400 hover:text-gray-800 outline-none cursor-pointer">
-                        <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z" />
-                        </svg>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem>
-                          View Details
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </td>
-                </tr>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-[500px] mb-8">
+              <div>
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 block font-mono">Start Date</label>
+                <DatePicker
+                  value={startDate}
+                  onChange={setStartDate}
+                  placeholder="Start range"
+                  className="w-full text-xs font-bold uppercase tracking-wider text-gray-700 h-11 rounded-md border border-gray-200 focus:border-brand focus:ring-1 focus:ring-brand outline-none"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 block font-mono">End Date</label>
+                <DatePicker
+                  value={endDate}
+                  onChange={setEndDate}
+                  placeholder="End range"
+                  className="w-full text-xs font-bold uppercase tracking-wider text-gray-700 h-11 rounded-md border border-gray-200 focus:border-brand focus:ring-1 focus:ring-brand outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-8 pt-8 border-t border-gray-50">
+              {[
+                { label: 'Total Products', value: platformMaterials.length.toString() },
+                { label: 'Platform Materials', value: `${platformMaterials.length}` },
+                { label: 'In Stock', value: platformInStockCount.toString() },
+                { label: 'Low Stock', value: platformLowStockCount.toString() },
+              ].map((stat, i) => (
+                <div key={i} className="bg-gray-50/50 rounded-md p-4 border border-gray-100/50">
+                  <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">{stat.label}</p>
+                  <p className="text-xl font-bold text-gray-900">{stat.value}</p>
+                </div>
               ))}
-            </tbody>
-          </table>
-        </div>
+            </div>
+          </div>
+        )}
 
-        <div className="border-t border-gray-100 pt-3 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-500 mt-2">
-          <span>0 of 1 row(s) selected.</span>
-          <div className="flex items-center gap-4">
-            <span className="flex items-center gap-2">
-              Rows per page
-              <select className="border-none bg-transparent outline-none font-medium">
-                <option>10</option>
-              </select>
-            </span>
-            <span>Page 1 of 1</span>
-            <div className="flex items-center gap-1">
-              <button className="p-1 border border-gray-200 rounded text-gray-400 hover:text-gray-800"><svg className="size-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" /></svg></button>
-              <button className="p-1 border border-gray-200 rounded text-gray-400 hover:text-gray-800"><svg className="size-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg></button>
-              <button className="p-1 border border-gray-200 rounded text-gray-400 hover:text-gray-800"><svg className="size-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg></button>
-              <button className="p-1 border border-gray-200 rounded text-gray-400 hover:text-gray-800"><svg className="size-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7m-8-14l7 7-7 7" /></svg></button>
+        {showExternalSummary && (
+          <div className="rounded-md border border-gray-200 bg-white p-6 shadow-sm">
+            <div className="mb-6">
+              <h2 className="text-base font-bold text-gray-900 uppercase tracking-tight">External Materials Inventory</h2>
+              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Track materials sourced from external suppliers</p>
+            </div>
+
+            <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+              {[
+                { label: 'Total Products', value: manualMaterials.length.toString() },
+                { label: 'External Materials', value: `${externalTotalQuantity.toFixed(2)} ${externalBaseUnit}` },
+                { label: 'In Stock', value: externalInStockCount.toString() },
+                { label: 'Low Stock', value: externalLowStockCount.toString() },
+              ].map((stat) => (
+                <div key={stat.label} className="bg-gray-50/50 rounded-md p-4 border border-gray-100/50">
+                  <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">{stat.label}</p>
+                  <p className="text-xl font-bold text-gray-900">{stat.value}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Available Raw Materials */}
+        <div className="rounded-md border border-gray-200 bg-white shadow-sm overflow-hidden flex flex-col">
+          <div className="p-6 bg-white border-b border-gray-100">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+              <div>
+                <h2 className="text-base font-bold text-gray-900 uppercase tracking-tight">Materials</h2>
+                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">List of available raw materials</p>
+              </div>
+              <div className="relative w-full sm:w-[320px]">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search materials by batch ID or source..."
+                  className="w-full rounded-md border border-gray-200 pl-10 pr-4 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white transition-all shadow-sm"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="overflow-x-auto">
+            {isBatchesLoading ? (
+              <div className="space-y-4 p-6">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="h-8 w-full animate-pulse rounded bg-gray-100" />
+                ))}
+              </div>
+            ) : null}
+            {isBatchesError ? (
+              <EmptyState
+                icon={<Package className="size-10" />}
+                title="Failed to load processor materials"
+                description="Could not load materials from processor batches."
+                className="py-10"
+              />
+            ) : null}
+            {!isBatchesLoading && !isBatchesError ? (
+              <table className="w-full text-left text-sm">
+                <thead className="border-b border-gray-50 bg-gray-50/50">
+                  <tr>
+                    <th className="px-5 py-4 text-[10px] font-bold uppercase tracking-wider text-gray-500">Batch ID</th>
+                    <th className="px-5 py-4 text-[10px] font-bold uppercase tracking-wider text-gray-500">Material</th>
+                    <th className="px-5 py-4 text-[10px] font-bold uppercase tracking-wider text-gray-500">Type</th>
+                    <th className="px-5 py-4 text-[10px] font-bold uppercase tracking-wider text-gray-500">Farmer Source</th>
+                    <th className="px-5 py-4 text-[10px] font-bold uppercase tracking-wider text-gray-500">Material Source</th>
+                    <th className="px-5 py-4 text-[10px] font-bold uppercase tracking-wider text-gray-500">Quantity</th>
+                    <th className="px-5 py-4 text-[10px] font-bold uppercase tracking-wider text-gray-500">Harvest Date</th>
+                    <th className="px-5 py-4 text-[10px] font-bold uppercase tracking-wider text-gray-500">Date Received</th>
+                    <th className="px-5 py-4"></th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50 bg-white">
+                  {materials.map((row) => (
+                    <tr key={row.id} className="hover:bg-gray-50/50 transition-colors group">
+                      <td className="px-5 py-4 font-bold text-gray-900 tracking-tight">{row.batchId}</td>
+                      <td className="px-5 py-4 font-bold text-gray-700">{row.material}</td>
+                      <td className="px-5 py-4 text-xs font-medium text-gray-500 truncate max-w-[150px]">{row.type}</td>
+                      <td className="px-5 py-4 text-xs font-bold text-gray-900 italic">{row.farmerSource}</td>
+                      <td className="px-5 py-4 text-xs font-medium text-gray-500">{row.materialSource}</td>
+                      <td className="px-5 py-4 font-bold text-gray-900 tracking-tight">{row.quantity}</td>
+                      <td className="px-5 py-4 text-xs font-medium text-gray-500">{row.harvested}</td>
+                      <td className="px-5 py-4 text-xs font-medium text-gray-500">{row.received}</td>
+                      <td className="px-5 py-4 text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger>
+                            <Button variant="ghost" size="icon" className="size-8 text-gray-400 hover:text-gray-900">
+                              <MoreHorizontal className="size-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem>
+                              View Details
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : null}
+            {!isBatchesLoading && !isBatchesError && materials.length === 0 && (
+              <EmptyState
+                icon={<Package className="size-10" />}
+                title="No materials found"
+                description="No raw materials have been added to your inventory yet."
+                action={{
+                  label: "Add External Material",
+                  onClick: () => setIsAddModalOpen(true)
+                }}
+              />
+            )}
+          </div>
+
+          <div className="border-t border-gray-100 px-5 py-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-gray-400 font-bold uppercase tracking-tight bg-gray-50/20">
+            <div className="flex items-center gap-2">
+              <span className="text-gray-300">Total Records:</span>
+              <span className="text-gray-900">{materials.length} Material Records</span>
+            </div>
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-2">
+                <span className="text-gray-300">Show</span>
+                <select className="bg-transparent border-none outline-none text-gray-900 font-bold">
+                  <option>10</option>
+                  <option>25</option>
+                </select>
+              </div>
+              <div className="flex items-center gap-4">
+                <span className="text-gray-300">Page 1 / 1</span>
+                <div className="flex items-center gap-1">
+                  <Button variant="ghost" size="icon" className="size-7 text-gray-300" disabled>
+                    <ArrowRight className="size-3.5 rotate-180" />
+                  </Button>
+                  <Button variant="ghost" size="icon" className="size-7 text-gray-400 hover:text-brand">
+                    <ArrowRight className="size-3.5" />
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <AddMaterialModal 
-        isOpen={isAddModalOpen} 
-        onClose={() => setIsAddModalOpen(false)} 
-        onAdd={handleAddMaterial} 
-      />
-    </div>
+        <AddMaterialModal
+          isOpen={isAddModalOpen}
+          onClose={() => setIsAddModalOpen(false)}
+          onAdd={handleAddMaterial}
+        />
+      </div>
+    </>
   )
 }

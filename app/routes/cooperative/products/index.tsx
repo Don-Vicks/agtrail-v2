@@ -1,53 +1,75 @@
+import { useQueries } from '@tanstack/react-query'
+import {
+  Activity,
+  ArrowRight,
+  Bookmark,
+  Calendar,
+  CheckCircle2,
+  ChevronDown,
+  Clock,
+  Layers,
+  LayoutDashboard,
+  Package,
+  Search
+} from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router'
+import { EmptyState } from '~/components/empty-state'
 import { PageHeader } from '~/components/page-header'
-import { Pagination } from '~/components/pagination'
+import { SelectOperationModal } from '~/components/select-operation-modal'
+import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '~/components/ui/select'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
-import { allCropCycles, products, type CropCycle, type Product } from '~/lib/mock-data/farmer'
+import { ViewActivitiesModal } from '~/components/view-activities-modal'
+import { useGetCooperativesFarms, useGetCooperativesProducts } from '~/lib/api/generated/cooperatives/cooperatives'
+import { getGetFarmsIdCropCyclesQueryOptions } from '~/lib/api/generated/farms-crop-cycles/farms-crop-cycles'
+import type { CropCycle, FarmProduct } from '~/lib/api/generated/models'
+import { extractCropCyclesFromQueries, formatFarmLocation } from '~/lib/record-operation-dashboard'
+import { cn } from '~/lib/utils'
 
 /* ─── Product Card ─── */
-function ProductGridCard({ product }: { product: Product }) {
+function ProductGridCard({ product }: { product: FarmProduct }) {
   return (
-    <div className="rounded-xl border border-gray-200 bg-white shadow-sm hover:shadow-md transition-shadow relative">
-      {/* Top row: QR + Info */}
-      <div className="flex gap-4 p-4 sm:p-5 pb-3">
-        <div className="flex-shrink-0 w-[80px] h-[80px] sm:w-[100px] sm:h-[100px] rounded-lg border border-gray-200 bg-white p-1 overflow-hidden">
-          <QRCodeSVG value={product.batchId} style={{ width: '100%', height: '100%' }} />
+    <div className="group relative rounded-md border border-gray-200 bg-white p-6 shadow-sm hover:border-brand/40 hover:shadow-lg transition-all overflow-hidden flex flex-col">
+      <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none transition-opacity group-hover:opacity-20 scale-125">
+        <Package className="size-20 text-brand" />
+      </div>
+
+      <div className="flex gap-6 relative z-10 mb-6">
+        <div className="flex-shrink-0 size-24 rounded-2xl border-2 border-white shadow-sm ring-1 ring-gray-100 bg-white p-1.5 overflow-hidden">
+          <QRCodeSVG value={product.batchNumber} style={{ width: '100%', height: '100%' }} />
         </div>
-        <div className="flex-1 min-w-0 pt-0.5">
-          <div className="mb-1.5">
-            <span className="inline-block rounded bg-[#2E5A27] px-2 py-[2px] text-[10px] font-bold text-white tracking-wide">
-              {product.batchId}
-            </span>
+        <div className="flex-1 min-w-0 pt-1">
+          <div className="mb-2">
+            <Badge className="bg-[#1d3d1e] text-white text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 border-none shadow-none">
+              {product.batchNumber}
+            </Badge>
           </div>
-          <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-0.5 leading-tight">{product.name}</h3>
-          <p className="text-xs sm:text-[13px] text-gray-600">Farm: <span className="font-semibold text-gray-800">{product.farm}</span></p>
-          <p className="text-xs sm:text-[13px] text-gray-500 truncate">{product.location}</p>
+          <h3 className="text-lg font-bold text-gray-900 uppercase tracking-tight mb-1 truncate" title={product.productName}>
+            {product.productName}
+          </h3>
+          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest italic">{product.category || 'Product'}</p>
         </div>
-        <button className="absolute right-3 sm:right-4 top-4 sm:top-5 text-gray-400 hover:text-gray-600 p-1">
-          <svg className="size-5" fill="currentColor" viewBox="0 0 20 20">
-            <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-          </svg>
-        </button>
       </div>
-      {/* Full-width button at bottom */}
-      <div className="px-4 sm:px-5 pb-4 sm:pb-5 pt-1">
-        <Link to={`/cooperative/products/${product.id}`} className="block">
-          <Button className="w-full bg-[#2E5A27] hover:bg-[#1e3d1a] text-white border-none py-2.5 h-auto text-[13px] font-semibold rounded-lg shadow-none">
-            View Product Story
-          </Button>
-        </Link>
+
+      <div className="space-y-3 mb-8 pt-6 border-t border-gray-50 relative z-10">
+        <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-tight text-gray-400">
+          <span className="flex items-center gap-2 italic text-gray-300"><Layers className="size-3" /> Inventory</span>
+          <span className="text-gray-900">{product.quantityAvailable} {product.unit || 'Units'}</span>
+        </div>
+        <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-tight text-gray-400">
+          <span className="flex items-center gap-2 italic text-gray-300"><Bookmark className="size-3" /> Farm ID</span>
+          <span className="text-brand truncate max-w-[120px]">{product.farmId}</span>
+        </div>
       </div>
+
+      <Link to={`/cooperative/products/${product.id}`} className="mt-auto block relative z-10">
+        <Button className="w-full h-11 bg-brand text-white hover:bg-black border-none shadow-sm font-bold uppercase tracking-wider text-[11px] gap-2">
+          View Traceability Story
+          <ArrowRight className="size-3.5" />
+        </Button>
+      </Link>
     </div>
   )
 }
@@ -57,249 +79,405 @@ export default function ProductsIndex() {
   const [activeTab, setActiveTab] = useState('products')
   const [currentPage, setCurrentPage] = useState(1)
   const [rowsPerPage, setRowsPerPage] = useState(10)
-  const allProducts = products
+  const [searchQuery, setSearchQuery] = useState('')
+  const [cycleSearchQuery, setCycleSearchQuery] = useState('')
+  const [cycleStatusFilter, setCycleStatusFilter] = useState('all')
+  const [selectedCycleForOperation, setSelectedCycleForOperation] = useState<UICropCycle | null>(null)
+  const [selectedCycleForActivities, setSelectedCycleForActivities] = useState<UICropCycle | null>(null)
 
-  const totalPages = Math.ceil(allProducts.length / rowsPerPage)
-  const paginatedProducts = allProducts.slice(
+  const { data: productsResponse, isLoading, error } = useGetCooperativesProducts()
+  const { data: farmsResponse, isLoading: isLoadingFarms } = useGetCooperativesFarms()
+  const allProducts = (productsResponse?.data?.data as unknown as FarmProduct[]) || []
+  const farms = farmsResponse?.data?.data || []
+  const cycleQueries = useQueries({
+    queries: farms.map((farm) => ({
+      ...getGetFarmsIdCropCyclesQueryOptions(farm.id),
+      enabled: !!farm.id,
+    })),
+  })
+  const isLoadingCycles = isLoadingFarms || cycleQueries.some((q) => q.isLoading)
+  const cropCycles = useMemo(() => extractCropCyclesFromQueries(cycleQueries), [cycleQueries])
+  const uiCropCycles = useMemo<UICropCycle[]>(() => {
+    return cropCycles.map((cycle) => {
+      const farm = farms.find((f) => f.id === cycle.farmId)
+      const farmName = farm?.name || 'Unknown Farm'
+      const farmerInitials = farmName
+        .split(' ')
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((v) => v[0])
+        .join('')
+        .toUpperCase() || 'CF'
+      return {
+        ...cycle,
+        productName: cycle.cropName || 'Unknown Crop',
+        plantedDate: cycle.plantingDate
+          ? new Date(cycle.plantingDate).toLocaleDateString()
+          : null,
+        area: cycle.areaPlantedHectares ? `${cycle.areaPlantedHectares} ha` : null,
+        farmName,
+        farmLocation: formatFarmLocation(farm),
+        farmer: 'Cooperative Member',
+        farmerInitials,
+        farmerColor: '#2E5A27',
+      }
+    })
+  }, [cropCycles, farms])
+  const filteredCycles = useMemo(() => {
+    const query = cycleSearchQuery.trim().toLowerCase()
+    return uiCropCycles.filter((cycle) => {
+      const matchesSearch =
+        !query ||
+        cycle.cropName.toLowerCase().includes(query) ||
+        cycle.farmName.toLowerCase().includes(query) ||
+        cycle.farmer.toLowerCase().includes(query)
+      const matchesStatus =
+        cycleStatusFilter === 'all' ||
+        (cycle.status || '').toLowerCase() === cycleStatusFilter.toLowerCase()
+      return matchesSearch && matchesStatus
+    })
+  }, [uiCropCycles, cycleSearchQuery, cycleStatusFilter])
+
+  const filteredProducts = allProducts.filter((product) =>
+    product.productName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    product.batchNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    product.category.toLowerCase().includes(searchQuery.toLowerCase())
+  )
+
+  const totalPages = Math.ceil(filteredProducts.length / rowsPerPage)
+  const paginatedProducts = filteredProducts.slice(
     (currentPage - 1) * rowsPerPage,
     currentPage * rowsPerPage
   )
 
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
+          <div className="h-4 bg-gray-200 rounded w-1/2 mb-6"></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="h-48 bg-gray-200 rounded"></div>
+            ))}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center py-12">
+          <div className="text-red-500 mb-4">
+            <svg className="size-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Failed to load products</h3>
+          <p className="text-gray-500">Please try again later or contact support if the problem persists.</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-10 px-1">
       <PageHeader
         items={[
           {
             label: 'Dashboard',
             href: '/cooperative',
-            icon: (
-              <svg className="size-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                <line x1="9" y1="3" x2="9" y2="21" />
-              </svg>
-            ),
+            icon: <LayoutDashboard className="size-4 text-gray-400" />,
           },
           { label: 'Products' },
         ]}
       />
 
-      {/* Page Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">My Products</h1>
-        <p className="text-sm text-gray-500">View and manage all products you have created</p>
+      {/* Page Title Section */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 uppercase tracking-tight">Products</h1>
+          <p className="text-sm text-gray-500 mt-1">Manage cooperative products and crop cycles</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" className="flex items-center gap-2 h-11 px-4 text-[11px] font-bold uppercase tracking-wider text-gray-600 border-gray-200">
+            Export List
+          </Button>
+        </div>
       </div>
 
-      {/* Tabs Region */}
-      <Tabs defaultValue="products" className="w-full" onValueChange={setActiveTab}>
-        <TabsList className="bg-gray-100 border border-gray-200 p-1 rounded-md h-auto w-fit">
-          <TabsTrigger
-            value="products"
-            className="flex-none px-6 sm:px-8 py-2 text-sm font-medium text-gray-500 rounded-sm data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm transition-all"
+      {/* Segmented Tab Controls */}
+      <div className="flex items-center justify-between border-b border-gray-100 mb-8">
+        <div className="inline-flex rounded-md bg-gray-50/80 p-1 border border-gray-100 shadow-sm mb-4">
+          <button
+            onClick={() => setActiveTab('products')}
+            className={cn(
+              "flex h-9 items-center justify-center rounded-md px-6 text-[10px] font-bold uppercase tracking-widest transition-all",
+              activeTab === 'products' ? "bg-white text-gray-900 shadow-sm font-bold" : "text-gray-400 hover:text-gray-600"
+            )}
           >
             Products
-          </TabsTrigger>
-          <TabsTrigger
-            value="ongoing"
-            className="flex-none px-4 sm:px-8 py-2 text-sm font-medium text-gray-500 rounded-sm data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm transition-all"
+          </button>
+          <button
+            onClick={() => setActiveTab('ongoing')}
+            className={cn(
+              "flex h-9 items-center justify-center rounded-md px-6 text-[10px] font-bold uppercase tracking-widest transition-all",
+              activeTab === 'ongoing' ? "bg-white text-gray-900 shadow-sm font-bold" : "text-gray-400 hover:text-gray-600"
+            )}
           >
-            Ongoing Crop Cycles
-          </TabsTrigger>
-        </TabsList>
+            Crop Cycles
+          </button>
+        </div>
+      </div>
 
-        <TabsContent value="products" className="m-0 border-none p-0 outline-none mt-4">
-          {/* Toolbar */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-            <div className="relative flex-1 max-w-md">
-              <Input
-                type="text"
-                placeholder="Search products..."
-                className="bg-white w-full h-10 text-sm border-gray-200 rounded-lg"
-              />
-            </div>
-            <Button
-              variant="outline"
-              className="h-10 px-4 gap-2 border-gray-200 text-gray-700 font-medium text-sm bg-white hover:bg-gray-50 rounded-lg flex-shrink-0"
-            >
-              <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-              Search
-            </Button>
+      {activeTab === 'products' ? (
+        <>
+          {/* Filter Toolbar: Products */}
+          <div className="rounded-md border border-gray-200 bg-white p-6 shadow-sm mb-6">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+              <div className="relative w-full lg:max-w-md">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
+                <Input
+                  type="text"
+                  placeholder="Search by product name, batch ID, or category..."
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value)
+                    setCurrentPage(1)
+                  }}
+                  className="bg-white w-full h-10 pl-10 text-sm border-gray-100 rounded-md focus:ring-1 focus:ring-brand focus:border-brand shadow-none"
+                />
+              </div>
 
-            <div className="flex items-center gap-3 sm:ml-auto">
-              <Select>
-                <SelectTrigger className="w-full sm:w-[190px] h-10 bg-white text-sm text-gray-600 border-gray-200 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <svg className="size-4 text-[#2E5A27] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                    </svg>
-                    <SelectValue placeholder="Filter by Farm" />
+              <div className="flex flex-wrap items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest px-1">Farm Filter</span>
+                  <div className="relative">
+                    <select className="h-10 rounded-md border border-gray-200 pl-3 pr-8 text-[11px] font-bold uppercase tracking-wider text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand bg-gray-50/50 appearance-none min-w-[160px]">
+                      <option>All Farms</option>
+                      <option>IITA FCI4Afric</option>
+                      <option>Baba Beji Hub</option>
+                    </select>
+                    <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 size-3 text-gray-400 pointer-events-none" />
                   </div>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Farms</SelectItem>
-                  <SelectItem value="iita">IITA FCI4Afric Farm</SelectItem>
-                  <SelectItem value="baba">Baba Beji Farms</SelectItem>
-                </SelectContent>
-              </Select>
+                </div>
 
-              <Select>
-                <SelectTrigger className="w-full sm:w-[200px] h-10 bg-white text-sm text-gray-600 border-gray-200 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <svg className="size-4 text-[#2E5A27] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                    </svg>
-                    <SelectValue placeholder="Filter by Product" />
-                  </div>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Products</SelectItem>
-                  <SelectItem value="maize">Maize</SelectItem>
-                  <SelectItem value="rice">Rice</SelectItem>
-                  <SelectItem value="ginger">Ginger</SelectItem>
-                  <SelectItem value="sesame">Sesame</SelectItem>
-                </SelectContent>
-              </Select>
+                {searchQuery && (
+                  <Button variant="ghost" className="h-10 px-4 text-red-500 font-bold text-[11px] uppercase tracking-wider hover:bg-red-50" onClick={() => setSearchQuery('')}>Reset</Button>
+                )}
+              </div>
             </div>
           </div>
 
           {/* Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-5">
-            {paginatedProducts.map(p => (
+            {paginatedProducts.length === 0 ? (
+              <div className="col-span-2">
+                <EmptyState
+                  icon={<Package className="size-8" />}
+                  title={searchQuery ? 'No products match your search' : 'No products available'}
+                  description={searchQuery ? 'Try adjusting your search query.' : 'There are no products listed currently.'}
+                  action={searchQuery ? { label: "Clear Search", onClick: () => { setSearchQuery(''); setCurrentPage(1) } } : undefined}
+                />
+              </div>
+            ) : paginatedProducts.map(p => (
               <ProductGridCard key={p.id} product={p} />
             ))}
           </div>
 
-          {/* Pagination */}
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            totalItems={allProducts.length}
-            itemsPerPage={rowsPerPage}
-            onPageChange={setCurrentPage}
-            onItemsPerPageChange={(count) => {
-              setRowsPerPage(count)
-              setCurrentPage(1)
-            }}
-            itemLabel="product(s)"
-          />
-        </TabsContent>
-
-        <TabsContent value="ongoing" className="m-0 border-none p-0 outline-none mt-4">
-          {/* Toolbar */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-5">
-            <div className="relative flex-1 max-w-md">
-              <Input
-                type="text"
-                placeholder="Search by crop, farm, or farmer..."
-                className="bg-white w-full h-10 text-sm border-gray-200 rounded-lg"
-              />
+          {/* Inventory Footer */}
+          <div className="mt-12 border-t border-gray-100 px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-gray-400 font-bold uppercase tracking-tight bg-gray-50/20 rounded-md">
+            <div className="flex items-center gap-2">
+              <span className="text-gray-300">Total Products:</span>
+              <span className="text-gray-900">{filteredProducts.length} Products</span>
             </div>
-            <div className="flex items-center gap-3 sm:ml-auto">
-              <Button
-                variant="outline"
-                className="h-10 px-4 gap-2 border-gray-200 text-gray-700 font-medium text-sm bg-white hover:bg-gray-50 rounded-lg flex-shrink-0"
-              >
-                Search
-              </Button>
-              <Select defaultValue="all">
-                <SelectTrigger className="w-[140px] h-10 bg-white text-sm text-gray-600 border-gray-200 rounded-lg">
-                  <SelectValue placeholder="All Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="planning">Planning</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select defaultValue="recent">
-                <SelectTrigger className="w-[150px] h-10 bg-white text-sm text-gray-600 border-gray-200 rounded-lg">
-                  <SelectValue placeholder="Most Recent" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="recent">Most Recent</SelectItem>
-                  <SelectItem value="oldest">Oldest First</SelectItem>
-                  <SelectItem value="name">By Name</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-2">
+                <span className="text-gray-300">Show</span>
+                <select className="bg-transparent border-none outline-none text-gray-900 font-bold" value={rowsPerPage} onChange={(e) => setRowsPerPage(Number(e.target.value))}>
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                </select>
+              </div>
+              <div className="flex items-center gap-4">
+                <span className="text-gray-300">Page {currentPage} / {totalPages}</span>
+                <div className="flex items-center gap-1">
+                  <Button variant="ghost" size="icon" className="size-7 text-gray-300" disabled={currentPage === 1} onClick={() => setCurrentPage(p => Math.max(1, p - 1))}>
+                    <ArrowRight className="size-3.5 rotate-180" />
+                  </Button>
+                  <Button variant="ghost" size="icon" className="size-7 text-gray-400 hover:text-brand" disabled={currentPage >= totalPages} onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}>
+                    <ArrowRight className="size-3.5" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      ) : (
+        <>
+          {/* Filter Toolbar: Cycles */}
+          <div className="rounded-md border border-gray-200 bg-white p-6 shadow-sm mb-6">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+              <div className="relative w-full lg:max-w-md">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
+                <Input
+                  type="text"
+                  placeholder="Filter by crop cycle, farm name, or owner..."
+                  value={cycleSearchQuery}
+                  onChange={(e) => setCycleSearchQuery(e.target.value)}
+                  className="bg-white w-full h-10 pl-10 text-sm border-gray-100 rounded-md focus:ring-1 focus:ring-brand focus:border-brand shadow-none"
+                />
+              </div>
+
+              <div className="flex flex-wrap items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest px-1">Phase Status</span>
+                  <div className="relative">
+                    <select
+                      value={cycleStatusFilter}
+                      onChange={(e) => setCycleStatusFilter(e.target.value)}
+                      className="h-10 rounded-md border border-gray-200 pl-3 pr-8 text-[11px] font-bold uppercase tracking-wider text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand bg-gray-50/50 appearance-none min-w-[140px]"
+                    >
+                      <option value="all">All Statuses</option>
+                      <option value="planned">Planned</option>
+                      <option value="active">Active</option>
+                      <option value="harvested">Harvested</option>
+                      <option value="failed">Failed</option>
+                      <option value="abandoned">Abandoned</option>
+                    </select>
+                    <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 size-3 text-gray-400 pointer-events-none" />
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
           {/* Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {allCropCycles.map(cycle => (
-              <CropCycleCard key={cycle.id} cycle={cycle} />
+            {isLoadingCycles ? (
+              <>
+                <div className="h-64 rounded-md border border-gray-200 bg-white animate-pulse" />
+                <div className="h-64 rounded-md border border-gray-200 bg-white animate-pulse" />
+                <div className="h-64 rounded-md border border-gray-200 bg-white animate-pulse" />
+              </>
+            ) : filteredCycles.length === 0 ? (
+              <div className="col-span-3">
+                <EmptyState
+                  icon={<Package className="size-8" />}
+                  title="No crop cycles found"
+                  description="There are no crop cycles matching your current filters."
+                />
+              </div>
+            ) : filteredCycles.map(cycle => (
+              <CropCycleCard
+                key={cycle.id}
+                cycle={cycle}
+                onViewActivities={() => setSelectedCycleForActivities(cycle)}
+                onRecordActivity={() => setSelectedCycleForOperation(cycle)}
+              />
             ))}
           </div>
-        </TabsContent>
-      </Tabs>
+        </>
+      )}
+      <SelectOperationModal
+        isOpen={!!selectedCycleForOperation}
+        onClose={() => setSelectedCycleForOperation(null)}
+        cropCycle={selectedCycleForOperation}
+        basePath="/cooperative/operations/new"
+      />
+      <ViewActivitiesModal
+        isOpen={!!selectedCycleForActivities}
+        onClose={() => setSelectedCycleForActivities(null)}
+        cropCycle={selectedCycleForActivities}
+      />
     </div>
   )
 }
 
 /* ─── Crop Cycle Card ─── */
-function CropCycleCard({ cycle }: { cycle: CropCycle }) {
+type UICropCycle = CropCycle & {
+  productName: string
+  plantedDate: string | null
+  area: string | null
+  farmName: string
+  farmLocation: string
+  farmer: string
+  farmerInitials: string
+  farmerColor: string
+}
+
+function CropCycleCard({
+  cycle,
+  onViewActivities,
+  onRecordActivity,
+}: {
+  cycle: UICropCycle
+  onViewActivities: () => void
+  onRecordActivity: () => void
+}) {
   return (
-    <div className="rounded-xl border border-gray-200 bg-white shadow-sm p-4 sm:p-5 flex flex-col gap-3">
-      {/* Top row: status + days to harvest */}
-      <div className="flex items-center justify-between">
-        <span className={`inline-block rounded px-2.5 py-[3px] text-[11px] font-bold tracking-wide ${cycle.status === 'completed'
-          ? 'bg-gray-200 text-gray-700'
-          : 'bg-[#2E5A27] text-white'
-          }`}>
-          {cycle.status}
-        </span>
-        {cycle.daysToHarvest !== undefined && (
-          <span className="text-xs text-gray-500 font-medium">{cycle.daysToHarvest} days to harvest</span>
-        )}
+    <div className="group relative rounded-md border border-gray-200 bg-white p-6 shadow-sm hover:border-brand/40 hover:shadow-lg transition-all overflow-hidden flex flex-col">
+      <div className="absolute top-0 right-0 p-3 opacity-10 pointer-events-none transition-opacity group-hover:opacity-20 scale-150">
+        <Layers className="size-16 text-brand" />
       </div>
 
-      {/* Crop name + variety */}
-      <div>
-        <h3 className="text-lg font-bold text-gray-900 leading-tight">
-          {cycle.productName}
-          {cycle.variety && <span className="text-sm font-normal text-gray-500 ml-1">({cycle.variety})</span>}
-        </h3>
-        <p className="text-[13px] text-gray-700 font-medium mt-0.5">{cycle.farmName}</p>
-        <p className="text-[12px] text-gray-400">{cycle.farmLocation}</p>
-      </div>
-
-      {/* Farmer */}
-      <div className="flex items-center gap-2">
-        <div
-          className="size-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0"
-          style={{ backgroundColor: cycle.farmerColor }}
-        >
-          {cycle.farmerInitials}
+      <div className="mb-6 flex items-start justify-between relative z-10">
+        <div className="flex size-12 items-center justify-center rounded-2xl bg-brand/5 text-brand shadow-sm border border-brand/10">
+          <CheckCircle2 className="size-6" />
         </div>
-        <span className="text-xs text-gray-600 truncate">{cycle.farmer}</span>
+        <Badge className={cn(
+          "px-3 py-1 text-[9px] font-bold uppercase tracking-widest border shadow-none",
+          (cycle.status || '').toLowerCase() === 'harvested'
+            ? 'bg-gray-100 text-gray-400 border-gray-200'
+            : 'bg-green-50 text-brand border-green-100'
+        )}>
+          {cycle.status}
+        </Badge>
       </div>
 
-      {/* Planted + Area */}
-      <div className="flex items-center justify-between text-[12px] text-gray-500">
-        <span>Planted: <span className="font-semibold text-gray-700">{cycle.plantedDate || '—'}</span></span>
-        <span>Area: <span className="font-semibold text-gray-700">{cycle.area || '—'}</span></span>
+      <div className="mb-6 relative z-10">
+        <h4 className="text-base font-bold text-gray-900 uppercase tracking-tight mb-1 truncate">
+          {cycle.cropName}
+        </h4>
+        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest italic">{cycle.variety || 'No Variety'}</p>
       </div>
 
-      {/* Actions */}
-      <div className="flex flex-col gap-2 mt-1">
-        <Link to={`/cooperative/crop-cycle/${cycle.id}`} className="block">
-          <Button
-            variant="outline"
-            className="w-full h-9 text-xs font-medium text-gray-700 border-gray-200 bg-white hover:bg-gray-50 rounded-lg gap-1.5"
-          >
-            <svg className="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-            </svg>
-            View Activities
-          </Button>
-        </Link>
-        <Link to={`/cooperative/operations/new?cycleId=${cycle.id}`} className="block">
-          <Button className="w-full h-9 text-xs font-semibold bg-[#2E5A27] hover:bg-[#1e3d1a] text-white border-none rounded-lg shadow-none">
-            Record Operation
-          </Button>
-        </Link>
+      <div className="space-y-4 mb-8 pt-6 border-t border-gray-50 relative z-10 text-[11px] font-bold uppercase tracking-tight text-gray-400">
+        <div className="flex items-center justify-between">
+          <span className="flex items-center gap-2 italic text-gray-300"><Calendar className="size-3" /> Planted</span>
+          <span className="text-gray-900">{cycle.plantingDate ? new Date(cycle.plantingDate).toLocaleDateString() : 'Not Set'}</span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="flex items-center gap-2 italic text-gray-300"><Clock className="size-3" /> Area</span>
+          <span className="text-gray-900">{cycle.areaPlantedHectares || '0.00'} Hectares</span>
+        </div>
+        <div className="flex items-center border-t border-gray-50 pt-3 mt-1">
+          <div className="size-6 rounded-full bg-brand/10 flex items-center justify-center text-[9px] text-brand border border-brand/20 mr-2 shadow-sm">
+            {cycle.farmerInitials}
+          </div>
+          <span className="text-gray-500 italic lowercase truncate max-w-[140px]">{cycle.farmer}</span>
+        </div>
+      </div>
+
+      <div className="mt-auto flex flex-col gap-2 relative z-10">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onViewActivities}
+          className="w-full h-10 text-[10px] font-bold uppercase tracking-wider border-gray-100 hover:bg-gray-50 text-gray-600 gap-1.5 shadow-none"
+        >
+          View Activities
+        </Button>
+        <Button
+          type="button"
+          onClick={onRecordActivity}
+          className="w-full h-10 bg-brand/5 text-brand hover:bg-brand hover:text-white border border-brand/10 shadow-none font-bold uppercase tracking-wider text-[10px] gap-2"
+        >
+          <Activity className="size-4" />
+          Record Activity
+        </Button>
       </div>
     </div>
   )

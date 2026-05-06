@@ -1,6 +1,7 @@
 import {
   CircleDollarSign,
   FlaskConical,
+  Loader2,
   Ruler,
   Sprout,
   Sun,
@@ -9,7 +10,7 @@ import {
   Wheat
 } from 'lucide-react'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '~/components/ui/dialog'
-import type { CropCycle } from '~/lib/api/generated/models'
+import { useGetFarmsCropCyclesIdOperations as useGetCropCylesOperations } from '~/lib/api/generated/farms-operations/farms-operations'
 import type { CropCycle } from '~/lib/api/generated/models'
 
 interface ViewActivitiesModalProps {
@@ -18,7 +19,6 @@ interface ViewActivitiesModalProps {
   cropCycle: (CropCycle & Record<string, any>) | null
 }
 
-// Mock Activity Data (will be replaced by API calls later)
 interface Activity {
   id: string
   title: string
@@ -31,53 +31,6 @@ interface Activity {
   iconType: 'land-prep' | 'planting' | 'fertilizer' | 'harvesting'
 }
 
-const mockActivities: Activity[] = [
-  {
-    id: 'act-1',
-    title: 'Land_preparation',
-    date: '2/13/2026',
-    description: 'Got Tractors from Hello Tractor',
-    operator: 'Fashola',
-    area: '25 ha',
-    weather: 'sunny',
-    cost: '₦99999.92',
-    iconType: 'land-prep',
-  },
-  {
-    id: 'act-2',
-    title: 'Planting',
-    date: '2/13/2026',
-    description: 'xfagffikmdfinkcrr',
-    operator: 'Fashola',
-    area: '24.94 ha',
-    weather: 'sunny',
-    cost: '₦49999.95',
-    iconType: 'planting',
-  },
-  {
-    id: 'act-3',
-    title: 'Fertilizing',
-    date: '2/13/2026',
-    description: 'hgdfhgkjed',
-    operator: 'Fashola',
-    area: '25 ha',
-    weather: 'sunny',
-    cost: '₦2999999.95',
-    iconType: 'fertilizer',
-  },
-  {
-    id: 'act-4',
-    title: 'Harvesting',
-    date: '2/13/2026',
-    description: 'dgvkjlwejdygjhe',
-    operator: 'Fashola',
-    area: '50.87 ha',
-    weather: 'sunny',
-    cost: '₦149999.97',
-    iconType: 'harvesting',
-  },
-]
-
 const activityIconMap: Record<Activity['iconType'], React.ElementType> = {
   'land-prep': Tractor,
   planting: Sprout,
@@ -86,6 +39,51 @@ const activityIconMap: Record<Activity['iconType'], React.ElementType> = {
 }
 
 export function ViewActivitiesModal({ isOpen, onClose, cropCycle }: ViewActivitiesModalProps) {
+  const cropCycleId = cropCycle?.id ?? ''
+  const {
+    data: operationsResponse,
+    isLoading,
+    isError,
+  } = useGetCropCylesOperations(cropCycleId, {
+    query: { enabled: isOpen && !!cropCycleId },
+  })
+
+  const operations = Array.isArray(operationsResponse?.data?.data)
+    ? operationsResponse.data.data
+    : []
+
+  const formatOperationType = (value: string) =>
+    value
+      .replaceAll('_', ' ')
+      .replace(/\b\w/g, (c) => c.toUpperCase())
+
+  const getIconType = (operationType: string): Activity['iconType'] => {
+    if (operationType.includes('plant')) return 'planting'
+    if (operationType.includes('fertilizer')) return 'fertilizer'
+    if (operationType.includes('harvest')) return 'harvesting'
+    return 'land-prep'
+  }
+
+  const mappedActivities: Activity[] = operations.map((op: any) => ({
+    id: op.id,
+    title: formatOperationType(op.operationType || 'other'),
+    date: op.operationDate
+      ? new Date(op.operationDate).toLocaleDateString()
+      : 'N/A',
+    description: op.description || op.notes || undefined,
+    operator: op.performedBy || undefined,
+    area:
+      op.inputQuantity && op.inputUnit
+        ? `${op.inputQuantity} ${op.inputUnit}`
+        : undefined,
+    weather: op.weatherConditions || undefined,
+    cost:
+      typeof op.costIncurred === 'number'
+        ? `₦${op.costIncurred.toLocaleString()}`
+        : undefined,
+    iconType: getIconType(op.operationType || ''),
+  }))
+
   if (!isOpen || !cropCycle) return null
 
   return (
@@ -95,12 +93,15 @@ export function ViewActivitiesModal({ isOpen, onClose, cropCycle }: ViewActiviti
         className="fixed top-0 right-0 bottom-0 left-auto m-0 h-full w-full max-w-md translate-x-0 translate-y-0 flex-col gap-0 rounded-none border-l bg-white p-0 shadow-2xl duration-300 outline-none flex data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right sm:max-w-md"
       >
         {/* Header Section */}
-        <DialogHeader className="flex flex-row items-start bg-white z-10 p-6 flex-shrink-0 relative border-b border-gray-100 space-y-0 text-left">
+        <DialogHeader className="flex flex-row items-start bg-white z-10 p-6 shrink-0 relative border-b border-gray-100 space-y-0 text-left">
           <div className="flex-1 space-y-4">
             <DialogTitle className="text-lg font-bold text-brand-dark">Crop Cycle Activities</DialogTitle>
             <DialogDescription className="space-y-1">
               <p className="font-semibold text-gray-900 text-sm">
-                {cropCycle.productName} <span className="text-gray-500 font-normal">({cropCycle.variety})</span>
+                {cropCycle.cropName || (cropCycle as { productName?: string }).productName || 'Crop'}
+                {cropCycle.variety ? (
+                  <span className="text-gray-500 font-normal"> ({cropCycle.variety})</span>
+                ) : null}
               </p>
               <p className="text-gray-600 text-sm">{cropCycle.farmName}</p>
               <p className="text-gray-400 text-xs mt-1">
@@ -127,7 +128,27 @@ export function ViewActivitiesModal({ isOpen, onClose, cropCycle }: ViewActiviti
             {/* Vertical Connecting Line */}
             <div className="absolute left-[17px] top-4 bottom-8 w-px bg-gray-200" />
 
-            {mockActivities.map((activity) => (
+            {isLoading && (
+              <div className="flex items-center justify-center py-10">
+                <Loader2 className="size-5 animate-spin text-gray-400" />
+                <span className="ml-2 text-sm text-gray-500">Loading activities...</span>
+              </div>
+            )}
+
+            {isError && !isLoading && (
+              <div className="rounded-md border border-red-100 bg-red-50 p-4 text-sm text-red-600">
+                Failed to load activity log. Please try again.
+              </div>
+            )}
+
+            {!isLoading && !isError && mappedActivities.length === 0 && (
+              <div className="rounded-md border border-gray-100 bg-gray-50 p-6 text-center">
+                <p className="text-sm font-medium text-gray-600">No activities recorded yet.</p>
+                <p className="mt-1 text-xs text-gray-400">Record an operation to see it here.</p>
+              </div>
+            )}
+
+            {!isLoading && !isError && mappedActivities.map((activity) => (
               <div key={activity.id} className="flex gap-4 group">
 
                 {/* Timeline Node Icon */}

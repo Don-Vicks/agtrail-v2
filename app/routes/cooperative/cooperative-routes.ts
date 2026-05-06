@@ -10,6 +10,8 @@ export const cooperativeRoutes: RouteConfig = [
     route('cooperative/farms/:id', 'routes/cooperative/farm-details.tsx'),
     route('cooperative/products', 'routes/cooperative/products/index.tsx'),
     route('cooperative/products/:id', 'routes/cooperative/products/story.tsx'),
+    route('cooperative/inventory', 'routes/cooperative/inventory.tsx'),
+    route('cooperative/personnel', 'routes/cooperative/personnel.tsx'),
     route('cooperative/operations/start', 'routes/cooperative/operations/start.tsx'),
     
     // Operations duplicated from farmer routes
@@ -46,5 +48,10 @@ export const cooperativeRoutes: RouteConfig = [
 
     // Settings
     route('cooperative/settings', 'routes/cooperative/settings/settings-root.tsx'),
+
+    // Transfer
+    route('cooperative/transfer/product-transfer', 'routes/cooperative/cooperative-product-transfer.tsx'),
+    route('cooperative/transfer/pickup', 'routes/cooperative/cooperative-pickup.tsx'),
+    route('cooperative/transfer/history', 'routes/cooperative/cooperative-transfer-history.tsx'),
   ])
 ]

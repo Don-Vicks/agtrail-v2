@@ -2,7 +2,7 @@ import { useCallback, useMemo, useRef, useState } from 'react'
 
 import { StepIndicator, SubStepIndicator } from '~/components/step-indicator'
 import { COUNTRIES, DEFAULT_COUNTRY_CODE } from '~/lib/data/countries'
-import { NIGERIA_STATES } from '~/lib/data/nigeria-states'
+import { sortedLgasForStateName, sortedNigeriaStates } from '~/lib/nigeria-geo-options'
 import type { Route } from './+types/farmer-registration'
 
 export function meta({ }: Route.MetaArgs) {
@@ -84,9 +84,9 @@ const VERIFICATION_SUB_STEPS = [
 /* ─── Shared input styles ─── */
 
 const inputClass =
-  'h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand'
+  'h-11 w-full rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand'
 const selectClass =
-  'h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand appearance-none cursor-pointer'
+  'h-11 w-full rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand appearance-none cursor-pointer'
 const labelClass = 'block text-sm font-semibold text-gray-900'
 
 /* ─── Page component ─── */
@@ -113,11 +113,12 @@ export default function FarmerRegistrationPage() {
   const [cameraActive, setCameraActive] = useState(false)
   const [selfieCapture, setSelfieCapture] = useState<string | null>(null)
 
-  // Derive LGAs from selected state
+  const nigeriaStatesSorted = useMemo(() => sortedNigeriaStates(), [])
+
+  // Derive LGAs from selected state (full state name)
   const availableLgas = useMemo(() => {
     if (country !== 'NG' || !state) return []
-    const found = NIGERIA_STATES.find((s) => s.name === state)
-    return found?.lgas ?? []
+    return sortedLgasForStateName(state).map((l) => l.name)
   }, [country, state])
 
   // Whether to show Nigeria-specific fields (State / LGA)
@@ -175,7 +176,7 @@ export default function FarmerRegistrationPage() {
         <StepIndicator steps={MAIN_STEPS} currentStep={mainStep} className="mt-6" />
 
         {/* ─── Step Content ─── */}
-        <div className="mt-8 rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
+        <div className="mt-8 rounded-md border border-gray-100 bg-white p-6 shadow-sm">
           {mainStep === 0 && (
             <LocationStep
               country={country}
@@ -189,6 +190,7 @@ export default function FarmerRegistrationPage() {
               address={address}
               setAddress={setAddress}
               isNigeria={isNigeria}
+              nigeriaStatesSorted={nigeriaStatesSorted}
               availableLgas={availableLgas}
               onContinue={handleContinueToVerification}
             />
@@ -239,6 +241,7 @@ interface LocationStepProps {
   address: string
   setAddress: (v: string) => void
   isNigeria: boolean
+  nigeriaStatesSorted: { name: string; code: string }[]
   availableLgas: string[]
   onContinue: () => void
 }
@@ -250,6 +253,7 @@ function LocationStep({
   lga, setLga,
   address, setAddress,
   isNigeria,
+  nigeriaStatesSorted,
   availableLgas,
   onContinue,
 }: LocationStepProps) {
@@ -304,8 +308,10 @@ function LocationStep({
               className={selectClass}
             >
               <option value="">Select State</option>
-              {NIGERIA_STATES.map((s) => (
-                <option key={s.name} value={s.name}>{s.name}</option>
+              {nigeriaStatesSorted.map((s) => (
+                <option key={s.code} value={s.name}>
+                  {s.name}
+                </option>
               ))}
             </select>
             <ChevronDown />
@@ -348,7 +354,7 @@ function LocationStep({
           placeholder="Enter your full address"
           value={address}
           onChange={(e) => setAddress(e.target.value)}
-          className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+          className="w-full rounded-md border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
         />
       </div>
 
@@ -356,14 +362,14 @@ function LocationStep({
       <div className="flex items-center gap-3 pt-2">
         <button
           type="button"
-          className="h-11 flex-1 rounded-lg border border-gray-300 bg-white text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50"
+          className="h-11 flex-1 rounded-md border border-gray-300 bg-white text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50"
         >
           Skip for now
         </button>
         <button
           type="button"
           onClick={onContinue}
-          className="flex h-11 flex-1 items-center justify-center gap-2 rounded-lg bg-brand text-sm font-semibold text-white transition-colors hover:bg-brand-light"
+          className="flex h-11 flex-1 items-center justify-center gap-2 rounded-md bg-brand text-sm font-semibold text-white transition-colors hover:bg-brand-light"
         >
           Continue to Verification
           <ArrowRightIcon />
@@ -492,14 +498,14 @@ function VerifyCountrySubStep({
         type="button"
         onClick={onContinue}
         disabled={!country}
-        className="h-11 w-full rounded-lg bg-brand text-sm font-semibold text-white transition-colors hover:bg-brand-light disabled:opacity-50"
+        className="h-11 w-full rounded-md bg-brand text-sm font-semibold text-white transition-colors hover:bg-brand-light disabled:opacity-50"
       >
         Continue
       </button>
 
       <button
         type="button"
-        className="h-11 w-full rounded-lg border border-gray-300 bg-white text-sm font-semibold text-gray-700 hover:bg-gray-50"
+        className="h-11 w-full rounded-md border border-gray-300 bg-white text-sm font-semibold text-gray-700 hover:bg-gray-50"
       >
         Skip for now
       </button>
@@ -555,7 +561,7 @@ function VerifyIdSubStep({
         type="button"
         onClick={onContinue}
         disabled={nin.length !== 11}
-        className="h-11 w-full rounded-lg bg-brand text-sm font-semibold text-white transition-colors hover:bg-brand-light disabled:opacity-50"
+        className="h-11 w-full rounded-md bg-brand text-sm font-semibold text-white transition-colors hover:bg-brand-light disabled:opacity-50"
       >
         Continue to Selfie
       </button>
@@ -566,7 +572,7 @@ function VerifyIdSubStep({
 
       <button
         type="button"
-        className="h-11 w-full rounded-lg border border-gray-300 bg-white text-sm font-semibold text-gray-700 hover:bg-gray-50"
+        className="h-11 w-full rounded-md border border-gray-300 bg-white text-sm font-semibold text-gray-700 hover:bg-gray-50"
       >
         Skip for now
       </button>
@@ -597,7 +603,7 @@ function VerifySelfieSubStep({
       </div>
 
       {/* Camera viewfinder */}
-      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-xl bg-gray-900">
+      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-md bg-gray-900">
         <video
           ref={videoRef}
           autoPlay
@@ -615,7 +621,7 @@ function VerifySelfieSubStep({
             <button
               type="button"
               onClick={startCamera}
-              className="flex items-center gap-2 rounded-lg bg-white/20 px-4 py-2 text-sm font-medium text-white hover:bg-white/30"
+              className="flex items-center gap-2 rounded-md bg-white/20 px-4 py-2 text-sm font-medium text-white hover:bg-white/30"
             >
               <CameraIcon /> Enable Camera
             </button>
@@ -627,7 +633,7 @@ function VerifySelfieSubStep({
         type="button"
         onClick={capturePhoto}
         disabled={!cameraActive}
-        className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-brand text-sm font-semibold text-white transition-colors hover:bg-brand-light disabled:opacity-50"
+        className="flex h-11 w-full items-center justify-center gap-2 rounded-md bg-brand text-sm font-semibold text-white transition-colors hover:bg-brand-light disabled:opacity-50"
       >
         <CameraIcon /> Capture Photo
       </button>
@@ -671,7 +677,7 @@ function VerifyCompleteSubStep({
 
       <button
         type="button"
-        className="h-11 w-full rounded-lg bg-brand text-sm font-semibold text-white transition-colors hover:bg-brand-light"
+        className="h-11 w-full rounded-md bg-brand text-sm font-semibold text-white transition-colors hover:bg-brand-light"
       >
         Go to Dashboard
       </button>

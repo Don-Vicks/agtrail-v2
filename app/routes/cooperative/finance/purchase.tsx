@@ -1,7 +1,32 @@
+import {
+  Activity,
+  ArrowRight,
+  Calendar,
+  CheckCircle2,
+  ChevronDown,
+  Download,
+  FileText,
+  Filter,
+  LayoutDashboard,
+  Plus,
+  Receipt,
+  Search,
+  ShoppingCart,
+  Users,
+  Wallet
+} from 'lucide-react'
 import { useState } from 'react'
+import { toast } from 'sonner'
+import { EmptyState } from '~/components/empty-state'
 import { PageHeader } from '~/components/page-header'
+import { Button } from '~/components/ui/button'
 import { DatePicker } from '~/components/ui/date-picker'
-import { cooperativeFarms as farms, cooperativeFarmers as farmers, recentPurchases as RECENT_PURCHASES } from '~/lib/mock-data/cooperative'
+import { Input } from '~/components/ui/input'
+import { useGetFarms } from '~/lib/api/generated/farms/farms'
+import type { PostPurchasesBody, PostPurchasesBodyProductType } from '~/lib/api/generated/models'
+import { useGetOrganizationsMembers } from '~/lib/api/generated/organizations-members/organizations-members'
+import { usePostPurchases } from '~/lib/api/generated/purchases/purchases'
+
 import type { Route } from './+types/purchase'
 
 export function meta({ }: Route.MetaArgs) {
@@ -12,187 +37,316 @@ export function meta({ }: Route.MetaArgs) {
 }
 
 export default function RecordPurchasePage() {
+  const [search, setSearch] = useState('')
   const [date, setDate] = useState('')
-  const [amount, setAmount] = useState('0')
+  const [quantity, setQuantity] = useState('')
+  const [unit, setUnit] = useState('kg')
+  const [pricePerUnit, setPricePerUnit] = useState('0')
   const [account, setAccount] = useState('')
-  const [farm, setFarm] = useState('')
-  const [beneficiary, setBeneficiary] = useState('')
+  const [productType, setProductType] = useState<PostPurchasesBodyProductType>('farm_product')
+  const [toUserId, setToUserId] = useState('')
+  const [farmProductId, setFarmProductId] = useState('')
   const [description, setDescription] = useState('')
 
+  const { data: farmsResponse } = useGetFarms()
+  const farms = farmsResponse?.data?.data || []
+
+  const { data: membersResponse } = useGetOrganizationsMembers()
+  const members = membersResponse?.data?.data || []
+
+  const { mutateAsync: submitPurchase, isPending } = usePostPurchases()
+
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    const parsedQuantity = parseFloat(quantity)
+    if (
+      !toUserId?.trim() ||
+      !quantity ||
+      !unit ||
+      Number.isNaN(parsedQuantity) ||
+      parsedQuantity <= 0
+    ) {
+      toast.error('Please fill in beneficiary, unit, and a positive quantity.')
+      return
+    }
+
+    try {
+      const purchaseData: PostPurchasesBody = {
+        productType,
+        toUserId: toUserId.trim(),
+        quantityTransferred: parsedQuantity,
+        unit,
+        pricePerUnit: pricePerUnit ? parseFloat(pricePerUnit) : undefined,
+        totalPrice: pricePerUnit && quantity ? parseFloat(pricePerUnit) * parseFloat(quantity) : undefined,
+        currency: 'NGN',
+        notes: description,
+        ...(farmProductId && { farmProductId }),
+        ...(date && { expectedDeliveryDate: date }),
+      }
+
+      await submitPurchase({ data: purchaseData })
+      toast.success('Purchase recorded successfully')
+
+      // Reset form
+      setDate('')
+      setQuantity('')
+      setPricePerUnit('0')
+      setAccount('')
+      setToUserId('')
+      setFarmProductId('')
+      setDescription('')
+    } catch (error) {
+      console.error('Failed to record purchase:', error)
+      toast.error('Failed to record purchase. Please try again.')
+    }
+  }
+
   return (
-    <div className="space-y-8">
-      {/* Breadcrumbs */}
+    <div className="space-y-6 pb-10 px-1">
       <PageHeader
         items={[
           {
             label: 'Dashboard',
             href: '/cooperative',
-            icon: (
-              <svg className="size-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                <line x1="9" y1="3" x2="9" y2="21" />
-              </svg>
-            ),
+            icon: <LayoutDashboard className="size-4 text-gray-400" />,
           },
-          { label: 'Finance' },
-          { label: 'Record Purchase' },
+          { label: 'Finance', icon: <Wallet className="size-4 text-gray-400" /> },
+          { label: 'Register Purchase' },
         ]}
       />
 
-      {/* Main Form Section */}
-      <div>
-        <h1 className="mb-6 text-2xl font-bold uppercase text-brand">Record Farm Purchase</h1>
+      {/* Page Title Section */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-left">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 uppercase tracking-tight">Register Purchase</h1>
+          <p className="text-sm text-gray-500 mt-1">Log produce purchases from members into the records</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            className="flex items-center gap-2 h-11 px-4 text-[11px] font-bold uppercase tracking-wider text-gray-600 border-gray-200"
+            onClick={() => document.getElementById('table-search')?.focus()}
+          >
+            <Search className="size-4" />
+            <span className="hidden sm:inline">Search</span>
+          </Button>
+        </div>
+      </div>
 
-        <form className="space-y-6">
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            {/* Date */}
-            <div className="space-y-1.5">
-              <label htmlFor="date" className="block text-sm font-bold text-gray-900">
-                Date
+
+      {/* Entry Form Card: High Density Layout */}
+      <div className="rounded-md border border-gray-200 bg-white p-6 shadow-sm">
+        <div className="flex items-center justify-between mb-8 pb-4 border-b border-gray-50 text-left">
+          <div className="flex items-center gap-3">
+            <div className="size-10 rounded-md bg-brand/5 border border-brand/10 flex items-center justify-center text-brand">
+              <Plus className="size-5" />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-gray-900 uppercase tracking-tight">Purchase Details</h2>
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Enter purchase information</p>
+            </div>
+          </div>
+        </div>
+
+        <form className="space-y-6 text-left" onSubmit={handleSubmit}>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="space-y-2">
+              <label className="text-[11px] font-bold uppercase tracking-widest text-gray-400 flex items-center gap-2">
+                <Calendar className="size-3 text-brand" /> Date
               </label>
               <DatePicker
                 value={date}
                 onChange={setDate}
-                className="w-full rounded-md border border-gray-300 bg-white py-2 px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+                className="h-11 w-full rounded-md border border-gray-100 bg-gray-50/50 px-4 focus:border-brand focus:ring-1 focus:ring-brand focus:bg-white transition-all shadow-none"
               />
             </div>
 
-            {/* Payment Amount */}
-            <div className="space-y-1.5">
-              <label htmlFor="amount" className="block text-sm font-bold text-gray-900">
-                Payment Amount
-              </label>
-              <input
-                id="amount"
-                type="number"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                className="w-full rounded-md border border-gray-300 bg-white py-2 px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            {/* Payment Account */}
-            <div className="space-y-1.5 md:col-span-1">
-              <label htmlFor="account" className="block text-sm font-bold text-gray-900">
-                Payment Account
+            <div className="space-y-2">
+              <label className="text-[11px] font-bold uppercase tracking-widest text-gray-400 flex items-center gap-2">
+                <FileText className="size-3 text-brand" /> Product Category <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <select
-                  id="account"
-                  value={account}
-                  onChange={(e) => setAccount(e.target.value)}
-                  className="w-full appearance-none rounded-md border border-gray-300 bg-white py-2 px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+                  value={productType}
+                  onChange={(e) => setProductType(e.target.value as PostPurchasesBodyProductType)}
+                  required
+                  className="h-11 w-full flex items-center justify-between rounded-md border border-gray-100 bg-gray-50/50 px-4 py-2 text-sm font-bold uppercase tracking-wider text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand appearance-none"
                 >
-                  <option value="">Select account</option>
-                  <option value="Cash">Cash</option>
-                  <option value="Bank Transfer">Bank Transfer</option>
-                  <option value="Mobile Money">Mobile Money</option>
+                  <option value="farm_product">Farm Product</option>
+                  <option value="batch_product">Batch Product</option>
+                  <option value="livestock">Livestock</option>
+                  <option value="aquaculture">Aquaculture</option>
+                  <option value="dairy">Dairy</option>
                 </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                  <svg className="size-4 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                  </svg>
-                </div>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-gray-400 pointer-events-none" />
               </div>
             </div>
-          </div>
 
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            {/* Farm */}
-            <div className="space-y-1.5">
-              <label htmlFor="farm" className="block text-sm font-bold text-gray-900">
-                Farm
+            <div className="space-y-2">
+              <label className="text-[11px] font-bold uppercase tracking-widest text-gray-400 flex items-center gap-2">
+                <Users className="size-3 text-brand" /> Member <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <select
-                  id="farm"
-                  value={farm}
-                  onChange={(e) => setFarm(e.target.value)}
-                  className="w-full appearance-none rounded-md border border-gray-300 bg-white py-2 px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+                  value={toUserId}
+                  onChange={(e) => setToUserId(e.target.value)}
+                  required
+                  className="h-11 w-full flex items-center justify-between rounded-md border border-gray-100 bg-gray-50/50 px-4 py-2 text-sm font-bold uppercase tracking-wider text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand appearance-none"
                 >
-                  <option value="">Select farm</option>
-                  {farms.map((f) => (
-                    <option key={f.id} value={f.name}>{f.name}</option>
+                  <option value="">Select members...</option>
+                  {members.map((member) => (
+                    <option key={member.id} value={member.userId}>{member.userId}</option>
                   ))}
                 </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                  <svg className="size-4 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                  </svg>
-                </div>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-gray-400 pointer-events-none" />
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-[11px] font-bold uppercase tracking-widest text-gray-400">
+                  Quantity <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  type="number"
+                  required
+                  value={quantity}
+                  onChange={(e) => setQuantity(e.target.value)}
+                  placeholder="0.00"
+                  className="h-11 w-full rounded-md border border-gray-100 bg-gray-50/50 px-4 text-sm font-bold text-gray-700 focus:border-brand focus:ring-1 focus:ring-brand focus:bg-white transition-all shadow-none"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[11px] font-bold uppercase tracking-widest text-gray-400">
+                  Unit <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  type="text"
+                  required
+                  value={unit}
+                  onChange={(e) => setUnit(e.target.value)}
+                  placeholder="KG"
+                  className="h-11 w-full rounded-md border border-gray-100 bg-gray-50/50 px-4 text-sm font-bold uppercase text-gray-700 focus:border-brand focus:ring-1 focus:ring-brand focus:bg-white transition-all shadow-none"
+                />
               </div>
             </div>
 
-            {/* Beneficiary */}
-            <div className="space-y-1.5">
-              <label htmlFor="beneficiary" className="block text-sm font-bold text-gray-900">
-                Beneficiary
+            <div className="space-y-2">
+              <label className="text-[11px] font-bold uppercase tracking-widest text-gray-400">
+                Bid Price (₦)
               </label>
-              <input
-                id="beneficiary"
+              <Input
+                type="number"
+                value={pricePerUnit}
+                onChange={(e) => setPricePerUnit(e.target.value)}
+                placeholder="0.00"
+                className="h-11 w-full rounded-md border border-gray-100 bg-gray-50/50 px-4 text-sm font-bold text-gray-700 focus:border-brand focus:ring-1 focus:ring-brand focus:bg-white transition-all shadow-none"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[11px] font-bold uppercase tracking-widest text-gray-400">
+                Payment Account
+              </label>
+              <Input
                 type="text"
-                value={beneficiary}
-                onChange={(e) => setBeneficiary(e.target.value)}
-                className="w-full rounded-md border border-gray-300 bg-white py-2 px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+                value={account}
+                onChange={(e) => setAccount(e.target.value)}
+                placeholder="Central Treasury Ref"
+                className="h-11 w-full rounded-md border border-gray-100 bg-gray-50/50 px-4 text-sm font-bold uppercase text-gray-700 focus:border-brand focus:ring-1 focus:ring-brand focus:bg-white transition-all shadow-none"
               />
             </div>
           </div>
 
-          {/* Description */}
-          <div className="space-y-1.5">
-            <label htmlFor="description" className="block text-sm font-bold text-gray-900">
-              Description
+          <div className="space-y-2">
+            <label className="text-[11px] font-bold uppercase tracking-widest text-gray-400">
+              Notes
             </label>
             <textarea
-              id="description"
-              rows={4}
-              placeholder="Enter description"
+              rows={3}
+              placeholder="Add any relevant notes for this purchase..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full resize-none rounded-lg border border-gray-300 bg-white p-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+              className="w-full resize-none rounded-md border border-gray-100 bg-gray-50/50 p-4 text-sm font-medium text-gray-700 placeholder:text-gray-300 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white transition-all"
             />
           </div>
 
-          <button
-            type="button"
-            className="w-full rounded-md bg-[#1b5e20] py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-[#2e7d32] active:scale-[0.99]"
-          >
-            Log Payment
-          </button>
+          <div className="flex justify-end pt-4 border-t border-gray-50 mt-8">
+            <Button
+              type="submit"
+              disabled={isPending}
+              className="bg-brand hover:bg-black text-white font-bold uppercase tracking-wider text-[11px] h-12 px-10 shadow-lg shadow-brand/10 transition-all active:scale-[0.98] flex items-center gap-3"
+            >
+              {isPending ? <Activity className="size-4 animate-spin" /> : <CheckCircle2 className="size-4" />}
+              {isPending ? 'Processing...' : 'Register Purchase'}
+            </Button>
+          </div>
         </form>
       </div>
 
-      {/* Recent Purchases Table */}
-      <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-        <h2 className="mb-6 text-xl font-bold text-brand">Recent Purchases</h2>
+      {/* Audit History Card: Professional High Density */}
+      <div className="rounded-md border border-gray-200 bg-white shadow-sm overflow-hidden flex flex-col">
+        <div className="p-6 border-b border-gray-100 flex flex-col lg:flex-row lg:items-center justify-between bg-white text-left gap-6">
+          <div className="flex items-center gap-4">
+            <div className="size-11 rounded-md bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-400">
+              <ShoppingCart className="size-5" />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-gray-900 uppercase tracking-tight">Purchase History</h2>
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">History of all produce purchases</p>
+            </div>
+          </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-gray-600">
-            <thead className="border-b border-gray-100 bg-gray-50/50">
-              <tr>
-                <th className="px-4 py-3 font-semibold text-gray-900">Date</th>
-                <th className="px-4 py-3 font-semibold text-gray-900">Farmer</th>
-                <th className="px-4 py-3 font-semibold text-gray-900">Farm</th>
-                <th className="px-4 py-3 font-semibold text-gray-900">Beneficiary</th>
-                <th className="px-4 py-3 font-semibold text-gray-900">Account</th>
-                <th className="px-4 py-3 font-semibold text-gray-900 whitespace-nowrap text-right">Amount</th>
-              </tr>
-            </thead>
-            <tbody>
-              {RECENT_PURCHASES.map((purchase, i) => (
-                <tr key={i} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/30">
-                  <td className="whitespace-nowrap px-4 py-4 font-bold text-gray-900">{purchase.date}</td>
-                  <td className="px-4 py-4">{purchase.farmer}</td>
-                  <td className="px-4 py-4">{purchase.farm}</td>
-                  <td className="px-4 py-4">{purchase.beneficiary}</td>
-                  <td className="px-4 py-4">{purchase.account}</td>
-                  <td className="whitespace-nowrap px-4 py-4 font-bold text-gray-900 text-right">{purchase.amount}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="flex flex-col sm:flex-row items-center gap-4">
+            <div className="relative w-full sm:w-80">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
+              <input
+                id="table-search"
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search records..."
+                className="w-full h-10 rounded-md border border-gray-100 bg-gray-50/50 pl-10 pr-4 py-2 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white transition-all shadow-none"
+              />
+            </div>
+            <Button variant="outline" className="h-10 px-4 text-[11px] font-bold uppercase tracking-wider text-gray-400 border-gray-100">
+              <Filter className="size-3.5 mr-2" />
+              Advanced
+            </Button>
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-x-auto min-h-[400px] flex flex-col">
+          <EmptyState
+            icon={<Receipt className="size-12 text-gray-100" />}
+            title={search ? "No Records Found" : "No History"}
+            description={search ? `No purchases found for search "${search}"` : "Your purchase history will appear here once you log a purchase."}
+            action={search ? { label: "Clear Search", onClick: () => setSearch('') } : undefined}
+          />
+        </div>
+
+        <div className="px-6 py-6 border-t border-gray-50 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-gray-400 font-bold uppercase tracking-tight bg-gray-50/20">
+          <div className="flex items-center gap-3">
+            <span className="size-2 rounded-full bg-brand/30 animate-pulse" />
+            <span className="text-gray-900">Total Purchases: 0</span>
+          </div>
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" className="h-9 px-4 text-[10px] font-bold uppercase tracking-wider text-gray-500 hover:bg-white hover:text-brand transition-all gap-2">
+              <Download className="size-3.5" /> Export PDF
+            </Button>
+            <div className="flex items-center gap-1">
+              <Button variant="ghost" size="icon" className="size-8 text-gray-300" disabled>
+                <ArrowRight className="size-4 rotate-180" />
+              </Button>
+              <Button variant="ghost" size="icon" className="size-8 text-gray-300" disabled>
+                <ArrowRight className="size-4" />
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
     </div>

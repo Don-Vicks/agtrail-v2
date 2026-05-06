@@ -10,6 +10,8 @@ import {
 
 import { queryClient } from "~/lib/query-client";
 import { AuthProvider } from "~/context/auth-context";
+import { OfflineProvider } from "~/context/offline-context";
+import { OfflineBanner } from "~/components/offline/offline-banner";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "~/components/ui/sonner";
 import type { Route } from "./+types/root";
@@ -50,10 +52,13 @@ export default function App() {
   return (
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
       <AuthProvider>
-        <QueryClientProvider client={queryClient}>
-          <Outlet />
-          <Toaster position="top-right" richColors />
-        </QueryClientProvider>
+        <OfflineProvider>
+          <QueryClientProvider client={queryClient}>
+            <OfflineBanner />
+            <Outlet />
+            <Toaster position="top-right" richColors />
+          </QueryClientProvider>
+        </OfflineProvider>
       </AuthProvider>
     </ThemeProvider>
   );

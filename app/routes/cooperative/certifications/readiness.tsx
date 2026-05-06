@@ -1,5 +1,4 @@
 import { PageHeader } from '~/components/page-header'
-import { Breadcrumb } from '~/components/breadcrumb'
 
 export default function CertificationReadiness() {
   const breadcrumbs = [
@@ -15,7 +14,7 @@ export default function CertificationReadiness() {
         <h1 className="text-xl font-bold text-gray-900">Certification Readiness</h1>
         <p className="mt-1 text-sm text-gray-500">Track your progress towards certification</p>
       </div>
-      <div className="bg-white border border-gray-100 rounded-xl p-8 shadow-sm text-center">
+      <div className="bg-white border border-gray-100 rounded-md p-8 shadow-sm text-center">
         <p className="text-gray-500 italic">Readiness assessment content coming soon...</p>
       </div>
     </div>

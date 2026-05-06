@@ -45,6 +45,18 @@ interface SelectOperationModalProps {
 
 export function SelectOperationModal({ isOpen, onClose, cropCycle, basePath = '/farmer/operations/new' }: SelectOperationModalProps) {
   const navigate = useNavigate()
+  const inferBasePath = () => {
+    if (typeof window === 'undefined') return '/farmer/operations/new'
+    const pathname = window.location.pathname
+    if (pathname.startsWith('/cooperative')) return '/cooperative/operations/new'
+    if (pathname.startsWith('/processor')) return '/processor/operations/new'
+    if (pathname.startsWith('/field-agent')) return '/farmer/operations/new'
+    return '/farmer/operations/new'
+  }
+  const resolvedBasePath =
+    basePath === '/farmer/operations/new'
+      ? inferBasePath()
+      : basePath
 
   if (!isOpen || !cropCycle) return null
 
@@ -75,8 +87,10 @@ export function SelectOperationModal({ isOpen, onClose, cropCycle, basePath = '/
               <div>
                 <p className="text-[10px] uppercase tracking-wider text-gray-400">Crop Cycle</p>
                 <p className="text-sm font-semibold text-gray-900">
-                  {cropCycle.productName}
-                  {cropCycle.variety && <span className="ml-1 font-normal text-gray-500">({cropCycle.variety})</span>}
+                  {cropCycle.cropName || (cropCycle as { productName?: string }).productName || 'Crop'}
+                  {cropCycle.variety ? (
+                    <span className="ml-1 font-normal text-gray-500">({cropCycle.variety})</span>
+                  ) : null}
                 </p>
                 <p className="text-xs text-gray-500">Planted: {cropCycle.plantedDate || 'Not set'}</p>
               </div>
@@ -137,7 +151,12 @@ export function SelectOperationModal({ isOpen, onClose, cropCycle, basePath = '/
       <button
         onClick={() => {
           onClose()
-          navigate(`${basePath}/${cropCycle!.id}/${op.id}`)
+          const search = new URLSearchParams()
+          if (cropCycle?.farmId) {
+            search.set('farmId', cropCycle.farmId)
+          }
+          const query = search.toString()
+          navigate(`${resolvedBasePath}/${cropCycle!.id}/${op.id}${query ? `?${query}` : ''}`)
         }}
         className="group flex items-start gap-3 rounded-md border border-gray-200 p-4 text-left transition-all hover:border-brand-light hover:shadow-sm"
       >

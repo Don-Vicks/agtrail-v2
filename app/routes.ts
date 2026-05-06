@@ -7,6 +7,8 @@ import {
 } from '@react-router/dev/routes'
 import { processorRoutes } from './routes/processor/processor-routes'
 import { cooperativeRoutes } from './routes/cooperative/cooperative-routes'
+import { aggregatorRoutes } from './routes/aggregator/aggregator-routes'
+import { fieldAgentRoutes } from './routes/field-agent/field-agent-routes'
 
 // Triggering re-build for new routes
 
@@ -108,10 +110,21 @@ export default [
       route('reports', 'routes/farmer/reports/reports-analytics.tsx'),
 
       // Compliance Analysis
-      route('compliance', 'routes/farmer/compliance/compliance-analysis.tsx'),
+      // Compliance Analysis Workflow
+      ...prefix('compliance', [
+        index('routes/farmer/compliance/compliance-analysis.tsx'),
+        route('market', 'routes/farmer/compliance/market-selection.tsx'),
+        route('readiness', 'routes/farmer/compliance/readiness-check.tsx'),
+        route('report', 'routes/farmer/compliance/compliance-report.tsx'),
+      ]),
 
       // Settings
       route('settings', 'routes/farmer/settings/settings-root.tsx'),
+
+      // Transfer
+      route('transfer/product-transfer', 'routes/farmer/farmer-product-transfer.tsx'),
+      route('transfer/pickup', 'routes/farmer/farmer-pickup.tsx'),
+      route('transfer/history', 'routes/farmer/farmer-transfer-history.tsx'),
     ]),
   ]),
 
@@ -122,6 +135,17 @@ export default [
   //   ]),
   // ]),
 
-  ...processorRoutes,
-  ...cooperativeRoutes,
+  ...processorRoutes as any,
+  ...cooperativeRoutes as any,
+  ...aggregatorRoutes as any,
+  ...fieldAgentRoutes as any,
+
+  // Transporter tenant
+  layout('routes/transporter/layout.tsx', [
+    ...prefix('transporter', [
+      index('routes/transporter/dashboard.tsx'),
+      route('transfer/product-transfer', 'routes/transporter/transporter-transfer-offers.tsx'),
+      route('transfer/history', 'routes/transporter/transporter-transfer-history.tsx'),
+    ]),
+  ]),
 ] satisfies RouteConfig

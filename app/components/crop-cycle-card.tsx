@@ -18,12 +18,11 @@ export function CropCycleCard({ cycle, farmName, farmLocation }: CropCycleCardPr
     : undefined
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white shadow-sm p-4 sm:p-5 flex flex-col gap-3">
+    <div className="rounded-md border border-gray-200 bg-white shadow-sm p-4 sm:p-5 flex flex-col gap-3">
       {/* Top row: status + days to harvest */}
       <div className="flex items-center justify-between">
-        <span className={`inline-block rounded px-2.5 py-[3px] text-[11px] font-bold tracking-wide ${
-          isCompleted ? 'bg-gray-200 text-gray-700' : 'bg-[#2E5A27] text-white'
-        }`}>
+        <span className={`inline-block rounded px-2.5 py-[3px] text-[11px] font-bold tracking-wide ${isCompleted ? 'bg-gray-200 text-gray-700' : 'bg-[#2E5A27] text-white'
+          }`}>
           {statusLabel}
         </span>
         {daysToHarvest !== undefined && !isCompleted && (
@@ -65,7 +64,7 @@ export function CropCycleCard({ cycle, farmName, farmLocation }: CropCycleCardPr
         <Link to={`/farmer/crop-cycle/${cycle.id}`} className="block">
           <Button
             variant="outline"
-            className="w-full h-9 text-xs font-medium text-gray-700 border-gray-200 bg-white hover:bg-gray-50 rounded-lg gap-1.5"
+            className="w-full h-9 text-xs font-medium text-gray-700 border-gray-200 bg-white hover:bg-gray-50 rounded-md gap-1.5"
           >
             <svg className="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -75,7 +74,7 @@ export function CropCycleCard({ cycle, farmName, farmLocation }: CropCycleCardPr
           </Button>
         </Link>
         <Link to={`/farmer/record-operation?cycleId=${cycle.id}`} className="block">
-          <Button className="w-full h-9 text-xs font-semibold bg-[#2E5A27] hover:bg-[#1e3d1a] text-white border-none rounded-lg shadow-none">
+          <Button className="w-full h-9 text-xs font-semibold bg-[#2E5A27] hover:bg-[#1e3d1a] text-white border-none rounded-md shadow-none">
             Record Operation
           </Button>
         </Link>

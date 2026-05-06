@@ -1,6 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router'
+import { KycActionButton } from '~/components/kyc-action-button'
+import { PageHeader } from '~/components/page-header'
 import type { Route } from './+types/settings-root'
-import { useAuth } from '~/context/auth-context'
 
 export function meta({ }: Route.MetaArgs) {
   return [
@@ -13,17 +15,47 @@ export function meta({ }: Route.MetaArgs) {
 type TabType = 'Account' | 'Identity Verification' | 'Notifications'
 
 export default function SettingsPage() {
-  const [activeTab, setActiveTab] = useState<TabType>('Account')
+  const [searchParams] = useSearchParams()
+  const tabFromQuery = useMemo<TabType>(() => {
+    const tab = (searchParams.get('tab') || '').toLowerCase()
+    if (tab === 'kyc' || tab === 'identity' || tab === 'verification') {
+      return 'Identity Verification'
+    }
+    if (tab === 'notifications') {
+      return 'Notifications'
+    }
+    return 'Account'
+  }, [searchParams])
+  const [activeTab, setActiveTab] = useState<TabType>(tabFromQuery)
+
+  useEffect(() => {
+    setActiveTab(tabFromQuery)
+  }, [tabFromQuery])
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-10">
+      <PageHeader
+        items={[
+          {
+            label: 'Dashboard',
+            href: '/cooperative',
+            icon: (
+              <svg className="size-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                <line x1="9" y1="3" x2="9" y2="21" />
+              </svg>
+            ),
+          },
+          { label: 'Settings' },
+        ]}
+      />
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
         <p className="mt-1 text-sm text-gray-500 mb-6">Manage your account and application preferences</p>
 
         {/* Tabs */}
-        <div className="inline-flex overflow-hidden rounded-lg bg-[#f1f4eb] p-1">
+        <div className="inline-flex overflow-hidden rounded-md bg-[#f1f4eb] p-1">
           {(['Account', 'Identity Verification', 'Notifications'] as TabType[]).map((tab) => (
             <button
               key={tab}
@@ -40,7 +72,7 @@ export default function SettingsPage() {
       </div>
 
       {/* Main Content Area */}
-      <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+      <div className="rounded-md border border-gray-200 bg-white p-6 shadow-sm">
         {activeTab === 'Account' && <AccountSettingsTab />}
         {activeTab === 'Identity Verification' && <IdentityVerificationTab />}
         {activeTab === 'Notifications' && <NotificationsTab />}
@@ -51,7 +83,6 @@ export default function SettingsPage() {
 
 /* ─── 1. Account Settings ─── */
 function AccountSettingsTab() {
-  const { user } = useAuth();
   return (
     <div className="space-y-6">
       <div>
@@ -64,8 +95,8 @@ function AccountSettingsTab() {
           <label className="block text-sm font-bold text-gray-900">Name</label>
           <input
             type="text"
-            value={user?.name}
-            className="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+            defaultValue="Agrolinking Administrator"
+            className="h-10 w-full rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
           />
         </div>
 
@@ -73,8 +104,8 @@ function AccountSettingsTab() {
           <label className="block text-sm font-bold text-gray-900">Email</label>
           <input
             type="email"
-            value={user?.email}
-            className="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+            defaultValue="admin@agrolinking.com"
+            className="h-10 w-full rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
           />
         </div>
 
@@ -83,7 +114,7 @@ function AccountSettingsTab() {
           <input
             type="text"
             defaultValue="Agrolinking Platform"
-            className="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+            className="h-10 w-full rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
           />
         </div>
 
@@ -92,14 +123,14 @@ function AccountSettingsTab() {
           <input
             type="tel"
             placeholder="Your phone number"
-            className="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+            className="h-10 w-full rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
           />
         </div>
 
         <div className="pt-2">
           <button
             type="button"
-            className="flex h-10 items-center justify-center gap-2 rounded-lg bg-[#2e7d32] px-5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-[#1b5e20]"
+            className="flex h-10 items-center justify-center gap-2 rounded-md bg-[#2e7d32] px-5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-[#1b5e20]"
           >
             <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
@@ -119,6 +150,9 @@ function IdentityVerificationTab() {
       <div>
         <h2 className="text-xl font-bold text-gray-900">Identity Verification (KYC)</h2>
         <p className="text-sm text-gray-500">Verify your identity to unlock all features and build trust with buyers</p>
+        <div className="mt-4">
+          <KycActionButton href="/cooperative/settings?tab=kyc" />
+        </div>
       </div>
 
       {/* Stepper logic (visual only for mockup) */}
@@ -171,7 +205,7 @@ function IdentityVerificationTab() {
             Country <span className="text-red-500">*</span>
           </label>
           <div className="relative">
-            <select className="h-11 w-full appearance-none rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand">
+            <select className="h-11 w-full appearance-none rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand">
               <option value="">Select your country</option>
               <option value="NG">Nigeria</option>
               <option value="KE">Kenya</option>
@@ -233,19 +267,19 @@ function NotificationsTab() {
       <div className="grid grid-cols-1 gap-6 pt-6 md:grid-cols-2">
         <div className="space-y-1.5">
           <label className="block text-sm font-bold text-gray-900">Expiry Alert Days</label>
-          <input type="number" defaultValue="30" className="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand" />
+          <input type="number" defaultValue="30" className="h-10 w-full rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand" />
           <p className="text-xs text-gray-500">Days before expiry to send alerts</p>
         </div>
         <div className="space-y-1.5">
           <label className="block text-sm font-bold text-gray-900">Alert Email</label>
-          <input type="email" defaultValue="admin@agrolinking.com" className="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand" />
+          <input type="email" defaultValue="admin@agrolinking.com" className="h-10 w-full rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand" />
         </div>
       </div>
 
       <div className="pt-4">
         <button
           type="button"
-          className="flex h-10 items-center justify-center gap-2 rounded-lg bg-[#2e7d32] px-5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-[#1b5e20]"
+          className="flex h-10 items-center justify-center gap-2 rounded-md bg-[#2e7d32] px-5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-[#1b5e20]"
         >
           <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
@@ -271,7 +305,7 @@ function ToggleCard({
   const [checked, setChecked] = useState(defaultChecked)
 
   return (
-    <div className={`flex items-center justify-between rounded-xl border border-gray-200 bg-white p-4 shadow-sm ${disabled ? 'opacity-60' : ''}`}>
+    <div className={`flex items-center justify-between rounded-md border border-gray-200 bg-white p-4 shadow-sm ${disabled ? 'opacity-60' : ''}`}>
       <div>
         <h4 className={`text-sm font-bold ${disabled ? 'text-gray-400' : 'text-gray-900'}`}>{title}</h4>
         <p className="mt-0.5 text-xs text-gray-500">{description}</p>

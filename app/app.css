@@ -29,11 +29,11 @@ body {
   --popover-foreground: oklch(0.145 0 0);
   --primary: #264d10;
   --primary-foreground: #ffffff;
-  --secondary: #fff3e0;
-  --secondary-foreground: #f57c00;
+  --secondary: #eef5ea;
+  --secondary-foreground: #264d10;
   --muted: oklch(0.97 0 0);
   --muted-foreground: oklch(0.556 0 0);
-  --accent: #f57c00;
+  --accent: #264d10;
   --accent-foreground: #ffffff;
   --destructive: oklch(0.58 0.22 27);
   --border: oklch(0.922 0 0);
@@ -64,12 +64,12 @@ body {
   --popover-foreground: oklch(0.985 0 0);
   --primary: #6bb341;
   --primary-foreground: #081a02;
-  --secondary: #fff3e0;
-  --secondary-foreground: #f57c00;
+  --secondary: #1f3411;
+  --secondary-foreground: #d6edc9;
   --muted: oklch(0.269 0 0);
   --muted-foreground: oklch(0.708 0 0);
-  --accent: #f57c00;
-  --accent-foreground: #ffffff;
+  --accent: #6bb341;
+  --accent-foreground: #081a02;
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
@@ -150,5 +150,10 @@ body {
   }
   html {
     @apply font-sans;
+  }
+  input:focus,
+  textarea:focus,
+  select:focus {
+    @apply bg-white;
   }
 }

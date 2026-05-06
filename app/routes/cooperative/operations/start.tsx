@@ -1,20 +1,19 @@
+import {
+  ArrowRight,
+  ChevronDown,
+  Filter,
+  LayoutDashboard,
+  Search
+} from 'lucide-react'
 import { useState } from 'react'
-import { PageHeader } from '~/components/page-header'
 import { FarmCard } from '~/components/farm-card'
-import { Pagination } from '~/components/pagination'
+import { PageHeader } from '~/components/page-header'
 import { StartCropCycleModal } from '~/components/start-crop-cycle-modal'
-import { cooperativeFarms as farms } from '~/lib/mock-data/cooperative'
-import type { Farm } from '~/lib/mock-data/farmer'
-import type { Route } from './+types/start'
+import { Button } from '~/components/ui/button'
+import { useGetFarms } from '~/lib/api/generated/farms/farms'
+import type { Farm } from '~/lib/api/generated/models'
 
-export function meta({ }: Route.MetaArgs) {
-  return [
-    { title: 'Start Crop Cycle | Agrolinking' },
-    { name: 'description', content: 'Select a farm to start a new crop cycle' },
-  ]
-}
-
-export default function FarmerCropCycle() {
+export default function CooperativeStartCropCycle() {
   const [searchQuery, setSearchQuery] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 12
@@ -23,16 +22,21 @@ export default function FarmerCropCycle() {
   // State for the modal
   const [selectedFarm, setSelectedFarm] = useState<Farm | null>(null)
 
-  const filteredFarms = farms.filter((farm) =>
-    farm.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    farm.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    farm.owner.toLowerCase().includes(searchQuery.toLowerCase())
+  // Fetch real farm data
+  const { data: farmsResponse, isLoading } = useGetFarms()
+  const farms = farmsResponse?.data?.data || []
+
+  const filteredFarms = farms.filter(
+    (farm) =>
+      farm.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      farm.address?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      farm.state?.toLowerCase().includes(searchQuery.toLowerCase()),
   )
 
   const totalPages = Math.ceil(filteredFarms.length / rowsPerPage)
   const paginatedFarms = filteredFarms.slice(
     (currentPage - 1) * rowsPerPage,
-    currentPage * rowsPerPage
+    currentPage * rowsPerPage,
   )
 
   const handleStartCycle = (farmId: string) => {
@@ -43,91 +47,177 @@ export default function FarmerCropCycle() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className='space-y-6 pb-10 px-1 text-left'>
       <PageHeader
         items={[
           {
             label: 'Dashboard',
             href: '/cooperative',
-            icon: (
-              <svg className="size-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                <line x1="9" y1="3" x2="9" y2="21" />
-              </svg>
-            ),
+            icon: <LayoutDashboard className='size-4 text-gray-400' />,
           },
-          { label: 'Start Crop Cycle' },
+          { label: 'Operations' },
+          { label: 'Start New Cycle' },
         ]}
       />
 
-      {/* Page Header */}
-      <div>
-        <h1 className="text-2xl font-bold uppercase text-brand-dark mb-1">Start Crop Cycle</h1>
-        <p className="text-sm text-gray-500">Select a farm to start a new crop cycle</p>
+      {/* Page Title Section */}
+      <div className='flex flex-col sm:flex-row sm:items-center justify-between gap-4'>
+        <div>
+          <h1 className='text-2xl font-bold text-gray-900 uppercase tracking-tight'>
+            Start New Cycle
+          </h1>
+          <p className='text-sm text-gray-500 mt-1'>
+            Select a farm to start a new production cycle and track its growth
+          </p>
+        </div>
+        <div className='flex items-center gap-2'>
+          <Button
+            variant='outline'
+            className='flex items-center gap-2 h-11 px-4 text-[11px] font-bold uppercase tracking-wider text-gray-600 border-gray-200'
+          >
+            Export Status
+          </Button>
+        </div>
       </div>
 
-      {/* Search + Sort */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-        <div className="relative flex-1 max-w-md">
-          <input
-            type="text"
-            placeholder="Search by farm name, location, or farmer..."
-            value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value)
-              setCurrentPage(1)
-            }}
-            className="w-full rounded-md border border-gray-200 py-2.5 pl-3.5 pr-3 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
-          />
-        </div>
-        <button className="rounded-md border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 flex-shrink-0 transition-colors">
-          Search
-        </button>
-        <div className="sm:ml-auto flex items-center gap-2">
-          <span className="text-sm text-gray-500">Sort by</span>
-          <select className="rounded-md border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20">
-            <option>Name</option>
-            <option>Hectares</option>
-            <option>Location</option>
-          </select>
+      {/* Filters Toolbar */}
+      <div className='rounded-md border border-gray-200 bg-white p-6 shadow-sm'>
+        <div className='flex flex-col lg:flex-row lg:items-center justify-between gap-6'>
+          <div className='relative w-full lg:max-w-md'>
+            <Search className='absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400' />
+            <input
+              type='text'
+              placeholder='Search by farm name, owner, or location...'
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value)
+                setCurrentPage(1)
+              }}
+              className='w-full rounded-md border border-gray-100 bg-gray-50/50 pl-10 pr-4 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white transition-all shadow-none'
+            />
+          </div>
+
+          <div className='flex flex-wrap items-center gap-4'>
+            <div className='flex items-center gap-2'>
+              <span className='text-[11px] font-bold text-gray-400 uppercase tracking-widest px-1'>
+                Sort Metric
+              </span>
+              <div className='relative'>
+                <select className='h-10 rounded-md border border-gray-200 pl-3 pr-8 text-[11px] font-bold uppercase tracking-wider text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand bg-gray-50/50 appearance-none min-w-[140px]'>
+                  <option>Identity (A-Z)</option>
+                  <option>Area Size</option>
+                  <option>Location</option>
+                </select>
+                <ChevronDown className='absolute right-2 top-1/2 -translate-y-1/2 size-3 text-gray-400 pointer-events-none' />
+              </div>
+            </div>
+
+            <Button
+              variant='outline'
+              className='h-10 px-4 text-[11px] font-bold uppercase tracking-wider text-gray-400 border-gray-100'
+            >
+              <Filter className='size-3.5 mr-2' />
+              Advanced
+            </Button>
+          </div>
         </div>
       </div>
 
       {/* Farm Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {paginatedFarms.map((farm) => (
-          <FarmCard
-            key={farm.id}
-            farm={farm}
-            action="start-cycle"
-            onAction={handleStartCycle}
-          />
-        ))}
-      </div>
+      {isLoading ? (
+        <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'>
+          {[...Array(6)].map((_, i) => (
+            <div
+              key={i}
+              className='rounded-md border border-gray-200 bg-white p-4 shadow-sm'
+            >
+              <div className='animate-pulse'>
+                <div className='h-4 bg-gray-200 rounded w-3/4 mb-2'></div>
+                <div className='h-3 bg-gray-200 rounded w-1/2 mb-4'></div>
+                <div className='h-20 bg-gray-200 rounded mb-4'></div>
+                <div className='h-8 bg-gray-200 rounded'></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'>
+          {paginatedFarms.map((farm) => (
+            <FarmCard
+              key={farm.id}
+              farm={farm}
+              action='start-cycle'
+              onAction={handleStartCycle}
+            />
+          ))}
+        </div>
+      )}
 
-      {/* Pagination */}
-      <Pagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        totalItems={filteredFarms.length}
-        itemsPerPage={rowsPerPage}
-        onPageChange={setCurrentPage}
-        onItemsPerPageChange={(count) => {
-          setRowsPerPage(count)
-          setCurrentPage(1)
-        }}
-        itemLabel="farm(s)"
-      />
+      {/* Footer */}
+      <div className='mt-8 border-t border-gray-100 px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-gray-400 font-bold uppercase tracking-tight bg-gray-50/20 rounded-md'>
+        <div className='flex items-center gap-3'>
+          <span className='size-2 rounded-full bg-brand/30 animate-pulse' />
+          <span className='text-gray-900'>
+            Total Farms: {filteredFarms.length}
+          </span>
+        </div>
+        <div className='flex items-center gap-6'>
+          <div className='flex items-center gap-2'>
+            <span className='text-gray-300 italic lowercase tracking-wider'>
+              Density
+            </span>
+            <select
+              className='bg-transparent border-none outline-none text-gray-900 font-bold'
+              value={rowsPerPage}
+              onChange={(e) => setRowsPerPage(Number(e.target.value))}
+            >
+              <option value={12}>12</option>
+              <option value={24}>24</option>
+              <option value={60}>60</option>
+            </select>
+          </div>
+          <div className='flex items-center gap-4'>
+            <span className='text-gray-300 lowercase tracking-tight'>
+              Page {currentPage} / {totalPages}
+            </span>
+            <div className='flex items-center gap-1'>
+              <Button
+                variant='ghost'
+                size='icon'
+                className='size-8 text-gray-300 transition-all hover:bg-white'
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              >
+                <ArrowRight className='size-4 rotate-180' />
+              </Button>
+              <Button
+                variant='ghost'
+                size='icon'
+                className='size-8 text-gray-400 hover:text-brand transition-all hover:bg-white'
+                disabled={currentPage >= totalPages}
+                onClick={() =>
+                  setCurrentPage((p) => Math.min(totalPages, p + 1))
+                }
+              >
+                <ArrowRight className='size-4' />
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Start Crop Cycle Multi-Step Modal */}
       <StartCropCycleModal
         isOpen={!!selectedFarm}
         onClose={() => setSelectedFarm(null)}
+        farmId={selectedFarm?.id}
         farmName={selectedFarm?.name || ''}
-        farmLocation={selectedFarm?.location || ''}
-        farmerName={selectedFarm?.owner || ''}
-        farmerInitials={selectedFarm?.ownerInitials || ''}
-        farmerColor={selectedFarm?.ownerColor || ''}
+        farmLocation={selectedFarm?.lga || selectedFarm?.state || ''}
+        farmerName={selectedFarm?.ownerId || ''}
+        farmerInitials={(selectedFarm?.ownerId || '')
+          .substring(0, 2)
+          .toUpperCase()}
+        farmerColor='#2e7d32'
       />
     </div>
   )

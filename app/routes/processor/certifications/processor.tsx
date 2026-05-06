@@ -1,14 +1,8 @@
-import { useState, useCallback } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { PageHeader } from '~/components/page-header'
-import { CERTIFICATION_TYPES } from '~/lib/data/certification-types'
 import { DatePicker } from '~/components/ui/date-picker'
-
-// ─── Mock Data ───
-const mockProcessorCerts = [
-  { id: '1', name: 'Rainforest Alliance', desc: 'Sustainable agriculture certification', type: 'System Certification', expires: 'Feb 25, 2026', status: 'active' },
-  { id: '2', name: 'GLOBALG.A.P.', desc: 'Good Agricultural Practices', type: 'Safety Certification', expires: 'Feb 24, 2026', status: 'active' },
-  { id: '3', name: 'ISO 22000:2018', desc: 'Food Safety Management', type: 'SON Nigeria', expires: 'Dec 12, 2026', status: 'active' },
-]
+import { useGetCertifications } from '~/lib/api/generated/certifications/certifications'
+import { CERTIFICATION_TYPES } from '~/lib/data/certification-types'
 
 /* ─── Icons ─── */
 function SearchIcon() {
@@ -89,7 +83,7 @@ function AddCertModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => voi
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
 
-      <div className="relative z-10 w-full max-w-lg overflow-hidden rounded-xl bg-white shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+      <div className="relative z-10 w-full max-w-lg overflow-hidden rounded-md bg-white shadow-2xl animate-in fade-in zoom-in-95 duration-200">
         <div className="border-b border-gray-100 px-6 py-4">
           <div className="flex items-start justify-between">
             <div>
@@ -99,7 +93,7 @@ function AddCertModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => voi
             <button
               type="button"
               onClick={onClose}
-              className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
+              className="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
             >
               <CloseIcon />
             </button>
@@ -149,7 +143,7 @@ function AddCertModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => voi
           <div className="space-y-2">
             <label className="block text-xs font-bold uppercase tracking-wider text-gray-700">Certificate Document<span className="text-red-500">*</span></label>
             <div
-              className={`flex flex-col items-center justify-center rounded-xl border-2 border-dashed px-4 py-8 transition-all cursor-pointer ${dragOver ? 'border-brand bg-brand/5 scale-[1.01]' : 'border-gray-200 bg-gray-50/50 hover:border-gray-300 hover:bg-white'}`}
+              className={`flex flex-col items-center justify-center rounded-md border-2 border-dashed px-4 py-8 transition-all cursor-pointer ${dragOver ? 'border-brand bg-brand/5 scale-[1.01]' : 'border-gray-200 bg-gray-50/50 hover:border-gray-300 hover:bg-white'}`}
               onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
               onDragLeave={() => setDragOver(false)}
               onDrop={handleFileDrop}
@@ -197,6 +191,70 @@ function AddCertModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => voi
 
 export default function ProcessorCertifications() {
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [typeFilter, setTypeFilter] = useState('')
+  const [statusFilter, setStatusFilter] = useState('')
+  const { data: certsResp, isLoading } = useGetCertifications()
+
+  const certifications = useMemo(() => {
+    const raw = certsResp?.data?.data
+    if (!Array.isArray(raw)) return []
+
+    const formatDate = (value: unknown) => {
+      if (typeof value !== 'string' || !value) return 'N/A'
+      const d = new Date(value)
+      if (Number.isNaN(d.getTime())) return 'N/A'
+      return d.toLocaleDateString(undefined, {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      })
+    }
+
+    const mapStatus = (status: string, expiryDate: unknown) => {
+      const normalized = (status || '').toLowerCase()
+      if (normalized.includes('expire')) return 'expired'
+      if (normalized.includes('pending') || normalized.includes('review')) return 'pending'
+      if (normalized.includes('active') || normalized.includes('valid') || normalized.includes('approved')) return 'active'
+      if (typeof expiryDate === 'string' && expiryDate) {
+        const expiryMs = new Date(expiryDate).getTime()
+        if (!Number.isNaN(expiryMs) && expiryMs < Date.now()) return 'expired'
+      }
+      return 'pending'
+    }
+
+    return raw.map((cert: any) => ({
+      id: cert.id,
+      name: cert.certificationType || 'Unknown Certification',
+      desc: cert.certifyingBody || cert.entityType || 'Certification record',
+      type: cert.entityType || 'General',
+      expires: formatDate(cert.expiryDate),
+      status: mapStatus(cert.status, cert.expiryDate),
+      documentUrl: cert.documentUrl || null,
+    }))
+  }, [certsResp])
+
+  const filteredCerts = useMemo(() => {
+    return certifications.filter((cert) => {
+      const query = searchQuery.toLowerCase()
+      const matchesSearch =
+        !query ||
+        cert.name.toLowerCase().includes(query) ||
+        cert.desc.toLowerCase().includes(query) ||
+        cert.type.toLowerCase().includes(query)
+
+      const matchesType =
+        !typeFilter || cert.type.toLowerCase() === typeFilter.toLowerCase()
+      const matchesStatus = !statusFilter || cert.status === statusFilter
+
+      return matchesSearch && matchesType && matchesStatus
+    })
+  }, [certifications, searchQuery, statusFilter, typeFilter])
+
+  const typeOptions = useMemo(() => {
+    const set = new Set(certifications.map((c) => c.type).filter(Boolean))
+    return Array.from(set)
+  }, [certifications])
 
   return (
     <div className="space-y-6 pb-10">
@@ -235,6 +293,8 @@ export default function ProcessorCertifications() {
           <input
             type="text"
             placeholder="Search certifications..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             className="h-10 w-full rounded-md border border-gray-200 bg-white px-3 text-sm font-medium placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all shadow-sm"
           />
         </div>
@@ -244,14 +304,30 @@ export default function ProcessorCertifications() {
             Search
           </button>
           <div className="relative">
-            <select className="h-10 appearance-none rounded-md border border-gray-200 bg-white pl-4 pr-10 text-sm font-bold text-gray-900 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all font-bold">
-              <option>All Types</option>
+            <select
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
+              className="h-10 appearance-none rounded-md border border-gray-200 bg-white pl-4 pr-10 text-sm font-bold text-gray-900 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all"
+            >
+              <option value="">All Types</option>
+              {typeOptions.map((type) => (
+                <option key={type} value={type}>
+                  {type}
+                </option>
+              ))}
             </select>
             <ChevronDown />
           </div>
           <div className="relative">
-            <select className="h-10 appearance-none rounded-md border border-gray-200 bg-white pl-4 pr-10 text-sm font-bold text-gray-900 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all font-bold">
-              <option>All Statuses</option>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="h-10 appearance-none rounded-md border border-gray-200 bg-white pl-4 pr-10 text-sm font-bold text-gray-900 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all"
+            >
+              <option value="">All Statuses</option>
+              <option value="active">Active</option>
+              <option value="pending">Pending</option>
+              <option value="expired">Expired</option>
             </select>
             <ChevronDown />
           </div>
@@ -259,10 +335,14 @@ export default function ProcessorCertifications() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {mockProcessorCerts.map(cert => (
-          <div key={cert.id} className="group flex flex-col rounded-xl border border-gray-100 bg-white p-6 shadow-sm hover:shadow-md transition-all duration-200">
+        {isLoading ? (
+          Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="rounded-md border border-gray-100 bg-white p-6 shadow-sm animate-pulse h-72" />
+          ))
+        ) : filteredCerts.map(cert => (
+          <div key={cert.id} className="group flex flex-col rounded-md border border-gray-100 bg-white p-6 shadow-sm hover:shadow-md transition-all duration-200">
             <div className="mb-5 flex items-start justify-between">
-              <div className="flex size-14 items-center justify-center rounded-lg bg-brand shadow-lg shadow-brand/10">
+              <div className="flex size-14 items-center justify-center rounded-md bg-brand shadow-lg shadow-brand/10">
                 <ProcessorIcon />
               </div>
               <span className="inline-flex items-center gap-1.5 rounded-full border border-green-200 bg-green-50 px-2.5 py-1 text-[11px] font-bold text-green-700 uppercase tracking-wide">
@@ -283,11 +363,14 @@ export default function ProcessorCertifications() {
             </div>
 
             <div className="mt-6 flex flex-col gap-4">
-               <div className="flex items-center gap-2 text-xs font-bold text-gray-900 border-t border-gray-50 pt-4">
-                  <svg className="size-4 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                  Expires: {cert.expires}
-               </div>
-              <button className="flex h-11 w-full items-center justify-center gap-2 rounded-md border border-gray-200 bg-white text-sm font-bold text-gray-700 transition-all hover:bg-brand hover:text-white hover:border-brand shadow-sm">
+              <div className="flex items-center gap-2 text-xs font-bold text-gray-900 border-t border-gray-50 pt-4">
+                <svg className="size-4 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                Expires: {cert.expires}
+              </div>
+              <button
+                disabled={!cert.documentUrl}
+                className="flex h-11 w-full items-center justify-center gap-2 rounded-md border border-gray-200 bg-white text-sm font-bold text-gray-700 transition-all hover:bg-brand hover:text-white hover:border-brand shadow-sm disabled:opacity-50 disabled:pointer-events-none"
+              >
                 <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                 View Document
               </button>
@@ -297,23 +380,23 @@ export default function ProcessorCertifications() {
       </div>
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 border-t border-gray-100 mt-2 text-xs font-medium text-gray-500">
-        <span>3 certification(s) total</span>
+        <span>{filteredCerts.length} certification(s) total</span>
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-3">
-             <span>Rows per page</span>
-             <div className="relative">
-               <select className="h-8 appearance-none rounded-md border border-gray-200 bg-white pl-3 pr-8 font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all font-bold outline-none">
-                 <option>10</option>
-               </select>
-               <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                 <svg className="size-3 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
-               </div>
-             </div>
+            <span>Rows per page</span>
+            <div className="relative">
+              <select className="h-8 appearance-none rounded-md border border-gray-200 bg-white pl-3 pr-8 font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all">
+                <option>10</option>
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                <svg className="size-3 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
+              </div>
+            </div>
           </div>
           <span>Page 1 of 1</span>
           <div className="flex items-center gap-1">
-             <button className="size-7 flex items-center justify-center rounded border border-gray-200 bg-white text-gray-400 disabled:opacity-50 hover:bg-gray-50 transition-colors"><svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><polyline points="15 18 9 12 15 6" /></svg></button>
-             <button className="size-7 flex items-center justify-center rounded border border-gray-200 bg-white text-gray-400 disabled:opacity-50 hover:bg-gray-50 transition-colors"><svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><polyline points="9 18 15 12 9 6" /></svg></button>
+            <button className="size-7 flex items-center justify-center rounded border border-gray-200 bg-white text-gray-400 disabled:opacity-50 hover:bg-gray-50 transition-colors"><svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><polyline points="15 18 9 12 15 6" /></svg></button>
+            <button className="size-7 flex items-center justify-center rounded border border-gray-200 bg-white text-gray-400 disabled:opacity-50 hover:bg-gray-50 transition-colors"><svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><polyline points="9 18 15 12 9 6" /></svg></button>
           </div>
         </div>
       </div>

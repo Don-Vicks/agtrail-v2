@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, type ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
 
 export interface SidebarContextType {
   isOpenMobile: boolean
@@ -13,6 +13,18 @@ const SidebarContext = createContext<SidebarContextType | undefined>(undefined)
 export function SidebarProvider({ children }: { children: ReactNode }) {
   const [isOpenMobile, setIsOpenMobile] = useState(false)
   const [isCollapsedDesktop, setIsCollapsedDesktop] = useState(false)
+
+  // Lock body scroll when mobile sidebar is open
+  useEffect(() => {
+    if (isOpenMobile) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [isOpenMobile])
 
   const toggleMobile = () => setIsOpenMobile((prev) => !prev)
   const closeMobile = () => setIsOpenMobile(false)

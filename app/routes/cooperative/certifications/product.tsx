@@ -1,92 +1,68 @@
+import { useQueryClient } from '@tanstack/react-query'
+import {
+  ArrowRight,
+  Building2,
+  Calendar,
+  CheckCircle2,
+  ChevronDown,
+  FileText,
+  Filter,
+  LayoutDashboard,
+  Package,
+  Plus,
+  QrCode,
+  Search,
+  ShieldCheck,
+  UploadCloud,
+  X,
+} from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
 import { useCallback, useMemo, useState } from 'react'
+import { toast } from 'sonner'
+import { EmptyState } from '~/components/empty-state'
 import { PageHeader } from '~/components/page-header'
-import { CERTIFICATION_TYPES } from '~/lib/data/certification-types'
+import { Badge } from '~/components/ui/badge'
+import { Button } from '~/components/ui/button'
 import { DatePicker } from '~/components/ui/date-picker'
-import { farmPerformanceSummary } from '~/lib/mock-data/cooperative'
+import { Input } from '~/components/ui/input'
+import { resolveDocumentUrlForApi } from '~/lib/api/custom-fetch'
+import {
+  getGetCertificationsQueryKey,
+  useGetCertifications,
+  usePostCertificationsUpload,
+} from '~/lib/api/generated/certifications/certifications'
+import {
+  getGetCooperativesFarmsQueryKey,
+  useGetCooperativesFarms,
+} from '~/lib/api/generated/cooperatives/cooperatives'
+import {
+  getGetFarmersProductsQueryKey,
+  useGetFarmersProducts,
+} from '~/lib/api/generated/farm-products/farm-products'
+import type { FarmProduct, PostCertificationsUploadBody } from '~/lib/api/generated/models'
+import { usePostUpload } from '~/lib/api/generated/upload/upload'
+import { CERTIFICATION_TYPES } from '~/lib/data/certification-types'
+import { cn } from '~/lib/utils'
 import type { Route } from './+types/product'
 
 export function meta({ }: Route.MetaArgs) {
   return [
-    { title: 'Upload Product Certification | Agtrail' },
-    {
-      name: 'description',
-      content: 'Upload certificates for your farm products',
-    },
+    { title: 'Product Certifications | Agtrail' },
+    { name: 'description', content: 'Manage product certifications and quality verification' },
   ]
 }
-
-/* ─── Icons ─── */
-
-function SearchIcon() {
-  return (
-    <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <circle cx="11" cy="11" r="8" />
-      <line x1="21" y1="21" x2="16.65" y2="16.65" />
-    </svg>
-  )
-}
-
-function SortIcon() {
-  return (
-    <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path d="M8 6l4-4 4 4M8 18l4 4 4-4" />
-      <line x1="12" y1="2" x2="12" y2="22" />
-    </svg>
-  )
-}
-
-function ChevronDown() {
-  return (
-    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-      <svg className="size-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-        <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-      </svg>
-    </div>
-  )
-}
-
-function UploadIcon() {
-  return (
-    <svg className="size-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
-      <polyline points="17 8 12 3 7 8" />
-      <line x1="12" y1="3" x2="12" y2="15" />
-    </svg>
-  )
-}
-
-function CloseIcon() {
-  return (
-    <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <line x1="18" y1="6" x2="6" y2="18" />
-      <line x1="6" y1="6" x2="18" y2="18" />
-    </svg>
-  )
-}
-
-function CertBadgeIcon() {
-  return (
-    <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
-      <polyline points="22 4 12 14.01 9 11.01" />
-    </svg>
-  )
-}
-
-/* ─── Page component ─── */
 
 const ITEMS_PER_PAGE = 8
 
 export default function ProductCertificationPage() {
+  const queryClient = useQueryClient()
   const [searchQuery, setSearchQuery] = useState('')
   const [farmFilter, setFarmFilter] = useState('')
   const [productFilter, setProductFilter] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
   const [modalOpen, setModalOpen] = useState(false)
-  const [selectedBatchId, setSelectedBatchId] = useState<string | null>(null)
+  const [selectedProductId, setSelectedProductId] = useState<string | null>(null)
 
-  // Modal form state
   const [certType, setCertType] = useState('')
   const [certOrg, setCertOrg] = useState('')
   const [dateIssued, setDateIssued] = useState('')
@@ -94,48 +70,74 @@ export default function ProductCertificationPage() {
   const [dragOver, setDragOver] = useState(false)
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
 
-  // Unique farm names from summary
+  const { data: farmsResp } = useGetCooperativesFarms()
+  const farmsMap = useMemo(() => {
+    const m = new Map<string, string>()
+      ; (farmsResp?.data?.data ?? []).forEach((f) => m.set(f.id, f.name || 'Unknown farm'))
+    return m
+  }, [farmsResp])
+
+  const {
+    data: productsResp,
+    isLoading: productsLoading,
+    error: productsError,
+  } = useGetFarmersProducts()
+  const products = useMemo(() => productsResp?.data?.data ?? [], [productsResp])
+
+  const { data: certsResp } = useGetCertifications()
+  const certList = useMemo(() => {
+    const raw = certsResp?.data?.data
+    return Array.isArray(raw) ? raw : []
+  }, [certsResp])
+
+  const productCertCount = useCallback(
+    (productId: string) =>
+      certList.filter((c) => {
+        const t = (c.entityType || '').toLowerCase()
+        return (t.includes('farm_product') || t.includes('product')) && c.entityId === productId
+      }).length,
+    [certList],
+  )
+
   const farmNames = useMemo(() => {
-    const names = new Set(farmPerformanceSummary.map((p) => p.farmName))
+    const names = new Set<string>()
+    products.forEach((p) => names.add(farmsMap.get(p.farmId) || `Farm ${p.farmId.slice(0, 8)}…`))
     return Array.from(names).sort()
-  }, [])
+  }, [products, farmsMap])
 
-  // Unique product names
   const productNames = useMemo(() => {
-    const names = new Set(farmPerformanceSummary.map((p) => p.product))
+    const names = new Set(products.map((p) => p.productName || 'Product'))
     return Array.from(names).sort()
-  }, [])
+  }, [products])
 
-  // Filter batches
-  const filteredBatches = useMemo(() => {
-    return farmPerformanceSummary.filter((p) => {
+  const filteredProducts = useMemo(() => {
+    return products.filter((p) => {
+      const farmName = farmsMap.get(p.farmId) || `Farm ${p.farmId.slice(0, 8)}…`
       const matchesSearch =
         !searchQuery ||
-        p.farmName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.product.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.id.toLowerCase().includes(searchQuery.toLowerCase())
-      const matchesFarm = !farmFilter || p.farmName === farmFilter
-      const matchesProduct = !productFilter || p.product === productFilter
+        farmName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (p.productName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (p.batchNumber || '').toLowerCase().includes(searchQuery.toLowerCase())
+      const matchesFarm = !farmFilter || farmName === farmFilter
+      const matchesProduct = !productFilter || (p.productName || '') === productFilter
       return matchesSearch && matchesFarm && matchesProduct
     })
-  }, [searchQuery, farmFilter, productFilter])
+  }, [products, farmsMap, searchQuery, farmFilter, productFilter])
 
-  // Pagination
-  const totalItems = filteredBatches.length
+  const totalItems = filteredProducts.length
   const totalPages = Math.max(1, Math.ceil(totalItems / ITEMS_PER_PAGE))
-  const paginatedBatches = useMemo(() => {
+  const paginatedProducts = useMemo(() => {
     const start = (currentPage - 1) * ITEMS_PER_PAGE
-    return filteredBatches.slice(start, start + ITEMS_PER_PAGE)
-  }, [filteredBatches, currentPage])
+    return filteredProducts.slice(start, start + ITEMS_PER_PAGE)
+  }, [filteredProducts, currentPage])
 
-  // Reset page when filters change
   const updateFilters = useCallback((setter: (v: string) => void, value: string) => {
     setter(value)
     setCurrentPage(1)
   }, [])
 
-  const openModal = useCallback((batchId: string) => {
-    setSelectedBatchId(batchId)
+  const openModal = useCallback((productId: string) => {
+    setSelectedProductId(productId)
     setCertType('')
     setCertOrg('')
     setDateIssued('')
@@ -146,8 +148,65 @@ export default function ProductCertificationPage() {
 
   const closeModal = useCallback(() => {
     setModalOpen(false)
-    setSelectedBatchId(null)
+    setSelectedProductId(null)
   }, [])
+
+  const { mutateAsync: uploadCert, isPending: isSavingCertification } = usePostCertificationsUpload()
+  const { mutateAsync: uploadDocument, isPending: isUploadingDocument } = usePostUpload()
+  const isSaving = isSavingCertification || isUploadingDocument
+
+  const selectedProduct = useMemo(
+    () => products.find((p) => p.id === selectedProductId) ?? null,
+    [products, selectedProductId],
+  )
+
+  const handleSave = async () => {
+    if (!selectedProduct || !certType || !uploadedFile) {
+      toast.error('Select certification type, product, and upload a document')
+      return
+    }
+    try {
+      const uploadResponse = await uploadDocument({
+        data: { productCertificate: uploadedFile },
+      })
+      const uploadedUrl = uploadResponse?.data?.urls?.[0]
+      const documentUrl = resolveDocumentUrlForApi(uploadedUrl)
+      if (!documentUrl) {
+        toast.error('Upload succeeded but no document URL was returned')
+        return
+      }
+
+      const issueDate = dateIssued
+        ? new Date(dateIssued).toISOString().split('T')[0]
+        : new Date().toISOString().split('T')[0]
+      const expiryDate = dateExpiry
+        ? new Date(dateExpiry).toISOString().split('T')[0]
+        : undefined
+
+      await uploadCert({
+        data: {
+          certificationTypeId: certType,
+          certifiedEntityType: 'farm_product',
+          farmId: selectedProduct.farmId,
+          farmProductId: selectedProduct.id,
+          certificateNumber: certOrg || undefined,
+          issueDate,
+          expiryDate,
+          documentUrl,
+        } as PostCertificationsUploadBody,
+      })
+
+      await queryClient.invalidateQueries({ queryKey: getGetCertificationsQueryKey() })
+      await queryClient.invalidateQueries({ queryKey: getGetFarmersProductsQueryKey() })
+      await queryClient.invalidateQueries({ queryKey: getGetCooperativesFarmsQueryKey() })
+
+      toast.success('Product certification saved')
+      closeModal()
+    } catch (e) {
+      console.error(e)
+      toast.error('Failed to save certification')
+    }
+  }
 
   const handleFileDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
@@ -161,344 +220,376 @@ export default function ProductCertificationPage() {
     if (file) setUploadedFile(file)
   }, [])
 
+  if (productsError) {
+    return (
+      <div className="space-y-6 pb-10 px-1">
+        <PageHeader
+          items={[
+            { label: 'Dashboard', href: '/cooperative', icon: <LayoutDashboard className="size-4 text-gray-400" /> },
+            { label: 'Certifications', href: '/cooperative/certifications' },
+            { label: 'Product Certifications' },
+          ]}
+        />
+        <EmptyState
+          title="Could not load products"
+          description="Farm products are loaded from the products API for your session. Try again or confirm your cooperative permissions."
+        />
+      </div>
+    )
+  }
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-10 px-1">
       <PageHeader
         items={[
           {
             label: 'Dashboard',
             href: '/cooperative',
-            icon: (
-              <svg className="size-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                <line x1="9" y1="3" x2="9" y2="21" />
-              </svg>
-            ),
+            icon: <LayoutDashboard className="size-4 text-gray-400" />,
           },
-          { label: 'Product Quality Certification' },
+          { label: 'Certifications', href: '/cooperative/certifications' },
+          { label: 'Product Certifications' },
         ]}
       />
 
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-brand uppercase tracking-tight">Certificate Upload</h1>
-        <p className="mt-1 text-sm text-gray-500">Upload certificates for each product</p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-left">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 uppercase tracking-tight">Product Certifications</h1>
+          <p className="text-sm text-gray-500 mt-1">
+            Farm products available to your account (same catalogue as farmer product records). Upload certificates against a specific product ID.
+          </p>
+        </div>
       </div>
 
-      {/* Toolbar */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        {/* Search input */}
-        <div className="relative w-full sm:max-w-xs">
+      <div className="rounded-md border border-gray-100 bg-white p-4 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="relative w-full sm:max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
           <input
             type="text"
-            placeholder="Search Farm..."
+            placeholder="Search by batch, product, or farm…"
             value={searchQuery}
             onChange={(e) => updateFilters(setSearchQuery, e.target.value)}
-            className="h-10 w-full rounded-md border border-gray-200 bg-white px-3 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+            className="w-full h-11 rounded-md border border-gray-100 bg-gray-50/50 pl-10 pr-4 py-2 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white transition-all shadow-none"
           />
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
-          {/* Search button */}
-          <button
-            type="button"
-            className="flex h-10 items-center justify-center gap-2 rounded-md border border-gray-200 bg-white px-4 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-          >
-            <SearchIcon />
-            <span>Search</span>
-          </button>
-
-          {/* Farm filter */}
-          <div className="relative">
-            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
-              <SortIcon />
-            </div>
+        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+          <div className="relative flex-1 sm:flex-none">
             <select
               value={farmFilter}
               onChange={(e) => updateFilters(setFarmFilter, e.target.value)}
-              className="h-10 appearance-none rounded-md border border-gray-200 bg-white pl-9 pr-10 text-sm font-medium text-gray-700 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+              className="h-11 w-full sm:w-48 rounded-md border border-gray-100 bg-gray-50/50 pl-4 pr-10 text-[11px] font-bold uppercase tracking-widest text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand appearance-none"
             >
-              <option value="">All Farms</option>
+              <option value="">All farms</option>
               {farmNames.map((f) => (
-                <option key={f} value={f}>{f}</option>
+                <option key={f} value={f}>
+                  {f}
+                </option>
               ))}
             </select>
-            <ChevronDown />
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 size-3.5 text-gray-400 pointer-events-none" />
           </div>
 
-          {/* Product filter */}
-          <div className="relative">
-            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
-              <SortIcon />
-            </div>
+          <div className="relative flex-1 sm:flex-none">
             <select
               value={productFilter}
               onChange={(e) => updateFilters(setProductFilter, e.target.value)}
-              className="h-10 appearance-none rounded-md border border-gray-200 bg-white pl-9 pr-10 text-sm font-medium text-gray-700 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+              className="h-11 w-full sm:w-48 rounded-md border border-gray-100 bg-gray-50/50 pl-4 pr-10 text-[11px] font-bold uppercase tracking-widest text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand appearance-none"
             >
-              <option value="">All Products</option>
+              <option value="">All products</option>
               {productNames.map((p) => (
-                <option key={p} value={p}>{p}</option>
+                <option key={p} value={p}>
+                  {p}
+                </option>
               ))}
             </select>
-            <ChevronDown />
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 size-3.5 text-gray-400 pointer-events-none" />
           </div>
+
+          <Button variant="outline" className="h-11 px-4 border-gray-100 text-gray-400" type="button" aria-label="Filters">
+            <Filter className="size-4" />
+          </Button>
         </div>
       </div>
 
-      {/* Product card grid */}
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        {paginatedBatches.map((batch) => (
-          <div
-            key={batch.id}
-            className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm hover:shadow-md transition-shadow"
-          >
-            {/* Top row: QR + Batch ID */}
-            <div className="flex items-start justify-between">
-              <div className="rounded-md border border-gray-100 p-1.5 bg-white">
-                <QRCodeSVG value={batch.id} size={56} />
-              </div>
-              <span className="text-[10px] font-bold text-orange-600 uppercase tracking-widest leading-none">
-                {batch.id}
-              </span>
-            </div>
-
-            {/* Product info */}
-            <div className="mt-5">
-              <h3 className="text-xl font-bold text-gray-900 leading-none">{batch.product}</h3>
-              <button
-                type="button"
-                className="mt-2.5 flex items-center gap-1.5 text-sm font-bold text-gray-900 hover:text-brand transition-colors"
-              >
-                {batch.farmName}
-                <svg className="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-                </svg>
-              </button>
-              <p className="mt-1 text-xs text-gray-500 font-medium">IIYA Nigeria Office</p>
-            </div>
-
-            {/* Certificate badge */}
-            <div className="mt-4 flex items-center gap-2">
-              <div className="inline-flex items-center gap-1.5 rounded-full border border-green-200 bg-green-50 px-2.5 py-1 text-[11px] font-bold text-green-700">
-                <CertBadgeIcon />
-                {batch.id.includes('8022') ? '1 Certificate Uploaded' : '0 Certificates Uploaded'}
-              </div>
-            </div>
-
-            {/* Upload button */}
-            <button
-              type="button"
-              onClick={() => openModal(batch.id)}
-              className="mt-6 flex h-11 w-full items-center justify-center rounded-md bg-[#1b4332] text-sm font-bold text-white transition-colors hover:bg-brand-dark shadow-sm"
-            >
-              Upload Certificate
-            </button>
-          </div>
-        ))}
-      </div>
-
-      {filteredBatches.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-24 text-center">
-          <div className="rounded-full bg-gray-50 p-6 mb-4">
-             <PackageIcon className="size-10 text-gray-300" />
-          </div>
-          <h3 className="text-lg font-bold text-gray-900">No products found</h3>
-          <p className="mt-1 text-sm text-gray-500">Try adjusting your search or filters to find what you're looking for.</p>
+      {productsLoading && (
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="h-72 animate-pulse rounded-2xl bg-gray-100" />
+          ))}
         </div>
       )}
 
-      {/* Pagination */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 border-t border-gray-100 mt-2">
-        <p className="text-xs font-medium text-gray-500">
-          Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1} to {Math.min(currentPage * ITEMS_PER_PAGE, totalItems)} of {totalItems} row(s) selected.
-        </p>
-        
-        <div className="flex items-center gap-6">
+      {!productsLoading && products.length === 0 && (
+        <EmptyState
+          title="No farm products"
+          description="When products exist for farms in your cooperative, they appear here for certification."
+        />
+      )}
+
+      {!productsLoading && products.length > 0 && (
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          {paginatedProducts.map((batch: FarmProduct) => {
+            const farmName = farmsMap.get(batch.farmId) || `Farm ${batch.farmId.slice(0, 8)}…`
+            const nCerts = productCertCount(batch.id)
+            const qrValue = batch.qrCodeData || batch.batchNumber || batch.id
+            return (
+              <div
+                key={batch.id}
+                className="group relative rounded-2xl border border-gray-100 bg-white p-6 transition-all hover:border-brand/30 hover:shadow-lg overflow-hidden flex flex-col shadow-sm"
+              >
+                <div className="flex items-start justify-between mb-6">
+                  <div className="rounded-2xl border border-gray-100 p-2 bg-white shadow-sm group-hover:scale-105 transition-transform">
+                    <QRCodeSVG value={qrValue} size={64} />
+                  </div>
+                  <div className="text-right flex flex-col items-end gap-1">
+                    <Badge className="bg-orange-50 text-orange-600 border-orange-100 text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 shadow-none max-w-[200px] truncate">
+                      {batch.batchNumber}
+                    </Badge>
+                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest italic">Batch</span>
+                  </div>
+                </div>
+
+                <div className="flex-1 space-y-2 text-left">
+                  <h3 className="text-xl font-bold text-gray-900 uppercase tracking-tight group-hover:text-brand transition-colors">
+                    {batch.productName}
+                  </h3>
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-widest italic leading-none">
+                      <Building2 className="size-3 text-brand/40" />
+                      {farmName}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-8 pt-6 border-t border-gray-50 flex items-center justify-between text-left">
+                  <div className="space-y-1">
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Certifications</span>
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        'text-[9px] font-bold uppercase tracking-tighter px-1.5 py-0.5 shadow-none border-dashed flex items-center gap-1.5 w-fit',
+                        nCerts > 0
+                          ? 'bg-emerald-50 text-emerald-600 border-emerald-200'
+                          : 'bg-gray-50 text-gray-400 border-gray-200',
+                      )}
+                    >
+                      {nCerts > 0 ? <CheckCircle2 className="size-3" /> : <ShieldCheck className="size-3" />}
+                      {nCerts > 0 ? `${nCerts} on file` : 'None yet'}
+                    </Badge>
+                  </div>
+
+                  <Button
+                    type="button"
+                    onClick={() => openModal(batch.id)}
+                    className="h-11 bg-[#1b3d1e] hover:bg-black text-white font-bold uppercase tracking-widest text-[10px] px-6 gap-2 shadow-sm transition-all active:scale-[0.98]"
+                  >
+                    <Plus className="size-3.5" />
+                    Add certification
+                  </Button>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {filteredProducts.length === 0 && !productsLoading && products.length > 0 && (
+        <EmptyState
+          className="rounded-2xl border border-dashed border-gray-100 py-16"
+          icon={<Package className="size-8 text-gray-300" />}
+          title="No products match"
+          description="Adjust search or farm and product filters."
+          action={{
+            label: 'Reset filters',
+            onClick: () => {
+              setSearchQuery('')
+              setFarmFilter('')
+              setProductFilter('')
+            },
+          }}
+        />
+      )}
+
+      {filteredProducts.length > 0 && (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-10 border-t border-gray-50 text-[11px] text-gray-400 font-bold uppercase tracking-tight">
           <div className="flex items-center gap-3">
-             <span className="text-xs font-medium text-gray-500">Rows per page</span>
-             <div className="relative">
-               <select className="h-8 appearance-none rounded-md border border-gray-200 bg-white pl-3 pr-8 text-xs font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand/20">
-                 <option>10</option>
-                 <option>20</option>
-               </select>
-               <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                 <svg className="size-3 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
-               </div>
-             </div>
+            <span className="size-2 rounded-full bg-brand/30 animate-pulse" />
+            <span className="text-gray-900">Total products: {totalItems}</span>
           </div>
 
-          <div className="flex items-center gap-4">
-            <span className="text-xs font-medium text-gray-900">Page {currentPage} of {totalPages}</span>
-            <div className="flex items-center gap-1">
-              <button
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage(p => p - 1)}
-                className="flex size-7 items-center justify-center rounded border border-gray-200 bg-white text-gray-400 hover:bg-gray-50 disabled:opacity-50 transition-colors"
-              >
-                <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><polyline points="15 18 9 12 15 6" /></svg>
-              </button>
-              <button
-                disabled={currentPage === totalPages}
-                onClick={() => setCurrentPage(p => p + 1)}
-                className="flex size-7 items-center justify-center rounded border border-gray-200 bg-white text-gray-400 hover:bg-gray-50 disabled:opacity-50 transition-colors"
-              >
-                <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><polyline points="9 18 15 12 9 6" /></svg>
-              </button>
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-2">
+              <span className="text-gray-300 lowercase">
+                Page {currentPage} / {totalPages}
+              </span>
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="size-8 text-gray-300"
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                >
+                  <ArrowRight className="size-4 rotate-180" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="size-8 text-gray-400 hover:text-brand transition-all"
+                  disabled={currentPage >= totalPages}
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                >
+                  <ArrowRight className="size-4" />
+                </Button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
-      {/* Certificate Upload Modal */}
       {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={closeModal} />
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={closeModal} />
 
-          <div className="relative z-10 w-full max-w-lg overflow-hidden rounded-xl bg-white shadow-2xl animate-in fade-in zoom-in-95 duration-200">
-            {/* Header */}
-            <div className="border-b border-gray-100 px-6 py-4">
-               <div className="flex items-start justify-between">
+          <div className="relative z-10 w-full max-w-xl overflow-hidden rounded-3xl bg-white shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-300">
+            <div className="p-8 border-b border-gray-50 flex items-start justify-between text-left">
+              <div className="flex items-center gap-4">
+                <div className="size-12 rounded-2xl bg-brand/5 border border-brand/10 flex items-center justify-center text-brand">
+                  <Package className="size-6" />
+                </div>
                 <div>
-              <h2 className="text-xl font-bold text-brand uppercase tracking-tight">Certificate Upload</h2>
-              <p className="mt-0.5 text-xs font-medium text-gray-500">Upload your product quality certificate.</p>
-            </div>
-                <button
-                  type="button"
-                  onClick={closeModal}
-                  className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
-                >
-                  <CloseIcon />
-                </button>
+                  <h2 className="text-lg font-bold text-gray-900 uppercase tracking-tight">Certification details</h2>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">
+                    {selectedProduct ? selectedProduct.productName : ''}
+                  </p>
+                </div>
               </div>
+              <Button variant="ghost" size="icon" onClick={closeModal} className="rounded-md text-gray-400 hover:bg-gray-50">
+                <X className="size-5" />
+              </Button>
             </div>
 
-            {/* Form Body */}
-            <div className="p-6 space-y-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div className="space-y-1.5">
-                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-700">Certification Type <span className="text-red-500">*</span></label>
+            <div className="p-8 space-y-8 text-left">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                <div className="space-y-2">
+                  <label className="text-[11px] font-bold uppercase tracking-widest text-gray-400 flex items-center gap-2">
+                    Verification type <span className="text-red-500 font-bold">*</span>
+                  </label>
                   <div className="relative">
                     <select
                       value={certType}
                       onChange={(e) => setCertType(e.target.value)}
-                      className="h-10 w-full appearance-none rounded-md border border-gray-200 bg-white px-3 text-sm font-bold text-gray-900 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all font-bold"
+                      className="h-11 w-full flex items-center justify-between rounded-md border border-gray-100 bg-gray-50/50 px-4 text-sm font-bold uppercase tracking-wider text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand appearance-none"
                     >
-                      <option value="">Select a Type</option>
+                      <option value="">Select type</option>
                       {CERTIFICATION_TYPES.map((t) => (
-                        <option key={t.id} value={t.id}>{t.name}</option>
+                        <option key={t.id} value={t.id}>
+                          {t.name}
+                        </option>
                       ))}
                     </select>
-                    <ChevronDown />
+                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 size-4 text-gray-400 pointer-events-none" />
                   </div>
                 </div>
 
-                <div className="space-y-1.5">
-                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-700">Certification Organisation <span className="text-red-500">*</span></label>
-                  <input
+                <div className="space-y-2">
+                  <label className="text-[11px] font-bold uppercase tracking-widest text-gray-400 flex items-center gap-2">
+                    Issuing institution
+                  </label>
+                  <Input
                     type="text"
-                    placeholder="e.g., NAFDAC"
+                    placeholder="e.g., NAFDAC / SON"
                     value={certOrg}
                     onChange={(e) => setCertOrg(e.target.value)}
-                    className="h-10 w-full rounded-md border border-gray-200 bg-white px-3 text-sm font-bold text-gray-900 placeholder:text-gray-300 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all font-bold"
+                    className="h-11 w-full rounded-md border border-gray-100 bg-gray-50/50 px-4 text-sm font-bold uppercase text-gray-700 focus:border-brand shadow-none"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div className="space-y-1.5">
-                  <label htmlFor="date-issued" className="block text-xs font-bold uppercase tracking-wider text-gray-700">
-                    Date Issued
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                <div className="space-y-2">
+                  <label className="text-[11px] font-bold uppercase tracking-widest text-gray-400 flex items-center gap-2">
+                    <Calendar className="size-3 text-brand" /> Issuance date
                   </label>
-                  <DatePicker
-                    value={dateIssued}
-                    onChange={setDateIssued}
-                  />
+                  <DatePicker value={dateIssued} onChange={setDateIssued} className="h-11 rounded-md border-gray-100 bg-gray-50/50 shadow-none border" />
                 </div>
 
-                <div className="space-y-1.5">
-                  <label htmlFor="date-expiry" className="block text-xs font-bold uppercase tracking-wider text-gray-700">
-                    Date Expiry
+                <div className="space-y-2">
+                  <label className="text-[11px] font-bold uppercase tracking-widest text-gray-400 flex items-center gap-2">
+                    <QrCode className="size-3 text-brand" /> Expiry date
                   </label>
-                  <DatePicker
-                    value={dateExpiry}
-                    onChange={setDateExpiry}
-                  />
+                  <DatePicker value={dateExpiry} onChange={setDateExpiry} className="h-11 rounded-md border-gray-100 bg-gray-50/50 shadow-none border" />
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <label className="block text-xs font-bold uppercase tracking-wider text-gray-700">
-                  Upload Document<span className="text-red-500">*</span>
+              <div className="space-y-3">
+                <label className="text-[11px] font-bold uppercase tracking-widest text-gray-400">
+                  Certification document (PDF / image) <span className="text-red-500 font-bold">*</span>
                 </label>
                 <div
-                  className={`flex flex-col items-center justify-center rounded-xl border-2 border-dashed px-4 py-10 transition-all cursor-pointer ${dragOver
-                    ? 'border-brand bg-brand/5 scale-[1.01]'
-                    : 'border-gray-200 bg-gray-50/50 hover:border-gray-300 hover:bg-white'
-                    }`}
-                  onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
+                  onDragOver={(e) => {
+                    e.preventDefault()
+                    setDragOver(true)
+                  }}
                   onDragLeave={() => setDragOver(false)}
                   onDrop={handleFileDrop}
+                  className={cn(
+                    'relative flex flex-col items-center justify-center rounded-2xl border-2 border-dashed p-8 transition-all cursor-pointer',
+                    dragOver
+                      ? 'border-brand bg-brand/5 scale-[0.98]'
+                      : 'border-gray-100 bg-gray-50/30 hover:bg-white hover:border-brand/20',
+                  )}
                 >
                   {uploadedFile ? (
                     <div className="flex flex-col items-center gap-3">
-                      <div className="rounded-full bg-green-100 p-2.5">
-                        <svg className="size-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                        </svg>
+                      <div className="size-12 rounded-md bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600">
+                        <FileText className="size-6" />
                       </div>
-                      <div className="flex items-center gap-2 text-sm font-bold text-gray-900">
-                        <span>{uploadedFile.name}</span>
+                      <div className="text-center">
+                        <p className="text-xs font-bold text-gray-900">{uploadedFile.name}</p>
                         <button
                           type="button"
-                          onClick={(e) => { e.stopPropagation(); setUploadedFile(null) }}
-                          className="text-gray-400 hover:text-red-500 transition-colors"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setUploadedFile(null)
+                          }}
+                          className="mt-2 text-[10px] font-bold text-red-400 uppercase tracking-widest hover:text-red-600 transition-colors"
                         >
-                          <CloseIcon />
+                          Remove document
                         </button>
                       </div>
                     </div>
                   ) : (
                     <label className="flex w-full cursor-pointer flex-col items-center gap-3">
-                      <div className="rounded-full bg-white p-3 shadow-sm border border-gray-100">
-                        <svg className="size-6 text-brand" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
-                        </svg>
+                      <div className="size-12 rounded-md bg-white border border-gray-100 shadow-sm flex items-center justify-center text-brand">
+                        <UploadCloud className="size-6" />
                       </div>
                       <div className="text-center">
-                        <span className="text-sm font-bold text-gray-900">Click to upload or drag and drop</span>
-                        <p className="text-[10px] font-medium text-gray-400 mt-0.5 uppercase tracking-widest">Max file size: 10MB (PDF, JPG, PNG)</p>
+                        <span className="text-xs font-bold text-gray-900 uppercase tracking-widest">Drop or select file</span>
+                        <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1">Max 10MB (PDF/JPG/PNG)</p>
                       </div>
-                      <input
-                        type="file"
-                        className="hidden"
-                        accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-                        onChange={handleFileSelect}
-                      />
+                      <input type="file" className="hidden" accept=".pdf,.jpg,.jpeg,.png" onChange={handleFileSelect} />
                     </label>
                   )}
                 </div>
               </div>
 
-              <button
-                type="button"
-                onClick={closeModal}
-                className="mt-2 flex h-12 w-full items-center justify-center rounded-md bg-[#1b4332] text-sm font-bold text-white shadow-lg shadow-brand/10 transition-all hover:bg-brand-dark hover:-translate-y-0.5 active:translate-y-0"
-              >
-                Save Product Certification
-              </button>
+              <div className="pt-4">
+                <Button
+                  type="button"
+                  disabled={isSaving || !certType || !uploadedFile}
+                  onClick={() => void handleSave()}
+                  className="h-14 w-full bg-[#1b3d1e] hover:bg-black text-white font-bold uppercase tracking-widest text-[11px] gap-3 shadow-xl shadow-brand/20 transition-all hover:-translate-y-1 active:translate-y-0 disabled:opacity-50"
+                >
+                  <CheckCircle2 className="size-5" />
+                  {isSaving ? 'Saving…' : 'Save certification'}
+                </Button>
+              </div>
             </div>
           </div>
         </div>
       )}
     </div>
-  )
-}
-
-function PackageIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-    </svg>
   )
 }

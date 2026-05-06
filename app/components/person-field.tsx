@@ -1,14 +1,8 @@
 import { Label } from '~/components/ui/label'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '~/components/ui/select'
+import { useGetPersonnel } from '~/lib/api/generated/personnel/personnel'
 
 import { useCallback, useState } from 'react'
-
-// Mock personnel data - in a real app, this would come from an API or context
-const mockPersonnel = [
-  { id: '1', fullName: 'Olamide Olutekunbi', role: 'Farm Manager' },
-  { id: '2', fullName: 'Grace Adebayo', role: 'Supervisor' },
-  { id: '3', fullName: 'Ahmed Musa', role: 'Field Operator' },
-]
 
 interface PersonFieldProps {
   id: string
@@ -32,6 +26,8 @@ export function PersonField({
   roleFilter,
 }: PersonFieldProps) {
   const [internalValue, setInternalValue] = useState(defaultValue ?? '')
+  const { data } = useGetPersonnel()
+  const personnel = data?.data?.data ?? []
 
   const handleChange = useCallback(
     (val: string | null) => {
@@ -48,10 +44,19 @@ export function PersonField({
 
   const inputValue = value !== undefined ? value : internalValue
 
-  // Filter personnel based on role if specified
-  const filteredPersonnel = roleFilter 
-    ? mockPersonnel.filter(person => person.role.toLowerCase().includes(roleFilter.toLowerCase()))
-    : mockPersonnel
+  // Filter personnel based on role when possible; fall back to all active personnel if no match.
+  const activePersonnel = personnel.filter((person) => person.status === 'active')
+  const filteredByRole = roleFilter
+    ? activePersonnel.filter((person) => {
+        const roleText = `${person.designatedRole ?? ''} ${person.type ?? ''}`.toLowerCase()
+        return roleText.includes(roleFilter.toLowerCase())
+      })
+    : activePersonnel
+  const filteredPersonnel = filteredByRole.length > 0 ? filteredByRole : activePersonnel
+  const selectedPerson = personnel.find((person) => person.id === inputValue)
+  const selectedLabel = selectedPerson
+    ? `${selectedPerson.fullName} - ${selectedPerson.designatedRole || selectedPerson.type}`
+    : undefined
 
   return (
     <div className={className}>
@@ -64,16 +69,17 @@ export function PersonField({
         onValueChange={handleChange}
       >
         <SelectTrigger>
-          <SelectValue placeholder={placeholder} />
+          <SelectValue placeholder={placeholder}>{selectedLabel}</SelectValue>
         </SelectTrigger>
         <SelectContent>
           {filteredPersonnel.map((person) => (
-            <SelectItem key={person.id} value={person.fullName}>
-              {person.fullName} - {person.role}
+            <SelectItem key={person.id} value={person.id}>
+              {person.fullName} - {person.designatedRole || person.type}
             </SelectItem>
           ))}
         </SelectContent>
       </Select>
+      <input type="hidden" name={id} value={inputValue} />
     </div>
   )
 }

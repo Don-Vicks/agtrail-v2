@@ -1,122 +1,117 @@
+import {
+  Activity,
+  AlertCircle,
+  ArrowRight,
+  Building2,
+  CheckCircle,
+  Clock,
+  Layers,
+  Package,
+  Plus,
+  Search
+} from 'lucide-react';
+import { useMemo } from 'react';
 import { Link } from 'react-router';
-import { cn } from '~/lib/utils';
+import { EmptyState } from '~/components/empty-state';
+import { PageHeader } from '~/components/page-header';
+import { StatCard } from '~/components/stat-card';
+import { Badge } from '~/components/ui/badge';
+import { Button } from '~/components/ui/button';
+import { useGetFacilities } from '~/lib/api/generated/facilities/facilities';
+import type { ProcessorBatch } from '~/lib/api/generated/models';
 import { useGetProcessorsBatches } from '~/lib/api/generated/processors-batches/processors-batches';
 import { useGetProcessorsDashboardStats } from '~/lib/api/generated/processors-dashboard/processors-dashboard';
-import type { ProcessorBatch } from '~/lib/api/generated/models';
+import { getOrganizationHeaders } from '~/lib/organization-context';
+import { cn } from '~/lib/utils';
 
 /* ─── Components ─── */
-
-function StatCard({ title, value, subtitle }: { title: string; value: string | number; subtitle: string }) {
-  return (
-    <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-      <h3 className="text-sm font-medium text-gray-500">{title}</h3>
-      <div className="mt-2 text-3xl font-bold text-gray-900">{value}</div>
-      <p className="mt-1 text-xs text-gray-500">{subtitle}</p>
-    </div>
-  )
-}
-
-function ActionButton({ icon, label, to }: { icon: React.ReactNode; label: string; to: string }) {
-  return (
-    <Link to={to} className="flex w-full items-center gap-3 rounded-md border border-gray-200 bg-white p-2 text-sm font-medium text-gray-800 hover:bg-gray-50 transition-colors shadow-sm">
-      <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-[#e8f5e9] text-[#2e7d32]">
-        {icon}
-      </div>
-      {label}
-    </Link>
-  )
-}
+// Local StatCard and ActionButton removed as shared components are now used
 
 function StatusBadge({ status }: { status: string | undefined }) {
-  const getBadgeStyle = () => {
-    switch (status?.toLowerCase()) {
-      case 'completed':
-      case 'passed': 
-        return 'bg-green-50 text-green-700 ring-1 ring-green-600/20'
-      case 'cancelled':
-      case 'failed': 
-        return 'bg-red-50 text-red-700 ring-1 ring-red-600/10'
-      case 'in_progress':
-      case 'pending': 
-        return 'bg-yellow-50 text-yellow-800 ring-1 ring-yellow-600/20'
-      default: 
-        return 'bg-gray-50 text-gray-600 ring-1 ring-gray-500/10'
-    }
-  }
+  const isCompleted = status?.toLowerCase() === 'completed' || status?.toLowerCase() === 'passed'
+  const isPending = status?.toLowerCase() === 'pending' || status?.toLowerCase() === 'incoming'
+  const isWip = status?.toLowerCase() === 'in_progress'
 
   return (
-    <span className={cn("inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-inset uppercase", getBadgeStyle())}>
+    <Badge
+      variant="outline"
+      className={cn(
+        "text-[10px] font-bold uppercase tracking-wider px-2 py-0",
+        isCompleted ? "bg-green-50 text-green-700 border-green-200" :
+          isPending ? "bg-amber-50 text-amber-700 border-amber-200" :
+            isWip ? "bg-blue-50 text-blue-700 border-blue-200" :
+              "bg-gray-50 text-gray-600 border-gray-200"
+      )}
+    >
       {status || 'UNKNOWN'}
-    </span>
+    </Badge>
   )
 }
 
 function BatchTable({ title, count, data, emptyMessage }: { title: string; count: number; data: ProcessorBatch[]; emptyMessage?: string }) {
   return (
-    <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden flex flex-col">
-      <div className="border-b border-gray-200 p-4">
+    <div className="rounded-md border border-gray-200 bg-white shadow-sm overflow-hidden flex flex-col">
+      <div className="border-b border-gray-100 p-5 bg-white">
         <div className="flex items-center gap-2 mb-4">
-          <svg className="size-5 text-[#f59e0b]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-          </svg>
-          <h2 className="text-base font-bold text-gray-900">{title} <span className="text-gray-500 font-normal">({count})</span></h2>
+          <div className="size-8 rounded-md bg-gray-50 flex items-center justify-center text-amber-500">
+            <Layers className="size-4" />
+          </div>
+          <div>
+            <h2 className="text-base font-bold text-gray-900 uppercase tracking-tight">{title}</h2>
+            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">{count} ACTIVE BATCHES</p>
+          </div>
         </div>
 
         <div className="relative">
-          <svg className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
           <input
             type="text"
             placeholder="Search by batch ID, product, or farm..."
-            className="w-full rounded-md border border-gray-200 pl-9 pr-4 py-2 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+            className="w-full rounded-md border border-gray-200 pl-10 pr-4 py-2 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand focus:bg-white"
           />
         </div>
       </div>
 
       {data.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
-          <div className="flex size-12 items-center justify-center rounded-full bg-gray-50 mb-3">
-            <svg className="size-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-            </svg>
-          </div>
-          <h3 className="text-sm font-bold text-gray-900">{emptyMessage}</h3>
-          <p className="mt-1 text-xs text-gray-500 max-w-[200px]">Start processing incoming batches to see them here.</p>
-        </div>
+        <EmptyState
+          icon={<Package className="size-10" />}
+          title={emptyMessage || "No batches found"}
+          description="Start processing incoming batches to see them here."
+          className="py-12"
+        />
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-gray-600">
-            <thead className="border-b border-gray-100 bg-white text-xs font-semibold text-brand">
+          <table className="w-full text-left text-sm">
+            <thead className="border-b border-gray-100 bg-gray-50/50">
               <tr>
-                <th className="px-4 py-3 font-medium">Batch ID</th>
-                <th className="px-4 py-3 font-medium">Product Name</th>
-                <th className="px-4 py-3 font-medium flex items-center gap-1">Farm Name <svg className="size-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" /></svg></th>
-                <th className="px-4 py-3 font-medium">Farmer Name</th>
-                <th className="px-4 py-3 font-medium">Compliance Status</th>
+                <th className="px-5 py-4 text-[10px] font-bold uppercase tracking-wider text-gray-500">Batch ID</th>
+                <th className="px-5 py-4 text-[10px] font-bold uppercase tracking-wider text-gray-500">Product Name</th>
+                <th className="px-5 py-4 text-[10px] font-bold uppercase tracking-wider text-gray-500">Farm Source</th>
+                <th className="px-5 py-4 text-[10px] font-bold uppercase tracking-wider text-gray-500">Farmer</th>
+                <th className="px-5 py-4 text-[10px] font-bold uppercase tracking-wider text-gray-500">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-gray-50">
               {data.map((row) => (
-                <tr key={row.id} className="hover:bg-gray-50/50 transition-colors">
-                  <td className="px-4 py-3 font-medium text-brand">{row.batchCode}</td>
-                  <td className="px-4 py-3 text-brand">{row.outputProductName}</td>
-                  <td className="px-4 py-3 text-gray-500">{row.facilityName || '-'}</td>
-                  <td className="px-4 py-3 text-gray-500">-</td>
-                  <td className="px-4 py-3"><StatusBadge status={row.status} /></td>
+                <tr key={row.id} className="hover:bg-gray-50/30 transition-colors group">
+                  <td className="px-5 py-4 font-bold text-gray-900 tracking-tight">{row.batchCode}</td>
+                  <td className="px-5 py-4 font-bold text-gray-700">{row.outputProductName}</td>
+                  <td className="px-5 py-4 text-xs font-medium text-gray-500 italic">{row.facilityName || 'Global Source'}</td>
+                  <td className="px-5 py-4 text-xs font-medium text-gray-500">-</td>
+                  <td className="px-5 py-4"><StatusBadge status={row.status} /></td>
                 </tr>
               ))}
             </tbody>
           </table>
-          <div className="border-t border-gray-100 px-4 py-3 flex items-center justify-between text-xs text-gray-500">
-            <button className="flex items-center gap-1 hover:text-gray-800 disabled:opacity-50">
-              <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+          <div className="border-t border-gray-100 px-5 py-3 flex items-center justify-between text-[11px] text-gray-500 font-bold uppercase tracking-tight bg-gray-50/30">
+            <button className="flex items-center gap-1 hover:text-brand disabled:opacity-50 transition-colors">
+              <ArrowRight className="size-3.5 rotate-180" />
               Previous
             </button>
-            <span>Page 1 of 2</span>
-            <button className="flex items-center gap-1 text-gray-900 font-medium hover:text-gray-600">
+            <span className="text-gray-400">Page 1 of 2</span>
+            <button className="flex items-center gap-1 text-gray-900 hover:text-brand transition-colors">
               Next
-              <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+              <ArrowRight className="size-3.5" />
             </button>
           </div>
         </div>
@@ -128,37 +123,106 @@ function BatchTable({ title, count, data, emptyMessage }: { title: string; count
 /* ─── Main Route ─── */
 
 export default function ProcessorDashboard() {
-  const { data: statsResponse, isLoading: isStatsLoading } = useGetProcessorsDashboardStats()
-  const { data: batchesResponse, isLoading: isBatchesLoading } = useGetProcessorsBatches()
+  const organizationHeaders = getOrganizationHeaders()
+  const {
+    data: statsResponse,
+    isLoading: isStatsLoading,
+    isError: isStatsError,
+  } = useGetProcessorsDashboardStats({
+    request: { headers: organizationHeaders },
+  })
+  const {
+    data: batchesResponse,
+    isLoading: isBatchesLoading,
+    isError: isBatchesError,
+  } = useGetProcessorsBatches({
+    request: { headers: organizationHeaders },
+  })
+  const { data: facilitiesResponse } = useGetFacilities({
+    request: { headers: organizationHeaders },
+  })
 
   const statsData: any = statsResponse?.data?.data || {}
-  const allBatches = batchesResponse?.data?.data || []
-
-  const incomingBatches = allBatches.filter((b: ProcessorBatch) => b.status === 'pending')
-  const wipBatches = allBatches.filter((b: ProcessorBatch) => b.status === 'in_progress')
-  const completedBatches = allBatches.filter((b: ProcessorBatch) => b.status === 'completed')
+  const allBatches = (batchesResponse?.data?.data || []) as ProcessorBatch[]
+  const incomingBatches = useMemo(
+    () =>
+      allBatches.filter((b) => (b.status || '').toLowerCase() === 'pending'),
+    [allBatches],
+  )
+  const wipBatches = useMemo(
+    () =>
+      allBatches.filter(
+        (b) => (b.status || '').toLowerCase() === 'in_progress',
+      ),
+    [allBatches],
+  )
+  const completedBatches = useMemo(
+    () =>
+      allBatches.filter((b) => (b.status || '').toLowerCase() === 'completed'),
+    [allBatches],
+  )
+  const hasLoadError = isStatsError || isBatchesError
+  const hasOrganizationContext = Boolean(organizationHeaders['X-Organization-Id'])
+  const totalFacilities = facilitiesResponse?.data?.data?.length ?? 0
 
   return (
-    <div className="space-y-6 pb-10">
-      {/* Header Row */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-end gap-4">
-        <Link
-          to="/processor/batches/new"
-          className="inline-flex items-center justify-center gap-2 rounded-md bg-[#1b4332] px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-dark"
-        >
-          <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-          </svg>
-          Start New Batch
-        </Link>
+    <div className="space-y-6 pb-10 px-1 text-left w-full overflow-x-hidden">
+
+      <PageHeader
+        items={[
+          {
+            label: 'Processor',
+            href: '/processor',
+            icon: (
+              <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <rect x="3" y="3" width="7" height="7" rx="1" />
+                <rect x="14" y="3" width="7" height="7" rx="1" />
+                <rect x="3" y="14" width="7" height="7" rx="1" />
+                <rect x="14" y="14" width="7" height="7" rx="1" />
+              </svg>
+            ),
+          },
+          { label: 'Dashboard' },
+        ]}
+        action={
+          <div className="flex items-center gap-2">
+            <Link to="/processor/batches/new">
+              <Button className="bg-[#1d3d1e] hover:bg-black text-white flex items-center gap-2 h-11 px-6 shadow-sm">
+                <Plus className="size-4" />
+                <span className="font-bold uppercase tracking-wide text-xs">Start New Batch</span>
+              </Button>
+            </Link>
+          </div>
+        }
+      />
+
+      <div className="px-1">
+        <h1 className="text-2xl font-bold text-gray-900 uppercase tracking-tight">Processor Dashboard</h1>
+        <p className="text-sm text-gray-500 mt-1">Manage your production batches and inventory</p>
       </div>
+      {!hasOrganizationContext ? (
+        <EmptyState
+          className="rounded-md border border-dashed border-amber-200 bg-amber-50/40 py-14"
+          icon={<AlertCircle className="size-9 text-amber-600" />}
+          title="Organization context is missing"
+          description="Set `VITE_DEFAULT_ORGANIZATION_ID` or log in to an organization-aware account."
+        />
+      ) : null}
+      {hasLoadError ? (
+        <EmptyState
+          className="rounded-md border border-dashed border-red-200 bg-red-50/30 py-14"
+          icon={<AlertCircle className="size-9 text-red-500" />}
+          title="Failed to load processor data"
+          description="Dashboard data could not be loaded. Verify organization header setup and refresh."
+        />
+      ) : null}
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className={cn("grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4", hasLoadError && "opacity-70 pointer-events-none")}>
         {isStatsLoading ? (
           <>
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="rounded-md border border-gray-200 bg-white p-5 shadow-sm">
                 <div className="h-4 w-24 bg-gray-200 rounded animate-pulse"></div>
                 <div className="mt-3 h-8 w-16 bg-gray-200 rounded animate-pulse"></div>
                 <div className="mt-2 h-3 w-32 bg-gray-200 rounded animate-pulse"></div>
@@ -167,10 +231,43 @@ export default function ProcessorDashboard() {
           </>
         ) : (
           <>
-            <StatCard title="Finished Goods" value={statsData.totalFinishedGoods ?? completedBatches.length} subtitle="Batches Ready for Distribution" />
-            <StatCard title="Quality Control" value={statsData.totalQcHold ?? 0} subtitle="Batch on QA Hold" />
-            <StatCard title="Work In Progress (WIP)" value={statsData.totalWip ?? wipBatches.length} subtitle="Batches in Production" />
-            <StatCard title="Incoming Goods" value={statsData.totalIncoming ?? incomingBatches.length} subtitle="Batches Awaiting Receipt" />
+            <StatCard
+              title="Finished Goods"
+              value={String(statsData.totalFinishedGoods ?? completedBatches.length)}
+              subtitle="Completed production"
+              description="Batches Ready for Distribution"
+              icon={<Package className="size-4" />}
+            />
+            <StatCard
+              title="Quality Control"
+              value={String(statsData.totalQcHold ?? 0)}
+              subtitle="Verification status"
+              description="Batch on QA Hold"
+              icon={<CheckCircle className="size-4" />}
+              trend="neutral"
+            />
+            <StatCard
+              title="Work In Progress"
+              value={String(statsData.totalWip ?? wipBatches.length)}
+              subtitle="Active production"
+              description="Batches in Production"
+              icon={<Activity className="size-4" />}
+              trend="up"
+            />
+            <StatCard
+              title="Incoming Goods"
+              value={String(statsData.totalIncoming ?? incomingBatches.length)}
+              subtitle="Awaiting receipt"
+              description="Batches Awaiting Receipt"
+              icon={<Clock className="size-4" />}
+            />
+            <StatCard
+              title="Facilities"
+              value={String(totalFacilities)}
+              subtitle="Active locations"
+              description="Processing sites managed"
+              icon={<Building2 className="size-4" />}
+            />
           </>
         )}
       </div>
@@ -179,7 +276,7 @@ export default function ProcessorDashboard() {
         {/* Left Column: Tables */}
         <div className="lg:col-span-2 space-y-6">
           {isBatchesLoading ? (
-            <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden flex flex-col">
+            <div className="rounded-md border border-gray-200 bg-white shadow-sm overflow-hidden flex flex-col">
               <div className="border-b border-gray-200 p-4">
                 <div className="flex items-center gap-2 mb-4">
                   <div className="size-5 rounded-full bg-gray-200 animate-pulse"></div>
@@ -209,61 +306,130 @@ export default function ProcessorDashboard() {
 
         {/* Right Column: Actions */}
         <div className="lg:col-span-1 space-y-6">
-          <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-            <h2 className="text-base font-bold text-gray-900 mb-4">Quick Actions</h2>
+          <div className="rounded-md border border-gray-200 bg-white p-6 shadow-sm">
+            <h2 className="text-base font-bold text-gray-900 uppercase tracking-tight mb-5">Quick Actions</h2>
             <div className="space-y-3">
-              <ActionButton
-                icon={<svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>}
-                label="Receive Harvest Batch"
-                to="/processor/materials"
-              />
-              <ActionButton
-                icon={<svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>}
-                label="Start New Batch"
-                to="/processor/batches/new"
-              />
-              <ActionButton
-                icon={<svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" strokeLinecap="round" strokeLinejoin="round" /></svg>}
-                label="QA/QC Test"
-                to="/processor/certifications/readiness"
-              />
+              <Link to="/processor/materials" className="block">
+                <Button variant="outline" className="w-full justify-start gap-3 h-12 font-bold text-gray-700 hover:text-brand transition-all border-gray-200">
+                  <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-brand-surface text-brand">
+                    <Package className="size-4" />
+                  </div>
+                  <span className="text-xs uppercase tracking-tight">Receive Harvest</span>
+                </Button>
+              </Link>
+              <Link to="/processor/batches/new" className="block">
+                <Button variant="outline" className="w-full justify-start gap-3 h-12 font-bold text-gray-700 hover:text-brand transition-all border-gray-200">
+                  <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-blue-50 text-blue-600">
+                    <Plus className="size-4" />
+                  </div>
+                  <span className="text-xs uppercase tracking-tight">Start New Batch</span>
+                </Button>
+              </Link>
+              <Link to="/processor/certifications/readiness" className="block">
+                <Button variant="outline" className="w-full justify-start gap-3 h-12 font-bold text-gray-700 hover:text-brand transition-all border-gray-200">
+                  <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-orange-50 text-orange-600">
+                    <AlertCircle className="size-4" />
+                  </div>
+                  <span className="text-xs uppercase tracking-tight">QA/QC Test</span>
+                </Button>
+              </Link>
+              <Link to="/processor/facilities" className="block">
+                <Button variant="outline" className="w-full justify-start gap-3 h-12 font-bold text-gray-700 hover:text-brand transition-all border-gray-200">
+                  <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-emerald-50 text-emerald-600">
+                    <Building2 className="size-4" />
+                  </div>
+                  <span className="text-xs uppercase tracking-tight">Manage Facilities</span>
+                </Button>
+              </Link>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Full Width Chart Area */}
-      <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm mt-6">
+      {/* Production Output Chart */}
+      <div className="rounded-md border border-gray-200 bg-white p-6 shadow-sm mt-6">
         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-8">
           <div>
-            <h2 className="text-lg font-bold text-gray-900">Production Output (Tonnes)</h2>
-            <p className="text-xs text-gray-500 mt-1">Shows the total quantity of finished goods produced each day for the current quarter.</p>
+            <h2 className="text-lg font-bold text-gray-900 uppercase tracking-tight">Production Summary</h2>
+            <p className="text-xs text-gray-500 mt-1 font-medium">Overview of your batch processing</p>
           </div>
-          <select className="rounded-md border border-gray-200 py-1.5 pl-3 pr-8 text-sm text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand">
-            <option>Quarter</option>
+          <select className="rounded-md border border-gray-200 py-2 pl-3 pr-10 text-xs font-bold uppercase tracking-wider text-gray-700 outline-none focus:border-brand focus:ring-1 focus:ring-brand bg-white">
+            <option>Current Month</option>
+            <option>Last 3 Months</option>
+            <option>Last Year</option>
           </select>
         </div>
 
-        {/* Dummy Chart Grid */}
-        <div className="relative h-[250px] w-full mt-4">
-          <div className="absolute inset-0 flex flex-col justify-between pt-2 pb-6">
-            {[4, 3, 2, 1, 0].map((val) => (
-              <div key={val} className="flex items-center w-full">
-                <span className="w-6 text-xs text-gray-400 font-medium">{val}</span>
-                <div className="ml-2 w-full border-b border-dashed border-gray-200" />
-              </div>
-            ))}
+        {/* Summary Stats */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div className="rounded-md border border-gray-100 p-5 bg-gray-50/50">
+            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">Total Batches</p>
+            <p className="text-2xl font-bold text-gray-900 tracking-tight">{allBatches.length}</p>
+            <p className="text-[10px] text-gray-500 mt-2 font-medium">Active processing batches</p>
           </div>
-          <div className="absolute bottom-0 left-8 right-0 flex justify-between text-[10px] text-gray-400">
-            <span>Jan 1</span>
-            <span>Jan 8</span>
-            <span>Jan 17</span>
-            <span>Jan 25</span>
-            <span>Feb 2</span>
-            <span>Feb 10</span>
-            <span>Feb 18</span>
-            <span>Feb 25</span>
-            <span>Mar 6</span>
+          <div className="rounded-md border-2 border-green-100/50 p-5 bg-green-50/30">
+            <p className="text-[10px] text-green-600 font-bold uppercase tracking-widest mb-1">Completed</p>
+            <p className="text-2xl font-bold text-green-700 tracking-tight">{completedBatches.length}</p>
+            <p className="text-[10px] text-green-600/70 mt-2 font-medium">Ready for dispatch</p>
+          </div>
+          <div className="rounded-md border border-blue-100/50 p-5 bg-blue-50/30">
+            <p className="text-[10px] text-blue-600 font-bold uppercase tracking-widest mb-1">In Progress</p>
+            <p className="text-2xl font-bold text-blue-700 tracking-tight">{wipBatches.length}</p>
+            <p className="text-[10px] text-blue-600/70 mt-2 font-medium">Currently processing</p>
+          </div>
+          <div className="rounded-md border border-amber-100/50 p-5 bg-amber-50/30">
+            <p className="text-[10px] text-amber-600 font-bold uppercase tracking-widest mb-1">Incoming</p>
+            <p className="text-2xl font-bold text-amber-700 tracking-tight">{incomingBatches.length}</p>
+            <p className="text-[10px] text-amber-600/70 mt-2 font-medium">Awaiting processing</p>
+          </div>
+        </div>
+
+        {/* Production Health */}
+        <div className="mt-8 pt-6 border-t border-gray-100">
+          <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-6">Production Performance</h3>
+
+          <div className="space-y-3">
+            {/* Completion Rate */}
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <p className="text-xs font-medium text-gray-700">Batch Completion Rate</p>
+                <p className="text-xs font-bold text-gray-900">{allBatches.length > 0 ? Math.round((completedBatches.length / allBatches.length) * 100) : 0}%</p>
+              </div>
+              <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-green-500 rounded-full transition-all"
+                  style={{ width: allBatches.length > 0 ? `${(completedBatches.length / allBatches.length) * 100}%` : '0%' }}
+                ></div>
+              </div>
+            </div>
+
+            {/* WIP Ratio */}
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <p className="text-xs font-medium text-gray-700">Work In Progress Rate</p>
+                <p className="text-xs font-bold text-gray-900">{allBatches.length > 0 ? Math.round((wipBatches.length / allBatches.length) * 100) : 0}%</p>
+              </div>
+              <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-blue-500 rounded-full transition-all"
+                  style={{ width: allBatches.length > 0 ? `${(wipBatches.length / allBatches.length) * 100}%` : '0%' }}
+                ></div>
+              </div>
+            </div>
+
+            {/* Pending */}
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <p className="text-xs font-medium text-gray-700">Pending/Incoming Rate</p>
+                <p className="text-xs font-bold text-gray-900">{allBatches.length > 0 ? Math.round((incomingBatches.length / allBatches.length) * 100) : 0}%</p>
+              </div>
+              <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-yellow-500 rounded-full transition-all"
+                  style={{ width: allBatches.length > 0 ? `${(incomingBatches.length / allBatches.length) * 100}%` : '0%' }}
+                ></div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

@@ -1,9 +1,9 @@
 import { Outlet, useLocation } from 'react-router'
-import { CooperativeSidebar } from '~/components/layout/cooperative-sidebar'
-import { Topbar } from '~/components/layout/topbar'
+import { Sidebar } from '~/components/layout/sidebar'
 import { SidebarProvider, useSidebar } from '~/components/layout/sidebar-context'
 import { AuthGuard } from '~/components/auth-guard'
 import { cn } from '~/lib/utils'
+import { sidebarNavigation } from '~/lib/mock-data/cooperative'
 import type { Route } from './+types/layout'
 
 export function meta({}: Route.MetaArgs) {
@@ -21,7 +21,7 @@ function CooperativeLayoutContent() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
-      <CooperativeSidebar />
+      <Sidebar navigation={sidebarNavigation} roleLabel="Cooperative" />
 
       {isOpenMobile && (
         <div
@@ -35,7 +35,6 @@ function CooperativeLayoutContent() {
         "ml-0",
         isCollapsedDesktop ? "lg:ml-0" : "lg:ml-64"
       )}>
-        {isDashboard && <Topbar />}
         <main className="p-4 md:p-6 lg:p-8">
           <Outlet />
         </main>

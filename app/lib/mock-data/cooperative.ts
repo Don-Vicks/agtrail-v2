@@ -29,6 +29,18 @@ export const sidebarNavigation = [
         href: '/cooperative/products',
         icon: 'package',
       },
+      {
+        id: 'inventory',
+        label: 'Inventory',
+        href: '/cooperative/inventory',
+        icon: 'package',
+      },
+      {
+        id: 'personnel',
+        label: 'Personnel',
+        href: '/cooperative/personnel',
+        icon: 'users',
+      },
     ],
   },
   {
@@ -109,6 +121,23 @@ export const sidebarNavigation = [
         label: 'Compliance Analysis',
         href: '/cooperative/compliance',
         icon: 'shield-check',
+      },
+    ],
+  },
+  {
+    title: 'Transfer',
+    items: [
+      {
+        id: 'product-transfer',
+        label: 'Product Transfer',
+        href: '/cooperative/transfer/product-transfer',
+        icon: 'send',
+      },
+      {
+        id: 'products-pickup',
+        label: 'Products Pickup',
+        href: '/cooperative/transfer/pickup',
+        icon: 'truck',
       },
     ],
   },

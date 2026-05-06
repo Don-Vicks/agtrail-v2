@@ -1,147 +1,20 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
+import { getStateByCode } from 'ng-geo-data'
+import { useCallback, useMemo, useState } from 'react'
+import { Link, useLocation } from 'react-router'
+import { toast } from 'sonner'
+import { GoogleMapPolygonPicker } from '~/components/google-map-polygon-picker.client'
+import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '~/components/ui/dialog'
 import { Input } from '~/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
 import { Textarea } from '~/components/ui/textarea'
-import { cn } from '~/lib/utils'
 import { usePostFarms } from '~/lib/api/generated/farms/farms'
-import { useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
-
-/**
- * Leaflet map component — loaded lazily on the client only (no SSR).
- * We use a dynamic wrapper to avoid importing Leaflet on the server.
- */
-function MapBoundaryPicker({
-  points,
-  onAddPoint,
-}: {
-  points: [number, number][]
-  onAddPoint: (lat: number, lng: number) => void
-}) {
-  // Lazy-load react-leaflet to avoid SSR issues
-  const [mapComponents, setMapComponents] = useState<{
-    MapContainer: typeof import('react-leaflet')['MapContainer']
-    TileLayer: typeof import('react-leaflet')['TileLayer']
-    Marker: typeof import('react-leaflet')['Marker']
-    Polygon: typeof import('react-leaflet')['Polygon']
-    useMapEvents: typeof import('react-leaflet')['useMapEvents']
-    useMap: typeof import('react-leaflet')['useMap']
-  } | null>(null)
-
-  const [leafletLoaded, setLeafletLoaded] = useState(false)
-  const [loadError, setLoadError] = useState(false)
-
-  // Load leaflet + react-leaflet dynamically on mount
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-
-    let mounted = true
-
-    Promise.all([
-      import('leaflet'),
-      import('react-leaflet'),
-    ]).then(([L, RL]) => {
-      if (!mounted) return
-
-      // Fix default marker icons
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      delete (L.Icon.Default.prototype as any)._getIconUrl
-      L.Icon.Default.mergeOptions({
-        iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
-        iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
-        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-      })
-
-      // Inject leaflet CSS
-      if (!document.querySelector('link[href*="leaflet"]')) {
-        const link = document.createElement('link')
-        link.rel = 'stylesheet'
-        link.href = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css'
-        document.head.appendChild(link)
-      }
-
-      setMapComponents({
-        MapContainer: RL.MapContainer,
-        TileLayer: RL.TileLayer,
-        Marker: RL.Marker,
-        Polygon: RL.Polygon,
-        useMapEvents: RL.useMapEvents,
-        useMap: RL.useMap,
-      })
-      setLeafletLoaded(true)
-    }).catch(err => {
-      console.error('Leaflet load error:', err)
-      setLoadError(true)
-    })
-
-    return () => { mounted = false }
-  }, [])
-
-  if (loadError) {
-    return (
-      <div className="flex h-72 items-center justify-center rounded-md bg-red-50 text-sm text-red-500">
-        Fatal: Map library failed to load.
-      </div>
-    )
-  }
-
-  if (!leafletLoaded || !mapComponents) {
-    return (
-      <div className="flex h-72 items-center justify-center rounded-md bg-gray-100 text-sm text-gray-400">
-        Loading map…
-      </div>
-    )
-  }
-
-  const { MapContainer, TileLayer, Marker, Polygon, useMapEvents, useMap } = mapComponents
-
-  function MapResizeTrigger() {
-    const map = useMap()
-    useEffect(() => {
-      // Small timeout to ensure the DOM has settled (modal transitions)
-      const timer = setTimeout(() => {
-        map.invalidateSize()
-      }, 100)
-      return () => clearTimeout(timer)
-    }, [map])
-    return null
-  }
-
-  function ClickHandler() {
-    useMapEvents({
-      click(e) {
-        onAddPoint(e.latlng.lat, e.latlng.lng)
-      },
-    })
-    return null
-  }
-
-  return (
-    <MapContainer
-      center={[9.06, 7.49] as [number, number]}
-      zoom={13}
-      className="h-full w-full rounded-md z-0 min-h-[400px]"
-    >
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
-      <MapResizeTrigger />
-      <ClickHandler />
-      {points.map((point, idx) => (
-        <Marker key={idx} position={point} />
-      ))}
-      {points.length >= 3 && (
-        <Polygon
-          positions={points}
-          pathOptions={{ color: '#4CAF50', fillColor: '#4CAF50', fillOpacity: 0.2 }}
-        />
-      )}
-    </MapContainer>
-  )
-}
+import { useGetUsersProfile } from '~/lib/api/generated/users/users'
+import { isVerifiedKycStatus } from '~/lib/kyc'
+import { sortedLgasForStateCode, sortedNigeriaStates } from '~/lib/nigeria-geo-options'
+import { cn } from '~/lib/utils'
 
 // ─── Area calculation utility ──────────────────────────────────────
 function calculatePolygonArea(points: [number, number][]): number {
@@ -171,14 +44,16 @@ function StepIndicator({ currentStep }: { currentStep: number }) {
   const steps = [
     { number: 1, label: 'Farm Details' },
     { number: 2, label: 'Map Boundaries' },
-    { number: 3, label: 'Review & Confirm' },
+    { number: 3, label: 'Farm Ownership' },
+    { number: 4, label: 'Deforestation Risk' },
+    { number: 5, label: 'Review & Confirm' },
   ]
 
   return (
-    <div className="flex items-center justify-center gap-0 px-6 pb-6">
+    <div className="flex items-start px-4 pb-6">
       {steps.map((s, index) => (
-        <div key={s.number} className="flex items-center">
-          <div className="flex flex-col items-center">
+        <div key={s.number} className={cn('flex items-start', index < steps.length - 1 && 'flex-1')}>
+          <div className="flex min-w-[76px] flex-col items-center">
             <div
               className={cn(
                 'flex size-10 items-center justify-center rounded-full text-sm font-bold transition-colors',
@@ -199,7 +74,7 @@ function StepIndicator({ currentStep }: { currentStep: number }) {
             </div>
             <span
               className={cn(
-                'mt-1.5 text-xs font-medium whitespace-nowrap',
+                'mt-1.5 max-w-[74px] text-center text-[10px] leading-3 font-medium',
                 currentStep >= s.number ? 'text-gray-900' : 'text-gray-400'
               )}
             >
@@ -209,7 +84,7 @@ function StepIndicator({ currentStep }: { currentStep: number }) {
           {index < steps.length - 1 && (
             <div
               className={cn(
-                'mx-3 mt-[-18px] h-0.5 w-20',
+                'mx-1.5 mt-5 h-0.5 flex-1',
                 currentStep > s.number ? 'bg-brand' : 'bg-gray-200'
               )}
             />
@@ -227,18 +102,106 @@ interface CreateFarmModalProps {
 }
 
 export function CreateFarmModal({ isOpen, onClose }: CreateFarmModalProps) {
+  const location = useLocation()
   const [step, setStep] = useState(1)
   const [formData, setFormData] = useState({
     farmName: '',
-    state: '',
+    /** Nigerian state code from `ng-geo-data` (e.g. LA, FC) */
+    stateCode: '',
     lga: '',
     farmRegion: '',
     address: '',
   })
   const [boundaryPoints, setBoundaryPoints] = useState<[number, number][]>([])
+  const [ownershipData, setOwnershipData] = useState({
+    ownerFullName: '',
+    nationalId: '',
+    phoneNumber: '',
+    gender: '',
+    documentType: '',
+    documentNumber: '',
+    dateIssued: '',
+    issuingAuthority: '',
+    leaseActive: '',
+    isFarmerOwner: '',
+    documentFileName: '',
+  })
+  const [deforestationRiskAcknowledged, setDeforestationRiskAcknowledged] = useState(false)
+  const { data: profileResponse, isLoading: isProfileLoading } = useGetUsersProfile()
+  const kycStatus = profileResponse?.data?.user?.kycStatus
+  const isKycVerified = isVerifiedKycStatus(kycStatus)
+  const kycSettingsPath = location.pathname.startsWith('/cooperative')
+    ? '/cooperative/settings?tab=kyc'
+    : location.pathname.startsWith('/processor')
+      ? '/processor/settings?tab=kyc'
+      : '/farmer/settings?tab=kyc'
 
   const handleFieldChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
+  }
+
+  const handleOwnershipFieldChange = (field: string, value: string) => {
+    setOwnershipData((prev) => ({ ...prev, [field]: value }))
+  }
+
+  const statesSorted = useMemo(() => sortedNigeriaStates(), [])
+
+  const lgasForState = useMemo(
+    () => sortedLgasForStateCode(formData.stateCode),
+    [formData.stateCode],
+  )
+
+  const validateCurrentStep = (): boolean => {
+    if (step === 1) {
+      if (!formData.farmName.trim()) {
+        toast.error('Farm name is required.')
+        return false
+      }
+      if (!formData.stateCode.trim()) {
+        toast.error('State is required.')
+        return false
+      }
+      if (!formData.lga.trim()) {
+        toast.error('LGA is required.')
+        return false
+      }
+      if (!formData.address.trim()) {
+        toast.error('Address is required.')
+        return false
+      }
+    }
+
+    if (step === 2 && boundaryPoints.length < 3) {
+      toast.error('Please add at least 3 boundary points on the map.')
+      return false
+    }
+
+    if (step === 3) {
+      const requiredFields: Array<keyof typeof ownershipData> = [
+        'ownerFullName',
+        'nationalId',
+        'phoneNumber',
+        'gender',
+        'documentType',
+        'documentNumber',
+        'dateIssued',
+        'issuingAuthority',
+        'leaseActive',
+        'isFarmerOwner',
+      ]
+      const missing = requiredFields.find((key) => !ownershipData[key]?.trim())
+      if (missing) {
+        toast.error('Please complete all required ownership fields.')
+        return false
+      }
+    }
+
+    if (step === 4 && !deforestationRiskAcknowledged) {
+      toast.error('Please acknowledge the deforestation risk decision before continuing.')
+      return false
+    }
+
+    return true
   }
 
   const handleAddPoint = useCallback((lat: number, lng: number) => {
@@ -255,8 +218,22 @@ export function CreateFarmModal({ isOpen, onClose }: CreateFarmModalProps) {
 
   const handleClose = () => {
     setStep(1)
-    setFormData({ farmName: '', state: '', lga: '', farmRegion: '', address: '' })
+    setFormData({ farmName: '', stateCode: '', lga: '', farmRegion: '', address: '' })
     setBoundaryPoints([])
+    setOwnershipData({
+      ownerFullName: '',
+      nationalId: '',
+      phoneNumber: '',
+      gender: '',
+      documentType: '',
+      documentNumber: '',
+      dateIssued: '',
+      issuingAuthority: '',
+      leaseActive: '',
+      isFarmerOwner: '',
+      documentFileName: '',
+    })
+    setDeforestationRiskAcknowledged(false)
     onClose()
   }
 
@@ -276,6 +253,28 @@ export function CreateFarmModal({ isOpen, onClose }: CreateFarmModalProps) {
   })
 
   const submitFarm = () => {
+    if (!isKycVerified) {
+      toast.error('KYC must be verified before creating farm plots.')
+      return
+    }
+
+    if (!deforestationRiskAcknowledged) {
+      toast.error('Please acknowledge the deforestation risk decision before creating this farm.')
+      return
+    }
+
+    const stateName = getStateByCode(formData.stateCode)?.name
+    if (
+      !formData.farmName.trim() ||
+      !formData.stateCode.trim() ||
+      !stateName ||
+      !formData.lga.trim() ||
+      !formData.address.trim()
+    ) {
+      toast.error('Farm name, state, LGA, and address are required.')
+      return
+    }
+
     let boundaries = null
     let gpsCoordinates = null
     if (boundaryPoints.length >= 3) {
@@ -301,7 +300,7 @@ export function CreateFarmModal({ isOpen, onClose }: CreateFarmModalProps) {
     createFarm({
       data: {
         name: formData.farmName,
-        state: formData.state || undefined,
+        state: stateName || undefined,
         lga: formData.lga || undefined,
         region: formData.farmRegion || undefined,
         address: formData.address || undefined,
@@ -319,7 +318,7 @@ export function CreateFarmModal({ isOpen, onClose }: CreateFarmModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={(open) => { if (!open) handleClose() }}>
       <DialogContent
-        className="p-0 gap-0 overflow-hidden outline-none duration-200 sm:max-w-xl"
+        className="p-0 gap-0 overflow-hidden outline-none duration-200 sm:max-w-160"
         showCloseButton={false}
       >
         <div className="max-h-[90vh] overflow-y-auto">
@@ -327,12 +326,14 @@ export function CreateFarmModal({ isOpen, onClose }: CreateFarmModalProps) {
           <DialogHeader className="flex flex-row items-start justify-between p-6 pb-4">
             <div className="text-left space-y-1">
               <DialogTitle className="text-xl font-bold text-brand">
-                Create New Farm - Step {step} of 3
+                Create New Farm - Step {step} of 5
               </DialogTitle>
               <DialogDescription className="text-xs text-gray-500">
                 {step === 1 && 'Enter the basic details of your farm'}
                 {step === 2 && 'Map your farm boundaries using GPS coordinates'}
-                {step === 3 && 'Review your farm information before submitting'}
+                {step === 3 && 'Provide farm ownership and tenure documentation'}
+                {step === 4 && 'Review deforestation risk checks for this farm'}
+                {step === 5 && 'Review your farm information before submitting'}
               </DialogDescription>
             </div>
             <button
@@ -347,205 +348,497 @@ export function CreateFarmModal({ isOpen, onClose }: CreateFarmModalProps) {
             </button>
           </DialogHeader>
 
-          {/* Step Indicator */}
-          <StepIndicator currentStep={step} />
-
-          {/* ─── Step 1: Farm Details ─────────────────────── */}
-          {step === 1 && (
-            <div className="space-y-4 px-6">
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-gray-900">
-                  Farm Name <span className="text-red-500">*</span>
-                </label>
-                <Input
-                  placeholder="e.g., Sunshine Farm"
-                  value={formData.farmName}
-                  onChange={(e) => handleFieldChange('farmName', e.target.value)}
-                  className="py-5"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="mb-1.5 block text-sm font-medium text-gray-900">State</label>
-                  <Select value={formData.state} onValueChange={(val) => handleFieldChange('state', val || '')}>
-                    <SelectTrigger className="w-full py-5 text-gray-500 font-normal">
-                      <SelectValue placeholder="Select a State" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Abia">Abia</SelectItem>
-                      <SelectItem value="Lagos">Lagos</SelectItem>
-                      <SelectItem value="Katsina">Katsina</SelectItem>
-                      <SelectItem value="Oyo">Oyo</SelectItem>
-                    </SelectContent>
-                  </Select>
+          {!isProfileLoading && !isKycVerified ? (
+            <div className="px-6 pb-6">
+              <div className="rounded-md border border-amber-200 bg-amber-50/60 p-5">
+                <p className="text-sm font-semibold text-amber-900">KYC verification required</p>
+                <p className="mt-1 text-xs text-amber-800">
+                  You cannot create farm plots until your KYC status is verified.
+                </p>
+                <div className="mt-4">
+                  <Link
+                    to={kycSettingsPath}
+                    className="inline-flex items-center rounded-md border border-brand bg-white px-4 py-2 text-sm font-medium text-brand hover:bg-brand-surface transition-colors"
+                  >
+                    Complete KYC
+                  </Link>
                 </div>
-                <div>
-                  <label className="mb-1.5 block text-sm font-medium text-gray-900">LGA</label>
-                  <Select value={formData.lga} onValueChange={(val) => handleFieldChange('lga', val || '')} disabled={!formData.state}>
-                    <SelectTrigger className="w-full py-5 text-gray-500 font-normal">
-                      <SelectValue placeholder="Select a state first" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {formData.state && <SelectItem value="Arochukwu">Arochukwu</SelectItem>}
-                      {formData.state && <SelectItem value="Ikeja">Ikeja</SelectItem>}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-gray-900">Farm Region</label>
-                <Input
-                  placeholder="e.g., Ekirin"
-                  value={formData.farmRegion}
-                  onChange={(e) => handleFieldChange('farmRegion', e.target.value)}
-                  className="py-5"
-                />
-              </div>
-
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-gray-900">Address</label>
-                <Textarea
-                  placeholder="Enter the full address of the farm"
-                  value={formData.address}
-                  onChange={(e) => handleFieldChange('address', e.target.value)}
-                  rows={3}
-                  className="resize-none"
-                />
               </div>
             </div>
-          )}
+          ) : (
+            <>
+              {/* Step Indicator */}
+              <StepIndicator currentStep={step} />
 
-          {/* ─── Step 2: Map Boundaries ──────────────────── */}
-          {step === 2 && (
-            <div className="space-y-4 px-6 relative w-full h-full flex flex-col">
-              {/* Instructions */}
-              <div className="rounded-md bg-[#f0f6ff] p-3">
-                <p className="text-sm">
-                  <span className="font-semibold text-gray-900">Instructions:</span>{' '}
-                  <span className="text-gray-600">
-                    Click on the map to add boundary points. Add at least 3 points to define your farm boundaries.
-                  </span>
-                </p>
-                <p className="mt-1 text-sm font-medium text-gray-700">
-                  Points Added: {boundaryPoints.length}
-                </p>
-              </div>
-
-              {/* Boundary Stats */}
-              <div className="grid grid-cols-3 gap-3">
-                <div className="rounded-md border border-gray-200 bg-[#f0f6ff] p-3">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-semibold uppercase tracking-wider text-[#1e3b8a]">Points</span>
-                    <svg className="size-4 text-[#1e3b8a]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
-                      <circle cx="12" cy="10" r="3" />
-                    </svg>
+              {/* ─── Step 1: Farm Details ─────────────────────── */}
+              {step === 1 && (
+                <div className="space-y-4 px-6">
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-gray-900">
+                      Farm Name <span className="text-red-500">*</span>
+                    </label>
+                    <Input
+                      placeholder="e.g., Sunshine Farm"
+                      value={formData.farmName}
+                      onChange={(e) => handleFieldChange('farmName', e.target.value)}
+                      className="py-5"
+                    />
                   </div>
-                  <p className="text-2xl font-bold text-[#1e3b8a]">{boundaryPoints.length}</p>
-                  <p className="text-xs text-gray-500">Add points to map</p>
-                </div>
-                <div className="rounded-md border border-gray-200 bg-[#e4fded] p-3">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-semibold uppercase tracking-wider text-[#1b8341]">Hectares</span>
-                    <svg className="size-4 text-[#1b8341]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3" />
-                    </svg>
-                  </div>
-                  <p className="text-2xl font-bold text-[#1b8341]">{areaHectares.toFixed(2)}</p>
-                  <p className="text-xs text-gray-400">Estimated area</p>
-                </div>
-                <div className="rounded-md border border-gray-200 bg-brand-surface/30 p-3">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-semibold uppercase tracking-wider text-brand">Sq. Meters</span>
-                    <svg className="size-4 text-brand-light" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <rect x="3" y="3" width="18" height="18" rx="2" />
-                    </svg>
-                  </div>
-                  <p className="text-2xl font-bold text-gray-900">{Math.round(areaSqMeters)}</p>
-                  <p className="text-xs text-gray-400">Total area</p>
-                </div>
-              </div>
 
-              {/* Map */}
-              <div className="overflow-hidden rounded-md border border-gray-200 w-full flex-grow min-h-[400px]">
-                <MapBoundaryPicker points={boundaryPoints} onAddPoint={handleAddPoint} />
-              </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="mb-1.5 block text-sm font-medium text-gray-900">
+                        State <span className="text-red-500">*</span>
+                      </label>
+                      <Select
+                        value={formData.stateCode || undefined}
+                        onValueChange={(val) => {
+                          setFormData((prev) => ({
+                            ...prev,
+                            stateCode: val || '',
+                            lga: '',
+                          }))
+                        }}
+                      >
+                        <SelectTrigger className="w-full py-5 text-gray-500 font-normal">
+                          <SelectValue placeholder="Select a state" />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-72">
+                          {statesSorted.map((s) => (
+                            <SelectItem key={s.code} value={s.code}>
+                              {s.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <label className="mb-1.5 block text-sm font-medium text-gray-900">
+                        LGA <span className="text-red-500">*</span>
+                      </label>
+                      <Select
+                        value={formData.lga || undefined}
+                        onValueChange={(val) => handleFieldChange('lga', val || '')}
+                        disabled={!formData.stateCode}
+                      >
+                        <SelectTrigger className="w-full py-5 text-gray-500 font-normal">
+                          <SelectValue
+                            placeholder={
+                              formData.stateCode ? 'Select an LGA' : 'Select a state first'
+                            }
+                          />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-72">
+                          {lgasForState.map((lga) => (
+                            <SelectItem key={`${lga.state}-${lga.name}`} value={lga.name}>
+                              {lga.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
 
-              {/* Point controls */}
-              {boundaryPoints.length > 0 && (
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={handleRemoveLastPoint}
-                    className="rounded-md border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50"
-                  >
-                    Undo Last Point
-                  </button>
-                  <button
-                    onClick={handleClearPoints}
-                    className="rounded-md border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50"
-                  >
-                    Clear All Points
-                  </button>
-                  <span className="ml-auto text-xs text-gray-400">
-                    {boundaryPoints.length < 3
-                      ? `Need ${3 - boundaryPoints.length} more point${3 - boundaryPoints.length > 1 ? 's' : ''}`
-                      : '✓ Boundary defined'}
-                  </span>
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-gray-900">Farm Region</label>
+                    <Input
+                      placeholder="e.g., Ekirin"
+                      value={formData.farmRegion}
+                      onChange={(e) => handleFieldChange('farmRegion', e.target.value)}
+                      className="py-5"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-gray-900">Address</label>
+                    <Textarea
+                      placeholder="Enter the full address of the farm"
+                      value={formData.address}
+                      onChange={(e) => handleFieldChange('address', e.target.value)}
+                      rows={3}
+                      className="resize-none"
+                    />
+                  </div>
                 </div>
               )}
-            </div>
-          )}
 
-          {/* ─── Step 3: Review & Confirm ───────────────── */}
-          {step === 3 && (
-            <div className="space-y-4 px-6">
-              <h3 className="text-base font-semibold text-gray-900">Review Farm Information</h3>
+              {/* ─── Step 2: Map Boundaries ──────────────────── */}
+              {step === 2 && (
+                <div className="space-y-4 px-6 relative w-full h-full flex grow flex-col">
+                  {/* Instructions */}
+                  <div className="rounded-md bg-[#f0f6ff] p-3">
+                    <p className="text-sm">
+                      <span className="font-semibold text-gray-900">Instructions:</span>{' '}
+                      <span className="text-gray-600">
+                        Click on the map to add boundary points. Add at least 3 points to define your farm boundaries.
+                      </span>
+                    </p>
+                    <p className="mt-1 text-sm font-medium text-gray-700">
+                      Points Added: {boundaryPoints.length}
+                    </p>
+                  </div>
 
-              <div className="grid grid-cols-2 gap-x-8 gap-y-4 rounded-md border border-gray-100 bg-gray-50/50 p-5">
-                <div>
-                  <p className="text-xs text-gray-400 mb-0.5">Farm Name</p>
-                  <p className="text-sm font-semibold text-gray-900">{formData.farmName || '—'}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-400 mb-0.5">State</p>
-                  <p className="text-sm font-semibold text-gray-900">{formData.state || '—'}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-400 mb-0.5">LGA</p>
-                  <p className="text-sm font-semibold text-gray-900">{formData.lga || '—'}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-400 mb-0.5">Farm Region</p>
-                  <p className="text-sm font-semibold text-gray-900">{formData.farmRegion || '—'}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-400 mb-0.5">Boundary Points</p>
-                  <p className="text-sm font-semibold text-gray-900">{boundaryPoints.length} points</p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-400 mb-0.5">Calculated Area</p>
-                  <p className="text-sm font-semibold text-brand-light">{areaHectares.toFixed(2)} hectares</p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-400 mb-0.5">Area (Square Meters)</p>
-                  <p className="text-sm font-semibold text-gray-900">{Math.round(areaSqMeters)} m²</p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-400 mb-0.5">Address</p>
-                  <p className="text-sm font-semibold text-gray-900">{formData.address || '—'}</p>
-                </div>
-              </div>
+                  {/* Boundary Stats */}
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="rounded-md border border-gray-200 bg-[#f0f6ff] p-3">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs font-semibold uppercase tracking-wider text-[#1e3b8a]">Points</span>
+                        <svg className="size-4 text-[#1e3b8a]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
+                          <circle cx="12" cy="10" r="3" />
+                        </svg>
+                      </div>
+                      <p className="text-2xl font-bold text-[#1e3b8a]">{boundaryPoints.length}</p>
+                      <p className="text-xs text-gray-500">Add points to map</p>
+                    </div>
+                    <div className="rounded-md border border-gray-200 bg-[#e4fded] p-3">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs font-semibold uppercase tracking-wider text-[#1b8341]">Hectares</span>
+                        <svg className="size-4 text-[#1b8341]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3" />
+                        </svg>
+                      </div>
+                      <p className="text-2xl font-bold text-[#1b8341]">{areaHectares.toFixed(2)}</p>
+                      <p className="text-xs text-gray-400">Estimated area</p>
+                    </div>
+                    <div className="rounded-md border border-gray-200 bg-brand-surface/30 p-3">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs font-semibold uppercase tracking-wider text-brand">Sq. Meters</span>
+                        <svg className="size-4 text-brand-light" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <rect x="3" y="3" width="18" height="18" rx="2" />
+                        </svg>
+                      </div>
+                      <p className="text-2xl font-bold text-gray-900">{Math.round(areaSqMeters)}</p>
+                      <p className="text-xs text-gray-400">Total area</p>
+                    </div>
+                  </div>
 
-              {/* Note */}
-              <div className="rounded-md border border-yellow-200 bg-yellow-50 px-4 py-3">
-                <p className="text-sm text-gray-700">
-                  <span className="font-semibold">Note:</span>{' '}
-                  Please review all information carefully before creating the farm. You can go back to edit any details.
-                </p>
-              </div>
-            </div>
+                  {/* Map */}
+                  <div className="overflow-hidden rounded-md border border-gray-200 w-full grow min-h-[400px]">
+                    <GoogleMapPolygonPicker
+                      points={boundaryPoints}
+                      onAddPoint={handleAddPoint}
+                      minHeightPx={400}
+                    />
+                  </div>
+
+                  {/* Point controls */}
+                  {boundaryPoints.length > 0 && (
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={handleRemoveLastPoint}
+                        className="rounded-md border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50"
+                      >
+                        Undo Last Point
+                      </button>
+                      <button
+                        onClick={handleClearPoints}
+                        className="rounded-md border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50"
+                      >
+                        Clear All Points
+                      </button>
+                      <span className="ml-auto text-xs text-gray-400">
+                        {boundaryPoints.length < 3
+                          ? `Need ${3 - boundaryPoints.length} more point${3 - boundaryPoints.length > 1 ? 's' : ''}`
+                          : '✓ Boundary defined'}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ─── Step 3: Farm Ownership ───────────────── */}
+              {step === 3 && (
+                <div className="space-y-4 px-6">
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div className="md:col-span-2">
+                      <label className="mb-1.5 block text-sm font-medium text-gray-900">
+                        Full legal name of the farm owner <span className="text-red-500">*</span>
+                      </label>
+                      <Input
+                        placeholder="e.g., Sunshine Farm"
+                        value={ownershipData.ownerFullName}
+                        onChange={(e) => handleOwnershipFieldChange('ownerFullName', e.target.value)}
+                        className="py-5"
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="mb-1.5 block text-sm font-medium text-gray-900">
+                        National ID <span className="text-red-500">*</span>
+                      </label>
+                      <Input
+                        placeholder="e.g., A1234567890"
+                        value={ownershipData.nationalId}
+                        onChange={(e) => handleOwnershipFieldChange('nationalId', e.target.value)}
+                        className="py-5"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1.5 block text-sm font-medium text-gray-900">
+                        Phone number <span className="text-red-500">*</span>
+                      </label>
+                      <Input
+                        placeholder="+234 800 000 0000"
+                        value={ownershipData.phoneNumber}
+                        onChange={(e) => handleOwnershipFieldChange('phoneNumber', e.target.value)}
+                        className="py-5"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1.5 block text-sm font-medium text-gray-900">
+                        Gender <span className="text-red-500">*</span>
+                      </label>
+                      <Select
+                        value={ownershipData.gender || undefined}
+                        onValueChange={(val) => handleOwnershipFieldChange('gender', val || '')}
+                      >
+                        <SelectTrigger className="w-full py-5 text-gray-500 font-normal">
+                          <SelectValue placeholder="Select gender" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="male">Male</SelectItem>
+                          <SelectItem value="female">Female</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <label className="mb-1.5 block text-sm font-medium text-gray-900">
+                        Type of document held <span className="text-red-500">*</span>
+                      </label>
+                      <Select
+                        value={ownershipData.documentType || undefined}
+                        onValueChange={(val) => handleOwnershipFieldChange('documentType', val || '')}
+                      >
+                        <SelectTrigger className="w-full py-5 text-gray-500 font-normal">
+                          <SelectValue placeholder="Select document type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="certificate-of-occupancy">Certificate of Occupancy</SelectItem>
+                          <SelectItem value="lease-agreement">Lease Agreement</SelectItem>
+                          <SelectItem value="deed-of-assignment">Deed of Assignment</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <label className="mb-1.5 block text-sm font-medium text-gray-900">
+                        Document number/reference <span className="text-red-500">*</span>
+                      </label>
+                      <Input
+                        placeholder="Enter reference number"
+                        value={ownershipData.documentNumber}
+                        onChange={(e) => handleOwnershipFieldChange('documentNumber', e.target.value)}
+                        className="py-5"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1.5 block text-sm font-medium text-gray-900">
+                        Date issued <span className="text-red-500">*</span>
+                      </label>
+                      <Input
+                        type="date"
+                        value={ownershipData.dateIssued}
+                        onChange={(e) => handleOwnershipFieldChange('dateIssued', e.target.value)}
+                        className="py-5"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1.5 block text-sm font-medium text-gray-900">
+                        Issuing authority <span className="text-red-500">*</span>
+                      </label>
+                      <Input
+                        placeholder="e.g., Land Registry"
+                        value={ownershipData.issuingAuthority}
+                        onChange={(e) => handleOwnershipFieldChange('issuingAuthority', e.target.value)}
+                        className="py-5"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1.5 block text-sm font-medium text-gray-900">
+                        Is the ownership/lease still active? <span className="text-red-500">*</span>
+                      </label>
+                      <Select
+                        value={ownershipData.leaseActive || undefined}
+                        onValueChange={(val) => handleOwnershipFieldChange('leaseActive', val || '')}
+                      >
+                        <SelectTrigger className="w-full py-5 text-gray-500 font-normal">
+                          <SelectValue placeholder="Select option" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="yes">Yes</SelectItem>
+                          <SelectItem value="no">No</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <label className="mb-1.5 block text-sm font-medium text-gray-900">
+                        Is the farmer the owner? <span className="text-red-500">*</span>
+                      </label>
+                      <Select
+                        value={ownershipData.isFarmerOwner || undefined}
+                        onValueChange={(val) => handleOwnershipFieldChange('isFarmerOwner', val || '')}
+                      >
+                        <SelectTrigger className="w-full py-5 text-gray-500 font-normal">
+                          <SelectValue placeholder="Select option" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="yes">Yes</SelectItem>
+                          <SelectItem value="no">No</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-gray-500">
+                      Upload Document <span className="text-red-500">*</span>
+                    </p>
+                    <label className="flex cursor-pointer flex-col items-center justify-center rounded-md border border-dashed border-gray-300 px-4 py-10 text-center hover:bg-gray-50">
+                      <svg className="mb-3 size-8 text-brand" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path d="M12 16V4m0 0l-4 4m4-4l4 4" />
+                        <path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2" />
+                      </svg>
+                      <p className="text-base font-medium text-gray-700">
+                        {ownershipData.documentFileName || 'Click to upload or drag and drop'}
+                      </p>
+                      <p className="mt-1 text-xs uppercase tracking-wider text-gray-400">
+                        Max file size 10MB (PDF, JPG, PNG)
+                      </p>
+                      <input
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        className="hidden"
+                        onChange={(e) =>
+                          handleOwnershipFieldChange('documentFileName', e.target.files?.[0]?.name || '')
+                        }
+                      />
+                    </label>
+                  </div>
+                </div>
+              )}
+
+              {/* ─── Step 4: Deforestation Risk ───────────────── */}
+              {step === 4 && (
+                <div className="space-y-4 px-6">
+                  <div className="overflow-hidden rounded-md border border-gray-200">
+                    <div className="relative min-h-[360px]">
+                      <GoogleMapPolygonPicker
+                        points={boundaryPoints}
+                        onAddPoint={() => undefined}
+                        minHeightPx={360}
+                      />
+                      <button
+                        type="button"
+                        className="absolute left-3 top-3 rounded-md border border-blue-100 bg-white px-3 py-1.5 text-sm font-medium text-blue-600 shadow-sm"
+                      >
+                        View larger map
+                      </button>
+                      <div className="absolute right-3 top-3 w-[280px] rounded-md border border-gray-200 bg-white/95 p-2.5 shadow-sm">
+                        <Badge className="mb-2 bg-green-100 text-[10px] font-bold uppercase text-green-700">
+                          Eligible
+                        </Badge>
+                        <ul className="space-y-2">
+                          <li className="text-xs font-medium text-gray-700">Geolocation validation</li>
+                          <li className="text-xs font-medium text-gray-700">2020 forest baseline check</li>
+                          <li className="text-xs font-medium text-gray-700">Canopy loss detection - 31%</li>
+                          <li className="text-xs font-medium text-gray-700">Protected area cross-ref</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="rounded-md border border-dashed border-gray-200 bg-white px-4 py-4 text-center">
+                    <h3 className="text-xl font-bold text-gray-900">Decision Narrative</h3>
+                    <p className="mt-2 text-base font-medium italic leading-relaxed text-gray-700">
+                      "Geolocation verified and the farm is eligible. No forest conversion detected
+                      since 2018. Full land tenure documents verified."
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                    <div className="rounded-md border border-gray-200 bg-white p-3 text-center">
+                      <p className="text-xs font-medium text-gray-600">Alert Detected</p>
+                      <p className="mt-1 text-xl font-bold text-[#d26e1f]">0</p>
+                    </div>
+                    <div className="rounded-md border border-gray-200 bg-white p-3 text-center">
+                      <p className="text-xs font-medium text-gray-600">Intensity</p>
+                      <p className="mt-1 text-xl font-bold text-[#d26e1f]">0.00</p>
+                    </div>
+                    <div className="rounded-md border border-gray-200 bg-white p-3 text-center">
+                      <p className="text-xs font-medium text-gray-600">Confidence</p>
+                      <p className="mt-1 text-xl font-bold text-[#d26e1f]">none</p>
+                    </div>
+                    <div className="rounded-md border border-gray-200 bg-white p-3 text-center">
+                      <p className="text-xs font-medium text-gray-600">Canopy loss</p>
+                      <p className="mt-1 text-xl font-bold text-[#d26e1f]">0</p>
+                    </div>
+                  </div>
+
+                  <label className="flex items-start gap-3 rounded-md border border-amber-200 bg-amber-50/70 p-4 text-left">
+                    <input
+                      type="checkbox"
+                      checked={deforestationRiskAcknowledged}
+                      onChange={(e) => setDeforestationRiskAcknowledged(e.target.checked)}
+                      className="mt-0.5 size-4 rounded border-amber-300 text-brand focus:ring-brand"
+                    />
+                    <span className="text-sm leading-5 text-amber-900">
+                      I acknowledge the deforestation risk decision and confirm this farm plot is eligible for
+                      registration based on the displayed checks.
+                    </span>
+                  </label>
+                </div>
+              )}
+
+              {/* ─── Step 5: Review & Confirm ───────────────── */}
+              {step === 5 && (
+                <div className="space-y-4 px-6">
+                  <h3 className="text-base font-semibold text-gray-900">Review Farm Information</h3>
+
+                  <div className="grid grid-cols-2 gap-x-8 gap-y-4 rounded-md border border-gray-100 bg-gray-50/50 p-5">
+                    <div>
+                      <p className="text-xs text-gray-400 mb-0.5">Farm Name</p>
+                      <p className="text-sm font-semibold text-gray-900">{formData.farmName || '—'}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-400 mb-0.5">Owner Name</p>
+                      <p className="text-sm font-semibold text-gray-900">{ownershipData.ownerFullName || '—'}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-400 mb-0.5">State</p>
+                      <p className="text-sm font-semibold text-gray-900">
+                        {getStateByCode(formData.stateCode)?.name || '—'}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-400 mb-0.5">LGA</p>
+                      <p className="text-sm font-semibold text-gray-900">{formData.lga || '—'}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-400 mb-0.5">Farm Region</p>
+                      <p className="text-sm font-semibold text-gray-900">{formData.farmRegion || '—'}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-400 mb-0.5">Boundary Points</p>
+                      <p className="text-sm font-semibold text-gray-900">{boundaryPoints.length} points</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-400 mb-0.5">Calculated Area</p>
+                      <p className="text-sm font-semibold text-brand-light">{areaHectares.toFixed(2)} hectares</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-400 mb-0.5">Address</p>
+                      <p className="text-sm font-semibold text-gray-900">{formData.address || '—'}</p>
+                    </div>
+                  </div>
+
+                  <div className="rounded-md border border-yellow-200 bg-yellow-50 px-4 py-3">
+                    <p className="text-sm text-gray-700">
+                      <span className="font-semibold">Note:</span>{' '}
+                      Please review all information carefully before creating the farm. You can go back to edit any details.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </>
           )}
 
           {/* Footer */}
@@ -563,14 +856,29 @@ export function CreateFarmModal({ isOpen, onClose }: CreateFarmModalProps) {
 
             <Button
               onClick={() => {
-                if (step < 3) setStep(step + 1)
-                else submitFarm()
+                if (!isKycVerified) {
+                  toast.error('KYC must be verified before creating farm plots.')
+                  return
+                }
+                if (step < 5) {
+                  if (!validateCurrentStep()) return
+                  setStep(step + 1)
+                  return
+                }
+
+                if (!validateCurrentStep()) return
+                submitFarm()
               }}
-              disabled={(step === 2 && boundaryPoints.length < 3) || isPending}
+              disabled={
+                !isKycVerified ||
+                isProfileLoading ||
+                (step === 2 && boundaryPoints.length < 3) ||
+                isPending
+              }
               className="flex items-center gap-1.5 bg-brand text-white hover:bg-brand-dark px-5"
             >
-              {isPending ? 'Creating...' : step < 3 ? 'Next' : 'Create Farm'}
-              {step < 3 && !isPending && (
+              {isPending ? 'Creating...' : step < 5 ? 'Next' : 'Create Farm'}
+              {step < 5 && !isPending && (
                 <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <polyline points="9 18 15 12 9 6" />
                 </svg>

@@ -1,28 +1,52 @@
-import { useParams } from 'react-router'
+import { useState } from 'react'
+import { toast } from 'sonner'
+import type { OperationFormFooterValues } from '~/lib/operation-form-footer'
+ 
 import { OperationFormLayout } from '~/components/operation-form-layout'
+import { OperationFormError, OperationFormLoading } from '~/components/operation-form-load-state'
 import { PersonField } from '~/components/person-field'
-import { allCropCycles } from '~/lib/mock-data/farmer'
+import { useFarmOperationPage } from '~/hooks/use-farm-operation-page'
+import type { FarmOperationRouteSlug } from '~/lib/farm-operation-log'
 import type { Route } from './+types/processing'
+
+const OPERATION_SLUG = 'processing' as FarmOperationRouteSlug
 
 export function meta({ }: Route.MetaArgs) {
   return [{ title: 'Processing | Agrolinking' }]
 }
 
 export default function Processing() {
-  const { cropCycleId } = useParams()
-  const cropCycle = allCropCycles.find((c) => c.id === cropCycleId) || allCropCycles[0]
+  const { layoutCropCycle, isLoading, isError, submitLog, isPending } = useFarmOperationPage(OPERATION_SLUG)
+  const [description, setDescription] = useState('')
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    console.log('Submitted Processing')
+  if (isLoading) return <OperationFormLoading />
+  if (isError || !layoutCropCycle) {
+    return (
+      <OperationFormError message="We could not load this crop cycle. Return to the record-operation list and try again." />
+    )
+  }
+
+  const handleSubmit = async (e: React.FormEvent, footer: OperationFormFooterValues) => {
+    if (!description.trim()) {
+      toast.error('Processing description is required.')
+      return
+    }
+    try {
+      await submitLog(description.trim(), footer)
+      toast.success('Processing logged successfully.')
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Unknown error'
+      toast.error(`Failed to log operation: ${msg}`)
+    }
   }
 
   return (
     <OperationFormLayout
       title="Processing"
       breadcrumbLabel="Processing"
-      cropCycle={cropCycle}
+      cropCycle={layoutCropCycle}
       onSubmit={handleSubmit}
+      isSubmitting={isPending}
       submitLabel="Log Processing"
     >
       {/* 2-column: Operator & Supervisor */}
@@ -90,7 +114,14 @@ export default function Processing() {
       {/* Description */}
       <div>
         <label className="mb-1.5 block text-sm font-semibold text-gray-900">Processing Details <span className="text-red-500">*</span></label>
-        <textarea rows={3} placeholder="Any specific details regarding the processing quality or issues encountered." className="w-full resize-none rounded-md border border-gray-200 px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20" required />
+        <textarea
+          rows={3}
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder="Any specific details regarding the processing quality or issues encountered."
+          className="w-full resize-none rounded-md border border-gray-200 px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+          required
+        />
       </div>
     </OperationFormLayout>
   )

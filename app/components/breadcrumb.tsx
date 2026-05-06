@@ -16,7 +16,7 @@ export function Breadcrumb({ items }: BreadcrumbProps) {
   const sidebarCtx = useSidebar()
 
   return (
-    <nav className="sticky top-0 z-20 flex h-16 w-full items-center gap-1.5 border-y border-gray-200 bg-white px-4 text-sm text-gray-500 md:px-6">
+    <nav className="flex items-center gap-1.5 text-sm text-gray-500">
       {items.map((item, index) => (
         <span key={item.label} className="flex items-center gap-1.5">
           {index > 0 && (
@@ -25,20 +25,17 @@ export function Breadcrumb({ items }: BreadcrumbProps) {
             </svg>
           )}
 
-          {item.icon && (
-            <button
-              onClick={(e) => {
-                e.preventDefault()
-                if (typeof window !== 'undefined' && window.innerWidth < 1024) {
-                  sidebarCtx?.toggleMobile()
-                } else {
-                  sidebarCtx?.toggleDesktop()
-                }
-              }}
-              className="group flex items-center text-gray-400 hover:text-brand transition-colors cursor-pointer"
-            >
-              {item.icon}
-            </button>
+          {(item.icon || (index === 0 && (item.label === 'Dashboard' || item.label === 'Transporter' || item.label === 'Aggregator' || item.label === 'Processor' || item.label === 'Farmer' || item.label === 'Cooperative'))) && (
+            <div className="flex items-center text-gray-400">
+              {item.icon || (
+                <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <rect x="3" y="3" width="7" height="7" rx="1" />
+                  <rect x="14" y="3" width="7" height="7" rx="1" />
+                  <rect x="3" y="14" width="7" height="7" rx="1" />
+                  <rect x="14" y="14" width="7" height="7" rx="1" />
+                </svg>
+              )}
+            </div>
           )}
 
           {item.href ? (
