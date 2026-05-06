@@ -123,7 +123,7 @@ export default [
 
       // Transfer
       route('transfer/product-transfer', 'routes/farmer/farmer-product-transfer.tsx'),
-      route('transfer/pickup', 'routes/farmer/farmer-pickup.tsx'),
+      route('transfer/pickup', 'routes/farmer/transfer/pickup.tsx'),
       route('transfer/history', 'routes/farmer/farmer-transfer-history.tsx'),
     ]),
   ]),

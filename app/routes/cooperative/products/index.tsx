@@ -22,6 +22,7 @@ import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import { ViewActivitiesModal } from '~/components/view-activities-modal'
+import { CropCycleCard } from '~/components/crop-cycle-card'
 import { useGetCooperativesFarms, useGetCooperativesProducts } from '~/lib/api/generated/cooperatives/cooperatives'
 import { getGetFarmsIdCropCyclesQueryOptions } from '~/lib/api/generated/farms-crop-cycles/farms-crop-cycles'
 import type { CropCycle, FarmProduct } from '~/lib/api/generated/models'
@@ -117,7 +118,7 @@ export default function ProductsIndex() {
         area: cycle.areaPlantedHectares ? `${cycle.areaPlantedHectares} ha` : null,
         farmName,
         farmLocation: formatFarmLocation(farm),
-        farmer: 'Cooperative Member',
+        farmerName: 'Cooperative Member',
         farmerInitials,
         farmerColor: '#2E5A27',
       }
@@ -374,8 +375,13 @@ export default function ProductsIndex() {
               <CropCycleCard
                 key={cycle.id}
                 cycle={cycle}
+                farmName={cycle.farmName}
+                farmLocation={cycle.farmLocation}
+                farmerName={cycle.farmerName}
+                farmerInitials={cycle.farmerInitials}
+                farmerColor={cycle.farmerColor}
                 onViewActivities={() => setSelectedCycleForActivities(cycle)}
-                onRecordActivity={() => setSelectedCycleForOperation(cycle)}
+                onRecordOperation={() => setSelectedCycleForOperation(cycle)}
               />
             ))}
           </div>
@@ -396,89 +402,13 @@ export default function ProductsIndex() {
   )
 }
 
-/* ─── Crop Cycle Card ─── */
 type UICropCycle = CropCycle & {
   productName: string
   plantedDate: string | null
   area: string | null
   farmName: string
   farmLocation: string
-  farmer: string
+  farmerName: string
   farmerInitials: string
   farmerColor: string
-}
-
-function CropCycleCard({
-  cycle,
-  onViewActivities,
-  onRecordActivity,
-}: {
-  cycle: UICropCycle
-  onViewActivities: () => void
-  onRecordActivity: () => void
-}) {
-  return (
-    <div className="group relative rounded-md border border-gray-200 bg-white p-6 shadow-sm hover:border-brand/40 hover:shadow-lg transition-all overflow-hidden flex flex-col">
-      <div className="absolute top-0 right-0 p-3 opacity-10 pointer-events-none transition-opacity group-hover:opacity-20 scale-150">
-        <Layers className="size-16 text-brand" />
-      </div>
-
-      <div className="mb-6 flex items-start justify-between relative z-10">
-        <div className="flex size-12 items-center justify-center rounded-2xl bg-brand/5 text-brand shadow-sm border border-brand/10">
-          <CheckCircle2 className="size-6" />
-        </div>
-        <Badge className={cn(
-          "px-3 py-1 text-[9px] font-bold uppercase tracking-widest border shadow-none",
-          (cycle.status || '').toLowerCase() === 'harvested'
-            ? 'bg-gray-100 text-gray-400 border-gray-200'
-            : 'bg-green-50 text-brand border-green-100'
-        )}>
-          {cycle.status}
-        </Badge>
-      </div>
-
-      <div className="mb-6 relative z-10">
-        <h4 className="text-base font-bold text-gray-900 uppercase tracking-tight mb-1 truncate">
-          {cycle.cropName}
-        </h4>
-        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest italic">{cycle.variety || 'No Variety'}</p>
-      </div>
-
-      <div className="space-y-4 mb-8 pt-6 border-t border-gray-50 relative z-10 text-[11px] font-bold uppercase tracking-tight text-gray-400">
-        <div className="flex items-center justify-between">
-          <span className="flex items-center gap-2 italic text-gray-300"><Calendar className="size-3" /> Planted</span>
-          <span className="text-gray-900">{cycle.plantingDate ? new Date(cycle.plantingDate).toLocaleDateString() : 'Not Set'}</span>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="flex items-center gap-2 italic text-gray-300"><Clock className="size-3" /> Area</span>
-          <span className="text-gray-900">{cycle.areaPlantedHectares || '0.00'} Hectares</span>
-        </div>
-        <div className="flex items-center border-t border-gray-50 pt-3 mt-1">
-          <div className="size-6 rounded-full bg-brand/10 flex items-center justify-center text-[9px] text-brand border border-brand/20 mr-2 shadow-sm">
-            {cycle.farmerInitials}
-          </div>
-          <span className="text-gray-500 italic lowercase truncate max-w-[140px]">{cycle.farmer}</span>
-        </div>
-      </div>
-
-      <div className="mt-auto flex flex-col gap-2 relative z-10">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={onViewActivities}
-          className="w-full h-10 text-[10px] font-bold uppercase tracking-wider border-gray-100 hover:bg-gray-50 text-gray-600 gap-1.5 shadow-none"
-        >
-          View Activities
-        </Button>
-        <Button
-          type="button"
-          onClick={onRecordActivity}
-          className="w-full h-10 bg-brand/5 text-brand hover:bg-brand hover:text-white border border-brand/10 shadow-none font-bold uppercase tracking-wider text-[10px] gap-2"
-        >
-          <Activity className="size-4" />
-          Record Activity
-        </Button>
-      </div>
-    </div>
-  )
 }

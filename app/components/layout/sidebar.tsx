@@ -2,6 +2,7 @@ import { useMutation } from '@tanstack/react-query'
 import { LogOut } from 'lucide-react'
 import { useState } from 'react'
 import { NavLink, useLocation, useNavigate } from 'react-router'
+import { toast } from 'sonner'
 import { LogoutConfirmationModal } from '~/components/logout-confirmation-modal'
 import {
   Select,
@@ -348,6 +349,7 @@ export function Sidebar({ navigation, roleLabel }: SidebarProps) {
   const handleRoleChange = (role: string) => {
     const rolePath = role.toLowerCase().replace(/\s+/g, '-')
     navigate(`/${rolePath}`)
+    toast.success(`Switched to ${role} Dashboard`)
   }
 
   return (
@@ -380,7 +382,7 @@ export function Sidebar({ navigation, roleLabel }: SidebarProps) {
           </div>
           <Select
             value={getTenantSelectValue(activeRole)}
-            onValueChange={(val) => handleRoleChange(val || '')}
+            onValueChange={(val: string | null) => handleRoleChange(val || '')}
           >
             <SelectTrigger className='w-full h-10 py-2 px-3.5 rounded-md border border-gray-200 bg-white shadow-sm hover:bg-gray-50 transition-all cursor-pointer'>
               <SelectValue className='text-sm font-semibold text-gray-900' />
@@ -401,7 +403,7 @@ export function Sidebar({ navigation, roleLabel }: SidebarProps) {
 
         {/* Navigation */}
         <div className='flex-1 overflow-y-auto pb-4 pt-2'>
-          {navigation.map((group) => (
+          {navigation.map((group: NavGroup) => (
             <NavGroupComponent
               key={group.title}
               title={group.title}

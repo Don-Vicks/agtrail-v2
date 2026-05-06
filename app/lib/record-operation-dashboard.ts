@@ -8,8 +8,10 @@ export function extractCropCyclesFromQueries(
   cycleQueries: ReadonlyArray<{ data?: unknown }>,
 ): CropCycle[] {
   return cycleQueries.flatMap((q) => {
-    const envelope = q.data as { data?: { data?: CropCycle[] } } | undefined
-    const list = envelope?.data?.data
+    if (!q.data) return []
+    // Handle Axios-style response structure: data.data.data
+    const response = q.data as any
+    const list = response?.data?.data || response?.data || []
     return Array.isArray(list) ? list : []
   })
 }
@@ -31,27 +33,29 @@ export function cycleMatchesStatusFilter(
   filter: string,
 ): boolean {
   if (filter === 'all') return true
-  return status === filter
+  return (status || '').toLowerCase() === filter.toLowerCase()
 }
 
 export function sortRecordOperationCycles<
-  T extends { productName: string; farmName: string; updatedAt: string },
+  T extends { productName?: string; farmName?: string; updatedAt?: string },
 >(cycles: T[], sortBy: RecordOperationSort): T[] {
   const sorted = [...cycles]
   if (sortBy === 'name') {
-    sorted.sort((a, b) =>
-      a.productName.localeCompare(b.productName, undefined, { sensitivity: 'base' }),
-    )
+    sorted.sort((a, b) => {
+      const nameA = a.productName || (a as any).cropName || ''
+      const nameB = b.productName || (b as any).cropName || ''
+      return nameA.localeCompare(nameB, undefined, { sensitivity: 'base' })
+    })
     return sorted
   }
   if (sortBy === 'farm') {
     sorted.sort((a, b) =>
-      a.farmName.localeCompare(b.farmName, undefined, { sensitivity: 'base' }),
+      (a.farmName || '').localeCompare(b.farmName || '', undefined, { sensitivity: 'base' }),
     )
     return sorted
   }
   sorted.sort(
-    (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+    (a, b) => new Date(b.updatedAt || 0).getTime() - new Date(a.updatedAt || 0).getTime(),
   )
   return sorted
 }
