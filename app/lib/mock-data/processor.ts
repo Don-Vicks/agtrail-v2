@@ -14,15 +14,20 @@ export const sidebarNavigation = [
       { id: 'add-batch', label: 'Add New Batch', icon: 'plus', href: '/processor/batches/new' },
       { id: 'batches', label: 'Batches', icon: 'layers', href: '/processor/batches' },
       { id: 'products', label: 'Products', icon: 'package', href: '/processor/products' },
-      { id: 'inventory', label: 'Inventory', icon: 'package', href: '/processor/inventory' },
-      { id: 'personnel', label: 'Personnel', icon: 'users', href: '/processor/personnel' },
-      { id: 'facilities', label: 'Facilities', icon: 'home', href: '/processor/facilities' },
     ],
   },
   {
     title: 'Operations',
     items: [
       { id: 'materials', label: 'Materials', icon: 'box', href: '/processor/materials' },
+    ],
+  },
+  {
+    title: 'Management',
+    items: [
+      { id: 'inventory', label: 'Inventory', icon: 'package', href: '/processor/inventory' },
+      { id: 'personnel', label: 'Personnel', icon: 'users', href: '/processor/personnel' },
+      { id: 'facilities', label: 'Facilities', icon: 'home', href: '/processor/facilities' },
     ],
   },
   {

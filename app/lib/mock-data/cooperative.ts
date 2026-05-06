@@ -29,18 +29,6 @@ export const sidebarNavigation = [
         href: '/cooperative/products',
         icon: 'package',
       },
-      {
-        id: 'inventory',
-        label: 'Inventory',
-        href: '/cooperative/inventory',
-        icon: 'package',
-      },
-      {
-        id: 'personnel',
-        label: 'Personnel',
-        href: '/cooperative/personnel',
-        icon: 'users',
-      },
     ],
   },
   {
@@ -59,6 +47,23 @@ export const sidebarNavigation = [
         icon: 'file-text',
       },
       // { id: 'honey-batches', label: 'Raw Honey Batches', href: '/cooperative/operations/honey', icon: 'archive' },
+    ],
+  },
+  {
+    title: 'Management',
+    items: [
+      {
+        id: 'inventory',
+        label: 'Inventory',
+        href: '/cooperative/inventory',
+        icon: 'package',
+      },
+      {
+        id: 'personnel',
+        label: 'Personnel',
+        href: '/cooperative/personnel',
+        icon: 'users',
+      },
     ],
   },
   {

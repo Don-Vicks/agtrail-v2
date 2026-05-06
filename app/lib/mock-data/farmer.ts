@@ -544,8 +544,6 @@ export const sidebarNavigation = [
       { id: 'dashboard', label: 'Dashboard', icon: 'layout-dashboard', href: '/farmer' },
       { id: 'farms', label: 'My Farms', icon: 'home', href: '/farmer/farms' },
       { id: 'products', label: 'Products', icon: 'package', href: '/farmer/products' },
-      { id: 'inventory', label: 'Inventory', icon: 'package', href: '/farmer/inventory' },
-      { id: 'personnel', label: 'Personnel', icon: 'users', href: '/farmer/personnel' },
     ],
   },
   {
@@ -558,6 +556,13 @@ export const sidebarNavigation = [
         icon: 'file-text',
         href: '/farmer/operations/new',
       },
+    ],
+  },
+  {
+    title: 'Management',
+    items: [
+      { id: 'inventory', label: 'Inventory', icon: 'package', href: '/farmer/inventory' },
+      { id: 'personnel', label: 'Personnel', icon: 'users', href: '/farmer/personnel' },
     ],
   },
   {

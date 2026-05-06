@@ -189,44 +189,49 @@ export default function RecordOperation() {
         <p className="text-sm text-gray-500">Select a crop cycle to record an operation</p>
       </div>
 
-      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-        <input
-          type="text"
-          placeholder="Search by crop, farm, or farmer..."
-          value={searchQuery}
-          onChange={(e) => {
-            setSearchQuery(e.target.value)
-            setCurrentPage(1)
-          }}
-          className="w-full sm:w-72 rounded-md border border-gray-200 px-3.5 py-2 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
-        />
-        <button type="button" className="rounded-md border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">Search</button>
-        <div className="sm:ml-auto flex items-center gap-2">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+          <input
+            type="text"
+            placeholder="Search by crop, farm, or farmer..."
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value)
+              setCurrentPage(1)
+            }}
+            className="w-full sm:w-72 rounded-md border border-gray-200 px-3.5 py-2 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 shadow-none"
+          />
+          <button type="button" className="w-full sm:w-auto rounded-md border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors bg-white">Search</button>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3">
           <select
             value={statusFilter}
             onChange={(e) => {
               setStatusFilter(e.target.value)
               setCurrentPage(1)
             }}
-            className="rounded-md border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20"
+            className="flex-1 sm:flex-none rounded-md border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 bg-white"
           >
             {RECORD_OPERATION_STATUS_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>{o.label}</option>
             ))}
           </select>
-          <span className="text-sm text-gray-500 hidden sm:inline">Sort by</span>
-          <select
-            value={sortBy}
-            onChange={(e) => {
-              setSortBy(e.target.value as RecordOperationSort)
-              setCurrentPage(1)
-            }}
-            className="rounded-md border border-gray-200 px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20"
-          >
-            <option value="recent">Most recent</option>
-            <option value="name">Crop name</option>
-            <option value="farm">Farm</option>
-          </select>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-500 hidden sm:inline whitespace-nowrap">Sort by</span>
+            <select
+              value={sortBy}
+              onChange={(e) => {
+                setSortBy(e.target.value as RecordOperationSort)
+                setCurrentPage(1)
+              }}
+              className="rounded-md border border-gray-200 px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 bg-white"
+            >
+              <option value="recent">Most recent</option>
+              <option value="name">Crop name</option>
+              <option value="farm">Farm</option>
+            </select>
+          </div>
         </div>
       </div>
 

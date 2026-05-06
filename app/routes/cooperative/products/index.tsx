@@ -38,7 +38,7 @@ function ProductGridCard({ product }: { product: FarmProduct }) {
       </div>
 
       <div className="flex gap-6 relative z-10 mb-6">
-        <div className="flex-shrink-0 size-24 rounded-2xl border-2 border-white shadow-sm ring-1 ring-gray-100 bg-white p-1.5 overflow-hidden">
+        <div className="shrink-0 size-24 rounded-2xl border-2 border-white shadow-sm ring-1 ring-gray-100 bg-white p-1.5 overflow-hidden">
           <QRCodeSVG value={product.batchNumber} style={{ width: '100%', height: '100%' }} />
         </div>
         <div className="flex-1 min-w-0 pt-1">
@@ -111,11 +111,11 @@ export default function ProductsIndex() {
         .toUpperCase() || 'CF'
       return {
         ...cycle,
-        productName: cycle.cropName || 'Unknown Crop',
+        productName: cycle.productName || (cycle as any).cropName || 'Unknown Crop',
         plantedDate: cycle.plantingDate
           ? new Date(cycle.plantingDate).toLocaleDateString()
           : null,
-        area: cycle.areaPlantedHectares ? `${cycle.areaPlantedHectares} ha` : null,
+        area: cycle.areaPlanted ? `${cycle.areaPlanted} ${cycle.areaUnit || 'ha'}` : null,
         farmName,
         farmLocation: formatFarmLocation(farm),
         farmerName: 'Cooperative Member',
@@ -129,9 +129,9 @@ export default function ProductsIndex() {
     return uiCropCycles.filter((cycle) => {
       const matchesSearch =
         !query ||
-        cycle.cropName.toLowerCase().includes(query) ||
+        cycle.productName.toLowerCase().includes(query) ||
         cycle.farmName.toLowerCase().includes(query) ||
-        cycle.farmer.toLowerCase().includes(query)
+        cycle.farmerName.toLowerCase().includes(query)
       const matchesStatus =
         cycleStatusFilter === 'all' ||
         (cycle.status || '').toLowerCase() === cycleStatusFilter.toLowerCase()

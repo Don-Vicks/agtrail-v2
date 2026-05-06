@@ -62,22 +62,23 @@ export function sortRecordOperationCycles<
 
 export const RECORD_OPERATION_STATUS_OPTIONS: { value: string; label: string }[] = [
   { value: 'all', label: 'All Status' },
-  { value: 'planned', label: 'Planned' },
-  { value: 'active', label: 'Active' },
-  { value: 'harvested', label: 'Harvested' },
-  { value: 'failed', label: 'Failed' },
-  { value: 'abandoned', label: 'Abandoned' },
+  { value: 'planning', label: 'Planned' },
+  { value: 'planted', label: 'Planted' },
+  { value: 'growing', label: 'Growing' },
+  { value: 'harvesting', label: 'Harvesting' },
+  { value: 'completed', label: 'Completed' },
+  { value: 'cancelled', label: 'Cancelled' },
 ]
 
 export function cropCycleStatusPillClass(status: string | undefined): string {
   const s = status?.toLowerCase() ?? ''
-  if (s === 'planned')
+  if (s === 'planning')
     return 'border border-blue-200 bg-blue-50 text-blue-700'
-  if (s === 'active')
+  if (s === 'growing' || s === 'active' || s === 'planted')
     return 'border border-brand-surface bg-brand-surface/50 text-brand'
-  if (s === 'harvested')
+  if (s === 'harvesting' || s === 'completed' || s === 'harvested')
     return 'border border-gray-200 bg-gray-50 text-gray-500'
-  if (s === 'failed')
+  if (s === 'cancelled' || s === 'failed')
     return 'border border-red-200 bg-red-50 text-red-700'
   if (s === 'abandoned')
     return 'border border-gray-200 bg-gray-100 text-gray-600'
@@ -88,7 +89,12 @@ export function cropCycleStatusLabel(status: string | undefined): string {
   if (!status) return 'Unknown'
   const key = status.toLowerCase()
   const labels: Record<string, string> = {
-    planned: 'Planned',
+    planning: 'Planned',
+    planted: 'Planted',
+    growing: 'Growing',
+    harvesting: 'Harvesting',
+    completed: 'Completed',
+    cancelled: 'Cancelled',
     active: 'Active',
     harvested: 'Harvested',
     failed: 'Failed',
