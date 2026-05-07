@@ -13,6 +13,11 @@ interface DonutChartProps {
 }
 
 export function DonutChart({ data, centerLabel, centerValue }: DonutChartProps) {
+  if (data.length === 0) return (
+    <div className="flex flex-col items-center justify-center size-48 mx-auto bg-gray-50/50 rounded-full border border-dashed border-gray-100">
+      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest text-center px-4">No data</span>
+    </div>
+  )
   const total = data.reduce((acc, d) => acc + d.value, 0)
   let cumulativeValue = 0
 
@@ -59,6 +64,12 @@ interface SimpleBarChartProps {
 }
 
 export function SimpleBarChart({ data, color = '#1B4332' }: SimpleBarChartProps) {
+  if (data.length === 0) return (
+    <div className="flex flex-col items-center justify-center h-40 w-full bg-gray-50/50 rounded-2xl border border-dashed border-gray-100">
+      <div className="size-1 bg-gray-200 rounded-full w-24 mb-2" />
+      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">No history found</span>
+    </div>
+  )
   const max = Math.max(...data.map(d => d.value))
   
   return (

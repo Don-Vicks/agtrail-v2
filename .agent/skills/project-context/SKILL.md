@@ -84,3 +84,24 @@ frontend-v2/
 | `pnpm start`        | Serve production build               |
 | `pnpm typecheck`    | Generate route types + run `tsc`     |
 | `pnpm generate:api` | Generate API hooks from OpenAPI spec |
+
+## Aesthetic Direction
+
+The project has transitioned to a **Premium, State-of-the-art UI** standard:
+- **Consistency**: Unified rounding with `rounded-md` across all modules.
+- **Density**: High-information density layouts with compact components (`h-9` inputs/buttons).
+- **Professionalism**: Muted, harmonious color palettes, sophisticated typography, and subtle micro-animations.
+- **Data-First**: Real-time data integration using generated API hooks, prioritized over mock data.
+
+## Module Overview
+
+### Reports & Analytics
+- **Crop Cycle Summary**: Comprehensive timeline of farm operations and performance metrics.
+- **Harvest & Sales**: Production output and sales revenue analysis.
+- **Financial Summary**: Aggregated income, operating costs, and net profit margins.
+- **Farm Analysis**: Detailed breakdown of land utilization and physical sectors.
+- **Payment History**: Consolidated ledger of all financial transactions.
+
+### Compliance & Verification
+- **Compliance Analysis**: Multi-stage workflow (Deforestation Risk → Target Market → Readiness → Final Report).
+- **Deforestation Risk Check**: Satellite-based real-time forest conversion monitoring (Global Forest Watch integration).

@@ -78,7 +78,7 @@ export function PageHeader({ items, action }: PageHeaderProps) {
             </svg>
           </button>
 
-          <Breadcrumb items={items} />
+          <Breadcrumb items={items.map((item, index) => index === 0 ? { ...item, icon: undefined } : item)} />
         </div>
         
         <div className="flex items-center gap-3">

@@ -1,22 +1,26 @@
-import { Package } from 'lucide-react';
+import { Package, Plus, ChevronDown } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import { EmptyState } from '~/components/empty-state';
 import { PageHeader } from '~/components/page-header';
+import { Button } from '~/components/ui/button';
+import { Badge } from '~/components/ui/badge';
+import { getClientOrganizationId } from '~/lib/organization-context';
 import type { CreateBatchRequest } from '~/lib/api/generated/models';
 import { usePostProcessorsBatches } from '~/lib/api/generated/processors-batches/processors-batches';
-import { getClientOrganizationId } from '~/lib/organization-context';
+import { usePostProcessorsBatchesIdInputMaterials } from '~/lib/api/generated/processors-materials/processors-materials';
+import { BatchMaterialSelectorModal } from '~/components/processor/batch-material-selector-modal';
 
 function SectionCard({ title, subtitle, icon, action, children }: { title: string; subtitle: string; icon: React.ReactNode; action?: React.ReactNode; children: React.ReactNode }) {
   return (
     <div className="rounded-md border border-gray-200 bg-white shadow-sm overflow-hidden mb-6">
       <div className="p-6 border-b border-gray-100 flex items-start justify-between">
         <div className="flex items-start gap-3">
-          <div className="mt-0.5 text-gray-800">{icon}</div>
+          <div className="mt-0.5 text-brand">{icon}</div>
           <div>
-            <h2 className="text-lg font-bold text-gray-900">{title}</h2>
-            <p className="text-sm text-gray-500 mt-0.5">{subtitle}</p>
+            <h2 className="text-lg font-bold text-gray-900 uppercase tracking-tight">{title}</h2>
+            <p className="text-xs text-gray-500 mt-0.5 font-medium">{subtitle}</p>
           </div>
         </div>
         {action && <div>{action}</div>}
@@ -26,19 +30,13 @@ function SectionCard({ title, subtitle, icon, action, children }: { title: strin
   )
 }
 
-function InputField({ label, placeholder, required = false, type = 'text', children }: { label: string; placeholder?: string; required?: boolean; type?: string; children?: React.ReactNode }) {
+function InputField({ label, required = false, children }: { label: string; required?: boolean; children: React.ReactNode }) {
   return (
     <div className="w-full">
-      <label className="mb-1.5 block text-sm font-semibold text-gray-900">
-        {label} {required && <span className="text-gray-900">*</span>}
+      <label className="mb-2 block text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+        {label} {required && <span className="text-red-500">*</span>}
       </label>
-      {children ? children : (
-        <input
-          type={type}
-          placeholder={placeholder}
-          className="w-full rounded-md border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
-        />
-      )}
+      {children}
     </div>
   )
 }
@@ -46,85 +44,112 @@ function InputField({ label, placeholder, required = false, type = 'text', child
 export default function CreateNewBatch() {
   const navigate = useNavigate();
   const organizationId = getClientOrganizationId()
-  const { mutate: createBatch, isPending } = usePostProcessorsBatches({
+  
+  const { mutateAsync: createBatch, isPending: isCreatingBatch } = usePostProcessorsBatches({
+    mutation: { networkMode: 'always' },
+    request: { headers: organizationId ? { 'X-Organization-Id': organizationId } : {} },
+  });
+
+  const { mutateAsync: addMaterial, isPending: isAddingMaterial } = usePostProcessorsBatchesIdInputMaterials({
     mutation: { networkMode: 'always' },
     request: { headers: organizationId ? { 'X-Organization-Id': organizationId } : {} },
   });
 
   // Form state
-  const [outputProductName, setOutputProductName] = useState('');
-  const [outputProductType, setOutputProductType] = useState('');
-  const [facilityName, setFacilityName] = useState('');
-  const [facilityLocation, setFacilityLocation] = useState('');
-  const [packagingDate, setPackagingDate] = useState('');
-  const [shelfLifeDays, setShelfLifeDays] = useState('');
-  const [storageConditions, setStorageConditions] = useState('');
+  const [formData, setFormData] = useState({
+    outputProductName: '',
+    outputProductType: '',
+    facilityName: '',
+    facilityLocation: '',
+    packagingDate: '',
+    shelfLifeDays: '',
+    storageConditions: '',
+    expectedQuantity: '',
+    expectedUnit: 'kg',
+    productCategory: '',
+  });
+
+  const [selectedMaterials, setSelectedMaterials] = useState<any[]>([]);
+  const [isSelectorModalOpen, setIsSelectorModalOpen] = useState(false);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!organizationId) {
-      toast.error('Missing organization context. Set VITE_DEFAULT_ORGANIZATION_ID or select an organization.');
+      toast.error('Missing organization context.');
       return;
     }
 
-    const trimmedProductName = outputProductName.trim();
-    if (!trimmedProductName || !outputProductType) {
+    if (!formData.outputProductName.trim() || !formData.outputProductType) {
       toast.error('Please fill in output product name and product type.');
       return;
     }
 
-    if (shelfLifeDays.trim()) {
-      const days = parseInt(shelfLifeDays, 10);
-      if (!Number.isFinite(days) || days < 1) {
-        toast.error('Shelf life must be a positive whole number of days.');
-        return;
+    try {
+      const payload: CreateBatchRequest = {
+        outputProductName: formData.outputProductName.trim(),
+        outputProductType: formData.outputProductType,
+      };
+
+      if (formData.facilityName.trim()) payload.facilityName = formData.facilityName.trim();
+      if (formData.facilityLocation.trim()) payload.facilityLocation = formData.facilityLocation.trim();
+      if (formData.packagingDate) payload.packagingDate = formData.packagingDate;
+      if (formData.shelfLifeDays.trim()) payload.shelfLifeDays = parseInt(formData.shelfLifeDays, 10);
+      if (formData.storageConditions.trim()) payload.storageConditions = formData.storageConditions.trim();
+
+      const batchResponse = await createBatch({ data: payload });
+      const batchId = (batchResponse as any)?.data?.data?.id;
+
+      if (!batchId) {
+        throw new Error('Failed to retrieve batch ID from response');
       }
-    }
 
-    const payload: CreateBatchRequest = {
-      outputProductName: trimmedProductName,
-      outputProductType,
-    };
+      // Add materials
+      if (selectedMaterials.length > 0) {
+        toast.info(`Adding ${selectedMaterials.length} materials...`);
+        for (const material of selectedMaterials) {
+          // Explicitly map to AddInputMaterialRequest to ensure schema compliance
+          const materialPayload: any = {
+            materialType: material.materialType,
+            quantityUsed: material.quantityUsed,
+            unit: material.unit,
+            notes: material.notes,
+          };
 
-    // Add optional fields if provided
-    if (facilityName.trim()) payload.facilityName = facilityName.trim();
-    if (facilityLocation.trim()) payload.facilityLocation = facilityLocation.trim();
-    if (packagingDate) payload.packagingDate = packagingDate;
-    if (shelfLifeDays.trim()) payload.shelfLifeDays = parseInt(shelfLifeDays, 10);
-    if (storageConditions.trim()) payload.storageConditions = storageConditions.trim();
-
-    createBatch(
-      { data: payload },
-      {
-        onSuccess: (response) => {
-          const queuedOffline = (response as any)?.status === 202 || (response as any)?.data?.offlineQueued
-          if (queuedOffline) {
-            toast.success('Batch saved offline and queued for sync.')
-            setOutputProductName('')
-            setOutputProductType('')
-            setFacilityName('')
-            setFacilityLocation('')
-            setPackagingDate('')
-            setShelfLifeDays('')
-            setStorageConditions('')
-            return
+          // Only attach relevant IDs/Fields based on materialType
+          if (material.materialType === 'farm_product' && material.sourceFarmProductId) {
+            materialPayload.sourceFarmProductId = material.sourceFarmProductId;
+          } else if (material.materialType === 'batch_product' && material.sourceBatchProductId) {
+            materialPayload.sourceBatchProductId = material.sourceBatchProductId;
+          } else if (material.materialType === 'inventory_item' && material.inventoryItemId) {
+            materialPayload.inventoryItemId = material.inventoryItemId;
+          } else if (material.materialType === 'external_material') {
+            if (material.externalMaterialName) materialPayload.externalMaterialName = material.externalMaterialName;
+            if (material.externalSupplierName) materialPayload.externalSupplierName = material.externalSupplierName;
+            if (material.lotNumber) materialPayload.lotNumber = material.lotNumber;
           }
 
-          toast.success('Batch created successfully!')
-          navigate('/processor/batches');
-        },
-        onError: (error) => {
-          console.error('Failed to create batch:', error);
-          const message =
-            (error as any)?.response?.data?.message ||
-            (error as any)?.message ||
-            'Failed to create batch. Please try again.'
-          toast.error(message);
-        },
+          await addMaterial({ id: batchId, data: materialPayload });
+        }
       }
-    );
+
+      toast.success('Batch and materials created successfully!');
+      navigate('/processor/batches');
+    } catch (error) {
+      console.error('Failed to create batch flow:', error);
+      toast.error('Failed to complete batch creation. Please try again.');
+    }
   };
+
+  const removeMaterial = (index: number) => {
+    setSelectedMaterials(prev => prev.filter((_, i) => i !== index));
+  };
+
   return (
     <div className="pb-10">
       <PageHeader
@@ -132,64 +157,58 @@ export default function CreateNewBatch() {
           {
             label: 'Dashboard',
             href: '/processor',
-            icon: (
-              <svg className="size-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                <line x1="9" y1="3" x2="9" y2="21" />
-              </svg>
-            ),
           },
           { label: 'Batches', href: '/processor/batches' },
           { label: 'Create New Batch' },
         ]}
       />
 
-      {/* Page Header */}
-      {!organizationId ? (
+      {!organizationId && (
         <EmptyState
           className="rounded-md border border-dashed border-amber-200 bg-amber-50/40 py-8 mb-6"
           icon={<Package className="size-8 text-amber-700" />}
           title="Organization context is missing"
-          description="Batch creation requires `X-Organization-Id`. Set `VITE_DEFAULT_ORGANIZATION_ID` and restart dev server."
+          description="Batch creation requires `X-Organization-Id`."
         />
-      ) : null}
-      <div className="flex items-start gap-4 mb-8">
+      )}
+
+      <div className="flex items-start gap-4 mb-8 text-left">
         <div className="text-brand bg-brand/10 p-2 rounded-md shrink-0">
-          <svg className="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.5l4-4 4 4 4-4 6 6M3 10.5V21h18V10.5M3 10.5l4-4 4 4 4-4 6 6" />
-          </svg>
+          <Package className="size-6" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-brand tracking-tight">Enhanced Batch Creation</h1>
-          <p className="text-sm text-gray-500 mt-1">Create batches with platform and external materials, auto-generate traceable products</p>
+          <h1 className="text-2xl font-bold text-brand tracking-tight uppercase">Create Processing Batch</h1>
+          <p className="text-sm text-gray-500 mt-1">Configure batch details, select input materials, and define output products</p>
         </div>
       </div>
 
-      {/* Section 1: Batch Information */}
-      <SectionCard
-        title="Batch Information"
-        subtitle="Define the output product and processing details"
-        icon={<svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>}
-      >
-        <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-6 text-left">
+        {/* Section 1: Batch Information */}
+        <SectionCard
+          title="Batch Information"
+          subtitle="Define the output product and processing details"
+          icon={<Package className="size-5" />}
+        >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <InputField label="Output Product Name" placeholder="e.g. Premium Fortified Maize Flour" required>
+            <InputField label="Output Product Name" required>
               <input
                 type="text"
-                value={outputProductName}
-                onChange={(e) => setOutputProductName(e.target.value)}
+                name="outputProductName"
+                value={formData.outputProductName}
+                onChange={handleInputChange}
                 placeholder="e.g. Premium Fortified Maize Flour"
                 required
-                className="w-full rounded-md border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+                className="w-full h-11 rounded-md border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
               />
             </InputField>
             <InputField label="Product Type" required>
               <div className="relative">
                 <select
-                  value={outputProductType}
-                  onChange={(e) => setOutputProductType(e.target.value)}
+                  name="outputProductType"
+                  value={formData.outputProductType}
+                  onChange={handleInputChange}
                   required
-                  className="w-full appearance-none rounded-md border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-500 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+                  className="w-full h-11 appearance-none rounded-md border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-500 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
                 >
                   <option value="">Select product type</option>
                   <option value="flour">Flour</option>
@@ -198,141 +217,236 @@ export default function CreateNewBatch() {
                   <option value="dried">Dried Products</option>
                   <option value="other">Other</option>
                 </select>
-                <svg className="absolute right-3 top-1/2 size-4 -translate-y-1/2 text-gray-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                <ChevronDown className="absolute right-3 top-1/2 size-4 -translate-y-1/2 text-gray-400 pointer-events-none" />
               </div>
             </InputField>
             <InputField label="Processing Facility">
               <input
                 type="text"
-                value={facilityName}
-                onChange={(e) => setFacilityName(e.target.value)}
+                name="facilityName"
+                value={formData.facilityName}
+                onChange={handleInputChange}
                 placeholder="e.g. Main Processing Plant"
-                className="w-full rounded-md border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+                className="w-full h-11 rounded-md border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
               />
             </InputField>
             <InputField label="Facility Location">
               <input
                 type="text"
-                value={facilityLocation}
-                onChange={(e) => setFacilityLocation(e.target.value)}
+                name="facilityLocation"
+                value={formData.facilityLocation}
+                onChange={handleInputChange}
                 placeholder="e.g. Lagos, Nigeria"
-                className="w-full rounded-md border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+                className="w-full h-11 rounded-md border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
               />
             </InputField>
             <InputField label="Packaging Date">
               <input
                 type="date"
-                value={packagingDate}
-                onChange={(e) => setPackagingDate(e.target.value)}
-                className="w-full rounded-md border border-gray-200 px-3 py-2.5 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+                name="packagingDate"
+                value={formData.packagingDate}
+                onChange={handleInputChange}
+                className="w-full h-11 rounded-md border border-gray-200 px-3 py-2.5 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
               />
             </InputField>
             <InputField label="Shelf Life (Days)">
               <input
                 type="number"
-                value={shelfLifeDays}
-                onChange={(e) => setShelfLifeDays(e.target.value)}
+                name="shelfLifeDays"
+                value={formData.shelfLifeDays}
+                onChange={handleInputChange}
                 placeholder="e.g. 365"
-                className="w-full rounded-md border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+                className="w-full h-11 rounded-md border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
               />
             </InputField>
           </div>
 
-          <InputField label="Storage Conditions">
-            <textarea
-              value={storageConditions}
-              onChange={(e) => setStorageConditions(e.target.value)}
-              placeholder="e.g. Store in cool, dry place away from direct sunlight"
-              rows={3}
-              className="w-full rounded-md border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand resize-none"
-            />
-          </InputField>
-
-          <div className="pt-2">
-            <button
-              type="submit"
-              disabled={isPending}
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-[#1b4332] hover:bg-[#0f2e20] px-6 text-sm font-semibold text-white shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isPending ? 'Creating Batch...' : 'Create Batch'}
-            </button>
+          <div className="mt-6">
+            <InputField label="Storage Conditions">
+              <textarea
+                name="storageConditions"
+                value={formData.storageConditions}
+                onChange={handleInputChange}
+                placeholder="e.g. Store in cool, dry place away from direct sunlight"
+                rows={3}
+                className="w-full rounded-md border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand resize-none"
+              />
+            </InputField>
           </div>
-        </form>
-      </SectionCard>
+        </SectionCard>
 
-      {/* Section 2: Input Materials Selection */}
-      <SectionCard
-        title="Input Materials Selection"
-        subtitle="Select materials from platform transfers and external suppliers"
-        icon={<svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>}
-        action={
-          <button className="inline-flex h-9 items-center justify-center gap-1.5 rounded-md border border-gray-200 bg-white px-4 text-sm font-semibold text-gray-900 shadow-sm transition-colors hover:bg-gray-50">
-            <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
-            Add Material
-          </button>
-        }
-      >
-        <EmptyState
-          className="py-12"
-          icon={<Package className="size-8 text-[#8ea79d]" />}
-          title="No materials selected"
-          description='Use "Add Material" to select inputs for this batch.'
-        />
-      </SectionCard>
-
-      {/* Section 3: Auto-Generated Product Settings */}
-      <SectionCard
-        title="Auto-Generated Product Settings"
-        subtitle="Configure the product that will be automatically created when this batch is completed"
-        icon={<svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
-      >
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <InputField label="Product Category" required>
-            <div className="relative">
-              <select className="w-full appearance-none rounded-md border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-500 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand">
-                <option>Select category</option>
-              </select>
-              <svg className="absolute right-3 top-1/2 size-4 -translate-y-1/2 text-gray-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+        {/* Section 2: Input Materials Selection */}
+        <SectionCard
+          title="Input Materials Selection"
+          subtitle="Select materials from platform transfers and external suppliers"
+          icon={<Package className="size-5" />}
+          action={
+            <button
+              type="button"
+              onClick={() => setIsSelectorModalOpen(true)}
+              className="inline-flex h-9 items-center justify-center gap-1.5 rounded-md border border-brand bg-brand px-4 text-xs font-bold uppercase tracking-widest text-white shadow-sm transition-all hover:bg-black active:scale-95"
+            >
+              <Plus className="size-4" />
+              Select Material
+            </button>
+          }
+        >
+          {selectedMaterials.length === 0 ? (
+            <EmptyState
+              className="py-12"
+              icon={<Package className="size-8 text-gray-300" />}
+              title="No materials selected"
+              description="Click 'Select Material' to include raw inputs for this batch."
+            />
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead className="bg-gray-50/50">
+                  <tr>
+                    <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-gray-400">Material</th>
+                    <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-gray-400">Source Type</th>
+                    <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-gray-400">Quantity</th>
+                    <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-gray-400 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {selectedMaterials.map((mat, idx) => (
+                    <tr key={idx} className="hover:bg-gray-50/50 group">
+                      <td className="px-4 py-4">
+                        <div className="font-bold text-gray-900 group-hover:text-brand transition-colors">
+                          {mat.externalMaterialName || mat.notes?.split(': ')[1] || 'Platform Material'}
+                        </div>
+                        <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{mat.lotNumber || 'Direct Transfer'}</div>
+                      </td>
+                      <td className="px-4 py-4 capitalize">
+                        <Badge variant="outline" className="text-[8px] font-black uppercase px-1.5 py-0.5 bg-gray-50">
+                          {mat.materialType?.replace('_', ' ')}
+                        </Badge>
+                      </td>
+                      <td className="px-4 py-4 text-gray-900 font-black tracking-tight">{mat.quantityUsed} {mat.unit}</td>
+                      <td className="px-4 py-4 text-right">
+                        <button
+                          type="button"
+                          onClick={() => removeMaterial(idx)}
+                          className="text-red-500 hover:text-red-700 text-[10px] font-bold uppercase tracking-widest"
+                        >
+                          Remove
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-          </InputField>
-          <InputField label="Expected Quantity" placeholder="0" required />
-          <InputField label="Unit" required>
-            <div className="relative">
-              <select className="w-full appearance-none rounded-md border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand">
-                <option>kg</option>
-                <option>g</option>
-                <option>tonnes</option>
-              </select>
-              <svg className="absolute right-3 top-1/2 size-4 -translate-y-1/2 text-gray-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-            </div>
-          </InputField>
-        </div>
+          )}
+        </SectionCard>
 
-        <div>
-          <h3 className="text-sm font-semibold text-gray-900 mb-1">Product Visual</h3>
-          <p className="text-sm text-gray-500 mb-4">Upload a photo of the final processed product or its packaging.</p>
+        {/* Section 3: Auto-Generated Product Settings */}
+        <SectionCard
+          title="Auto-Generated Product Settings"
+          subtitle="Configure the product that will be automatically created when this batch is completed"
+          icon={<Package className="size-5" />}
+        >
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <InputField label="Product Category" required>
+              <div className="relative">
+                <select
+                  name="productCategory"
+                  value={formData.productCategory}
+                  onChange={handleInputChange}
+                  className="w-full h-11 appearance-none rounded-md border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-500 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+                >
+                  <option value="">Select category</option>
+                  <option value="finished_good">Finished Good</option>
+                  <option value="intermediate">Intermediate Product</option>
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 size-4 -translate-y-1/2 text-gray-400 pointer-events-none" />
+              </div>
+            </InputField>
+            <InputField label="Expected Quantity" required>
+              <input
+                type="number"
+                name="expectedQuantity"
+                value={formData.expectedQuantity}
+                onChange={handleInputChange}
+                placeholder="0"
+                required
+                className="w-full h-11 rounded-md border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+              />
+            </InputField>
+            <InputField label="Unit" required>
+              <div className="relative">
+                <select
+                  name="expectedUnit"
+                  value={formData.expectedUnit}
+                  onChange={handleInputChange}
+                  required
+                  className="w-full h-11 appearance-none rounded-md border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+                >
+                  <option value="kg">kg</option>
+                  <option value="g">g</option>
+                  <option value="tonnes">tonnes</option>
+                  <option value="units">units</option>
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 size-4 -translate-y-1/2 text-gray-400 pointer-events-none" />
+              </div>
+            </InputField>
+          </div>
 
-          <div className="flex flex-col mb-4">
-            <span className="text-sm font-semibold text-gray-900 mb-2">Product Photo</span>
-            <div className="rounded-md border border-dashed border-gray-300 bg-gray-50/50 p-8 text-center transition-colors hover:bg-gray-50 flex flex-col items-center justify-center max-w-[400px]">
-              <div className="mb-4 flex size-12 items-center justify-center rounded-full bg-[#1b4332]/10 text-brand">
-                <svg className="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
-                </svg>
+          <div>
+            <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Product Visual</h3>
+            <p className="text-sm text-gray-500 mb-4">Upload a photo of the final processed product or its packaging.</p>
+
+            <div className="rounded-md border border-dashed border-gray-200 bg-gray-50/30 p-10 text-center transition-all hover:bg-white hover:border-brand/40 flex flex-col items-center justify-center max-w-[440px] group cursor-pointer">
+              <div className="mb-4 flex size-14 items-center justify-center rounded-full bg-brand/5 text-brand group-hover:scale-110 transition-transform">
+                <Package className="size-7" />
               </div>
               <p className="text-sm font-bold text-gray-900">Click to select or drag and drop</p>
-              <p className="mt-1 text-xs text-gray-500">PNG, JPG or WEBP (Max 5MB)</p>
+              <p className="mt-1 text-[10px] font-bold text-gray-400 uppercase tracking-widest">PNG, JPG or WEBP (Max 5MB)</p>
 
-              <button className="mt-5 inline-flex h-9 items-center justify-center gap-2 rounded-md border border-gray-200 bg-white px-4 text-sm font-semibold text-gray-900 shadow-sm transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand/20">
-                <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+              <button type="button" className="mt-6 inline-flex h-10 items-center justify-center gap-2 rounded-md border border-gray-200 bg-white px-6 text-[10px] font-bold uppercase tracking-widest text-gray-900 shadow-sm transition-all hover:bg-gray-50 hover:shadow active:scale-95">
                 Choose File
               </button>
             </div>
           </div>
-        </div>
-      </SectionCard>
+        </SectionCard>
 
+        {/* Global Action Bar */}
+        <div className="sticky bottom-6 z-10 flex items-center justify-end gap-3 rounded-md border border-gray-200 bg-white/80 p-4 shadow-xl backdrop-blur-md">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => navigate('/processor/batches')}
+            className="h-11 px-8 font-bold uppercase tracking-widest text-[10px]"
+          >
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            disabled={isCreatingBatch || isAddingMaterial}
+            className="h-11 px-10 bg-[#1b4332] hover:bg-black text-white font-bold uppercase tracking-widest text-[10px] shadow-lg shadow-brand/20 transition-all active:scale-95 flex items-center gap-2"
+          >
+            {(isCreatingBatch || isAddingMaterial) ? (
+              <>
+                <span className="size-3 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                Processing...
+              </>
+            ) : (
+              'Save & Create Batch'
+            )}
+          </Button>
+        </div>
+      </form>
+
+      <BatchMaterialSelectorModal
+        isOpen={isSelectorModalOpen}
+        onClose={() => setIsSelectorModalOpen(false)}
+        onAdd={(material) => {
+          setSelectedMaterials(prev => [...prev, material]);
+        }}
+      />
     </div>
   )
 }
+
+

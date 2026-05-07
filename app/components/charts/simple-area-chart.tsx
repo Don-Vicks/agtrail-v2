@@ -16,7 +16,12 @@ export function SimpleAreaChart({
   height = 160, 
   color = '#1B4332' 
 }: SimpleAreaChartProps) {
-  if (data.length === 0) return null
+  if (data.length === 0) return (
+    <div className="w-full flex flex-col items-center justify-center gap-2 bg-gray-50/50 rounded-2xl border border-dashed border-gray-100" style={{ height }}>
+      <div className="size-1 bg-gray-200 rounded-full w-24" />
+      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Insufficient data for trend analysis</span>
+    </div>
+  )
 
   const max = Math.max(...data.map(d => d.value))
   const min = Math.min(...data.map(d => d.value))

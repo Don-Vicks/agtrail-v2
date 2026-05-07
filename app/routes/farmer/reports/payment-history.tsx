@@ -1,168 +1,142 @@
-import React from 'react'
+import React, { useState, useMemo } from 'react'
 import { ReportLayout } from '~/components/layout/report-layout'
 import { ReportFilter } from '~/components/report-filter'
 import { TrendStatCard } from '~/components/trend-stat-card'
+import { EmptyReportState } from '~/components/empty-report-state'
 import { Badge } from '~/components/ui/badge'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { Button } from '~/components/ui/button'
+import { Loader2, ArrowUpCircle, ArrowDownCircle } from 'lucide-react'
+import { useGetPurchases } from '~/lib/api/generated/purchases/purchases'
+import { format } from 'date-fns'
 
 export default function PaymentHistoryPage() {
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [hasGenerated, setHasGenerated] = useState(false)
+
+  // 1. Fetch Purchases (as payments received)
+  const { data: purchasesResponse, isLoading: isLoadingPurchases } = useGetPurchases()
+  const purchases = purchasesResponse?.data?.data || []
+
+  const handleGenerate = () => {
+    setIsGenerating(true)
+    setTimeout(() => {
+      setIsGenerating(false)
+      setHasGenerated(true)
+    }, 800)
+  }
+
+  // Calculate Total Settled Amount
+  const totalSettled = useMemo(() => {
+    return purchases.reduce((acc, p) => acc + Number(p.amount || 0), 0)
+  }, [purchases])
+
   return (
     <ReportLayout
-      title="Payment History"
-      subtitle="Track all payments, rewards, and financial transactions"
+      title="Payment History & Ledger"
+      subtitle="Complete record of all inbound and outbound financial transactions"
       breadcrumb={[
-        { label: 'Dashboard', href: '/farmer' },
         { label: 'Reports & Analytics', href: '/farmer/reports' },
         { label: 'Payment History' },
       ]}
     >
-      <div className="space-y-8">
+      <div className="space-y-6">
         {/* Filters */}
         <ReportFilter
+          isGenerating={isGenerating}
+          onGenerate={handleGenerate}
           filters={[
             {
-              label: 'Select Farmer',
-              placeholder: 'All Farmers',
-              options: [{ label: 'Agrolinking Admin', value: '1' }],
-            },
-            {
-              label: 'Payment Type',
-              placeholder: 'All Types',
+              label: 'Transaction Type',
+              placeholder: 'All Transactions',
               options: [
-                { label: 'Receivable', value: 'receivable' },
-                { label: 'Purchase', value: 'purchase' },
+                { label: 'Inbound (Sales)', value: 'inbound' },
+                { label: 'Outbound (Expenses)', value: 'outbound' }
               ],
+              value: 'inbound'
             },
           ]}
         />
 
-        {/* Stats Row */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <TrendStatCard
-            title="Total Received"
-            value="₦10K"
-            trend={{ value: "+12.5%", isUp: true }}
-            description="From receivables and sales"
-            trendLabel="Engagement exceed targets"
-          />
-          <TrendStatCard
-            title="Total Paid"
-            value="₦5K"
-            trend={{ value: "-20%", isUp: false }}
-            description="For purchases and expenses"
-            trendLabel="Acquisition needs attention"
-          />
-          <TrendStatCard
-            title="Net Balance"
-            value="₦5K"
-            trend={{ value: "+12.5%", isUp: true }}
-            description="Received minus paid"
-            trendLabel="Trending up this month"
-          />
-          <TrendStatCard
-            title="Token Rewards"
-            value="₦0"
-            trend={{ value: "0%", isUp: true }}
-            description="Earned from activities"
-            trendLabel="Stable this month"
-          />
-        </div>
-
-        {/* Payment Timeline Chart Placeholder */}
-        <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
-          <div className="mb-8">
-            <h3 className="text-sm font-bold text-gray-900 uppercase tracking-tight">Payment Timeline</h3>
-            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Received vs Paid over the last 6 months</p>
-          </div>
-          
-          <div className="h-40 w-full relative border-b border-gray-100 mb-10">
-            {/* Simple static lines for the screenshot look */}
-            <div className="absolute top-1/4 w-full h-0.5 bg-green-500" />
-            <div className="absolute top-2/3 w-full h-0.5 bg-orange-500" />
-            <div className="absolute bottom-[-20px] left-0 text-[10px] font-bold text-gray-400 uppercase">Jan</div>
-          </div>
-
-          <div className="flex items-center justify-center gap-6">
-            <div className="flex items-center gap-2">
-              <div className="size-2.5 rounded-full bg-green-500" />
-              <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Received</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="size-2.5 rounded-full bg-orange-500" />
-              <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Paid</span>
-            </div>
-          </div>
-        </div>
-
-        {/* All Payments Table */}
-        <div className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
-          <div className="p-6 border-b border-gray-50">
-            <h3 className="text-sm font-bold text-gray-900 uppercase tracking-tight">All Payments</h3>
-            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Complete history of all financial transactions</p>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-gray-50/50">
-                <tr>
-                  <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-wider text-gray-500">Transaction ID</th>
-                  <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-wider text-gray-500">Date</th>
-                  <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-wider text-gray-500">Type</th>
-                  <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-wider text-gray-500">Description</th>
-                  <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-wider text-gray-500">Amount</th>
-                  <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-wider text-gray-500">Payment Method</th>
-                  <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-wider text-gray-500">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {[
-                  { id: 'TRX-7E005443', date: 'Jan 7, 2026', type: 'Receivable', desc: 'No desc here', amount: '₦5,000', method: '-', status: 'Received', statusColor: 'bg-green-50 text-green-600 border-green-100' },
-                  { id: 'TRX-95E97563', date: 'Jan 7, 2026', type: 'Receivable', desc: 'No desc for this', amount: '₦5,000', method: '-', status: 'Received', statusColor: 'bg-green-50 text-green-600 border-green-100' },
-                  { id: 'TRX-6759A30E', date: 'Jan 7, 2026', type: 'Purchase', desc: 'No desc. here', amount: '₦5,000', method: 'cash', status: 'Paid', statusColor: 'bg-orange-50 text-orange-600 border-orange-100' },
-                ].map((trx, i) => (
-                  <tr key={i} className="hover:bg-gray-50/50 transition-colors">
-                    <td className="px-6 py-4 text-[11px] font-bold text-gray-400 tracking-widest uppercase">{trx.id}</td>
-                    <td className="px-6 py-4 text-[11px] font-bold text-gray-500 uppercase">{trx.date}</td>
-                    <td className="px-6 py-4">
-                      <Badge variant="outline" className="text-[9px] font-bold uppercase tracking-widest bg-green-50 text-green-600 border-green-100 px-2 py-0">{trx.type}</Badge>
-                    </td>
-                    <td className="px-6 py-4 text-xs text-gray-500 font-medium">{trx.desc}</td>
-                    <td className="px-6 py-4 font-bold text-gray-900">{trx.amount}</td>
-                    <td className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">{trx.method}</td>
-                    <td className="px-6 py-4">
-                       <span className={cn("text-[10px] font-bold uppercase tracking-widest", trx.status === 'Paid' ? 'text-orange-500' : 'text-brand')}>
-                        {trx.status}
-                       </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <div className="px-6 py-4 border-t border-gray-50 bg-gray-50/20 flex items-center justify-between">
-             <div className="flex items-center gap-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                <div className="flex items-center gap-2">
-                  <span>Rows per page:</span>
-                  <select className="bg-transparent border-none outline-none font-extrabold text-gray-900">
-                    <option>10</option>
-                  </select>
-                </div>
-                <span>1-3 of 3</span>
+        {isLoadingPurchases ? (
+           <div className="flex flex-col items-center justify-center py-20 gap-4 bg-white rounded-md border border-gray-100">
+             <div className="size-16 rounded-full border-4 border-gray-50 border-t-brand animate-spin flex items-center justify-center">
+                <Loader2 className="size-5 text-brand" />
              </div>
-             <div className="flex items-center gap-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                <div className="flex items-center gap-1">
-                  <Button variant="outline" size="sm" className="rounded-md border-gray-200 h-9 font-bold px-4" disabled>Previous</Button>
-                  <span className="px-2">Page 1 of 1</span>
-                  <Button variant="outline" size="sm" className="rounded-md border-gray-200 h-9 font-bold px-4">Next</Button>
-                </div>
-             </div>
-          </div>
-        </div>
+             <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Retrieving History...</p>
+           </div>
+        ) : hasGenerated ? (
+          <>
+            {/* Stats Row */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <TrendStatCard
+                title="Total Settled"
+                value={`₦${totalSettled.toLocaleString()}`}
+                trend={{ value: "Live", isUp: true }}
+                description="Payments successfully received"
+                trendLabel="Settled into digital wallet"
+              />
+              <TrendStatCard
+                title="Pending Payouts"
+                value="₦0"
+                trend={{ value: "Low", isUp: true }}
+                description="Funds awaiting clearance"
+                trendLabel="Market settlement time"
+              />
+              <TrendStatCard
+                title="Success Rate"
+                value="100%"
+                trend={{ value: "Stable", isUp: true }}
+                description="Transaction completion rate"
+                trendLabel="Wallet processing efficiency"
+              />
+            </div>
+
+            {/* Payment Ledger Table */}
+            <div className="rounded-md border border-gray-100 bg-white shadow-sm overflow-hidden">
+              <div className="p-5 border-b border-gray-50">
+                <h3 className="text-base font-bold text-gray-900 tracking-tight uppercase tracking-widest">Consolidated Payment Ledger</h3>
+                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Real-time financial movement log</p>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead className="bg-gray-50/50">
+                    <tr>
+                      <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-gray-500">Transaction ID</th>
+                      <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-gray-500">Amount</th>
+                      <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-gray-500">Type</th>
+                      <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-gray-500">Timestamp</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {purchases.map((p, i) => (
+                      <tr key={p.id || i} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="size-8 rounded-md bg-emerald-50 flex items-center justify-center text-emerald-600">
+                              <ArrowDownCircle className="size-4" />
+                            </div>
+                            <span className="font-bold text-gray-900 tracking-tight text-[11px] uppercase">#{p.id?.slice(0, 12) || 'TX-REF'}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 font-bold text-emerald-600 tracking-tight text-sm">+₦{Number(p.amount).toLocaleString()}</td>
+                        <td className="px-6 py-4">
+                          <Badge variant="outline" className="text-[8px] font-bold uppercase tracking-widest bg-emerald-50 text-emerald-600 border-none px-2 py-0.5 rounded-md">Settled Inbound</Badge>
+                        </td>
+                        <td className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase">{format(new Date(p.createdAt as string), 'MMM d, yyyy HH:mm')}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </>
+        ) : (
+          <EmptyReportState 
+            title="Access Payment Ledger"
+            description="Select a transaction type to generate a detailed history of all settled payments and digital wallet movements."
+            icon="file"
+          />
+        )}
       </div>
     </ReportLayout>
   )
-}
-
-function cn(...classes: any[]) {
-  return classes.filter(Boolean).join(' ')
 }

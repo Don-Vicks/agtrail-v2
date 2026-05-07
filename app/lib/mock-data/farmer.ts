@@ -620,6 +620,12 @@ export const sidebarNavigation = [
         icon: 'shield-check',
         href: '/farmer/compliance',
       },
+      {
+        id: 'deforestation-risk',
+        label: 'Deforestation Risk Check',
+        icon: 'scan',
+        href: '/farmer/compliance/risk-assessment',
+      },
     ],
   },
   {

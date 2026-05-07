@@ -139,3 +139,14 @@ export function Modal({ isOpen, onClose, children }: ModalProps) {
   )
 }
 ```
+
+## Design Standards
+
+- **Rounding**: Use `rounded-md` for all cards, buttons, inputs, and containers to ensure a consistent, professional, and balanced visual language.
+- **Sizing & Density**: 
+    - Use `h-9` for standard inputs, selects, and buttons to maintain a high-density, professional layout.
+    - Reduce internal padding in KPI cards (typically `p-4`) to create a compact "at-a-glance" experience.
+- **Typography**: 
+    - Use uppercase with tracking for labels: `text-[9px] font-bold uppercase tracking-widest text-gray-400`.
+    - Use bold, tight tracking for main values: `text-xl font-black text-gray-900 tracking-tight`.
+- **Badges**: Use small, uppercase badges for status indicators: `text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-md`.

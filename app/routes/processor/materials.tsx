@@ -37,11 +37,6 @@ interface Material {
 
 const mockMaterials: Material[] = []
 
-// ─── Shared Components moved to central directory ───
-
-// MiniStat and TabButton removed to use global standards
-
-
 export default function ProcessorMaterials() {
   const [activeTab, setActiveTab] = useState('Platform Materials')
   const [manualMaterials, setManualMaterials] = useState<Material[]>(mockMaterials)

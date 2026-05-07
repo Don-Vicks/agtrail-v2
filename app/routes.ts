@@ -120,6 +120,7 @@ export default [
       // Compliance Analysis Workflow
       ...prefix('compliance', [
         index('routes/farmer/compliance/compliance-analysis.tsx'),
+        route('risk-assessment', 'routes/farmer/compliance/risk-assessment.tsx'),
         route('market', 'routes/farmer/compliance/market-selection.tsx'),
         route('readiness', 'routes/farmer/compliance/readiness-check.tsx'),
         route('report', 'routes/farmer/compliance/compliance-report.tsx'),
