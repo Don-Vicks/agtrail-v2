@@ -22,6 +22,8 @@ export default [
     route('register/farmer', 'routes/auth/farmer-registration.tsx'),
   ]),
 
+  route('unauthorized', 'routes/unauthorized.tsx'),
+
   // Farmer tenant
   layout('routes/farmer/layout.tsx', [
     ...prefix('farmer', [

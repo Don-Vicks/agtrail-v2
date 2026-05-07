@@ -161,7 +161,7 @@ export default function ViewCertificationsPage() {
 
       return true;
     })
-  }, [activeTab, searchQuery, statusFilter])
+  }, [activeTab, searchQuery, statusFilter, apiCertifications])
 
   return (
     <div className="space-y-6">

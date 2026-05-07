@@ -45,7 +45,7 @@ function CooperativeLayoutContent() {
 
 export default function CooperativeLayout() {
   return (
-    <AuthGuard>
+    <AuthGuard allowedRoles={['cooperative']}>
       <SidebarProvider>
         <CooperativeLayoutContent />
       </SidebarProvider>

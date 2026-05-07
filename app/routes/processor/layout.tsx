@@ -39,7 +39,7 @@ function ProcessorLayoutContent() {
 
 export default function ProcessorLayout() {
   return (
-    <AuthGuard>
+    <AuthGuard allowedRoles={['processor']}>
       <SidebarProvider>
         <ProcessorLayoutContent />
       </SidebarProvider>

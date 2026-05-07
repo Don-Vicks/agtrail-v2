@@ -36,7 +36,7 @@ function FieldAgentLayoutContent() {
 
 export default function FieldAgentLayout() {
   return (
-    <AuthGuard>
+    <AuthGuard allowedRoles={['field-agent']}>
       <SidebarProvider>
         <FieldAgentLayoutContent />
       </SidebarProvider>

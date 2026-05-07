@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router'
 
 import { AgrolinkingLogo } from '~/components/agrolinking-logo'
@@ -18,7 +18,22 @@ export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [errorMsg, setErrorMsg] = useState('')
-  const { login: setAuth } = useAuth()
+  const { login: setAuth, isAuthenticated, user, isLoading } = useAuth()
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (!isLoading && isAuthenticated && user) {
+      const role = user.systemRole?.toLowerCase();
+      let targetPath = '/farmer';
+      if (role === 'processor') targetPath = '/processor';
+      else if (role === 'aggregator') targetPath = '/aggregator';
+      else if (role === 'transporter') targetPath = '/transporter';
+      else if (role === 'field-agent') targetPath = '/field-agent';
+      else if (role === 'cooperative') targetPath = '/cooperative';
+      else if (role === 'admin') targetPath = '/admin';
+      navigate(targetPath, { replace: true });
+    }
+  }, [isAuthenticated, user, isLoading, navigate])
 
   const { mutate: login, isPending } = usePostAuthLogin({
     mutation: {
@@ -34,7 +49,19 @@ export default function LoginPage() {
 
         if (user && token) {
           setAuth(user, token)
-          navigate('/farmer')
+          
+          // Determine the natural dashboard based on systemRole
+          const role = user.systemRole?.toLowerCase();
+          let targetPath = '/farmer'; // default
+          
+          if (role === 'processor') targetPath = '/processor';
+          else if (role === 'aggregator') targetPath = '/aggregator';
+          else if (role === 'transporter') targetPath = '/transporter';
+          else if (role === 'field-agent') targetPath = '/field-agent';
+          else if (role === 'cooperative') targetPath = '/cooperative';
+          else if (role === 'admin') targetPath = '/admin';
+          
+          navigate(targetPath);
         } else {
           setErrorMsg(
             'Login response is missing user/token. Please contact support if this persists.',

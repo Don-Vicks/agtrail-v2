@@ -39,7 +39,7 @@ function FarmerLayoutContent() {
 
 export default function FarmerLayout() {
   return (
-    <AuthGuard>
+    <AuthGuard allowedRoles={['farmer']}>
       <SidebarProvider>
         <FarmerLayoutContent />
       </SidebarProvider>

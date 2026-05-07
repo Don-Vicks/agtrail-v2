@@ -39,7 +39,7 @@ function TransporterLayoutContent() {
 
 export default function TransporterLayout() {
   return (
-    <AuthGuard>
+    <AuthGuard allowedRoles={['transporter']}>
       <SidebarProvider>
         <TransporterLayoutContent />
       </SidebarProvider>

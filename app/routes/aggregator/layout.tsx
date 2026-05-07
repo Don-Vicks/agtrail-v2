@@ -45,7 +45,7 @@ function AggregatorLayoutContent() {
 
 export default function AggregatorLayout() {
   return (
-    <AuthGuard>
+    <AuthGuard allowedRoles={['aggregator']}>
       <SidebarProvider>
         <AggregatorLayoutContent />
       </SidebarProvider>
