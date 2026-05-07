@@ -11,4 +11,6 @@ export type AuthResponseDataUser = {
   email: string;
   name?: string;
   emailVerified?: boolean;
+  /** User system role e.g. farmer, cooperative, processor, admin */
+  systemRole?: string;
 };

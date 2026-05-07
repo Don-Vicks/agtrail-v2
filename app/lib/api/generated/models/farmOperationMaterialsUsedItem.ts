@@ -7,11 +7,16 @@
  */
 
 export type FarmOperationMaterialsUsedItem = {
-  /** Reference to a supplies_inventory item. Resolves name/supplier automatically. */
+  /** Reference to a supplies_inventory item. When provided, name/unit/cost/currency are auto-populated if omitted. */
   inventoryItemId?: string;
-  name: string;
-  quantity: number;
-  unit: string;
-  cost?: number;
-  currency?: string;
+  /** @nullable */
+  name?: string | null;
+  /** @nullable */
+  quantity?: number | null;
+  /** @nullable */
+  unit?: string | null;
+  /** @nullable */
+  cost?: number | null;
+  /** @nullable */
+  currency?: string | null;
 };

@@ -26,6 +26,7 @@ import type {
 
 import type {
   FarmerFullProfile,
+  GetFarmersCompliance200,
   GetFarmersDashboardStats200,
   PutFarmersProfile200,
   UpdateFarmerProfileRequest
@@ -333,6 +334,117 @@ export function useGetFarmersDashboardStats<TData = Awaited<ReturnType<typeof ge
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetFarmersDashboardStatsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+/**
+ * Returns a 9-point compliance readiness report: KYC, farm polygon, deforestation risk, active cycle, inputs logged, no disputed inputs, harvest submitted, no flagged harvest, QR generated.
+ * @summary Get EUDR compliance readiness check (FA-08)
+ */
+export type getFarmersComplianceResponse200 = {
+  data: GetFarmersCompliance200
+  status: 200
+}
+
+export type getFarmersComplianceResponseSuccess = (getFarmersComplianceResponse200) & {
+  headers: Headers;
+};
+;
+
+export type getFarmersComplianceResponse = (getFarmersComplianceResponseSuccess)
+
+export const getGetFarmersComplianceUrl = () => {
+
+
+  
+
+  return `/farmers/compliance`
+}
+
+export const getFarmersCompliance = async ( options?: RequestInit): Promise<getFarmersComplianceResponse> => {
+  
+  return customFetch<getFarmersComplianceResponse>(getGetFarmersComplianceUrl(),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+  
+
+
+
+
+export const getGetFarmersComplianceQueryKey = () => {
+    return [
+    `/farmers/compliance`
+    ] as const;
+    }
+
+    
+export const getGetFarmersComplianceQueryOptions = <TData = Awaited<ReturnType<typeof getFarmersCompliance>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFarmersCompliance>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetFarmersComplianceQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getFarmersCompliance>>> = ({ signal }) => getFarmersCompliance({ signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getFarmersCompliance>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetFarmersComplianceQueryResult = NonNullable<Awaited<ReturnType<typeof getFarmersCompliance>>>
+export type GetFarmersComplianceQueryError = unknown
+
+
+export function useGetFarmersCompliance<TData = Awaited<ReturnType<typeof getFarmersCompliance>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFarmersCompliance>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getFarmersCompliance>>,
+          TError,
+          Awaited<ReturnType<typeof getFarmersCompliance>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetFarmersCompliance<TData = Awaited<ReturnType<typeof getFarmersCompliance>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFarmersCompliance>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getFarmersCompliance>>,
+          TError,
+          Awaited<ReturnType<typeof getFarmersCompliance>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetFarmersCompliance<TData = Awaited<ReturnType<typeof getFarmersCompliance>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFarmersCompliance>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Get EUDR compliance readiness check (FA-08)
+ */
+
+export function useGetFarmersCompliance<TData = Awaited<ReturnType<typeof getFarmersCompliance>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFarmersCompliance>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetFarmersComplianceQueryOptions(options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

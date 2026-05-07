@@ -24,6 +24,16 @@ export interface FarmProduct {
   qualityGrade?: string | null;
   /** @nullable */
   qualityNotes?: string | null;
+  /**
+   * Moisture content as a percentage (e.g. 13.5)
+   * @nullable
+   */
+  moisturePercentage?: number | null;
+  /**
+   * Rejection/waste as a percentage of harvested quantity
+   * @nullable
+   */
+  wasteRate?: number | null;
   harvestDate: string;
   /** @nullable */
   harvestMethod?: string | null;
@@ -32,7 +42,10 @@ export interface FarmProduct {
   /** @nullable */
   storageConditions?: FarmProductStorageConditions;
   batchNumber: string;
-  /** @nullable */
+  /**
+   * Base64 PNG data URL of the QR code linking to the public trace page
+   * @nullable
+   */
   qrCodeData?: string | null;
   status?: FarmProductStatus;
   /** @nullable */

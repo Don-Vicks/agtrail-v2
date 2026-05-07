@@ -233,6 +233,124 @@ export const usePostFarmersProducts = <TError = unknown,
       return useMutation(getPostFarmersProductsMutationOptions(options), queryClient);
     }
     /**
+ * Returns the batch QR code as a PNG image. The QR encodes the public trace URL for this batch.
+ * @summary Download QR code for a farm product as PNG
+ */
+export type getFarmersProductsIdQrResponse200 = {
+  data: Blob
+  status: 200
+}
+
+export type getFarmersProductsIdQrResponse404 = {
+  data: void
+  status: 404
+}
+
+export type getFarmersProductsIdQrResponseSuccess = (getFarmersProductsIdQrResponse200) & {
+  headers: Headers;
+};
+export type getFarmersProductsIdQrResponseError = (getFarmersProductsIdQrResponse404) & {
+  headers: Headers;
+};
+
+export type getFarmersProductsIdQrResponse = (getFarmersProductsIdQrResponseSuccess | getFarmersProductsIdQrResponseError)
+
+export const getGetFarmersProductsIdQrUrl = (id: string,) => {
+
+
+  
+
+  return `/farmers/products/${id}/qr`
+}
+
+export const getFarmersProductsIdQr = async (id: string, options?: RequestInit): Promise<getFarmersProductsIdQrResponse> => {
+  
+  return customFetch<getFarmersProductsIdQrResponse>(getGetFarmersProductsIdQrUrl(id),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+  
+
+
+
+
+export const getGetFarmersProductsIdQrQueryKey = (id: string,) => {
+    return [
+    `/farmers/products/${id}/qr`
+    ] as const;
+    }
+
+    
+export const getGetFarmersProductsIdQrQueryOptions = <TData = Awaited<ReturnType<typeof getFarmersProductsIdQr>>, TError = void>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFarmersProductsIdQr>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetFarmersProductsIdQrQueryKey(id);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getFarmersProductsIdQr>>> = ({ signal }) => getFarmersProductsIdQr(id, { signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getFarmersProductsIdQr>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetFarmersProductsIdQrQueryResult = NonNullable<Awaited<ReturnType<typeof getFarmersProductsIdQr>>>
+export type GetFarmersProductsIdQrQueryError = void
+
+
+export function useGetFarmersProductsIdQr<TData = Awaited<ReturnType<typeof getFarmersProductsIdQr>>, TError = void>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFarmersProductsIdQr>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getFarmersProductsIdQr>>,
+          TError,
+          Awaited<ReturnType<typeof getFarmersProductsIdQr>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetFarmersProductsIdQr<TData = Awaited<ReturnType<typeof getFarmersProductsIdQr>>, TError = void>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFarmersProductsIdQr>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getFarmersProductsIdQr>>,
+          TError,
+          Awaited<ReturnType<typeof getFarmersProductsIdQr>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetFarmersProductsIdQr<TData = Awaited<ReturnType<typeof getFarmersProductsIdQr>>, TError = void>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFarmersProductsIdQr>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Download QR code for a farm product as PNG
+ */
+
+export function useGetFarmersProductsIdQr<TData = Awaited<ReturnType<typeof getFarmersProductsIdQr>>, TError = void>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getFarmersProductsIdQr>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetFarmersProductsIdQrQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+/**
  * @summary Get farm product details
  */
 export type getFarmersProductsIdResponse200 = {

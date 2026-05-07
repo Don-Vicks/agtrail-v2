@@ -30,6 +30,10 @@ export interface CropCycle {
   /** @nullable */
   areaUnit?: CropCycleAreaUnit;
   status?: CropCycleStatus;
+  /** GeoJSON Point for the crop cycle plot location. Longitude first, then latitude. */
+  gpsCoordinates?: unknown | null;
+  /** GeoJSON Polygon defining the planted area boundary within the farm. Closed ring — first and last coordinate pair must match. */
+  plantedAreaBoundaries?: unknown | null;
   isOrganic?: boolean;
   /** @nullable */
   notes?: string | null;

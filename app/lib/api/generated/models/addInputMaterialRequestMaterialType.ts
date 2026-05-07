@@ -6,6 +6,9 @@
  * OpenAPI spec version: 1.0.0
  */
 
+/**
+ * Defaults to external_material when inventoryItemId is provided.
+ */
 export type AddInputMaterialRequestMaterialType = typeof AddInputMaterialRequestMaterialType[keyof typeof AddInputMaterialRequestMaterialType];
 
 

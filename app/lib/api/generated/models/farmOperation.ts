@@ -50,6 +50,8 @@ export interface FarmOperation {
   areaCovered?: string | null;
   /** @nullable */
   areaUnit?: string | null;
+  /** GeoJSON Point where the operation took place. Longitude first, then latitude. */
+  gpsCoordinates?: unknown | null;
   qualityAssessment?: unknown | null;
   /** @nullable */
   createdBy?: string | null;

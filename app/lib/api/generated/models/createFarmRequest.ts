@@ -18,6 +18,8 @@ export interface CreateFarmRequest {
   totalArea?: number;
   areaUnit?: CreateFarmRequestAreaUnit;
   soilType?: string;
+  /** GeoJSON Point for the farm centre. Longitude first, then latitude. */
   gpsCoordinates?: unknown | null;
+  /** GeoJSON Polygon defining the farm boundary. First and last coordinate pair must match (closed ring). Longitude first, then latitude. */
   boundaries?: unknown | null;
 }

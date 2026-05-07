@@ -20,6 +20,10 @@ export interface CreateCropCycleRequest {
   /** Numeric value for planted area */
   areaPlanted?: number;
   areaUnit?: CreateCropCycleRequestAreaUnit;
+  /** GeoJSON Point for the plot location. Longitude first, then latitude. */
+  gpsCoordinates?: unknown | null;
+  /** GeoJSON Polygon for the planted area boundary. Closed ring — first and last point must match. */
+  plantedAreaBoundaries?: unknown | null;
   isOrganic?: boolean;
   notes?: string;
 }

@@ -49,7 +49,7 @@ export function OperationFormLayout({
   } = useWeather({
     latitude: cropCycle.latitude,
     longitude: cropCycle.longitude,
-    locationQuery: `${cropCycle.farmName} ${cropCycle.farmLocation}`.trim(),
+    locationQuery: cropCycle.farmLocation !== 'Location not specified' ? cropCycle.farmLocation : undefined,
   })
 
   const [renewableEnergy, setRenewableEnergy] = useState(

@@ -5,6 +5,7 @@
  * API Documentation for AgTrail Backend V2
  * OpenAPI spec version: 1.0.0
  */
+import type { FarmDeforestationRiskScore } from './farmDeforestationRiskScore';
 import type { FarmStatus } from './farmStatus';
 
 export interface Farm {
@@ -23,13 +24,13 @@ export interface Farm {
   lga?: string | null;
   /** @nullable */
   region?: string | null;
-  /** GeoJSON Point */
+  /** GeoJSON Point representing the farm centre location. Longitude first, then latitude. */
   gpsCoordinates?: unknown | null;
   /** @nullable */
   gpsPrecisionMeters?: number | null;
   /** @nullable */
   calculatedArea?: number | null;
-  /** GeoJSON Polygon */
+  /** GeoJSON Polygon defining the farm boundary. Coordinates must form a closed ring — the first and last coordinate pair must be identical. Minimum 4 pairs (3 unique vertices + closing point). Longitude first, then latitude. */
   boundaries?: unknown | null;
   /** @nullable */
   sizeHectares?: number | null;
@@ -46,6 +47,31 @@ export interface Farm {
   /** @nullable */
   sitePhotos?: string[] | null;
   status?: FarmStatus;
+  /**
+   * EUDR deforestation risk tier scored by OpenEPI after farm polygon is saved
+   * @nullable
+   */
+  deforestationRiskScore?: FarmDeforestationRiskScore;
+  /**
+   * Data provider that computed the risk score
+   * @nullable
+   */
+  deforestationRiskSource?: string | null;
+  /**
+   * Date the risk score was last assessed
+   * @nullable
+   */
+  deforestationRiskDate?: string | null;
+  /**
+   * Dataset version used for the assessment
+   * @nullable
+   */
+  deforestationDatasetVersion?: string | null;
+  /**
+   * URL to an uploaded justification document for medium/high risk farms
+   * @nullable
+   */
+  deforestationJustDocUrl?: string | null;
   createdAt: string;
   updatedAt: string;
   /**

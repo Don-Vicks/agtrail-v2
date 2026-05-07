@@ -29,7 +29,7 @@ export interface LogFarmOperationRequest {
   /** Operation cost as a number e.g. 25000 */
   cost?: number;
   currency?: string;
-  /** List of inputs/materials used. Include inventoryItemId to link to a supply record. */
+  /** List of inputs/materials used. Provide inventoryItemId to link to a supply record — other fields are inferred automatically. */
   materialsUsed?: LogFarmOperationRequestMaterialsUsedItem[];
   /** Single string or array — coerced to array internally */
   equipmentUsed?: string | string[];
@@ -40,4 +40,6 @@ export interface LogFarmOperationRequest {
   areaUnit?: string;
   /** Free JSON e.g. { "grade": "A", "moisture_content": "13%" } */
   qualityAssessment?: LogFarmOperationRequestQualityAssessment;
+  /** GeoJSON Point for where the operation was performed. Longitude first, then latitude. */
+  gpsCoordinates?: unknown | null;
 }

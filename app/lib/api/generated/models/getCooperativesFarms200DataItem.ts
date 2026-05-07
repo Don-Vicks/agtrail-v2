@@ -17,4 +17,6 @@ export type GetCooperativesFarms200DataItem = {
   areaUnit?: string | null;
   /** GeoJSON or array bounds */
   coordinates?: unknown | null;
+  /** GeoJSON Point */
+  gpsCoordinates?: unknown | null;
 };

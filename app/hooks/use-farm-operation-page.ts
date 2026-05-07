@@ -37,40 +37,64 @@ function farmFromQueryData(queryData: { data: GetFarmsId200 } | undefined): Farm
 function parseFarmCoordinates(
   gpsCoordinates: unknown | null | undefined,
 ): { latitude: number | null; longitude: number | null } {
+  console.log('parseFarmCoordinates - input:', gpsCoordinates)
   if (!gpsCoordinates) {
     return { latitude: null, longitude: null }
   }
-  const parsedInput =
-    typeof gpsCoordinates === 'string'
-      ? (() => {
-          try {
-            return JSON.parse(gpsCoordinates) as unknown
-          } catch {
-            return null
-          }
-        })()
-      : gpsCoordinates
-  if (!parsedInput || typeof parsedInput !== 'object') {
+
+  // 1. Handle string input (JSON or comma-separated)
+  if (typeof gpsCoordinates === 'string') {
+    const trimmed = gpsCoordinates.trim()
+    if (!trimmed) return { latitude: null, longitude: null }
+
+    // Try JSON first
+    if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+      try {
+        return parseFarmCoordinates(JSON.parse(trimmed))
+      } catch {
+        // Fall through to regex
+      }
+    }
+
+    // Try "lat, lng" format
+    const parts = trimmed.split(/[,\s]+/)
+    if (parts.length >= 2) {
+      const lat = parseFloat(parts[0])
+      const lng = parseFloat(parts[1])
+      if (Number.isFinite(lat) && Number.isFinite(lng)) {
+        return { latitude: lat, longitude: lng }
+      }
+    }
+  }
+
+  // 2. Handle object input
+  if (typeof gpsCoordinates !== 'object' || gpsCoordinates === null) {
     return { latitude: null, longitude: null }
   }
-  const point = parsedInput as {
-    coordinates?: unknown
-    lat?: unknown
-    lng?: unknown
-    latitude?: unknown
-    longitude?: unknown
+
+  const point = gpsCoordinates as any
+
+  // Handle GeoJSON Point structure: { coordinates: [lng, lat] }
+  if (Array.isArray(point.coordinates)) {
+    const lng = Number(point.coordinates[0])
+    const lat = Number(point.coordinates[1])
+    if (Number.isFinite(lat) && Number.isFinite(lng)) {
+      return { latitude: lat, longitude: lng }
+    }
   }
-  const maybeCoordinates = Array.isArray(point.coordinates) ? point.coordinates : null
-  const longitude = Number(
-    maybeCoordinates?.[0] ?? point.lng ?? point.longitude,
-  )
-  const latitude = Number(
-    maybeCoordinates?.[1] ?? point.lat ?? point.latitude,
-  )
-  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
-    return { latitude: null, longitude: null }
+
+  // Handle various flat object structures
+  const latCandidate = point.lat ?? point.latitude ?? point.y
+  const lngCandidate = point.lng ?? point.longitude ?? point.x ?? point.long
+
+  const lat = Number(latCandidate)
+  const lng = Number(lngCandidate)
+
+  if (Number.isFinite(lat) && Number.isFinite(lng)) {
+    return { latitude: lat, longitude: lng }
   }
-  return { latitude, longitude }
+
+  return { latitude: null, longitude: null }
 }
 
 function compactOperationRequest(
@@ -166,7 +190,15 @@ export function useFarmOperationPage(operationSlug: FarmOperationRouteSlug) {
 
   const layoutCropCycle: OperationLayoutCropCycle | null = useMemo(() => {
     if (!cycle) return null
-    const { latitude, longitude } = parseFarmCoordinates(farm?.gpsCoordinates)
+    console.log('useFarmOperationPage - cycle:', cycle)
+    console.log('useFarmOperationPage - farm:', farm)
+    const cycleCoords = parseFarmCoordinates((cycle as any)?.gpsCoordinates || (cycle as any)?.gps_coordinates)
+    const farmCoords = parseFarmCoordinates(farm?.gpsCoordinates || (farm as any)?.gps_coordinates)
+    console.log('useFarmOperationPage - parsed cycleCoords:', cycleCoords)
+    console.log('useFarmOperationPage - parsed farmCoords:', farmCoords)
+    const latitude = cycleCoords.latitude ?? farmCoords.latitude
+    const longitude = cycleCoords.longitude ?? farmCoords.longitude
+    console.log('useFarmOperationPage - final:', { latitude, longitude })
     const farmerName = user?.email?.split('@')[0] ?? 'Operator'
     const initials = farmerName.slice(0, 2).toUpperCase()
     return {

@@ -25,10 +25,10 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  CreateCertificationRequest,
   GetCertifications200,
   GetCertificationsReadiness200,
-  PostCertificationsUpload201,
-  PostCertificationsUploadBody
+  PostCertificationsUpload201
 } from '.././models';
 
 import { customFetch } from '../../custom-fetch';
@@ -149,7 +149,7 @@ export function useGetCertifications<TData = Awaited<ReturnType<typeof getCertif
 
 
 /**
- * Links a certification type to an entity. Use the /api/upload endpoint first to get a "documentUrl" (relative path).
+ * Creates a certification linked to a farm, farm product, organization, or batch. Use the /api/upload endpoint first to get a "documentUrl".
  * @summary Create a certification record
  */
 export type postCertificationsUploadResponse201 = {
@@ -172,7 +172,7 @@ export const getPostCertificationsUploadUrl = () => {
   return `/certifications/upload`
 }
 
-export const postCertificationsUpload = async (postCertificationsUploadBody: PostCertificationsUploadBody, options?: RequestInit): Promise<postCertificationsUploadResponse> => {
+export const postCertificationsUpload = async (createCertificationRequest: CreateCertificationRequest, options?: RequestInit): Promise<postCertificationsUploadResponse> => {
   
   return customFetch<postCertificationsUploadResponse>(getPostCertificationsUploadUrl(),
   {      
@@ -180,7 +180,7 @@ export const postCertificationsUpload = async (postCertificationsUploadBody: Pos
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     body: JSON.stringify(
-      postCertificationsUploadBody,)
+      createCertificationRequest,)
   }
 );}
   
@@ -188,8 +188,8 @@ export const postCertificationsUpload = async (postCertificationsUploadBody: Pos
 
 
 export const getPostCertificationsUploadMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postCertificationsUpload>>, TError,{data: PostCertificationsUploadBody}, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof postCertificationsUpload>>, TError,{data: PostCertificationsUploadBody}, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postCertificationsUpload>>, TError,{data: CreateCertificationRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof postCertificationsUpload>>, TError,{data: CreateCertificationRequest}, TContext> => {
 
 const mutationKey = ['postCertificationsUpload'];
 const {mutation: mutationOptions, request: requestOptions} = options ?
@@ -201,7 +201,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postCertificationsUpload>>, {data: PostCertificationsUploadBody}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postCertificationsUpload>>, {data: CreateCertificationRequest}> = (props) => {
           const {data} = props ?? {};
 
           return  postCertificationsUpload(data,requestOptions)
@@ -215,18 +215,18 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type PostCertificationsUploadMutationResult = NonNullable<Awaited<ReturnType<typeof postCertificationsUpload>>>
-    export type PostCertificationsUploadMutationBody = PostCertificationsUploadBody
+    export type PostCertificationsUploadMutationBody = CreateCertificationRequest
     export type PostCertificationsUploadMutationError = unknown
 
     /**
  * @summary Create a certification record
  */
 export const usePostCertificationsUpload = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postCertificationsUpload>>, TError,{data: PostCertificationsUploadBody}, TContext>, request?: SecondParameter<typeof customFetch>}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postCertificationsUpload>>, TError,{data: CreateCertificationRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof postCertificationsUpload>>,
         TError,
-        {data: PostCertificationsUploadBody},
+        {data: CreateCertificationRequest},
         TContext
       > => {
       return useMutation(getPostCertificationsUploadMutationOptions(options), queryClient);

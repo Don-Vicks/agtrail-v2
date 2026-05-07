@@ -6,10 +6,10 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type PostCertificationsUploadBodyCertifiedEntityType = typeof PostCertificationsUploadBodyCertifiedEntityType[keyof typeof PostCertificationsUploadBodyCertifiedEntityType];
+export type CertificationCertifiedEntityType = typeof CertificationCertifiedEntityType[keyof typeof CertificationCertifiedEntityType];
 
 
-export const PostCertificationsUploadBodyCertifiedEntityType = {
+export const CertificationCertifiedEntityType = {
   farm: 'farm',
   farm_product: 'farm_product',
   organization: 'organization',

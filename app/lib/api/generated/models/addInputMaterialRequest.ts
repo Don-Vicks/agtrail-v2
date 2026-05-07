@@ -9,15 +9,24 @@ import type { AddInputMaterialRequestMaterialType } from './addInputMaterialRequ
 import type { AddInputMaterialRequestQualityAssessment } from './addInputMaterialRequestQualityAssessment';
 
 export interface AddInputMaterialRequest {
-  materialType: AddInputMaterialRequestMaterialType;
+  /** Defaults to external_material when inventoryItemId is provided. */
+  materialType?: AddInputMaterialRequestMaterialType;
   sourceFarmProductId?: string;
   sourceBatchProductId?: string;
-  /** Preferred for internal supplies. Resolves externalMaterialName and externalSupplierName automatically. */
+  /** When provided, unit/name/supplier are auto-populated. Only this field is required when referencing inventory. */
   inventoryItemId?: string;
   externalMaterialName?: string;
   externalSupplierName?: string;
-  quantityUsed: number;
-  unit: string;
+  /**
+   * If provided alongside inventoryItemId, this amount is deducted from supplies_inventory.currentLevel.
+   * @nullable
+   */
+  quantityUsed?: number | null;
+  /**
+   * Auto-populated from inventory item when inventoryItemId is provided.
+   * @nullable
+   */
+  unit?: string | null;
   percentageOfBatch?: number;
   qualityAssessment?: AddInputMaterialRequestQualityAssessment;
   lotNumber?: string;

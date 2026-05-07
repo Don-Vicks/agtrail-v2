@@ -5,25 +5,47 @@
  * API Documentation for AgTrail Backend V2
  * OpenAPI spec version: 1.0.0
  */
+import type { CertificationCertifiedEntityType } from './certificationCertifiedEntityType';
+import type { CertificationStatus } from './certificationStatus';
+import type { CertificationVerificationStatus } from './certificationVerificationStatus';
 
 export interface Certification {
   id: string;
-  entityId: string;
-  entityType: string;
+  /** Name of the certification type e.g. Organic, Fair Trade, GlobalGAP */
+  certificationTypeName: string;
+  /**
+   * Short code for the certification type e.g. ORGANIC, FAIR_TRADE
+   * @nullable
+   */
+  certificationTypeCode?: string | null;
+  /**
+   * Organisation that issued the certificate e.g. USDA, EU Organic
+   * @nullable
+   */
+  issuingBody?: string | null;
+  certifiedEntityType: CertificationCertifiedEntityType;
   /** @nullable */
-  standardId: string | null;
-  certificationType: string;
-  certifyingBody: string;
+  farmId?: string | null;
   /** @nullable */
-  certificateNumber: string | null;
-  issueDate: string | unknown | null;
-  expiryDate: string | unknown | null;
-  status: string;
+  farmProductId?: string | null;
   /** @nullable */
-  documentUrl: string | null;
-  verificationDate: string | unknown | null;
+  organizationId?: string | null;
   /** @nullable */
-  verifiedBy: string | null;
+  batchProductId?: string | null;
+  certificateNumber: string;
+  issueDate: string;
+  expiryDate?: string | unknown | null;
+  status?: CertificationStatus;
+  verificationStatus?: CertificationVerificationStatus;
+  /** @nullable */
+  verifiedBy?: string | null;
+  verificationDate?: string | unknown | null;
+  /** @nullable */
+  verificationNotes?: string | null;
+  /** @nullable */
+  documentUrl?: string | null;
+  /** @nullable */
+  blockchainHash?: string | null;
   createdAt: string;
   updatedAt: string;
 }

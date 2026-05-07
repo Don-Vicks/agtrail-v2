@@ -107,7 +107,14 @@ export default [
       route('finance/receivables', 'routes/farmer/finance/receivables.tsx'),
 
       // Reports & Analytics
-      route('reports', 'routes/farmer/reports/reports-analytics.tsx'),
+      ...prefix('reports', [
+        index('routes/farmer/reports/reports-analytics.tsx'),
+        route('crop-cycle', 'routes/farmer/reports/crop-cycle-summary.tsx'),
+        route('harvest-sales', 'routes/farmer/reports/harvest-sales-report.tsx'),
+        route('farm', 'routes/farmer/reports/farm-report.tsx'),
+        route('financial', 'routes/farmer/reports/financial-summary.tsx'),
+        route('payments', 'routes/farmer/reports/payment-history.tsx'),
+      ]),
 
       // Compliance Analysis
       // Compliance Analysis Workflow

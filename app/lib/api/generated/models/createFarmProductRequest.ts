@@ -17,6 +17,10 @@ export interface CreateFarmProductRequest {
   unit?: string;
   qualityGrade?: string;
   qualityNotes?: string;
+  /** Moisture content as a percentage */
+  moisturePercentage?: number;
+  /** Rejection/waste as a percentage of harvested quantity */
+  wasteRate?: number;
   harvestDate: string;
   harvestMethod?: string;
   storageLocation?: string;

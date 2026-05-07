@@ -7,11 +7,19 @@
  */
 
 export type LogFarmOperationRequestMaterialsUsedItem = {
-  /** Optional reference to a supplies_inventory item */
+  /** When provided, name/unit/cost/currency are auto-populated from the inventory record if omitted. Only inventoryItemId is required when referencing inventory. */
   inventoryItemId?: string;
-  name: string;
-  quantity: number;
-  unit: string;
-  cost?: number;
-  currency?: string;
+  /** @nullable */
+  name?: string | null;
+  /**
+   * If provided alongside inventoryItemId, this amount is deducted from supplies_inventory.currentLevel.
+   * @nullable
+   */
+  quantity?: number | null;
+  /** @nullable */
+  unit?: string | null;
+  /** @nullable */
+  cost?: number | null;
+  /** @nullable */
+  currency?: string | null;
 };

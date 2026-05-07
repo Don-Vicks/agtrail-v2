@@ -52,21 +52,36 @@ function weatherCodeToNotes(code?: number) {
   return 'Unknown conditions'
 }
 
-async function resolveCoordinatesFromLocation(locationQuery?: string) {
-  const query = locationQuery?.trim()
-  if (!query) return null
-  const endpoint =
-    `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}` +
-    '&count=1&language=en&format=json'
-  const response = await fetch(endpoint)
-  if (!response.ok) return null
-  const data = (await response.json()) as {
-    results?: Array<{ latitude?: number; longitude?: number }>
+async function resolveCoordinatesFromLocation(locationQuery?: string): Promise<{ latitude: number; longitude: number } | null> {
+  const query = locationQuery?.replace(/·/g, ' ').replace(/\s+/g, ' ').trim()
+  if (!query || query.length < 3) return null
+  
+  const search = async (q: string) => {
+    console.log('useWeather - geocoding query:', q)
+    const endpoint =
+      `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}` +
+      '&count=1&language=en&format=json'
+    const response = await fetch(endpoint)
+    if (!response.ok) return null
+    const data = (await response.json()) as {
+      results?: Array<{ latitude?: number; longitude?: number }>
+    }
+    const first = data.results?.[0]
+    if (!first || !Number.isFinite(first.latitude) || !Number.isFinite(first.longitude)) return null
+    return { latitude: Number(first.latitude), longitude: Number(first.longitude) }
   }
-  const first = data.results?.[0]
-  if (!first) return null
-  if (!Number.isFinite(first.latitude) || !Number.isFinite(first.longitude)) return null
-  return { latitude: Number(first.latitude), longitude: Number(first.longitude) }
+
+  const result = await search(query)
+  if (result) return result
+
+  // Fallback: try the first word (usually the State)
+  const parts = query.split(' ')
+  if (parts.length > 1) {
+    console.log('useWeather - geocoding fallback to first word')
+    return await search(parts[0])
+  }
+
+  return null
 }
 
 export function useWeather({ latitude, longitude, locationQuery }: UseWeatherArgs = {}) {
@@ -81,12 +96,16 @@ export function useWeather({ latitude, longitude, locationQuery }: UseWeatherArg
     Number.isFinite(longitude)
 
   const refreshWeather = async () => {
+    console.log('useWeather - refreshWeather called', { latitude, longitude, locationQuery, hasCoordinates })
     setIsLoading(true)
     setError(null)
     try {
       const resolvedCoordinates = hasCoordinates
         ? { latitude: latitude as number, longitude: longitude as number }
         : await resolveCoordinatesFromLocation(locationQuery)
+      
+      console.log('useWeather - resolvedCoordinates:', resolvedCoordinates)
+      
       if (!resolvedCoordinates) {
         setWeather({
           ...EMPTY_WEATHER,
@@ -99,6 +118,8 @@ export function useWeather({ latitude, longitude, locationQuery }: UseWeatherArg
         `https://api.open-meteo.com/v1/forecast?latitude=${resolvedCoordinates.latitude}&longitude=${resolvedCoordinates.longitude}` +
         '&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code' +
         '&daily=precipitation_sum&timezone=auto'
+      
+      console.log('useWeather - fetching:', endpoint)
       const response = await fetch(endpoint)
       if (!response.ok) {
         throw new Error(`Weather request failed: ${response.status}`)
