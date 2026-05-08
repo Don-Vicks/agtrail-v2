@@ -38,6 +38,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
         <Links />
+        {/* Dojah Widget Script */}
+        <script src="https://widget.dojah.io/widget.js"></script>
       </head>
       <body className="font-sans">
         {children}

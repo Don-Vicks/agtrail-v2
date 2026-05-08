@@ -23,6 +23,7 @@ export default [
   ]),
 
   route('unauthorized', 'routes/unauthorized.tsx'),
+  route('dojah-test', 'routes/dojah-test.tsx'),
 
   // Farmer tenant
   layout('routes/farmer/layout.tsx', [

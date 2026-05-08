@@ -13,6 +13,7 @@ import {
   usePostUsersKyc,
   usePutUsersProfile,
 } from '~/lib/api/generated/users/users'
+import { usePostUpload } from '~/lib/api/generated/upload/upload'
 import type { Route } from './+types/settings-root'
 
 export function meta({ }: Route.MetaArgs) {
@@ -296,6 +297,8 @@ function IdentityVerificationTab() {
     },
   })
 
+  const { mutateAsync: uploadFile } = usePostUpload()
+
   const buildStableBrowserId = () => {
     if (typeof window === 'undefined') return 'server'
     const key = 'dojah_browser_id_v1'
@@ -345,17 +348,52 @@ function IdentityVerificationTab() {
       : 'Dojah DeviceGuard blocked this session. Please continue on one device/browser only.'
   }
 
-  const syncKyc = (data: any) => {
+  const syncKyc = async (dojahData: any) => {
     setShouldLaunchKyc(false)
     setIsDeviceGuardBlocked(false)
     setActiveSessionRef('')
     clearStableKycSessionRef()
-    toast.success('Identity verified successfully by Dojah!')
+
+    // Extract the best available image URL from the Dojah response
+    const dojahImgUrl =
+      dojahData?.id_url ||
+      dojahData?.data?.id?.data?.id_url ||
+      dojahData?.selfie_url ||
+      dojahData?.data?.government_data?.data?.nin?.entity?.image_url
+
+    let finalDocUrl = ''
+
+    if (dojahImgUrl) {
+      toast.loading('Saving verification securely...', { id: 'kyc-sync' })
+      try {
+        // Fetch the expiring image from Dojah
+        const response = await fetch(dojahImgUrl)
+        const blob = await response.blob()
+        const file = new File([blob], 'kyc_document.jpg', {
+          type: blob.type || 'image/jpeg',
+        })
+
+        // Upload to our backend storage
+        const uploadRes = await uploadFile({ data: { kycDocument: file } })
+        finalDocUrl = uploadRes?.data?.urls?.[0] || dojahImgUrl
+        
+        toast.success('Identity verified and document secured!', { id: 'kyc-sync' })
+      } catch (err) {
+        console.error('Failed to upload KYC document:', err)
+        toast.error('Identity verified, but failed to save document permanently.', {
+          id: 'kyc-sync',
+        })
+        finalDocUrl = dojahImgUrl // Fallback to expiring URL just in case
+      }
+    } else {
+      toast.success('Identity verified successfully by Dojah!')
+    }
+
     linkKyc({
       data: {
         bvnVerified: true,
         ninVerified: true,
-        documentUrl: data?.result?.document?.url || '',
+        documentUrl: finalDocUrl,
       },
     })
   }
@@ -415,19 +453,7 @@ function IdentityVerificationTab() {
   const config = {
     debug: import.meta.env.DEV || sandboxMode,
     reference_id: activeSessionRef || buildStableKycSessionRef(),
-    pages: [
-      {
-        page: 'government-data',
-        config: {
-          bvn: true,
-          nin: true,
-          dl: false,
-          mobile: false,
-          otp: false,
-          selfie: true,
-        },
-      },
-    ],
+    widget_id: import.meta.env.VITE_DOJAH_WIDGET_ID || '69fe13cc22ab44a069efc0e7',
   }
 
   const userData = {
@@ -451,7 +477,7 @@ function IdentityVerificationTab() {
     <div className='space-y-8'>
       <div>
         <h2 className='text-xl font-bold text-[#2e7d32]'>
-          Identity Verification (KYC)
+          ID Verification (KYC)
         </h2>
         <p className='text-sm text-gray-500'>
           Verify your identity to unlock all features and build trust with
@@ -515,8 +541,7 @@ function IdentityVerificationTab() {
                 response={response}
                 appID={appID}
                 publicKey={publicKey}
-                type='custom'
-                env={dojahEnv}
+                type='identification'
                 config={config}
                 userData={userData}
                 metadata={metadata}

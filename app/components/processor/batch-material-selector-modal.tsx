@@ -360,7 +360,7 @@ export function BatchMaterialSelectorModal({ isOpen, onClose, onAdd }: BatchMate
                         <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Unit</Label>
                         <Select
                           value={externalData.unit}
-                          onValueChange={v => setExternalData(prev => ({ ...prev, unit: v }))}
+                          onValueChange={v => setExternalData(prev => ({ ...prev, unit: v || '' }))}
                         >
                           <SelectTrigger className="h-11 rounded-md border-gray-200">
                             <SelectValue />

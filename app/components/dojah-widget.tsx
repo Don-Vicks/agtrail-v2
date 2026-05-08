@@ -1,5 +1,10 @@
 import { useEffect, useRef } from 'react'
-import DojahKycSdk from 'dojah-kyc-sdk-react'
+
+declare global {
+  interface Window {
+    Connect: any
+  }
+}
 
 export type DojahWidgetProps = {
   appID: string
@@ -16,38 +21,44 @@ export function DojahWidget({
   appID,
   publicKey,
   type,
-  env,
   config,
   userData,
   metadata,
   response,
 }: DojahWidgetProps) {
-  const mountedRef = useRef(false)
-  const responseRef = useRef(response)
-  responseRef.current = response
+  const initializedRef = useRef(false)
 
   useEffect(() => {
-    mountedRef.current = true
-    return () => {
-      mountedRef.current = false
+    if (initializedRef.current) return
+    
+    if (typeof window !== 'undefined' && window.Connect) {
+      try {
+        const options = {
+          app_id: appID,
+          p_key: publicKey,
+          type,
+          config,
+          user_data: userData,
+          metadata,
+          onSuccess: (data: any) => response('success', data),
+          onError: (data: any) => response('error', data),
+          onClose: () => response('close'),
+        }
+        
+        const connect = new window.Connect(options)
+        connect.setup()
+        connect.open()
+        
+        initializedRef.current = true
+      } catch (err) {
+        console.error('Failed to initialize Dojah widget:', err)
+        response('error', { message: 'Widget initialization failed' })
+      }
+    } else {
+      console.error('Dojah script not found in window. Ensure it is included in root.tsx')
+      response('error', { message: 'Dojah library not loaded' })
     }
-  }, [])
+  }, [appID, publicKey, type, config, userData, metadata, response])
 
-  const safeResponse = (event: string, data?: unknown) => {
-    if (!mountedRef.current) return
-    responseRef.current(event, data)
-  }
-
-  return (
-    <DojahKycSdk
-      appID={appID}
-      publicKey={publicKey}
-      type={type}
-      env={env}
-      config={config}
-      userData={userData}
-      metadata={metadata}
-      response={safeResponse}
-    />
-  )
+  return null
 }
