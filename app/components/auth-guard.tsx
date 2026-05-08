@@ -17,14 +17,22 @@ export function AuthGuard({ children, allowedRoles }: AuthGuardProps) {
     if (!isLoading) {
       if (!isAuthenticated) {
         navigate('/login', { state: { from: location }, replace: true })
-      } else if (allowedRoles && user?.systemRole && !allowedRoles.includes(user.systemRole.toLowerCase())) {
-        // Redirect if the user doesn't have the required role for this section
-        navigate('/unauthorized', { replace: true })
+      } else if (allowedRoles && user?.systemRole) {
+        const userRole = user.systemRole.toLowerCase()
+        const isAuthorized = allowedRoles.includes(userRole) || userRole === 'admin'
+        
+        if (!isAuthorized) {
+          // Redirect if the user doesn't have the required role for this section
+          navigate('/unauthorized', { replace: true })
+        }
       }
     }
   }, [isAuthenticated, isLoading, navigate, location, allowedRoles, user])
 
-  if (isLoading || !isAuthenticated || (allowedRoles && user?.systemRole && !allowedRoles.includes(user.systemRole.toLowerCase()))) {
+  const userRole = user?.systemRole?.toLowerCase()
+  const isUnauthorized = allowedRoles && userRole && !allowedRoles.includes(userRole) && userRole !== 'admin'
+
+  if (isLoading || !isAuthenticated || isUnauthorized) {
     return (
       <div className='flex min-h-screen items-center justify-center bg-gray-50'>
         <div className='animate-pulse flex flex-col items-center gap-4'>
