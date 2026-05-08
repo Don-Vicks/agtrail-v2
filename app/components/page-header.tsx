@@ -18,32 +18,32 @@ export function PageHeader({ items, action }: PageHeaderProps) {
   const statusLabel = !hasHydrated
     ? '...'
     : !isOnline
-    ? `Offline${queueCount > 0 ? ` (${queueCount})` : ''}`
-    : isSyncing
-      ? 'Syncing...'
-      : failedCount > 0
-        ? `Failed (${failedCount})`
-        : queueCount > 0
-          ? `Queued (${queueCount})`
-          : 'Online'
+      ? `Offline${queueCount > 0 ? ` (${queueCount})` : ''}`
+      : isSyncing
+        ? 'Syncing...'
+        : failedCount > 0
+          ? `Failed (${failedCount})`
+          : queueCount > 0
+            ? `Queued (${queueCount})`
+            : 'Online'
 
   const statusClass = !hasHydrated
     ? 'border-gray-200 bg-gray-50 text-gray-500'
     : isOnline
-    ? isSyncing
-      ? 'border-blue-200 bg-blue-50 text-blue-700'
-      : failedCount > 0
-        ? 'border-red-200 bg-red-50 text-red-700'
-        : queueCount > 0
-          ? 'border-amber-200 bg-amber-50 text-amber-700'
-          : 'border-green-200 bg-green-50 text-green-700'
-    : 'border-red-200 bg-red-50 text-red-700'
+      ? isSyncing
+        ? 'border-blue-200 bg-blue-50 text-blue-700'
+        : failedCount > 0
+          ? 'border-red-200 bg-red-50 text-red-700'
+          : queueCount > 0
+            ? 'border-amber-200 bg-amber-50 text-amber-700'
+            : 'border-green-200 bg-green-50 text-green-700'
+      : 'border-red-200 bg-red-50 text-red-700'
 
   const lastSyncTitle = !hasHydrated
     ? 'Checking network status...'
     : lastSyncAt
-    ? `Last synced ${new Date(lastSyncAt).toLocaleString()}`
-    : 'No successful sync yet'
+      ? `Last synced ${new Date(lastSyncAt).toLocaleString()}`
+      : 'No successful sync yet'
 
   return (
     <>
@@ -80,12 +80,12 @@ export function PageHeader({ items, action }: PageHeaderProps) {
 
           <Breadcrumb items={items.map((item, index) => index === 0 ? { ...item, icon: undefined } : item)} />
         </div>
-        
+
         <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={() => setIsPendingDialogOpen(true)}
-            className={`hidden sm:block rounded-md border px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${statusClass}`}
+            className={`hidden sm:block rounded-md border cursor-pointer px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${statusClass}`}
             title={lastSyncTitle}
           >
             {statusLabel}
