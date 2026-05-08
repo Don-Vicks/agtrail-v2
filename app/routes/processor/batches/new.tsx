@@ -15,17 +15,17 @@ import { BatchMaterialSelectorModal } from '~/components/processor/batch-materia
 function SectionCard({ title, subtitle, icon, action, children }: { title: string; subtitle: string; icon: React.ReactNode; action?: React.ReactNode; children: React.ReactNode }) {
   return (
     <div className="rounded-md border border-gray-200 bg-white shadow-sm overflow-hidden mb-6">
-      <div className="p-6 border-b border-gray-100 flex items-start justify-between">
+      <div className="p-4 sm:p-6 border-b border-gray-100 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div className="flex items-start gap-3">
-          <div className="mt-0.5 text-brand">{icon}</div>
+          <div className="mt-0.5 text-brand shrink-0">{icon}</div>
           <div>
-            <h2 className="text-lg font-bold text-gray-900 uppercase tracking-tight">{title}</h2>
-            <p className="text-xs text-gray-500 mt-0.5 font-medium">{subtitle}</p>
+            <h2 className="text-base sm:text-lg font-bold text-gray-900 uppercase tracking-tight">{title}</h2>
+            <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5 font-medium">{subtitle}</p>
           </div>
         </div>
-        {action && <div>{action}</div>}
+        {action && <div className="w-full sm:w-auto">{action}</div>}
       </div>
-      <div className="p-6">{children}</div>
+      <div className="p-4 sm:p-6">{children}</div>
     </div>
   )
 }
@@ -284,7 +284,7 @@ export default function CreateNewBatch() {
             <button
               type="button"
               onClick={() => setIsSelectorModalOpen(true)}
-              className="inline-flex h-9 items-center justify-center gap-1.5 rounded-md border border-brand bg-brand px-4 text-xs font-bold uppercase tracking-widest text-white shadow-sm transition-all hover:bg-black active:scale-95"
+              className="inline-flex w-full sm:w-auto h-9 items-center justify-center gap-1.5 rounded-md border border-brand bg-brand px-4 text-xs font-bold uppercase tracking-widest text-white shadow-sm transition-all hover:bg-black active:scale-95"
             >
               <Plus className="size-4" />
               Select Material
@@ -397,9 +397,9 @@ export default function CreateNewBatch() {
             <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Product Visual</h3>
             <p className="text-sm text-gray-500 mb-4">Upload a photo of the final processed product or its packaging.</p>
 
-            <div className="rounded-md border border-dashed border-gray-200 bg-gray-50/30 p-10 text-center transition-all hover:bg-white hover:border-brand/40 flex flex-col items-center justify-center max-w-[440px] group cursor-pointer">
-              <div className="mb-4 flex size-14 items-center justify-center rounded-full bg-brand/5 text-brand group-hover:scale-110 transition-transform">
-                <Package className="size-7" />
+            <div className="rounded-md border border-dashed border-gray-200 bg-gray-50/30 p-6 sm:p-10 text-center transition-all hover:bg-white hover:border-brand/40 flex flex-col items-center justify-center w-full sm:max-w-[440px] group cursor-pointer">
+              <div className="mb-4 flex size-12 sm:size-14 items-center justify-center rounded-full bg-brand/5 text-brand group-hover:scale-110 transition-transform">
+                <Package className="size-6 sm:size-7" />
               </div>
               <p className="text-sm font-bold text-gray-900">Click to select or drag and drop</p>
               <p className="mt-1 text-[10px] font-bold text-gray-400 uppercase tracking-widest">PNG, JPG or WEBP (Max 5MB)</p>
@@ -412,19 +412,19 @@ export default function CreateNewBatch() {
         </SectionCard>
 
         {/* Global Action Bar */}
-        <div className="sticky bottom-6 z-10 flex items-center justify-end gap-3 rounded-md border border-gray-200 bg-white/80 p-4 shadow-xl backdrop-blur-md">
+        <div className="sticky bottom-4 sm:bottom-6 z-10 flex flex-col sm:flex-row items-center justify-end gap-3 rounded-md border border-gray-200 bg-white/90 p-4 shadow-xl backdrop-blur-md">
           <Button
             type="button"
             variant="outline"
             onClick={() => navigate('/processor/batches')}
-            className="h-11 px-8 font-bold uppercase tracking-widest text-[10px]"
+            className="w-full sm:w-auto h-11 px-8 font-bold uppercase tracking-widest text-[10px]"
           >
             Cancel
           </Button>
           <Button
             type="submit"
             disabled={isCreatingBatch || isAddingMaterial}
-            className="h-11 px-10 bg-[#1b4332] hover:bg-black text-white font-bold uppercase tracking-widest text-[10px] shadow-lg shadow-brand/20 transition-all active:scale-95 flex items-center gap-2"
+            className="w-full sm:w-auto h-11 px-10 bg-[#1b4332] hover:bg-black text-white font-bold uppercase tracking-widest text-[10px] shadow-lg shadow-brand/20 transition-all active:scale-95 flex items-center justify-center gap-2"
           >
             {(isCreatingBatch || isAddingMaterial) ? (
               <>

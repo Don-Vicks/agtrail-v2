@@ -182,17 +182,17 @@ export default function ViewCertificationsPage() {
         ]}
       />
       <div>
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-[#2e7d32]">Certifications</h1>
-            <p className="mt-1 text-sm text-gray-500">View and manage all your farm and product certifications</p>
+            <h1 className="text-xl sm:text-2xl font-bold text-[#2e7d32]">Certifications</h1>
+            <p className="mt-1 text-xs sm:text-sm text-gray-500">View and manage all your farm and product certifications</p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
             <Link
               to="/farmer/certifications/farm"
               aria-label="Upload farm certification"
               title="Upload farm certification"
-              className="flex h-10 items-center justify-center gap-2 rounded-md border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm transition-colors hover:bg-gray-50"
+              className="flex h-10 items-center justify-center gap-2 rounded-md border border-gray-300 bg-white px-4 text-xs sm:text-sm font-semibold text-gray-700 shadow-sm transition-colors hover:bg-gray-50"
             >
               <UploadIcon />
               Farm Cert
@@ -201,7 +201,7 @@ export default function ViewCertificationsPage() {
               to="/farmer/certifications/product"
               aria-label="Upload product certification"
               title="Upload product certification"
-              className="flex h-10 items-center justify-center gap-2 rounded-md bg-brand px-4 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-light"
+              className="flex h-10 items-center justify-center gap-2 rounded-md bg-brand px-4 text-xs sm:text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-light"
             >
               <UploadIcon />
               Product Cert
@@ -211,51 +211,51 @@ export default function ViewCertificationsPage() {
       </div>
 
       {/* 4 Summary Cards */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         {/* Total */}
-        <div className="flex items-center gap-4 rounded-md border border-gray-200 bg-white p-4 shadow-sm">
-          <div className="flex size-12 shrink-0 items-center justify-center rounded-md bg-blue-50/80">
+        <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 rounded-md border border-gray-200 bg-white p-3 sm:p-4 shadow-sm text-center sm:text-left">
+          <div className="flex size-10 sm:size-12 shrink-0 items-center justify-center rounded-md bg-blue-50/80">
             <CertRibbonIcon />
           </div>
           <div>
-            <div className="text-2xl font-bold text-gray-900">{totalCerts}</div>
-            <div className="text-sm text-gray-500">Total Certifications</div>
+            <div className="text-xl sm:text-2xl font-bold text-gray-900">{totalCerts}</div>
+            <div className="text-[10px] sm:text-sm text-gray-500 leading-tight">Total Certs</div>
           </div>
         </div>
         {/* Active */}
-        <div className="flex items-center gap-4 rounded-md border border-gray-200 bg-white p-4 shadow-sm">
-          <div className="flex size-12 shrink-0 items-center justify-center rounded-md bg-green-50/80">
+        <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 rounded-md border border-gray-200 bg-white p-3 sm:p-4 shadow-sm text-center sm:text-left">
+          <div className="flex size-10 sm:size-12 shrink-0 items-center justify-center rounded-md bg-green-50/80">
             <ActiveCertIcon />
           </div>
           <div>
-            <div className="text-2xl font-bold text-gray-900">{activeCerts}</div>
-            <div className="text-sm text-gray-500">Active</div>
+            <div className="text-xl sm:text-2xl font-bold text-gray-900">{activeCerts}</div>
+            <div className="text-[10px] sm:text-sm text-gray-500 leading-tight">Active</div>
           </div>
         </div>
         {/* Expired */}
-        <div className="flex items-center gap-4 rounded-md border border-gray-200 bg-white p-4 shadow-sm">
-          <div className="flex size-12 shrink-0 items-center justify-center rounded-md bg-red-50/80">
+        <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 rounded-md border border-gray-200 bg-white p-3 sm:p-4 shadow-sm text-center sm:text-left">
+          <div className="flex size-10 sm:size-12 shrink-0 items-center justify-center rounded-md bg-red-50/80">
             <ExpiredCertIcon />
           </div>
           <div>
-            <div className="text-2xl font-bold text-gray-900">{expiredCerts}</div>
-            <div className="text-sm text-gray-500">Expired</div>
+            <div className="text-xl sm:text-2xl font-bold text-gray-900">{expiredCerts}</div>
+            <div className="text-[10px] sm:text-sm text-gray-500 leading-tight">Expired</div>
           </div>
         </div>
         {/* Pending */}
-        <div className="flex items-center gap-4 rounded-md border border-gray-200 bg-white p-4 shadow-sm">
-          <div className="flex size-12 shrink-0 items-center justify-center rounded-md bg-yellow-50/80">
+        <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 rounded-md border border-gray-200 bg-white p-3 sm:p-4 shadow-sm text-center sm:text-left">
+          <div className="flex size-10 sm:size-12 shrink-0 items-center justify-center rounded-md bg-yellow-50/80">
             <PendingCertIcon />
           </div>
           <div>
-            <div className="text-2xl font-bold text-gray-900">{pendingCerts}</div>
-            <div className="text-sm text-gray-500">Pending</div>
+            <div className="text-xl sm:text-2xl font-bold text-gray-900">{pendingCerts}</div>
+            <div className="text-[10px] sm:text-sm text-gray-500 leading-tight">Pending</div>
           </div>
         </div>
       </div>
 
       {/* Main List Section */}
-      <div className="rounded-md border border-gray-200 bg-white p-6 shadow-sm">
+      <div className="rounded-md border border-gray-200 bg-white p-4 sm:p-6 shadow-sm">
         {/* Toolbar */}
         <div className="mb-6 flex flex-col justify-between gap-4 border-b border-gray-100 pb-4 sm:flex-row sm:items-center">
 
@@ -363,64 +363,66 @@ export default function ViewCertificationsPage() {
             </div>
           ) : filteredCerts.length > 0 ? (
             filteredCerts.map((cert) => (
-              <div key={cert.id} className="overflow-hidden rounded-md border border-gray-200 bg-white p-5 transition-shadow hover:shadow-md">
-                <div className="flex flex-wrap items-start justify-between gap-4 border-b border-gray-100 pb-4">
-                  <div className="flex min-w-0 items-start gap-4">
-                    <div className="flex size-12 shrink-0 items-center justify-center rounded-md bg-[#e8f5e9]">
+              <div key={cert.id} className="overflow-hidden rounded-md border border-gray-200 bg-white p-4 sm:p-5 transition-shadow hover:shadow-md">
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 border-b border-gray-100 pb-4">
+                  <div className="flex min-w-0 items-start gap-3 sm:gap-4">
+                    <div className="flex size-10 sm:size-12 shrink-0 items-center justify-center rounded-md bg-[#e8f5e9]">
                       <ListBadgeIcon />
                     </div>
                     <div className="min-w-0">
-                      <h3 className="break-words text-lg font-bold text-gray-900">{cert.title}</h3>
-                      <p className="break-words text-sm text-gray-500">{cert.subtitle}</p>
+                      <h3 className="break-words text-base sm:text-lg font-bold text-gray-900 leading-tight">{cert.title}</h3>
+                      <p className="break-words text-[11px] sm:text-sm text-gray-500 mt-1">{cert.subtitle}</p>
                     </div>
                   </div>
 
-                  <div className="flex flex-col items-end gap-2">
+                  <div className="flex flex-row sm:flex-col items-center sm:items-end gap-2">
                     {cert.status === 'Active' && (
-                      <div className="inline-flex rounded-full bg-[#e8f5e9] px-2.5 py-1 text-xs font-bold text-[#1b5e20]">
+                      <div className="inline-flex rounded-full bg-[#e8f5e9] px-2.5 py-0.5 sm:py-1 text-[10px] font-bold text-[#1b5e20]">
                         active
                       </div>
                     )}
                     {cert.status === 'Pending' && (
-                      <div className="inline-flex rounded-full bg-yellow-50 px-2.5 py-1 text-xs font-bold text-yellow-800">
+                      <div className="inline-flex rounded-full bg-yellow-50 px-2.5 py-0.5 sm:py-1 text-[10px] font-bold text-yellow-800">
                         pending
                       </div>
                     )}
                     {cert.status === 'Expired' && (
-                      <div className="inline-flex rounded-full bg-red-50 px-2.5 py-1 text-xs font-bold text-red-800">
+                      <div className="inline-flex rounded-full bg-red-50 px-2.5 py-0.5 sm:py-1 text-[10px] font-bold text-red-800">
                         expired
                       </div>
                     )}
 
-                    <div className="inline-flex rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600">
+                    <div className="inline-flex rounded-full bg-gray-100 px-2.5 py-0.5 sm:py-1 text-[10px] font-medium text-gray-600">
                       {cert.verified ? 'Verified' : 'Unverified'}
                     </div>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 pt-4 sm:grid-cols-4 lg:grid-cols-5">
+                <div className="grid grid-cols-1 sm:grid-cols-4 lg:grid-cols-5 gap-4 pt-4">
                   <div>
-                    <p className="mb-1 text-xs font-medium text-gray-500">Certificate No.</p>
+                    <p className="mb-0.5 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Certificate No.</p>
                     <p className="break-words text-sm font-semibold text-gray-900">{cert.certNo}</p>
                   </div>
-                  <div>
-                    <p className="mb-1 text-xs font-medium text-gray-500">Issue Date</p>
-                    <p className="text-sm font-semibold text-gray-900">{cert.issueDate}</p>
+                  <div className="grid grid-cols-2 sm:block gap-4">
+                    <div>
+                      <p className="mb-0.5 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Issue Date</p>
+                      <p className="text-sm font-semibold text-gray-900">{cert.issueDate}</p>
+                    </div>
+                    <div>
+                      <p className="mb-0.5 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Expiry Date</p>
+                      <p className="text-sm font-semibold text-gray-900">{cert.expiryDate}</p>
+                    </div>
                   </div>
                   <div>
-                    <p className="mb-1 text-xs font-medium text-gray-500">Expiry Date</p>
-                    <p className="text-sm font-semibold text-gray-900">{cert.expiryDate}</p>
-                  </div>
-                  <div>
-                    <p className="mb-1 text-xs font-medium text-gray-500">Applied To</p>
+                    <p className="mb-0.5 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Applied To</p>
                     <p className="flex min-w-0 items-center gap-1.5 break-words text-sm font-semibold text-gray-900">
                       {cert.type === 'Farm' ? (
-                        <svg className="size-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <svg className="size-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                           <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
                           <polyline points="9 22 9 12 15 12 15 22" />
                         </svg>
                       ) : (
-                        <svg className="size-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <svg className="size-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                         </svg>
                       )}
@@ -428,10 +430,10 @@ export default function ViewCertificationsPage() {
                     </p>
                   </div>
 
-                  <div className="flex items-end justify-end sm:col-span-4 lg:col-span-1">
+                  <div className="flex items-end justify-start sm:justify-end sm:col-span-4 lg:col-span-1 pt-2 sm:pt-0">
                     <Link
                       to={cert.documentUrl || '#'}
-                      className="inline-flex items-center gap-2 break-words text-sm font-bold text-brand hover:text-brand-light"
+                      className="inline-flex items-center gap-2 text-sm font-bold text-brand hover:text-brand-light"
                     >
                       <ExternalLinkIcon />
                       View Document
