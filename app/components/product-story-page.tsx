@@ -45,7 +45,7 @@ interface ProductStoryPageProps {
 
 function LoadingSkeleton() {
   return (
-    <div className="space-y-12 animate-pulse px-3 md:px-6 max-w-7xl mx-auto">
+    <div className="space-y-12 animate-pulse px-4 md:px-6 lg:px-8 w-full">
       <div className="h-8 w-64 bg-gray-100 rounded-lg mb-8" />
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_0.4fr] gap-10">
@@ -87,14 +87,14 @@ function LoadingSkeleton() {
 
 function StatCard({ label, value, icon, subValue }: { label: string; value: string; icon: React.ReactNode; subValue?: string }) {
   return (
-    <div className="rounded-2xl border border-gray-100 bg-white p-5 md:p-8 flex flex-col items-center justify-center text-center gap-3">
-      <div className="text-emerald-600 opacity-60">
+    <div className="rounded-xl border border-gray-100 bg-white p-4 md:p-6 shadow-sm flex flex-col items-center justify-center text-center gap-2 md:gap-3">
+      <div className="text-[#1d3d1e] opacity-80">
         {icon}
       </div>
       <div>
-        <p className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tight leading-none">{value}</p>
-        <p className="text-[10px] md:text-[11px] font-bold text-gray-400 uppercase tracking-widest mt-2">{label}</p>
-        {subValue && <p className="text-[9px] md:text-[10px] text-gray-400 mt-1">{subValue}</p>}
+        <p className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight">{value}</p>
+        <p className="text-[10px] md:text-[11px] font-bold text-gray-400 uppercase tracking-widest mt-1">{label}</p>
+        {subValue && <p className="text-[9px] md:text-[10px] text-gray-400 mt-0.5">{subValue}</p>}
       </div>
     </div>
   )
@@ -106,12 +106,12 @@ function CircularGauge({ score, label, size = "large" }: { score: number; label:
   const offset = circumference - (score / 100) * circumference
 
   return (
-    <div className="flex flex-col items-center gap-4">
+    <div className="flex flex-col items-center gap-3 md:gap-4">
       <div className="relative inline-flex items-center justify-center">
-        <svg className={cn(size === "large" ? "size-32 md:size-40" : "size-24 md:size-28", "-rotate-90")}>
+        <svg className={cn(size === "large" ? "size-24 md:size-32" : "size-20 md:size-24", "-rotate-90")}>
           <circle
-            className="text-gray-50"
-            strokeWidth={size === "large" ? "6" : "5"}
+            className="text-gray-100"
+            strokeWidth={size === "large" ? "8" : "6"}
             stroke="currentColor"
             fill="transparent"
             r={radius}
@@ -120,7 +120,7 @@ function CircularGauge({ score, label, size = "large" }: { score: number; label:
           />
           <circle
             className="text-emerald-500 transition-all duration-1000 ease-out"
-            strokeWidth={size === "large" ? "6" : "5"}
+            strokeWidth={size === "large" ? "8" : "6"}
             strokeDasharray={circumference}
             strokeDashoffset={offset}
             strokeLinecap="round"
@@ -132,11 +132,11 @@ function CircularGauge({ score, label, size = "large" }: { score: number; label:
           />
         </svg>
         <div className="absolute flex flex-col items-center">
-          <span className={cn("font-bold text-gray-900 tracking-tight", size === "large" ? "text-3xl md:text-5xl" : "text-xl md:text-2xl")}>{score}</span>
-          <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Score</span>
+          <span className={cn("font-bold text-gray-900 tracking-tight", size === "large" ? "text-2xl md:text-3xl" : "text-lg md:text-xl")}>{score}</span>
+          <span className="text-[9px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest">Score</span>
         </div>
       </div>
-      <p className="text-[11px] font-bold text-gray-500 uppercase tracking-widest">{label}</p>
+      <p className="text-[10px] md:text-xs font-bold text-gray-600 uppercase tracking-widest">{label}</p>
     </div>
   )
 }
@@ -151,49 +151,53 @@ function TimelineItem({ title, description, date, time, isLast = false, details,
   note?: string;
 }) {
   return (
-    <div className="relative flex gap-8 pb-12">
+    <div className="relative flex gap-4 md:gap-8 pb-10 md:pb-12">
       {!isLast && (
-        <div className="absolute left-[13px] top-8 h-full w-[1px] bg-gray-100" />
+        <div className="absolute left-[11px] top-8 h-full w-[2px] bg-emerald-100" />
       )}
-      <div className="relative z-10 flex size-7 shrink-0 items-center justify-center rounded-full bg-white border border-gray-100 shadow-sm">
-        <div className="size-2 rounded-full bg-emerald-500" />
-      </div>
+      <div className="relative z-10 flex size-6 shrink-0 items-center justify-center rounded-full bg-emerald-500 border-4 border-white shadow-sm ring-1 ring-emerald-100" />
 
-      <div className="flex-1 rounded-3xl border border-gray-50 bg-white p-8 md:p-12 shadow-sm">
-        <div className="flex flex-col md:flex-row items-start justify-between gap-8 mb-8">
-          <div className="space-y-2">
-            <h3 className="text-2xl font-bold text-gray-900 tracking-tight leading-tight">{title}</h3>
-            <p className="text-base font-medium text-gray-400">{description}</p>
+      <div className="flex-1 rounded-xl border border-gray-100 bg-white p-5 md:p-8 shadow-sm overflow-hidden">
+        <div className="flex flex-col md:flex-row items-start justify-between gap-6 mb-6">
+          <div className="space-y-1">
+            <h3 className="text-xl font-extrabold text-gray-900 tracking-tight uppercase">{title}</h3>
+            <p className="text-sm font-medium text-gray-500">{description}</p>
           </div>
-          <div className="flex gap-3 w-full md:w-auto">
-            <div className="flex-1 md:flex-none bg-gray-50 px-6 py-3 rounded-2xl border border-gray-100 text-center">
-              <p className="text-[10px] font-bold text-gray-300 uppercase tracking-widest mb-1">Date</p>
-              <p className="text-sm font-semibold text-gray-600">{date}</p>
+          <div className="flex gap-2 w-full md:w-auto">
+            <div className="flex-1 md:flex-none bg-gray-50 px-4 py-2 rounded-xl border border-gray-100 text-center min-w-[120px]">
+              <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Date</p>
+              <p className="text-xs font-bold text-gray-800">{date}</p>
             </div>
-            <div className="flex-1 md:flex-none bg-gray-50 px-6 py-3 rounded-2xl border border-gray-100 text-center">
-              <p className="text-[10px] font-bold text-gray-300 uppercase tracking-widest mb-1">Time</p>
-              <p className="text-sm font-semibold text-gray-600">{time || '10:00 AM'}</p>
+            <div className="flex-1 md:flex-none bg-gray-50 px-4 py-2 rounded-xl border border-gray-100 text-center min-w-[90px]">
+              <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Time</p>
+              <p className="text-xs font-bold text-gray-800">{time || '10:00 AM'}</p>
             </div>
           </div>
         </div>
 
-        <div className="mt-8 pt-8 border-t border-gray-50 space-y-8">
+        <div className="mt-6 pt-6 border-t border-gray-50 space-y-6">
           {note && (
-            <div className="rounded-2xl bg-emerald-50/20 p-6 border border-emerald-50">
-              <p className="text-sm text-gray-500 leading-relaxed font-medium italic">
+            <div className="rounded-xl bg-emerald-50/30 p-4 border border-emerald-100/50">
+              <p className="text-xs text-gray-600 leading-relaxed italic font-medium">
                 {note}
               </p>
             </div>
           )}
 
           {details && details.length > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {details.map((detail, i) => (
-                <div key={i} className="space-y-1">
-                  <p className="text-[10px] font-bold text-gray-300 uppercase tracking-widest">{detail.label}</p>
-                  <p className="text-sm font-semibold text-gray-700">{detail.value}</p>
-                </div>
-              ))}
+            <div className="space-y-3">
+              <h4 className="text-[10px] font-black text-gray-900 uppercase tracking-widest flex items-center gap-2">
+                <div className="size-1 bg-emerald-500 rounded-full" />
+                Operations Details
+              </h4>
+              <div className="flex flex-wrap gap-x-4 gap-y-2">
+                {details.map((detail, i) => (
+                  <div key={i} className="text-[10px] text-gray-500 leading-relaxed">
+                    <span className="font-bold text-gray-800 uppercase tracking-tight">{detail.label}:</span> {detail.value}
+                    {i < details.length - 1 && <span className="ml-2 text-gray-300">|</span>}
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>
@@ -239,33 +243,33 @@ function PersonCard({ name, role, organization, details, date, icon: Icon }: {
   icon: any;
 }) {
   return (
-    <div className="flex flex-col md:flex-row md:items-center justify-between p-8 rounded-3xl border border-gray-50 bg-white hover:shadow-md transition-all group relative overflow-hidden gap-6">
-      <div className="flex items-center gap-6">
+    <div className="flex flex-col md:flex-row md:items-center justify-between p-5 md:p-6 rounded-2xl border border-gray-100 bg-white shadow-sm hover:shadow-md transition-all group relative overflow-hidden gap-4">
+      <div className="flex items-center gap-4 md:gap-6">
         <div className={cn(
-          "size-16 rounded-2xl flex items-center justify-center shadow-inner ring-1 ring-gray-100 shrink-0",
+          "size-14 md:size-16 rounded-full flex items-center justify-center shadow-inner ring-1 ring-gray-100 shrink-0",
           role === 'Farmer' ? 'bg-emerald-50 text-emerald-600' :
             role === 'Supervisor' ? 'bg-blue-50 text-blue-600' : 'bg-gray-50 text-gray-600'
         )}>
-          <Icon className="size-7" />
+          <Icon className="size-6 md:size-7" />
         </div>
-        <div className="space-y-1.5">
-          <div className="flex flex-wrap items-center gap-3">
-            <h4 className="text-2xl font-bold text-gray-900 tracking-tight">{name}</h4>
+        <div className="space-y-1">
+          <div className="flex flex-wrap items-center gap-2 md:gap-3">
+            <h4 className="text-xl md:text-2xl font-extrabold text-gray-900 tracking-tight">{name}</h4>
             <Badge className={cn(
-              "text-[10px] font-bold uppercase tracking-widest px-3 py-1 shadow-none rounded-lg",
-              role === 'Farmer' ? 'bg-emerald-100/50 text-emerald-700 hover:bg-emerald-100/50' :
-                role === 'Supervisor' ? 'bg-blue-100/50 text-blue-700 hover:bg-blue-100/50' :
-                  'bg-gray-100 text-gray-600 hover:bg-gray-100'
+              "text-[9px] md:text-[10px] font-black uppercase tracking-widest px-2.5 py-1 shadow-none",
+              role === 'Farmer' ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-100' :
+                role === 'Supervisor' ? 'bg-blue-100 text-blue-700 hover:bg-blue-100' :
+                  'bg-gray-100 text-gray-700 hover:bg-gray-100'
             )}>
               {role}
             </Badge>
           </div>
-          {organization && <p className="text-sm font-semibold text-gray-400 uppercase tracking-tight">{organization}</p>}
-          {details && <p className="text-sm text-gray-400 font-medium leading-relaxed max-w-xl">{details}</p>}
+          {organization && <p className="text-sm font-bold text-gray-500 uppercase tracking-tight">{organization}</p>}
+          {details && <p className="text-xs text-gray-400 font-medium leading-relaxed">{details}</p>}
           {date && (
-            <div className="flex items-center gap-2 text-[10px] text-gray-300 font-bold uppercase tracking-widest pt-1">
-              <Calendar className="size-4" />
-              Verified on {date}
+            <div className="flex items-center gap-1.5 text-[10px] text-gray-400 font-black uppercase tracking-widest pt-1">
+              <Calendar className="size-3.5" />
+              {date}
             </div>
           )}
         </div>
@@ -276,17 +280,17 @@ function PersonCard({ name, role, organization, details, date, icon: Icon }: {
 
 function SummaryCard({ count, label, color = "gray" }: { count: string; label: string; color?: string }) {
   const colors: any = {
-    gray: 'bg-gray-50/30 border-gray-50 text-gray-900',
-    green: 'bg-emerald-50/20 border-emerald-50 text-emerald-900',
-    purple: 'bg-purple-50/20 border-purple-100 text-purple-900',
-    orange: 'bg-orange-50/20 border-orange-100 text-orange-900',
-    blue: 'bg-blue-50/20 border-blue-100 text-blue-900'
+    gray: 'bg-gray-50/50 border-gray-100 text-gray-900',
+    green: 'bg-emerald-50/50 border-emerald-100 text-emerald-900',
+    purple: 'bg-purple-50/50 border-purple-100 text-purple-900',
+    orange: 'bg-orange-50/50 border-orange-100 text-orange-900',
+    blue: 'bg-blue-50/50 border-blue-100 text-blue-900'
   }
 
   return (
-    <div className={cn("rounded-3xl border p-8 text-center", colors[color])}>
-      <p className="text-4xl font-bold tracking-tight">{count}</p>
-      <p className="text-[10px] font-bold uppercase tracking-widest mt-2 opacity-60">{label}</p>
+    <div className={cn("rounded-2xl border p-6 md:p-8 text-center shadow-sm", colors[color])}>
+      <p className="text-3xl md:text-4xl font-black tracking-tight">{count}</p>
+      <p className="text-[10px] font-black uppercase tracking-widest mt-2 opacity-70">{label}</p>
     </div>
   )
 }
@@ -419,7 +423,7 @@ export function ProductStoryPage({ dashboardHref, productsHref }: ProductStoryPa
   const complianceRate = certifications.length > 0 ? 100 : 56
 
   return (
-    <div className="space-y-6 pb-20 px-4 md:px-8 text-left w-full">
+    <div className="space-y-6 pb-20 text-left w-full">
       <PageHeader
         items={[
           { label: 'Dashboard', href: dashboardHref },
@@ -429,59 +433,55 @@ export function ProductStoryPage({ dashboardHref, productsHref }: ProductStoryPa
       />
 
       {!product ? (
-        <div className="rounded-2xl border border-gray-100 bg-white p-12 text-center">
-          <Package className="size-12 text-gray-200 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900">Product Not Found</h2>
-          <p className="text-sm text-gray-500 mt-2">The requested product details could not be loaded for ID: {id}</p>
+        <div className="px-4 md:px-6 lg:px-8">
+          <div className="rounded-2xl border border-gray-200 bg-white p-12 text-center shadow-sm">
+            <Package className="size-12 text-gray-200 mx-auto mb-4" />
+            <h2 className="text-xl font-bold text-gray-900">Product Not Found</h2>
+            <p className="text-sm text-gray-500 mt-2">The requested product details could not be loaded for ID: {id}</p>
+          </div>
         </div>
       ) : (
         <div className="space-y-12">
-          {/* Header Section - Full Width & Softened */}
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-8">
+          {/* Header Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-8 px-4 md:px-6 lg:px-8">
             <div className="rounded-3xl border border-gray-100 bg-white p-6 md:p-12 flex flex-col md:flex-row gap-10">
-              <div className="w-full md:w-[420px] aspect-square rounded-[2rem] overflow-hidden border border-gray-50 bg-gray-50 shrink-0">
+              <div className="w-full md:w-[360px] aspect-square rounded-3xl overflow-hidden border border-gray-100 bg-gray-50 shadow-inner group shrink-0">
                 <img
                   src={product.imageUrl || 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?q=80&w=1000&auto=format&fit=crop'}
                   alt={product.productName}
-                  className="h-full w-full object-cover"
+                  className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
                 />
               </div>
 
               <div className="flex-1 flex flex-col justify-center py-2">
-                <div className="space-y-8">
+                <div className="space-y-6 md:space-y-8">
                   <div>
-                    <h1 className="text-4xl md:text-6xl font-bold text-gray-900 tracking-tight leading-tight">{product.productName}</h1>
-                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-[0.2em] mt-4">BATCH REFERENCE: {product.batchNumber}</p>
+                    <h1 className="text-4xl md:text-5xl font-black text-[#1d3d1e] tracking-tight uppercase leading-tight">{product.productName}</h1>
+                    <p className="text-[11px] md:text-xs font-black text-gray-400 uppercase tracking-[0.25em] mt-3">BATCH: {product.batchNumber}</p>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-4">
+                  <div className="space-y-3 md:space-y-4">
                     <div className="flex items-center gap-4 text-gray-600">
-                      <div className="size-11 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
+                      <div className="size-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
                         <MapPin className="size-5" />
                       </div>
-                      <div>
-                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Source Origin</p>
-                        <span className="text-sm md:text-base font-semibold text-gray-800">{farm?.name || 'Local Farm'}</span>
-                      </div>
+                      <span className="text-sm md:text-base font-extrabold tracking-tight">{farm?.name || 'Local Farm'}</span>
                     </div>
                     <div className="flex items-center gap-4 text-gray-600">
-                      <div className="size-11 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
+                      <div className="size-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
                         <Calendar className="size-5" />
                       </div>
-                      <div>
-                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Planting Date</p>
-                        <span className="text-sm md:text-base font-semibold text-gray-800">{cropCycle?.plantingDate ? new Date(cropCycle.plantingDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : 'N/A'}</span>
-                      </div>
+                      <span className="text-sm md:text-base font-extrabold tracking-tight">Planted: {cropCycle?.plantingDate ? new Date(cropCycle.plantingDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : 'N/A'}</span>
                     </div>
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-4 pt-6 border-t border-gray-50">
+                  <div className="flex flex-wrap items-center gap-3 pt-4">
                     <Button
                       onClick={() => setIsShareModalOpen(true)}
-                      className="bg-[#1d3d1e] hover:bg-black text-white px-10 h-14 gap-3 font-bold uppercase tracking-widest text-[11px] rounded-2xl transition-all active:scale-95"
+                      className="flex-1 md:flex-none bg-[#1d3d1e] hover:bg-black text-white px-8 h-12 gap-2 font-black uppercase tracking-widest text-[10px] shadow-xl shadow-brand/10 rounded-xl"
                     >
                       <QrCode className="size-5" />
-                      View QR Code
+                      QR Code
                     </Button>
 
                     {isMounted ? (
@@ -500,32 +500,33 @@ export function ProductStoryPage({ dashboardHref, productsHref }: ProductStoryPa
                           />
                         }
                         fileName={`product-story-${product?.batchNumber || id}.pdf`}
+                        className="flex-1 md:flex-none"
                       >
                         {({ loading }) => (
                           <Button
                             variant="outline"
                             disabled={loading}
-                            className="h-14 px-10 border-gray-200 text-gray-700 hover:bg-gray-50 font-bold uppercase tracking-widest text-[11px] gap-3 rounded-2xl"
+                            className="w-full h-12 px-8 border-gray-200 text-gray-700 hover:bg-gray-50 font-black uppercase tracking-widest text-[10px] gap-2 rounded-xl"
                           >
                             <Download className="size-5" />
-                            {loading ? 'Generating...' : 'Download Report'}
+                            {loading ? 'Preparing...' : 'Download'}
                           </Button>
                         )}
                       </PDFDownloadLink>
                     ) : (
-                      <Button variant="outline" className="h-14 px-10 border-gray-200 text-gray-700 hover:bg-gray-50 font-bold uppercase tracking-widest text-[11px] gap-3 rounded-2xl">
+                      <Button variant="outline" className="flex-1 md:flex-none h-12 px-8 border-gray-200 text-gray-700 hover:bg-gray-50 font-black uppercase tracking-widest text-[10px] gap-2 rounded-xl">
                         <Download className="size-5" />
-                        Download Report
+                        Download
                       </Button>
                     )}
 
                     <Button
                       onClick={() => setIsShareModalOpen(true)}
-                      variant="ghost"
-                      className="h-14 px-8 text-gray-400 hover:text-gray-900 font-bold uppercase tracking-widest text-[11px] gap-3 rounded-2xl"
+                      variant="outline"
+                      className="w-full md:w-auto h-12 px-8 border-gray-200 text-gray-700 hover:bg-gray-50 font-black uppercase tracking-widest text-[10px] gap-2 rounded-xl"
                     >
                       <Share2 className="size-5" />
-                      Share Story
+                      Share
                     </Button>
                   </div>
                 </div>
@@ -540,17 +541,16 @@ export function ProductStoryPage({ dashboardHref, productsHref }: ProductStoryPa
               batchNumber={product.batchNumber}
             />
 
-            <div className="grid grid-cols-2 lg:grid-cols-1 gap-4 md:gap-5 min-w-[280px]">
-              <StatCard label="Sustainability Score" value={String(sustainabilityScore)} icon={<Leaf className="size-7" />} />
-              <StatCard label="Environmental Impact" value="Neutral" icon={<Flame className="size-7" />} />
-              <StatCard label="Liters Used" value="0" icon={<Droplets className="size-7" />} />
-              <StatCard label="Certifications" value={String(certifications.length)} icon={<ShieldCheck className="size-7" />} />
+            <div className="grid grid-cols-2 lg:grid-cols-2 gap-4 md:gap-5">
+              <StatCard label="Sustainability Score" value={String(sustainabilityScore)} icon={<Leaf className="size-6 md:size-8" />} />
+              <StatCard label="kg CO2, eq" value="0.0" icon={<Flame className="size-6 md:size-8" />} />
+              <StatCard label="Liters Used" value="0" icon={<Droplets className="size-6 md:size-8" />} />
+              <StatCard label="Certifications" value={String(certifications.length)} icon={<ShieldCheck className="size-6 md:size-8" />} />
             </div>
           </div>
 
-          {/* Navigation Tabs - Reduced Sizing */}
-          <div className="py-6 md:py-8">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full max-w-2xl mx-auto flex flex-col items-center">
+          <div className="py-6 md:py-8 px-4 md:px-6 lg:px-8">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full max-w-3xl mx-auto flex flex-col items-center">
               <div className="w-full mb-8 md:mb-12">
                 <TabsList className="!grid !grid-cols-2 !gap-1.5 !p-1.5 !bg-gray-100/80 !rounded-2xl !border-none !shadow-inner !h-fit !w-full">
                   {['Journey', 'Impact', 'Quality', 'People'].map((tab) => (
@@ -626,8 +626,8 @@ export function ProductStoryPage({ dashboardHref, productsHref }: ProductStoryPa
                       <CircularGauge score={complianceRate} label="Compliance Rate" size="large" />
                     </div>
 
-                    <div className="space-y-10">
-                      <div>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                      <div className="space-y-8">
                         <h3 className="text-base md:text-lg font-black text-gray-900 flex items-center gap-3 mb-6 uppercase tracking-tight">
                           <Activity className="size-5 md:size-6 text-emerald-500" />
                           Quality Test Results

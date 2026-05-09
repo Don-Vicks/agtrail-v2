@@ -278,12 +278,12 @@ function ConditionStat({ label, value }: { label: string; value: string }) {
 function NewLotModal() {
   return (
     <Dialog>
-      <DialogTrigger asChild>
+      <DialogTrigger render={
         <Button className="bg-[#1a4332] hover:bg-[#122e22] text-white rounded-md h-9 px-4 text-[10px] font-bold uppercase tracking-widest gap-2">
           <Plus className="size-3.5" />
           New lot
         </Button>
-      </DialogTrigger>
+      } />
       <DialogContent className="sm:max-w-[480px] p-6 rounded-md border-none shadow-2xl bg-white">
         <DialogHeader className="mb-6">
           <DialogTitle className="text-xl font-extrabold text-[#1a4332] tracking-tighter">New lot in Custody</DialogTitle>
@@ -330,7 +330,7 @@ function NewLotModal() {
         </div>
 
         <div className="flex gap-3">
-          <Button onClick={() => { }} variant="outline" className="h-10 flex-1 rounded-md bg-[#dc2626] hover:bg-red-700 text-white border-none text-xs font-bold uppercase tracking-widest transition-all active:scale-95">
+          <Button onClick={() => { }} variant="outline" className="h-10 flex-1 rounded-md bg-brand-accent hover:bg-red-700 text-white border-none text-xs font-bold uppercase tracking-widest transition-all active:scale-95">
             Cancel
           </Button>
           <Button className="h-10 flex-1 rounded-md bg-[#1a4332] hover:bg-[#122e22] text-white text-xs font-bold uppercase tracking-widest shadow-md shadow-[#1a4332]/10 transition-all active:scale-95">
@@ -354,12 +354,12 @@ function ThresholdInput({ label, defaultValue }: { label: string, defaultValue?:
 function LogConditionModal({ lotId }: { lotId: string }) {
   return (
     <Dialog>
-      <DialogTrigger asChild>
+      <DialogTrigger render={
         <Button className="bg-[#1a4332] hover:bg-[#122e22] text-white rounded-md h-8 px-4 text-[9px] font-bold uppercase tracking-widest gap-2">
           <Plus className="size-3" />
           Log entry
         </Button>
-      </DialogTrigger>
+      } />
       <DialogContent className="sm:max-w-[480px] p-6 rounded-md border border-dashed border-[#2e7d32]/30 shadow-2xl bg-white">
         <DialogHeader className="mb-6">
           <DialogTitle className="text-xl font-extrabold text-[#1a4332] tracking-tighter">Log storage conditions</DialogTitle>
@@ -400,7 +400,7 @@ function LogConditionModal({ lotId }: { lotId: string }) {
         </div>
 
         <div className="flex gap-3">
-          <Button onClick={() => { }} variant="outline" className="h-10 flex-1 rounded-md bg-[#dc2626] hover:bg-red-700 text-white border-none text-xs font-bold uppercase tracking-widest transition-all active:scale-95">
+          <Button onClick={() => { }} variant="outline" className="h-10 flex-1 rounded-md bg-brand-accent hover:bg-red-700 text-white border-none text-xs font-bold uppercase tracking-widest transition-all active:scale-95">
             Cancel
           </Button>
           <Button className="h-10 flex-1 rounded-md bg-[#1a4332] hover:bg-[#122e22] text-white text-xs font-bold uppercase tracking-widest shadow-md shadow-[#1a4332]/10 transition-all active:scale-95">
