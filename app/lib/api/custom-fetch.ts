@@ -200,19 +200,29 @@ export const customFetch = async <T>(
     throw err
   }
 
-  const text = await response.text()
-  if (!text) return { data: {}, status: response.status } as unknown as T
-  const parsed = JSON.parse(text)
-  persistOrganizationIdFromResponse(parsed)
-  if (method === 'GET') {
-    setCachedGetResponse(
-      buildGetCacheKey(cleanPath, organizationId),
-      parsed,
-      response.status,
-    )
+  const contentType = response.headers.get('content-type')
+  if (contentType?.includes('application/json')) {
+    const text = await response.text()
+    if (!text) return { data: {} as any, status: response.status } as unknown as T
+    const parsed = JSON.parse(text)
+    persistOrganizationIdFromResponse(parsed)
+    if (method === 'GET') {
+      setCachedGetResponse(
+        buildGetCacheKey(cleanPath, organizationId),
+        parsed,
+        response.status,
+      )
+    }
+    return {
+      data: parsed,
+      status: response.status,
+    } as unknown as T
   }
+
+  // Handle binary data (images, PDFs, etc.)
+  const blob = await response.blob()
   return {
-    data: parsed,
+    data: blob,
     status: response.status,
   } as unknown as T
 }
