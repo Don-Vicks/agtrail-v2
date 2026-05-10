@@ -3,6 +3,8 @@ export type BatchVerificationStatus = 'verified' | 'flagged' | 'rejected' | 'pen
 export interface AggregatorBatch {
   id: string
   batchIdentifier: string
+  farmId?: string
+  cropCycleId?: string
   farmerName: string
   farmerCode: string
   location: string

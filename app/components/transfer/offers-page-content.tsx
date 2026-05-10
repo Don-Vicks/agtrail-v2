@@ -5,6 +5,7 @@ import { Button } from '~/components/ui/button'
 import { TransferOfferCard } from './transfer-offer-card'
 import { Pagination } from '~/components/pagination'
 import type { TransferOffer } from '~/types/transfer'
+import { usePatchTransfersIdStatus } from '~/lib/api/generated/transfers/transfers'
 
 interface OffersPageContentProps {
   offers: TransferOffer[]
@@ -12,6 +13,20 @@ interface OffersPageContentProps {
 
 export function OffersPageContent({ offers }: OffersPageContentProps) {
   const [searchQuery, setSearchQuery] = useState('')
+  const { mutateAsync: acceptTransfer } = usePatchTransfersIdStatus()
+
+  const handleAccept = async (offer: TransferOffer) => {
+    try {
+      await acceptTransfer({
+        id: offer.id,
+        data: { status: 'accepted' }
+      })
+      alert(`Transfer accepted successfully!`)
+    } catch (error) {
+      console.error('Failed to accept transfer', error)
+      alert(`Failed to accept transfer.`)
+    }
+  }
 
   return (
     <div className="space-y-8">
@@ -52,7 +67,7 @@ export function OffersPageContent({ offers }: OffersPageContentProps) {
           <TransferOfferCard 
             key={offer.id} 
             offer={offer} 
-            onAccept={() => alert(`Accepted offer from ${offer.transporterName}`)}
+            onAccept={handleAccept}
           />
         ))}
       </div>

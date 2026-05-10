@@ -6,6 +6,7 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  useNavigation,
 } from "react-router";
 
 import { queryClient } from "~/lib/query-client";
@@ -14,6 +15,8 @@ import { OfflineProvider } from "~/context/offline-context";
 import { OfflineBanner } from "~/components/offline/offline-banner";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "~/components/ui/sonner";
+import { Loader2 } from "lucide-react";
+import { cn } from "~/lib/utils";
 import type { Route } from "./+types/root";
 import "./app.css";
 
@@ -51,11 +54,27 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
+  const navigation = useNavigation();
+  const isLoading = navigation.state === "loading";
+
   return (
-    <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+    <ThemeProvider attribute="class" defaultTheme="light" forcedTheme="light" enableSystem={false}>
       <AuthProvider>
         <OfflineProvider>
           <QueryClientProvider client={queryClient}>
+            {isLoading && (
+              <div className="fixed inset-0 z-[9999] pointer-events-none">
+                <div className="absolute top-0 left-0 right-0 h-1 overflow-hidden">
+                  <div className="h-full bg-[#10b981] animate-progress-bar shadow-[0_0_10px_#10b981]" />
+                </div>
+                <div className="absolute inset-0 bg-white/40 backdrop-blur-[2px] flex items-center justify-center pointer-events-auto transition-all">
+                  <div className="bg-white px-6 py-4 rounded-md shadow-2xl border border-gray-100 flex items-center gap-4 animate-in fade-in zoom-in duration-300">
+                    <Loader2 className="size-6 text-[#10b981] animate-spin" />
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-900">Synchronizing Journey</span>
+                  </div>
+                </div>
+              </div>
+            )}
             <OfflineBanner />
             <Outlet />
             <Toaster position="top-right" richColors />

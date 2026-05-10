@@ -50,7 +50,7 @@ export function SelectOperationModal({ isOpen, onClose, cropCycle, basePath = '/
     const pathname = window.location.pathname
     if (pathname.startsWith('/cooperative')) return '/cooperative/operations/new'
     if (pathname.startsWith('/processor')) return '/processor/operations/new'
-    if (pathname.startsWith('/field-agent')) return '/farmer/operations/new'
+    if (pathname.startsWith('/field-agent')) return '/field-agent/record-observation/new'
     return '/farmer/operations/new'
   }
   const resolvedBasePath =

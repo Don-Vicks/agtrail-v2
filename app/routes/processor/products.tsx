@@ -21,6 +21,7 @@ import { StatCard } from '~/components/stat-card'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
 import { useGetProcessorsBatches } from '~/lib/api/generated/processors-batches/processors-batches'
+import { useGetTransfers } from '~/lib/api/generated/transfers/transfers'
 import { cn } from '~/lib/utils'
 import type { Route } from './+types/products'
 
@@ -33,77 +34,6 @@ export function meta({ }: Route.MetaArgs) {
     },
   ]
 }
-
-// ─── Mock Data ───
-
-const mockTransfers = [
-  {
-    id: '1',
-    ref: 'TRF-2026-058-0002',
-    status: 'initiated',
-    payment: 'pending',
-    product: 'Unknown',
-    qty: '90 kg',
-    price: '₦89.00',
-    to: 'Agro Proc',
-    date: '3/9/2026',
-  },
-  {
-    id: '2',
-    ref: 'TRF-2026-058-0001',
-    status: 'initiated',
-    payment: 'pending',
-    product: 'Unknown',
-    qty: '90 kg',
-    price: '₦900,000.00',
-    to: 'Agrolinking Platform',
-    date: '3/9/2026',
-  },
-  {
-    id: '3',
-    ref: 'BCA8FB01',
-    status: 'initiated',
-    payment: 'pending',
-    product: 'Unknown',
-    qty: '20 kg',
-    price: '₦54,000.00',
-    to: 'Olamide Olasukanmi',
-    date: '2/21/2026',
-  },
-  {
-    id: '4',
-    ref: 'TRF-2025-044-0001',
-    status: 'initiated',
-    payment: 'pending',
-    product: 'Unknown',
-    qty: '17 kg',
-    price: '₦19,999.88',
-    to: 'Agrolinking Platform',
-    date: '2/13/2026',
-  },
-  {
-    id: '5',
-    ref: 'TRF-2025-343-0001',
-    status: 'initiated',
-    payment: 'pending',
-    product: 'Unknown',
-    qty: '200 kg',
-    price: '₦200,000.00',
-    to: 'Agrolinking Platform',
-    date: '12/9/2025',
-  },
-  {
-    id: '6',
-    ref: 'TRF-2025-334-0002',
-    status: 'initiated',
-    payment: 'completed',
-    product: 'Canned Beans',
-    qty: '10 kg',
-    price: '₦20,000.00',
-    to: 'Agrolinking Platform',
-    date: '12/6/2025',
-  },
-]
 
 // ─── Components ───
 
@@ -377,13 +307,29 @@ function InventoryTab() {
 }
 
 function TransfersTab() {
+  const { data: transfersData, isLoading } = useGetTransfers()
+  const rawTransfers = transfersData?.data?.data || []
+
+  // Map API transfers to the format expected by the UI
+  const transfers = rawTransfers.map(trf => ({
+    id: trf.id,
+    ref: trf.transferCode || trf.id.slice(0, 8).toUpperCase(),
+    status: trf.status,
+    payment: trf.status === 'completed' ? 'completed' : 'pending',
+    product: trf.productName || 'Unknown Product',
+    qty: `${trf.quantityTransferred} ${trf.unit}`,
+    price: trf.totalPrice ? `${trf.currency === 'NGN' ? '₦' : ''}${Number(trf.totalPrice).toLocaleString()}` : 'N/A',
+    to: trf.toUserName || 'Unknown Recipient',
+    date: new Date(trf.createdAt).toLocaleDateString(),
+  }))
+
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [currentPage, setCurrentPage] = useState(1)
   const [rowsPerPage, setRowsPerPage] = useState(10)
 
   const filteredTransfers = useMemo(() => {
-    return mockTransfers.filter((trf) => {
+    return transfers.filter((trf) => {
       const matchesSearch = !search ||
         trf.ref?.toLowerCase().includes(search.toLowerCase()) ||
         trf.product?.toLowerCase().includes(search.toLowerCase()) ||
@@ -394,7 +340,7 @@ function TransfersTab() {
 
       return matchesSearch && matchesStatus
     })
-  }, [search, statusFilter])
+  }, [transfers, search, statusFilter])
 
   const totalPages = Math.ceil(filteredTransfers.length / rowsPerPage) || 1
   const paginatedTransfers = filteredTransfers.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage)
@@ -459,7 +405,7 @@ function TransfersTab() {
           </div>
 
           {hasActiveFilters && (
-            <Button
+           <Button
               variant='ghost'
               className='h-11 px-4 text-red-500 font-bold uppercase tracking-widest text-[10px] hover:bg-red-50 gap-2'
               onClick={clearFilters}
@@ -471,7 +417,13 @@ function TransfersTab() {
       </div>
 
       <div className='space-y-3'>
-        {filteredTransfers.length === 0 ? (
+        {isLoading ? (
+          <div className='flex justify-center p-8'>
+            <span className='text-gray-400 text-sm animate-pulse'>
+              Loading transfers...
+            </span>
+          </div>
+        ) : filteredTransfers.length === 0 ? (
           <EmptyState
             icon={<Activity className="size-8" />}
             title={hasActiveFilters ? "No transfers match your filters" : "No transfers found"}
@@ -551,7 +503,7 @@ function TransfersTab() {
       </div>
 
       {/* Pagination Footer */}
-      {filteredTransfers.length > 0 && (
+      {!isLoading && filteredTransfers.length > 0 && (
         <div className="mt-8 border-t border-gray-100 px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-gray-400 font-bold uppercase tracking-tight bg-gray-50/20 rounded-md">
           <div className="flex items-center gap-2">
             <span className="text-gray-300">Total Transfers:</span>

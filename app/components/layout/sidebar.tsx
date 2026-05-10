@@ -414,7 +414,8 @@ export function Sidebar({ navigation, roleLabel }: SidebarProps) {
           ))}
         </div>
 
-        {/* Settings Group */}
+        {/* Settings Group — hidden for field agents */}
+        {activeRole !== 'field-agent' && (
         <div className='mt-2 mb-2'>
           <nav className='flex flex-col gap-0.5'>
             <NavLink
@@ -436,6 +437,7 @@ export function Sidebar({ navigation, roleLabel }: SidebarProps) {
             </NavLink>
           </nav>
         </div>
+        )}
 
         {/* Wallet */}
         <div className='border-t border-gray-200 px-4 py-3 pb-4'>

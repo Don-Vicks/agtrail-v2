@@ -152,6 +152,11 @@ export const customFetch = async <T>(
     }
   }
 
+  const t0 = import.meta.env.DEV ? Date.now() : 0
+  if (import.meta.env.DEV) {
+    console.log(`[API] → ${method} ${cleanPath}`)
+  }
+
   let response: Response
   try {
     response = await fetch(fullUrl, {
@@ -159,6 +164,9 @@ export const customFetch = async <T>(
       headers: mergedHeaders,
     })
   } catch (error) {
+    if (import.meta.env.DEV) {
+      console.error(`[API] ✗ ${method} ${cleanPath} — Network error`, error)
+    }
     // Network blip while browser still reports online.
     if (isMutationMethod(method) && isOfflineQueueablePath(cleanPath) && !isFormData) {
       const idempotencyKey =
@@ -192,8 +200,16 @@ export const customFetch = async <T>(
     throw error
   }
 
+  if (import.meta.env.DEV) {
+    const ms = Date.now() - t0
+    console.log(`[API] ← ${response.status} ${method} ${cleanPath} (${ms}ms)`)
+  }
+
   if (!response.ok) {
     const errorData = await response.json().catch(() => null)
+    if (import.meta.env.DEV) {
+      console.error(`[API] ✗ ${response.status} ${method} ${cleanPath}`, errorData)
+    }
     const err = new Error(`HTTP ${response.status}: ${response.statusText}`)
     // Attach response context so that our onError handlers can extract it like axios
     ;(err as any).response = { data: errorData, status: response.status }

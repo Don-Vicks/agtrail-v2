@@ -15,6 +15,7 @@ import {
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { Button } from '~/components/ui/button'
+import { ViewObservationLogModal } from '~/components/view-observation-log-modal'
 import { useAggregatorIncomingBatches } from '~/lib/aggregator/use-aggregator-data'
 import { useDraftLot } from '~/lib/aggregator/use-draft-lot'
 import { cn } from '~/lib/utils'
@@ -27,6 +28,7 @@ export default function BatchDetailsPage() {
 
   const [activeTab, setActiveTab] = useState('Journey')
   const [view, setView] = useState<'details' | 'weight'>('details')
+  const [isObservationLogOpen, setIsObservationLogOpen] = useState(false)
 
   // Decode the ID in case it contains spaces or special characters
   const decodedId = id ? decodeURIComponent(id) : ''
@@ -190,6 +192,14 @@ export default function BatchDetailsPage() {
                   <Share2 className="size-4" />
                   Share
                 </Button>
+                <Button
+                  type="button"
+                  onClick={() => setIsObservationLogOpen(true)}
+                  className="w-full sm:flex-1 bg-[#255220] hover:bg-[#1b3d18] text-white rounded-md h-10 text-xs font-bold gap-2"
+                >
+                  <ClipboardList className="size-4" />
+                  View Observation Log
+                </Button>
               </div>
             </div>
           </div>
@@ -297,6 +307,14 @@ export default function BatchDetailsPage() {
           )}
         </div>
       </div>
+
+      <ViewObservationLogModal
+        isOpen={isObservationLogOpen}
+        onClose={() => setIsObservationLogOpen(false)}
+        cropCycleId={batch?.cropCycleId}
+        cropLabel={commodityName}
+        farmLabel={location}
+      />
     </div>
   )
 }

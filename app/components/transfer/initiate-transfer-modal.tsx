@@ -13,6 +13,7 @@ import { Label } from '~/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
 import { DatePicker } from '~/components/ui/date-picker'
 import type { ProductTransfer } from '~/types/transfer'
+import { usePostTransfers } from '~/lib/api/generated/transfers/transfers'
 
 interface InitiateTransferModalProps {
   isOpen: boolean
@@ -21,7 +22,43 @@ interface InitiateTransferModalProps {
 }
 
 export function InitiateTransferModal({ isOpen, onClose, product }: InitiateTransferModalProps) {
-  const [scheduledDate, setScheduledDate] = useState('')
+  const [scheduledDate, setScheduledDate] = useState<Date>()
+  const [quantity, setQuantity] = useState('')
+  const [unit, setUnit] = useState(product?.unit || 'KG')
+  const [buyer, setBuyer] = useState('')
+  const [price, setPrice] = useState('')
+  
+  const { mutateAsync: initiateTransfer, isPending } = usePostTransfers()
+
+  const handleInitiate = async () => {
+    if (!product || !quantity || !buyer) return
+
+    try {
+      const payload: any = {
+        productType: product.productType || 'farm_product',
+        toUserId: buyer,
+        quantityTransferred: Number(quantity),
+        unit: unit,
+        currency: 'NGN',
+        pricePerUnit: Number(price) || undefined,
+        expectedDeliveryDate: scheduledDate?.toISOString(),
+      };
+
+      if (payload.productType === 'batch_product') {
+        payload.batchProductId = product.id;
+      } else {
+        payload.farmProductId = product.id;
+      }
+
+      await initiateTransfer({
+        data: payload
+      })
+      onClose()
+    } catch (error) {
+      console.error('Failed to initiate transfer:', error)
+    }
+  }
+
   if (!product) return null
 
   return (
@@ -49,12 +86,18 @@ export function InitiateTransferModal({ isOpen, onClose, product }: InitiateTran
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <Label className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Quantity to Transfer*</Label>
-              <Input placeholder="Enter Quantity Purchased" className="h-11 rounded-lg" />
+              <Input 
+                type="number"
+                value={quantity}
+                onChange={(e) => setQuantity(e.target.value)}
+                placeholder="Enter Quantity" 
+                className="h-11 rounded-lg" 
+              />
               <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">Available: {product.quantity}{product.unit}</p>
             </div>
             <div className="space-y-2">
               <Label className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Unit *</Label>
-              <Select defaultValue={product.unit}>
+              <Select value={unit} onValueChange={setUnit}>
                 <SelectTrigger className="h-11 w-full rounded-lg">
                   <SelectValue placeholder="Select a Unit" />
                 </SelectTrigger>
@@ -76,7 +119,7 @@ export function InitiateTransferModal({ isOpen, onClose, product }: InitiateTran
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Label className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Buyer *</Label>
-                <Select>
+                <Select value={buyer} onValueChange={setBuyer}>
                   <SelectTrigger className="h-11 w-full rounded-lg">
                     <SelectValue placeholder="Select Buyer" />
                   </SelectTrigger>
@@ -100,17 +143,17 @@ export function InitiateTransferModal({ isOpen, onClose, product }: InitiateTran
               </div>
               <div className="space-y-2">
                 <Label className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Contact Phone Number 1</Label>
-                <Input placeholder="Enter Country Region" className="h-11 rounded-lg" />
+                <Input placeholder="Enter Phone" className="h-11 rounded-lg" />
               </div>
               <div className="space-y-2">
                 <Label className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Contact Phone Number 2</Label>
-                <Input placeholder="Enter Country Region" className="h-11 rounded-lg" />
+                <Input placeholder="Enter Phone" className="h-11 rounded-lg" />
               </div>
             </div>
             
             <div className="space-y-2">
               <Label className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Address</Label>
-              <Input placeholder="Enter Country Region" className="h-11 rounded-lg" />
+              <Input placeholder="Enter Address" className="h-11 rounded-lg" />
             </div>
           </div>
 
@@ -129,7 +172,13 @@ export function InitiateTransferModal({ isOpen, onClose, product }: InitiateTran
               <Label className="text-[11px] font-bold uppercase tracking-widest text-[#92400e]">Price (NGN) *</Label>
               <div className="relative">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">₦</span>
-                <Input placeholder="0.00" className="h-12 pl-8 rounded-lg bg-white border-[#feeeb7] focus:border-[#f59e0b] focus:ring-[#f59e0b]" />
+                <Input 
+                  type="number"
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                  placeholder="0.00" 
+                  className="h-12 pl-8 rounded-lg bg-white border-[#feeeb7] focus:border-[#f59e0b] focus:ring-[#f59e0b]" 
+                />
               </div>
               <p className="text-[10px] text-[#92400e] font-bold uppercase tracking-tight opacity-70">Payment will be made to your bank wallet</p>
             </div>
@@ -142,8 +191,8 @@ export function InitiateTransferModal({ isOpen, onClose, product }: InitiateTran
               <div className="space-y-2">
                 <Label className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Scheduled Date *</Label>
                 <DatePicker 
-                  value={scheduledDate} 
-                  onChange={setScheduledDate} 
+                  value={scheduledDate as any} 
+                  onChange={(date: any) => setScheduledDate(date)} 
                   className="h-11 w-full rounded-lg" 
                 />
               </div>
@@ -156,8 +205,12 @@ export function InitiateTransferModal({ isOpen, onClose, product }: InitiateTran
 
           {/* Footer Buttons */}
           <div className="flex gap-4 pt-4 border-t border-gray-100">
-            <Button className="flex-1 h-12 bg-[#1d3d1e] hover:bg-black text-white font-bold uppercase tracking-widest text-xs rounded-lg shadow-sm">
-              Dispatch Request
+            <Button 
+              onClick={handleInitiate}
+              disabled={isPending || !quantity || !buyer}
+              className="flex-1 h-12 bg-[#1d3d1e] hover:bg-black text-white font-bold uppercase tracking-widest text-xs rounded-lg shadow-sm"
+            >
+              {isPending ? 'Initiating...' : 'Dispatch Request'}
             </Button>
             <Button variant="outline" className="flex-1 h-12 border-brand text-brand font-bold uppercase tracking-widest text-xs rounded-lg hover:bg-brand/5">
               Save as Draft

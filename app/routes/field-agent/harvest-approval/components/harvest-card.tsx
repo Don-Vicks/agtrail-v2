@@ -3,6 +3,9 @@ import { Button } from '~/components/ui/button'
 
 export interface HarvestItem {
   id: string
+  farmProductId: string
+  farmerId: string
+  farmId: string
   product: string
   batchId: string
   farmer: string
@@ -11,6 +14,7 @@ export interface HarvestItem {
   hectares: string
   owner: string
   status: 'pending' | 'approved'
+  canInspect: boolean
 }
 
 interface HarvestCardProps {
@@ -40,6 +44,8 @@ export function HarvestCard({ item, onInspect }: HarvestCardProps) {
       </div>
 
       <Button 
+        disabled={!item.canInspect}
+        title={item.canInspect ? undefined : 'Missing farmer linkage for this harvest record.'}
         onClick={() => onInspect(item)}
         className="w-full h-11 bg-[#1a4332] hover:bg-[#122e22] text-white font-semibold rounded-md shadow-sm transition-all"
       >

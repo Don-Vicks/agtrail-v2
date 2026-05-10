@@ -12,6 +12,7 @@ export interface ProductTransfer {
   status: TransferStatus;
   qrCode?: string;
   image?: string;
+  productType?: 'farm_product' | 'batch_product';
 }
 
 export interface TransferOffer {

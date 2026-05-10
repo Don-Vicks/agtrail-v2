@@ -23,6 +23,8 @@ export function useAggregatorIncomingBatches() {
       return {
         id: product.id,
         batchIdentifier: product.batchNumber ? `#${product.batchNumber}` : `#BT-${product.id.slice(-6)}`,
+        farmId: product.farmId,
+        cropCycleId: product.cropCycleId ?? undefined,
         farmerName: `Farmer ${idx + 1}`,
         farmerCode: `F - ${String(idx + 1).padStart(3, '0')}`,
         location: product.storageLocation || 'Location pending',

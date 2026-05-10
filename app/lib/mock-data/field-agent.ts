@@ -2,7 +2,7 @@ export interface FieldAgentNavItem {
   id: string
   label: string
   href: string
-  icon: 'layout-dashboard' | 'home' | 'clipboard-list' | 'sprout' | 'send'
+  icon: 'layout-dashboard' | 'home' | 'clipboard-list' | 'sprout' | 'send' | 'shield-check'
 }
 
 export interface FieldAgentNavGroup {

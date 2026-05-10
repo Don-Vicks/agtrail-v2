@@ -29,8 +29,8 @@ export function getTenantSelectValue(role: TenantRole): string {
 export function getTenantOperationAction(role: TenantRole) {
   if (role === 'field-agent') {
     return {
-      href: '/field-agent/record-operation',
-      label: 'Record Operation',
+      href: '/field-agent/record-observation',
+      label: 'Record observation',
     }
   }
   if (role === 'processor') {

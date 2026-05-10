@@ -1,14 +1,16 @@
-import { Archive, ArrowRight, MapPin, Maximize, Search, Upload, X } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { Archive, ArrowRight, MapPin, Maximize, Search } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router'
 import { EmptyState } from '~/components/empty-state'
 import { FarmCard } from '~/components/farm-card'
-import { FarmMap } from '~/components/farm-map.client'
 import { PageHeader } from '~/components/page-header'
 import { StatCard } from '~/components/stat-card'
 import { Button } from '~/components/ui/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '~/components/ui/dialog'
+import type { Farm } from '~/lib/api/generated/models/farm'
 import { useGetFarms } from '~/lib/api/generated/farms/farms'
+import { extractDataArray } from '~/lib/field-agent-utils'
 import { NIGERIA_ROUGH_CENTER } from '~/lib/google-maps'
+import { FarmCheckInModal, type CheckInFarm } from './components/farm-check-in-modal'
 
 type FarmAsset = {
   id: string
@@ -16,6 +18,7 @@ type FarmAsset = {
   location: string
   hectares: number
   owner: string
+  ownerId?: string
   ownerInitials: string
   lat: number
   lng: number
@@ -26,10 +29,11 @@ export function meta() {
 }
 
 export default function FieldAgentFarms() {
+  const [searchParams, setSearchParams] = useSearchParams()
   const { data: farmsResponse, isLoading } = useGetFarms()
   const [searchQuery, setSearchQuery] = useState('')
   const [page, setPage] = useState(1)
-  const [selectedFarm, setSelectedFarm] = useState<FarmAsset | null>(null)
+  const [selectedFarm, setSelectedFarm] = useState<CheckInFarm | null>(null)
   const perPage = 12
 
   const parseFarmCoordinates = (gpsCoordinates: unknown): { lat: number; lng: number } => {
@@ -59,7 +63,7 @@ export default function FieldAgentFarms() {
   }
 
   const farms = useMemo<FarmAsset[]>(() => {
-    const items = farmsResponse?.data?.data ?? []
+    const items = extractDataArray<Farm>(farmsResponse?.data)
     return items.map((farm) => ({
       ...parseFarmCoordinates(farm.gpsCoordinates),
       id: farm.id,
@@ -67,9 +71,22 @@ export default function FieldAgentFarms() {
       location: [farm.lga, farm.state].filter(Boolean).join(', ') || 'Location not specified',
       hectares: Number(farm.sizeHectares ?? 0),
       owner: 'admin@agrolinking.com',
+      ownerId: farm.ownerId ?? undefined,
       ownerInitials: 'AD',
     }))
   }, [farmsResponse])
+
+  useEffect(() => {
+    const farmId = searchParams.get('checkInFarmId')
+    if (!farmId || !farms.length) return
+    const farm = farms.find((item) => item.id === farmId)
+    if (farm) setSelectedFarm(farm)
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev)
+      next.delete('checkInFarmId')
+      return next
+    }, { replace: true })
+  }, [farms, searchParams, setSearchParams])
 
   const filtered = farms.filter((farm) => {
     const q = searchQuery.toLowerCase()
@@ -139,7 +156,7 @@ export default function FieldAgentFarms() {
               farm={farm as any} 
               action="start-cycle" 
               actionLabel="Check in" 
-              onAction={() => setSelectedFarm(farm)} 
+              onAction={() => setSelectedFarm(farm)}
             />
           ))}
         </div>
@@ -158,61 +175,11 @@ export default function FieldAgentFarms() {
         </div>
       </div>
 
-      <Dialog open={!!selectedFarm} onOpenChange={(open) => !open && setSelectedFarm(null)}>
-        <DialogContent className='w-[92vw] max-w-xl max-h-[88vh] overflow-y-auto p-0 border-none shadow-2xl rounded-lg'>
-          {selectedFarm && (
-            <div className='bg-white p-6 space-y-6'>
-              <DialogHeader className='space-y-1 text-left'>
-                <DialogTitle className='text-xl font-bold text-gray-900 tracking-tight'>{selectedFarm.name}</DialogTitle>
-                <p className='text-xs text-gray-500 font-medium'>{selectedFarm.location} · {selectedFarm.hectares.toFixed(1)} gross hectares</p>
-              </DialogHeader>
-
-              <FarmMap
-                farms={[
-                  {
-                    id: selectedFarm.id,
-                    name: selectedFarm.name,
-                    location: selectedFarm.location,
-                    region: 'Field Zone',
-                    hectares: selectedFarm.hectares,
-                    lat: selectedFarm.lat,
-                    lng: selectedFarm.lng,
-                  },
-                ]}
-                className='w-full rounded-md overflow-hidden'
-              />
-
-              <div className='grid grid-cols-2 gap-3'>
-                <div className='rounded-md border border-gray-100 p-4 bg-gray-50/30 text-center'>
-                  <p className='text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-1'>{(selectedFarm.hectares * 0.6).toFixed(1)} Hectares</p>
-                  <p className='text-2xl font-bold text-[#cc5e00]'>Maize</p>
-                </div>
-                <div className='rounded-md border border-gray-100 p-4 bg-gray-50/30 text-center'>
-                  <p className='text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-1'>{(selectedFarm.hectares * 0.4).toFixed(1)} Hectares</p>
-                  <p className='text-2xl font-bold text-[#cc5e00]'>Beans</p>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <label className='text-[11px] font-semibold text-gray-900 uppercase tracking-widest'>Upload Document *</label>
-                <div className='rounded-md border-2 border-dashed border-gray-100 bg-white p-8 text-center group hover:border-brand/20 transition-all cursor-pointer'>
-                  <div className='mx-auto mb-3 size-10 rounded-full border border-gray-100 flex items-center justify-center bg-gray-50 group-hover:scale-110 transition-transform'>
-                    <Upload className='size-4 text-brand' />
-                  </div>
-                  <p className='text-lg font-semibold text-gray-800'>Click to upload evidence</p>
-                  <p className='text-[10px] uppercase tracking-wider text-gray-400 mt-0.5'>Max file size: 10MB (PDF, JPG, PNG)</p>
-                </div>
-              </div>
-
-              <div className='flex justify-center pt-2'>
-                <Button className='h-12 px-12 rounded-md bg-brand hover:bg-brand-dark text-white font-semibold uppercase tracking-wide shadow-lg active:scale-95 transition-all'>
-                  + Check In Farm
-                </Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      <FarmCheckInModal
+        farm={selectedFarm}
+        isOpen={!!selectedFarm}
+        onClose={() => setSelectedFarm(null)}
+      />
     </div>
   )
 }

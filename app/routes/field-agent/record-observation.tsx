@@ -7,6 +7,7 @@ import { PageHeader } from '~/components/page-header'
 import { Pagination } from '~/components/pagination'
 import { SelectOperationModal } from '~/components/select-operation-modal'
 import { ViewActivitiesModal } from '~/components/view-activities-modal'
+import { ViewObservationLogModal } from '~/components/view-observation-log-modal'
 import { useAuth } from '~/context/auth-context'
 import { getGetFarmsIdCropCyclesQueryOptions } from '~/lib/api/generated/farms-crop-cycles/farms-crop-cycles'
 import { useGetFarms } from '~/lib/api/generated/farms/farms'
@@ -21,6 +22,7 @@ import {
 
 type UICropCycle = {
   id: string
+  farmId: string
   productName: string
   farmName: string
   farmLocation: string
@@ -47,6 +49,7 @@ export default function FieldAgentRecordObservation() {
   const [rowsPerPage, setRowsPerPage] = useState(12)
   
   const [viewActivitiesCycle, setViewActivitiesCycle] = useState<UICropCycle | null>(null)
+  const [viewObservationCycle, setViewObservationCycle] = useState<UICropCycle | null>(null)
   const [selectedCycle, setSelectedCycle] = useState<UICropCycle | null>(null)
 
   const { data: farmsResponse, isLoading: isLoadingFarms, isError: isFarmsError } = useGetFarms()
@@ -65,13 +68,14 @@ export default function FieldAgentRecordObservation() {
   const mappedCycles: UICropCycle[] = useMemo(() => {
     return cropCycles.map((cycle) => {
       const farm = farms.find((item) => item.id === cycle.farmId)
-      const farmer = user?.email?.split('@')[0] || 'admin'
+      const farmer = user?.email?.split('@')[0] || farm?.ownerId?.slice(0, 8) || 'Farmer'
       const days = cycle.expectedHarvestDate
         ? Math.max(0, Math.ceil((new Date(cycle.expectedHarvestDate).getTime() - Date.now()) / (1000 * 3600 * 24)))
         : null
       return {
         id: cycle.id,
-        productName: (cycle as { cropName?: string }).cropName || 'Plantain',
+        farmId: cycle.farmId,
+        productName: cycle.productName || (cycle as { cropName?: string }).cropName || 'Crop',
         farmName: farm?.name || 'Farm',
         farmLocation: formatFarmLocation(farm),
         farmer,
@@ -202,6 +206,7 @@ export default function FieldAgentRecordObservation() {
                   View Activities
                 </button>
                 <button 
+                  onClick={() => setViewObservationCycle(cycle)}
                   type='button' 
                   className='w-full flex items-center justify-center gap-2 rounded-md border border-gray-200 py-2.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors'
                 >
@@ -247,6 +252,14 @@ export default function FieldAgentRecordObservation() {
         isOpen={!!viewActivitiesCycle}
         onClose={() => setViewActivitiesCycle(null)}
         cropCycle={viewActivitiesCycle as any}
+      />
+
+      <ViewObservationLogModal
+        isOpen={!!viewObservationCycle}
+        onClose={() => setViewObservationCycle(null)}
+        cropCycleId={viewObservationCycle?.id}
+        cropLabel={viewObservationCycle?.productName}
+        farmLabel={viewObservationCycle?.farmName}
       />
     </div>
   )

@@ -21,6 +21,7 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  PassportResponse,
   TraceProductResponse
 } from '.././models';
 
@@ -34,29 +35,29 @@ type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 /**
  * @summary Trace a product batch
  */
-export type getTraceBatchNumberResponse200 = {
+export type getPublicTraceBatchNumberResponse200 = {
   data: TraceProductResponse
   status: 200
 }
 
-export type getTraceBatchNumberResponseSuccess = (getTraceBatchNumberResponse200) & {
+export type getPublicTraceBatchNumberResponseSuccess = (getPublicTraceBatchNumberResponse200) & {
   headers: Headers;
 };
 ;
 
-export type getTraceBatchNumberResponse = (getTraceBatchNumberResponseSuccess)
+export type getPublicTraceBatchNumberResponse = (getPublicTraceBatchNumberResponseSuccess)
 
-export const getGetTraceBatchNumberUrl = (batchNumber: string,) => {
+export const getGetPublicTraceBatchNumberUrl = (batchNumber: string,) => {
 
 
   
 
-  return `/trace/${batchNumber}`
+  return `/public/trace/${batchNumber}`
 }
 
-export const getTraceBatchNumber = async (batchNumber: string, options?: RequestInit): Promise<getTraceBatchNumberResponse> => {
+export const getPublicTraceBatchNumber = async (batchNumber: string, options?: RequestInit): Promise<getPublicTraceBatchNumberResponse> => {
   
-  return customFetch<getTraceBatchNumberResponse>(getGetTraceBatchNumberUrl(batchNumber),
+  return customFetch<getPublicTraceBatchNumberResponse>(getGetPublicTraceBatchNumberUrl(batchNumber),
   {      
     ...options,
     method: 'GET'
@@ -69,69 +70,187 @@ export const getTraceBatchNumber = async (batchNumber: string, options?: Request
 
 
 
-export const getGetTraceBatchNumberQueryKey = (batchNumber: string,) => {
+export const getGetPublicTraceBatchNumberQueryKey = (batchNumber: string,) => {
     return [
-    `/trace/${batchNumber}`
+    `/public/trace/${batchNumber}`
     ] as const;
     }
 
     
-export const getGetTraceBatchNumberQueryOptions = <TData = Awaited<ReturnType<typeof getTraceBatchNumber>>, TError = unknown>(batchNumber: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTraceBatchNumber>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+export const getGetPublicTraceBatchNumberQueryOptions = <TData = Awaited<ReturnType<typeof getPublicTraceBatchNumber>>, TError = unknown>(batchNumber: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPublicTraceBatchNumber>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getGetTraceBatchNumberQueryKey(batchNumber);
+  const queryKey =  queryOptions?.queryKey ?? getGetPublicTraceBatchNumberQueryKey(batchNumber);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTraceBatchNumber>>> = ({ signal }) => getTraceBatchNumber(batchNumber, { signal, ...requestOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPublicTraceBatchNumber>>> = ({ signal }) => getPublicTraceBatchNumber(batchNumber, { signal, ...requestOptions });
 
       
 
       
 
-   return  { queryKey, queryFn, enabled: !!(batchNumber), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTraceBatchNumber>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+   return  { queryKey, queryFn, enabled: !!(batchNumber), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPublicTraceBatchNumber>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
-export type GetTraceBatchNumberQueryResult = NonNullable<Awaited<ReturnType<typeof getTraceBatchNumber>>>
-export type GetTraceBatchNumberQueryError = unknown
+export type GetPublicTraceBatchNumberQueryResult = NonNullable<Awaited<ReturnType<typeof getPublicTraceBatchNumber>>>
+export type GetPublicTraceBatchNumberQueryError = unknown
 
 
-export function useGetTraceBatchNumber<TData = Awaited<ReturnType<typeof getTraceBatchNumber>>, TError = unknown>(
- batchNumber: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTraceBatchNumber>>, TError, TData>> & Pick<
+export function useGetPublicTraceBatchNumber<TData = Awaited<ReturnType<typeof getPublicTraceBatchNumber>>, TError = unknown>(
+ batchNumber: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPublicTraceBatchNumber>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getTraceBatchNumber>>,
+          Awaited<ReturnType<typeof getPublicTraceBatchNumber>>,
           TError,
-          Awaited<ReturnType<typeof getTraceBatchNumber>>
+          Awaited<ReturnType<typeof getPublicTraceBatchNumber>>
         > , 'initialData'
       >, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetTraceBatchNumber<TData = Awaited<ReturnType<typeof getTraceBatchNumber>>, TError = unknown>(
- batchNumber: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTraceBatchNumber>>, TError, TData>> & Pick<
+export function useGetPublicTraceBatchNumber<TData = Awaited<ReturnType<typeof getPublicTraceBatchNumber>>, TError = unknown>(
+ batchNumber: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPublicTraceBatchNumber>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getTraceBatchNumber>>,
+          Awaited<ReturnType<typeof getPublicTraceBatchNumber>>,
           TError,
-          Awaited<ReturnType<typeof getTraceBatchNumber>>
+          Awaited<ReturnType<typeof getPublicTraceBatchNumber>>
         > , 'initialData'
       >, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetTraceBatchNumber<TData = Awaited<ReturnType<typeof getTraceBatchNumber>>, TError = unknown>(
- batchNumber: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTraceBatchNumber>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+export function useGetPublicTraceBatchNumber<TData = Awaited<ReturnType<typeof getPublicTraceBatchNumber>>, TError = unknown>(
+ batchNumber: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPublicTraceBatchNumber>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary Trace a product batch
  */
 
-export function useGetTraceBatchNumber<TData = Awaited<ReturnType<typeof getTraceBatchNumber>>, TError = unknown>(
- batchNumber: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTraceBatchNumber>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+export function useGetPublicTraceBatchNumber<TData = Awaited<ReturnType<typeof getPublicTraceBatchNumber>>, TError = unknown>(
+ batchNumber: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPublicTraceBatchNumber>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getGetTraceBatchNumberQueryOptions(batchNumber,options)
+  const queryOptions = getGetPublicTraceBatchNumberQueryOptions(batchNumber,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+/**
+ * Returns all data needed for the product passport page: product info, farm, farmer, operations, certifications, quality tests, transfers, stats, and synthetic summary. No authentication required.
+ * @summary Get full product passport data by product ID
+ */
+export type getPublicPassportProductIdResponse200 = {
+  data: PassportResponse
+  status: 200
+}
+
+export type getPublicPassportProductIdResponse404 = {
+  data: void
+  status: 404
+}
+
+export type getPublicPassportProductIdResponseSuccess = (getPublicPassportProductIdResponse200) & {
+  headers: Headers;
+};
+export type getPublicPassportProductIdResponseError = (getPublicPassportProductIdResponse404) & {
+  headers: Headers;
+};
+
+export type getPublicPassportProductIdResponse = (getPublicPassportProductIdResponseSuccess | getPublicPassportProductIdResponseError)
+
+export const getGetPublicPassportProductIdUrl = (productId: string,) => {
+
+
+  
+
+  return `/public/passport/${productId}`
+}
+
+export const getPublicPassportProductId = async (productId: string, options?: RequestInit): Promise<getPublicPassportProductIdResponse> => {
+  
+  return customFetch<getPublicPassportProductIdResponse>(getGetPublicPassportProductIdUrl(productId),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+  
+
+
+
+
+export const getGetPublicPassportProductIdQueryKey = (productId: string,) => {
+    return [
+    `/public/passport/${productId}`
+    ] as const;
+    }
+
+    
+export const getGetPublicPassportProductIdQueryOptions = <TData = Awaited<ReturnType<typeof getPublicPassportProductId>>, TError = void>(productId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPublicPassportProductId>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPublicPassportProductIdQueryKey(productId);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPublicPassportProductId>>> = ({ signal }) => getPublicPassportProductId(productId, { signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(productId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPublicPassportProductId>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetPublicPassportProductIdQueryResult = NonNullable<Awaited<ReturnType<typeof getPublicPassportProductId>>>
+export type GetPublicPassportProductIdQueryError = void
+
+
+export function useGetPublicPassportProductId<TData = Awaited<ReturnType<typeof getPublicPassportProductId>>, TError = void>(
+ productId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPublicPassportProductId>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPublicPassportProductId>>,
+          TError,
+          Awaited<ReturnType<typeof getPublicPassportProductId>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetPublicPassportProductId<TData = Awaited<ReturnType<typeof getPublicPassportProductId>>, TError = void>(
+ productId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPublicPassportProductId>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPublicPassportProductId>>,
+          TError,
+          Awaited<ReturnType<typeof getPublicPassportProductId>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetPublicPassportProductId<TData = Awaited<ReturnType<typeof getPublicPassportProductId>>, TError = void>(
+ productId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPublicPassportProductId>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Get full product passport data by product ID
+ */
+
+export function useGetPublicPassportProductId<TData = Awaited<ReturnType<typeof getPublicPassportProductId>>, TError = void>(
+ productId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPublicPassportProductId>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetPublicPassportProductIdQueryOptions(productId,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
