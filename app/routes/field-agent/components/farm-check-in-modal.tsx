@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import { FarmMap } from '~/components/farm-map.client'
 import { Button } from '~/components/ui/button'
 import { Dialog, DialogContent } from '~/components/ui/dialog'
+import { resolveDocumentUrlForApi } from '~/lib/api/custom-fetch'
 import {
   getGetFieldAgentsCheckInsQueryKey,
   useGetFieldAgentsCheckIns,
@@ -13,7 +14,6 @@ import {
 import type { CheckIn } from '~/lib/api/generated/models/checkIn'
 import { CreateCheckInRequestGpsCoordinatesType } from '~/lib/api/generated/models/createCheckInRequestGpsCoordinatesType'
 import { usePostUpload } from '~/lib/api/generated/upload/upload'
-import { resolveDocumentUrlForApi } from '~/lib/api/custom-fetch'
 import { extractDataArray, saveFieldAgentLastCheckIn } from '~/lib/field-agent-utils'
 
 export type CheckInFarm = {
@@ -91,9 +91,9 @@ export function FarmCheckInModal({ farm, isOpen, onClose }: Props) {
       } catch (geoError: unknown) {
         const code =
           geoError &&
-          typeof geoError === 'object' &&
-          'code' in geoError &&
-          typeof (geoError as { code?: unknown }).code === 'number'
+            typeof geoError === 'object' &&
+            'code' in geoError &&
+            typeof (geoError as { code?: unknown }).code === 'number'
             ? (geoError as { code: number }).code
             : undefined
 
@@ -122,10 +122,10 @@ export function FarmCheckInModal({ farm, isOpen, onClose }: Props) {
           gpsAccuracyMeters,
           ...(overrideReason.trim() || fallbackReason
             ? {
-                overrideReason: [overrideReason.trim(), fallbackReason]
-                  .filter(Boolean)
-                  .join(' | '),
-              }
+              overrideReason: [overrideReason.trim(), fallbackReason]
+                .filter(Boolean)
+                .join(' | '),
+            }
             : {}),
         },
       })
@@ -166,7 +166,7 @@ export function FarmCheckInModal({ farm, isOpen, onClose }: Props) {
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className='w-[92vw] max-w-xl max-h-[88vh] overflow-y-auto p-0 border-none shadow-2xl rounded-lg'>
+      <DialogContent className='w-[92vw] max-w-xl max-h-[88vh] overflow-y-auto p-0 border-none shadow-2xl rounded-md'>
         <div className='bg-white p-6 space-y-6'>
           <div className='space-y-1 text-left'>
             <h2 className='text-xl font-bold text-gray-900 tracking-tight'>{farm.name}</h2>

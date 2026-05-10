@@ -1,6 +1,5 @@
+import { CheckCircle2, Clock, Eye } from 'lucide-react'
 import { PageHeader } from '~/components/page-header'
-import { Badge } from '~/components/ui/badge'
-import { Eye, CheckCircle2, Clock, MapPin } from 'lucide-react'
 import { cn } from '~/lib/utils'
 
 export default function ProcessorTransferHistory() {
@@ -13,7 +12,7 @@ export default function ProcessorTransferHistory() {
           { label: 'Transfer History' },
         ]}
       />
-      
+
       <div className="space-y-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
@@ -21,7 +20,7 @@ export default function ProcessorTransferHistory() {
             <p className="text-sm text-gray-500 font-medium mt-1">Audit trail of all processed batches transferred to distributors or exporters.</p>
           </div>
           <div className="flex items-center gap-2">
-            <div className="rounded-lg border border-gray-100 bg-white px-4 py-2 shadow-sm text-center min-w-[120px]">
+            <div className="rounded-md border border-gray-100 bg-white px-4 py-2 shadow-sm text-center min-w-[120px]">
               <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Total Batches</p>
               <p className="text-lg font-bold text-gray-900">42</p>
             </div>
@@ -43,7 +42,7 @@ export default function ProcessorTransferHistory() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                <HistoryRow 
+                <HistoryRow
                   date="Nov 02, 2024"
                   id="#PROC-8812"
                   product="Premium Rice Flour"
@@ -51,7 +50,7 @@ export default function ProcessorTransferHistory() {
                   qty="500 Sacks"
                   status="completed"
                 />
-                <HistoryRow 
+                <HistoryRow
                   date="Oct 28, 2024"
                   id="#PROC-8810"
                   product="Fortified Maize Flour"
@@ -68,13 +67,13 @@ export default function ProcessorTransferHistory() {
   )
 }
 
-function HistoryRow({ date, id, product, receiver, qty, status }: { 
-  date: string, 
-  id: string, 
-  product: string, 
+function HistoryRow({ date, id, product, receiver, qty, status }: {
+  date: string,
+  id: string,
+  product: string,
   receiver: string,
   qty: string,
-  status: 'completed' | 'in_transit' | 'pending' 
+  status: 'completed' | 'in_transit' | 'pending'
 }) {
   const statusConfig = {
     completed: {

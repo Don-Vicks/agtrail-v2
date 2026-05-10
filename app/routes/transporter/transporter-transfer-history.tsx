@@ -1,6 +1,5 @@
+import { CheckCircle2, Clock, Eye } from 'lucide-react'
 import { PageHeader } from '~/components/page-header'
-import { Badge } from '~/components/ui/badge'
-import { Eye, History, ArrowUpRight, CheckCircle2, Clock } from 'lucide-react'
 import { cn } from '~/lib/utils'
 
 export default function TransporterTransferHistory() {
@@ -13,7 +12,7 @@ export default function TransporterTransferHistory() {
           { label: 'Transfer History' },
         ]}
       />
-      
+
       <div className="space-y-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
@@ -21,11 +20,11 @@ export default function TransporterTransferHistory() {
             <p className="text-sm text-gray-500 font-medium mt-1">Review all your completed and active shipments across the network.</p>
           </div>
           <div className="flex items-center gap-2">
-            <div className="rounded-lg border border-gray-100 bg-white px-4 py-2 shadow-sm">
+            <div className="rounded-md border border-gray-100 bg-white px-4 py-2 shadow-sm">
               <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Total Trips</p>
               <p className="text-lg font-bold text-gray-900">1,284</p>
             </div>
-            <div className="rounded-lg border border-gray-100 bg-white px-4 py-2 shadow-sm">
+            <div className="rounded-md border border-gray-100 bg-white px-4 py-2 shadow-sm">
               <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Completed</p>
               <p className="text-lg font-bold text-green-600">1,240</p>
             </div>
@@ -46,28 +45,28 @@ export default function TransporterTransferHistory() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                <HistoryRow 
+                <HistoryRow
                   date="Oct 26, 2024"
                   id="#BATCH-99887"
                   origin="Baba Beji Farms"
                   dest="Lagos Consolidation Center"
                   status="delivered"
                 />
-                <HistoryRow 
+                <HistoryRow
                   date="Oct 24, 2024"
                   id="#BATCH-99885"
                   origin="Olamide Farms"
                   dest="Kano Processing Plant"
                   status="in_transit"
                 />
-                <HistoryRow 
+                <HistoryRow
                   date="Oct 22, 2024"
                   id="#BATCH-99882"
                   origin="IITA Hub"
                   dest="Ibadan Warehouse"
                   status="delivered"
                 />
-                <HistoryRow 
+                <HistoryRow
                   date="Oct 20, 2024"
                   id="#BATCH-99880"
                   origin="Lagos Port"
@@ -83,12 +82,12 @@ export default function TransporterTransferHistory() {
   )
 }
 
-function HistoryRow({ date, id, origin, dest, status }: { 
-  date: string, 
-  id: string, 
-  origin: string, 
-  dest: string, 
-  status: 'delivered' | 'in_transit' | 'pending' 
+function HistoryRow({ date, id, origin, dest, status }: {
+  date: string,
+  id: string,
+  origin: string,
+  dest: string,
+  status: 'delivered' | 'in_transit' | 'pending'
 }) {
   const statusConfig = {
     delivered: {

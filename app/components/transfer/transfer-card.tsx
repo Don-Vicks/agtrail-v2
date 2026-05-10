@@ -1,4 +1,4 @@
-import { MapPin, User, Home, QrCode } from 'lucide-react'
+import { Home, MapPin, QrCode, User } from 'lucide-react'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
 import { cn } from '~/lib/utils'
@@ -15,7 +15,7 @@ export function TransferCard({ transfer, onAction }: TransferCardProps) {
   return (
     <div className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm transition-all hover:shadow-md">
       <div className="flex items-start justify-between mb-4">
-        <div className="flex size-16 items-center justify-center rounded-lg bg-gray-50 text-gray-400">
+        <div className="flex size-16 items-center justify-center rounded-md bg-gray-50 text-gray-400">
           <QrCode className="size-10" />
         </div>
         <div className="flex flex-col items-end gap-1.5">
@@ -30,7 +30,7 @@ export function TransferCard({ transfer, onAction }: TransferCardProps) {
 
       <div className="space-y-4">
         <h3 className="text-xl font-extrabold text-gray-900 tracking-tight">{transfer.productName}</h3>
-        
+
         <div className="space-y-2.5">
           <div className="flex items-center gap-2.5 text-gray-600">
             <User className="size-4 shrink-0 text-brand" />
@@ -50,8 +50,8 @@ export function TransferCard({ transfer, onAction }: TransferCardProps) {
           onClick={() => onAction?.(transfer)}
           className={cn(
             "w-full h-11 uppercase tracking-widest text-[10px] font-bold shadow-sm transition-all",
-            isReadyForPickup 
-              ? "bg-[#1d3d1e] hover:bg-black text-white" 
+            isReadyForPickup
+              ? "bg-[#1d3d1e] hover:bg-black text-white"
               : "bg-[#1d3d1e] hover:bg-black text-white"
           )}
         >

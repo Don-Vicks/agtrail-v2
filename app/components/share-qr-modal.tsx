@@ -1,13 +1,13 @@
-import { QRCodeSVG } from 'qrcode.react'
 import { Copy, Download, Share2, X } from 'lucide-react'
+import { QRCodeSVG } from 'qrcode.react'
 import { toast } from 'sonner'
+import { Button } from '~/components/ui/button'
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from '~/components/ui/dialog'
-import { Button } from '~/components/ui/button'
 
 interface ShareQRModalProps {
   isOpen: boolean
@@ -20,7 +20,7 @@ interface ShareQRModalProps {
 export function ShareQRModal({ isOpen, onClose, productId, productName, batchNumber }: ShareQRModalProps) {
   // Use passport/ prefix as requested
   const shareUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/passport/${productId}`
-  
+
   const handleCopyLink = () => {
     navigator.clipboard.writeText(shareUrl)
     toast.success('Link copied to clipboard!')
@@ -40,7 +40,7 @@ export function ShareQRModal({ isOpen, onClose, productId, productName, batchNum
       // Add padding for the canvas
       canvas.width = img.width + 40
       canvas.height = img.height + 40
-      
+
       // Background
       if (ctx) {
         ctx.fillStyle = 'white'
@@ -65,13 +65,13 @@ export function ShareQRModal({ isOpen, onClose, productId, productName, batchNum
       <DialogContent className="sm:max-w-md w-[95vw] bg-white p-0 overflow-hidden border-none shadow-2xl rounded-2xl max-h-[90vh] flex flex-col">
         {/* Header Section - Sticky at top if needed */}
         <div className="bg-[#1d3d1e] p-6 sm:p-8 text-center text-white relative shrink-0">
-          <button 
+          <button
             onClick={onClose}
             className="absolute right-4 top-4 text-white/60 hover:text-white transition-colors p-2"
           >
             <X className="size-5" />
           </button>
-          
+
           <div className="mx-auto size-16 sm:size-20 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center mb-4">
             <Share2 className="size-8 sm:size-10 text-white" />
           </div>
@@ -88,9 +88,9 @@ export function ShareQRModal({ isOpen, onClose, productId, productName, batchNum
         <div className="p-6 sm:p-8 space-y-6 overflow-y-auto">
           <div className="flex flex-col items-center justify-center space-y-4">
             <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
-              <QRCodeSVG 
+              <QRCodeSVG
                 id="share-qr-svg"
-                value={shareUrl} 
+                value={shareUrl}
                 size={160}
                 level="H"
                 includeMargin={false}
@@ -105,10 +105,10 @@ export function ShareQRModal({ isOpen, onClose, productId, productName, batchNum
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Direct Link</label>
               <div className="flex items-center gap-2 p-1 pl-4 rounded-xl border border-gray-100 bg-gray-50/50">
                 <span className="flex-1 text-[11px] sm:text-xs font-bold text-gray-500 truncate mr-2">{shareUrl}</span>
-                <Button 
+                <Button
                   onClick={handleCopyLink}
                   variant="ghost"
-                  className="h-10 px-4 bg-white hover:bg-white text-[#1d3d1e] border border-gray-100 rounded-lg shadow-sm font-black text-[10px] uppercase tracking-widest gap-2 shrink-0"
+                  className="h-10 px-4 bg-white hover:bg-white text-[#1d3d1e] border border-gray-100 rounded-md shadow-sm font-black text-[10px] uppercase tracking-widest gap-2 shrink-0"
                 >
                   <Copy className="size-3.5" />
                   <span>Copy</span>
@@ -117,14 +117,14 @@ export function ShareQRModal({ isOpen, onClose, productId, productName, batchNum
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-              <Button 
+              <Button
                 onClick={handleDownloadQR}
                 className="h-12 bg-[#1d3d1e] hover:bg-black text-white rounded-xl shadow-lg shadow-brand/10 font-black uppercase tracking-widest text-[10px] gap-2 w-full order-1 transition-all active:scale-95"
               >
                 <Download className="size-4" />
                 Download QR
               </Button>
-              <Button 
+              <Button
                 onClick={onClose}
                 variant="outline"
                 className="h-12 border-gray-200 text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-xl font-black uppercase tracking-widest text-[10px] w-full order-2 transition-all"

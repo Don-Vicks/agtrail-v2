@@ -1,4 +1,4 @@
-import { QrCode, ChevronRight } from 'lucide-react'
+import { ChevronRight, QrCode } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 
 export interface HarvestItem {
@@ -24,7 +24,7 @@ interface HarvestCardProps {
 
 export function HarvestCard({ item, onInspect }: HarvestCardProps) {
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm hover:shadow-md transition-all group">
+    <div className="bg-white border border-gray-200 rounded-md p-6 shadow-sm hover:shadow-md transition-all group">
       <div className="flex justify-between items-start mb-6">
         <div className="size-20 rounded-md border border-gray-100 flex items-center justify-center p-2 bg-gray-50/30">
           <QrCode className="size-full text-[#2e7d32]" />
@@ -43,7 +43,7 @@ export function HarvestCard({ item, onInspect }: HarvestCardProps) {
         <p className="text-[10px] text-gray-400 font-semibold tracking-wider uppercase">{item.location}</p>
       </div>
 
-      <Button 
+      <Button
         disabled={!item.canInspect}
         title={item.canInspect ? undefined : 'Missing farmer linkage for this harvest record.'}
         onClick={() => onInspect(item)}

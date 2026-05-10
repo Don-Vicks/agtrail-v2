@@ -1,11 +1,11 @@
+import { ChevronDown, Filter, Search } from 'lucide-react'
 import { useState } from 'react'
-import { Search, ChevronDown, Filter } from 'lucide-react'
-import { Input } from '~/components/ui/input'
-import { Button } from '~/components/ui/button'
-import { TransferCard } from './transfer-card'
-import { InitiateTransferModal } from './initiate-transfer-modal'
 import { Pagination } from '~/components/pagination'
+import { Button } from '~/components/ui/button'
+import { Input } from '~/components/ui/input'
 import type { ProductTransfer } from '~/types/transfer'
+import { InitiateTransferModal } from './initiate-transfer-modal'
+import { TransferCard } from './transfer-card'
 
 interface TransferPageContentProps {
   title: string
@@ -32,9 +32,9 @@ export function TransferPageContent({ title, subtitle, transfers }: TransferPage
 
       <div className="flex flex-col md:flex-row items-center gap-4">
         <div className="relative flex-1 group">
-          <Input 
-            placeholder="Search Farm..." 
-            className="pl-4 h-11 rounded-lg border-gray-200 focus:border-brand transition-all"
+          <Input
+            placeholder="Search Farm..."
+            className="pl-4 h-11 rounded-md border-gray-200 focus:border-brand transition-all"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -59,9 +59,9 @@ export function TransferPageContent({ title, subtitle, transfers }: TransferPage
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {transfers.map((transfer) => (
-          <TransferCard 
-            key={transfer.id} 
-            transfer={transfer} 
+          <TransferCard
+            key={transfer.id}
+            transfer={transfer}
             onAction={handleInitiate}
           />
         ))}
@@ -71,13 +71,13 @@ export function TransferPageContent({ title, subtitle, transfers }: TransferPage
         <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
           0 of 100 row(s) selected.
         </p>
-        <Pagination currentPage={1} totalPages={4} onPageChange={() => {}} />
+        <Pagination currentPage={1} totalPages={4} onPageChange={() => { }} />
       </div>
 
-      <InitiateTransferModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        product={selectedProduct} 
+      <InitiateTransferModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        product={selectedProduct}
       />
     </div>
   )

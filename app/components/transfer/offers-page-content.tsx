@@ -1,11 +1,11 @@
+import { ChevronDown, Filter, Search } from 'lucide-react'
 import { useState } from 'react'
-import { Search, ChevronDown, Filter } from 'lucide-react'
-import { Input } from '~/components/ui/input'
-import { Button } from '~/components/ui/button'
-import { TransferOfferCard } from './transfer-offer-card'
 import { Pagination } from '~/components/pagination'
-import type { TransferOffer } from '~/types/transfer'
+import { Button } from '~/components/ui/button'
+import { Input } from '~/components/ui/input'
 import { usePatchTransfersIdStatus } from '~/lib/api/generated/transfers/transfers'
+import type { TransferOffer } from '~/types/transfer'
+import { TransferOfferCard } from './transfer-offer-card'
 
 interface OffersPageContentProps {
   offers: TransferOffer[]
@@ -37,9 +37,9 @@ export function OffersPageContent({ offers }: OffersPageContentProps) {
 
       <div className="flex flex-col md:flex-row items-center gap-4">
         <div className="relative flex-1">
-          <Input 
-            placeholder="Search Farm..." 
-            className="pl-4 h-11 rounded-lg border-gray-200 focus:border-brand transition-all"
+          <Input
+            placeholder="Search Farm..."
+            className="pl-4 h-11 rounded-md border-gray-200 focus:border-brand transition-all"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -64,9 +64,9 @@ export function OffersPageContent({ offers }: OffersPageContentProps) {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {offers.map((offer) => (
-          <TransferOfferCard 
-            key={offer.id} 
-            offer={offer} 
+          <TransferOfferCard
+            key={offer.id}
+            offer={offer}
             onAccept={handleAccept}
           />
         ))}
@@ -76,7 +76,7 @@ export function OffersPageContent({ offers }: OffersPageContentProps) {
         <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
           0 of 100 row(s) selected.
         </p>
-        <Pagination currentPage={1} totalPages={4} onPageChange={() => {}} />
+        <Pagination currentPage={1} totalPages={4} onPageChange={() => { }} />
       </div>
     </div>
   )

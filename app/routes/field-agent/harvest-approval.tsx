@@ -1,26 +1,26 @@
 import { useQueryClient } from '@tanstack/react-query'
+import { AlertTriangle, Archive, CheckCircle2, Clock } from 'lucide-react'
 import { useMemo, useState } from 'react'
-import { Archive, CheckCircle2, AlertTriangle, Clock } from 'lucide-react'
 import { toast } from 'sonner'
 import { PageHeader } from '~/components/page-header'
+import { useGetFarms } from '~/lib/api/generated/farms/farms'
 import {
   getGetFieldAgentsHarvestApprovalsPendingQueryKey,
   getGetFieldAgentsHarvestApprovalsQueryKey,
-  useGetFieldAgentsHarvestApprovalsPending,
   useGetFieldAgentsHarvestApprovals,
+  useGetFieldAgentsHarvestApprovalsPending,
   usePostFieldAgentsHarvestApprovals,
 } from '~/lib/api/generated/field-agent/field-agent'
+import { CreateHarvestApprovalRequestAction } from '~/lib/api/generated/models/createHarvestApprovalRequestAction'
 import type { Farm } from '~/lib/api/generated/models/farm'
 import type { FarmProduct } from '~/lib/api/generated/models/farmProduct'
 import type { HarvestApproval } from '~/lib/api/generated/models/harvestApproval'
-import { useGetFarms } from '~/lib/api/generated/farms/farms'
 import { extractFarmProductsFromFieldAgentEnvelope } from '~/lib/field-agent-utils'
 import { formatFarmLocation } from '~/lib/record-operation-dashboard'
-import { HarvestFilters } from './harvest-approval/components/harvest-filters'
-import { HarvestCard, type HarvestItem } from './harvest-approval/components/harvest-card'
-import { HarvestInspectionModal } from './harvest-approval/components/harvest-inspection-modal'
-import { CreateHarvestApprovalRequestAction } from '~/lib/api/generated/models/createHarvestApprovalRequestAction'
 import { cn } from '~/lib/utils'
+import { HarvestCard, type HarvestItem } from './harvest-approval/components/harvest-card'
+import { HarvestFilters } from './harvest-approval/components/harvest-filters'
+import { HarvestInspectionModal } from './harvest-approval/components/harvest-inspection-modal'
 
 type HarvestApprovalAction =
   (typeof CreateHarvestApprovalRequestAction)[keyof typeof CreateHarvestApprovalRequestAction]
@@ -221,11 +221,11 @@ export default function HarvestApprovalPage() {
           {isLoading ? (
             <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
               {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className='h-64 rounded-lg border border-gray-100 bg-gray-50 animate-pulse' />
+                <div key={i} className='h-64 rounded-md border border-gray-100 bg-gray-50 animate-pulse' />
               ))}
             </div>
           ) : items.length === 0 ? (
-            <p className='text-sm text-gray-500 py-12 text-center rounded-lg border border-dashed border-gray-200'>
+            <p className='text-sm text-gray-500 py-12 text-center rounded-md border border-dashed border-gray-200'>
               No harvest records awaiting review.
             </p>
           ) : (
@@ -266,7 +266,7 @@ export default function HarvestApprovalPage() {
               ))}
             </div>
           ) : historyItems.length === 0 ? (
-            <p className='text-sm text-gray-500 py-12 text-center rounded-lg border border-dashed border-gray-200'>
+            <p className='text-sm text-gray-500 py-12 text-center rounded-md border border-dashed border-gray-200'>
               No approval history yet. Approve or flag a harvest to see it here.
             </p>
           ) : (
@@ -293,62 +293,62 @@ export default function HarvestApprovalPage() {
                       const evidenceCount = item.evidencePhotos?.length ?? 0
 
                       return (
-                      <tr key={item.id} className='hover:bg-gray-50/40 transition-colors'>
-                        <td className='px-4 py-3'>
-                          <div>
-                            <p className='text-xs font-semibold text-gray-900'>{productLabel}</p>
-                            {batchNumber && (
-                              <p className='text-[10px] font-mono text-gray-400 mt-0.5'>
-                                {batchNumber.toUpperCase().startsWith('BATCH') ? batchNumber : `BATCH-${batchNumber}`}
+                        <tr key={item.id} className='hover:bg-gray-50/40 transition-colors'>
+                          <td className='px-4 py-3'>
+                            <div>
+                              <p className='text-xs font-semibold text-gray-900'>{productLabel}</p>
+                              {batchNumber && (
+                                <p className='text-[10px] font-mono text-gray-400 mt-0.5'>
+                                  {batchNumber.toUpperCase().startsWith('BATCH') ? batchNumber : `BATCH-${batchNumber}`}
+                                </p>
+                              )}
+                            </div>
+                          </td>
+                          <td className='px-4 py-3'>
+                            <span className='text-xs font-mono text-gray-500'>{farmerLabel}</span>
+                          </td>
+                          <td className='px-4 py-3'>
+                            {item.action === 'approved' ? (
+                              <span className='inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded bg-emerald-50 text-emerald-700 border border-emerald-100'>
+                                <CheckCircle2 className='size-3' />
+                                Approved
+                              </span>
+                            ) : (
+                              <span className='inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded bg-red-50 text-red-700 border border-red-100'>
+                                <AlertTriangle className='size-3' />
+                                Flagged
+                              </span>
+                            )}
+                          </td>
+                          <td className='px-4 py-3 max-w-[200px]'>
+                            {item.flagReason && (
+                              <p className='text-[10px] font-semibold text-red-600 mb-0.5'>
+                                {item.flagReason.replace(/_/g, ' ')}
                               </p>
                             )}
-                          </div>
-                        </td>
-                        <td className='px-4 py-3'>
-                          <span className='text-xs font-mono text-gray-500'>{farmerLabel}</span>
-                        </td>
-                        <td className='px-4 py-3'>
-                          {item.action === 'approved' ? (
-                            <span className='inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded bg-emerald-50 text-emerald-700 border border-emerald-100'>
-                              <CheckCircle2 className='size-3' />
-                              Approved
+                            <p className='text-xs text-gray-500 line-clamp-2'>
+                              {item.notes ?? '—'}
+                            </p>
+                          </td>
+                          <td className='px-4 py-3'>
+                            <span className={cn(
+                              'text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded',
+                              evidenceCount > 0 ? 'bg-blue-50 text-blue-600' : 'bg-gray-50 text-gray-400'
+                            )}>
+                              {evidenceCount} {evidenceCount === 1 ? 'file' : 'files'}
                             </span>
-                          ) : (
-                            <span className='inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded bg-red-50 text-red-700 border border-red-100'>
-                              <AlertTriangle className='size-3' />
-                              Flagged
-                            </span>
-                          )}
-                        </td>
-                        <td className='px-4 py-3 max-w-[200px]'>
-                          {item.flagReason && (
-                            <p className='text-[10px] font-semibold text-red-600 mb-0.5'>
-                              {item.flagReason.replace(/_/g, ' ')}
-                            </p>
-                          )}
-                          <p className='text-xs text-gray-500 line-clamp-2'>
-                            {item.notes ?? '—'}
-                          </p>
-                        </td>
-                        <td className='px-4 py-3'>
-                          <span className={cn(
-                            'text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded',
-                            evidenceCount > 0 ? 'bg-blue-50 text-blue-600' : 'bg-gray-50 text-gray-400'
-                          )}>
-                            {evidenceCount} {evidenceCount === 1 ? 'file' : 'files'}
-                          </span>
-                        </td>
-                        <td className='px-4 py-3'>
-                          <div>
-                            <p className='text-xs text-gray-600 whitespace-nowrap'>
-                              {new Date(item.createdAt).toLocaleDateString()}
-                            </p>
-                            <p className='text-[10px] text-gray-400'>
-                              {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                            </p>
-                          </div>
-                        </td>
-                      </tr>
+                          </td>
+                          <td className='px-4 py-3'>
+                            <div>
+                              <p className='text-xs text-gray-600 whitespace-nowrap'>
+                                {new Date(item.createdAt).toLocaleDateString()}
+                              </p>
+                              <p className='text-[10px] text-gray-400'>
+                                {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </p>
+                            </div>
+                          </td>
+                        </tr>
                       )
                     })}
                   </tbody>

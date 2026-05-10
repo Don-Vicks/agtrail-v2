@@ -1,19 +1,18 @@
 import { useState } from 'react'
-import { X, Calendar as CalendarIcon, Info } from 'lucide-react'
 import { Button } from '~/components/ui/button'
+import { DatePicker } from '~/components/ui/date-picker'
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from '~/components/ui/dialog'
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
-import { DatePicker } from '~/components/ui/date-picker'
-import type { ProductTransfer } from '~/types/transfer'
 import { usePostTransfers } from '~/lib/api/generated/transfers/transfers'
+import type { ProductTransfer } from '~/types/transfer'
 
 interface InitiateTransferModalProps {
   isOpen: boolean
@@ -27,7 +26,7 @@ export function InitiateTransferModal({ isOpen, onClose, product }: InitiateTran
   const [unit, setUnit] = useState(product?.unit || 'KG')
   const [buyer, setBuyer] = useState('')
   const [price, setPrice] = useState('')
-  
+
   const { mutateAsync: initiateTransfer, isPending } = usePostTransfers()
 
   const handleInitiate = async () => {
@@ -73,8 +72,8 @@ export function InitiateTransferModal({ isOpen, onClose, product }: InitiateTran
           <DialogDescription className="text-sm text-gray-500 font-medium leading-relaxed">
             Fill in the details to handover goods to the transporter and secure the batch on the blockchain.
           </DialogDescription>
-          
-          <div className="mt-4 p-3 bg-[#f0f9f0] rounded-lg border border-[#e0f0e0]">
+
+          <div className="mt-4 p-3 bg-[#f0f9f0] rounded-md border border-[#e0f0e0]">
             <span className="text-sm font-bold text-brand uppercase tracking-tight">
               #{product.batchId} {product.productName} ({product.quantity}{product.unit})
             </span>
@@ -86,19 +85,19 @@ export function InitiateTransferModal({ isOpen, onClose, product }: InitiateTran
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <Label className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Quantity to Transfer*</Label>
-              <Input 
+              <Input
                 type="number"
                 value={quantity}
                 onChange={(e) => setQuantity(e.target.value)}
-                placeholder="Enter Quantity" 
-                className="h-11 rounded-lg" 
+                placeholder="Enter Quantity"
+                className="h-11 rounded-md"
               />
               <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">Available: {product.quantity}{product.unit}</p>
             </div>
             <div className="space-y-2">
               <Label className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Unit *</Label>
               <Select value={unit} onValueChange={setUnit}>
-                <SelectTrigger className="h-11 w-full rounded-lg">
+                <SelectTrigger className="h-11 w-full rounded-md">
                   <SelectValue placeholder="Select a Unit" />
                 </SelectTrigger>
                 <SelectContent>
@@ -115,12 +114,12 @@ export function InitiateTransferModal({ isOpen, onClose, product }: InitiateTran
             <h3 className="text-sm font-bold text-gray-900 uppercase tracking-tight flex items-center gap-2">
               Destination & Buyer Information
             </h3>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Label className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Buyer *</Label>
                 <Select value={buyer} onValueChange={setBuyer}>
-                  <SelectTrigger className="h-11 w-full rounded-lg">
+                  <SelectTrigger className="h-11 w-full rounded-md">
                     <SelectValue placeholder="Select Buyer" />
                   </SelectTrigger>
                   <SelectContent>
@@ -131,29 +130,29 @@ export function InitiateTransferModal({ isOpen, onClose, product }: InitiateTran
               </div>
               <div className="space-y-2">
                 <Label className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Buyer Email</Label>
-                <Input placeholder="Enter Supplier Email" className="h-11 rounded-lg" />
+                <Input placeholder="Enter Supplier Email" className="h-11 rounded-md" />
               </div>
               <div className="space-y-2">
                 <Label className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Country *</Label>
-                <Input placeholder="Enter Country" className="h-11 rounded-lg" />
+                <Input placeholder="Enter Country" className="h-11 rounded-md" />
               </div>
               <div className="space-y-2">
                 <Label className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Region/State</Label>
-                <Input placeholder="Enter Country Region" className="h-11 rounded-lg" />
+                <Input placeholder="Enter Country Region" className="h-11 rounded-md" />
               </div>
               <div className="space-y-2">
                 <Label className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Contact Phone Number 1</Label>
-                <Input placeholder="Enter Phone" className="h-11 rounded-lg" />
+                <Input placeholder="Enter Phone" className="h-11 rounded-md" />
               </div>
               <div className="space-y-2">
                 <Label className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Contact Phone Number 2</Label>
-                <Input placeholder="Enter Phone" className="h-11 rounded-lg" />
+                <Input placeholder="Enter Phone" className="h-11 rounded-md" />
               </div>
             </div>
-            
+
             <div className="space-y-2">
               <Label className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Address</Label>
-              <Input placeholder="Enter Address" className="h-11 rounded-lg" />
+              <Input placeholder="Enter Address" className="h-11 rounded-md" />
             </div>
           </div>
 
@@ -172,12 +171,12 @@ export function InitiateTransferModal({ isOpen, onClose, product }: InitiateTran
               <Label className="text-[11px] font-bold uppercase tracking-widest text-[#92400e]">Price (NGN) *</Label>
               <div className="relative">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">₦</span>
-                <Input 
+                <Input
                   type="number"
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
-                  placeholder="0.00" 
-                  className="h-12 pl-8 rounded-lg bg-white border-[#feeeb7] focus:border-[#f59e0b] focus:ring-[#f59e0b]" 
+                  placeholder="0.00"
+                  className="h-12 pl-8 rounded-md bg-white border-[#feeeb7] focus:border-[#f59e0b] focus:ring-[#f59e0b]"
                 />
               </div>
               <p className="text-[10px] text-[#92400e] font-bold uppercase tracking-tight opacity-70">Payment will be made to your bank wallet</p>
@@ -190,29 +189,29 @@ export function InitiateTransferModal({ isOpen, onClose, product }: InitiateTran
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Label className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Scheduled Date *</Label>
-                <DatePicker 
-                  value={scheduledDate as any} 
-                  onChange={(date: any) => setScheduledDate(date)} 
-                  className="h-11 w-full rounded-lg" 
+                <DatePicker
+                  value={scheduledDate as any}
+                  onChange={(date: any) => setScheduledDate(date)}
+                  className="h-11 w-full rounded-md"
                 />
               </div>
               <div className="space-y-2">
                 <Label className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Price per Unit</Label>
-                <Input placeholder="Enter Price" className="h-11 rounded-lg" />
+                <Input placeholder="Enter Price" className="h-11 rounded-md" />
               </div>
             </div>
           </div>
 
           {/* Footer Buttons */}
           <div className="flex gap-4 pt-4 border-t border-gray-100">
-            <Button 
+            <Button
               onClick={handleInitiate}
               disabled={isPending || !quantity || !buyer}
-              className="flex-1 h-12 bg-[#1d3d1e] hover:bg-black text-white font-bold uppercase tracking-widest text-xs rounded-lg shadow-sm"
+              className="flex-1 h-12 bg-[#1d3d1e] hover:bg-black text-white font-bold uppercase tracking-widest text-xs rounded-md shadow-sm"
             >
               {isPending ? 'Initiating...' : 'Dispatch Request'}
             </Button>
-            <Button variant="outline" className="flex-1 h-12 border-brand text-brand font-bold uppercase tracking-widest text-xs rounded-lg hover:bg-brand/5">
+            <Button variant="outline" className="flex-1 h-12 border-brand text-brand font-bold uppercase tracking-widest text-xs rounded-md hover:bg-brand/5">
               Save as Draft
             </Button>
           </div>

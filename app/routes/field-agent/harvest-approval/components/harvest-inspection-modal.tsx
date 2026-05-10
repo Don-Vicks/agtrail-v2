@@ -1,11 +1,11 @@
-import { MapPin, ChevronDown, Upload, FileCheck } from 'lucide-react'
+import { ChevronDown, FileCheck, MapPin, Upload } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { Button } from '~/components/ui/button'
 import { Dialog, DialogContent } from '~/components/ui/dialog'
+import { resolveDocumentUrlForApi } from '~/lib/api/custom-fetch'
 import { CreateHarvestApprovalRequestAction } from '~/lib/api/generated/models/createHarvestApprovalRequestAction'
 import { usePostUpload } from '~/lib/api/generated/upload/upload'
-import { resolveDocumentUrlForApi } from '~/lib/api/custom-fetch'
 import type { HarvestItem } from './harvest-card'
 
 const FLAG_REASONS = [
@@ -96,7 +96,7 @@ export function HarvestInspectionModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className='sm:max-w-[500px] p-0 overflow-hidden border-none shadow-2xl rounded-lg bg-white'>
+      <DialogContent className='sm:max-w-[500px] p-0 overflow-hidden border-none shadow-2xl rounded-md bg-white'>
         <div className='max-h-[90vh] overflow-y-auto relative'>
           <div className='p-5 space-y-5'>
             {/* Context Bar */}
@@ -121,11 +121,11 @@ export function HarvestInspectionModal({
                 </div>
               </div>
               <div className="text-right border-l border-gray-200/60 pl-3 hidden xs:block">
-                 <p className="text-[9px] font-semibold text-gray-300 uppercase tracking-widest mb-1">Holder</p>
-                 <div className="flex items-center gap-1.5 justify-end">
-                   <span className="text-[9px] font-bold text-gray-500 truncate max-w-[70px]">{item.owner.split('@')[0]}</span>
-                   <div className="size-5 rounded-full bg-black text-white flex items-center justify-center text-[9px] font-bold">AD</div>
-                 </div>
+                <p className="text-[9px] font-semibold text-gray-300 uppercase tracking-widest mb-1">Holder</p>
+                <div className="flex items-center gap-1.5 justify-end">
+                  <span className="text-[9px] font-bold text-gray-500 truncate max-w-[70px]">{item.owner.split('@')[0]}</span>
+                  <div className="size-5 rounded-full bg-black text-white flex items-center justify-center text-[9px] font-bold">AD</div>
+                </div>
               </div>
             </div>
 
@@ -216,7 +216,7 @@ export function HarvestInspectionModal({
             </div>
 
             <div className='flex flex-col sm:flex-row gap-3 justify-between items-center pt-4 border-t border-gray-50'>
-              <button 
+              <button
                 type="button"
                 onClick={onClose}
                 disabled={busy}
