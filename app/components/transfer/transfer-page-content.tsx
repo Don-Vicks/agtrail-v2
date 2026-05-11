@@ -39,17 +39,17 @@ export function TransferPageContent({ title, subtitle, transfers }: TransferPage
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-        <Button variant="outline" className="h-11 px-6 border-gray-200 text-gray-600 font-bold uppercase tracking-widest text-[10px] flex items-center gap-2">
+        <Button variant="outline" className="h-11 px-6 border-gray-100 bg-white text-gray-600 font-black uppercase tracking-widest text-[10px] flex items-center gap-2 rounded-md hover:bg-gray-50 shadow-sm transition-all active:scale-95">
           <Search className="size-4" />
           Search
         </Button>
         <div className="flex items-center gap-2">
-          <Button variant="outline" className="h-11 px-4 border-gray-200 text-gray-600 font-bold uppercase tracking-widest text-[10px] flex items-center gap-2">
+          <Button variant="outline" className="h-11 px-4 border-gray-100 bg-white text-gray-600 font-black uppercase tracking-widest text-[10px] flex items-center gap-2 rounded-md hover:bg-gray-50 shadow-sm transition-all active:scale-95">
             <Filter className="size-4" />
             Sort by Farmer
             <ChevronDown className="size-3" />
           </Button>
-          <Button variant="outline" className="h-11 px-4 border-gray-200 text-gray-600 font-bold uppercase tracking-widest text-[10px] flex items-center gap-2">
+          <Button variant="outline" className="h-11 px-4 border-gray-100 bg-white text-gray-600 font-black uppercase tracking-widest text-[10px] flex items-center gap-2 rounded-md hover:bg-gray-50 shadow-sm transition-all active:scale-95">
             <Filter className="size-4" />
             Sort by Product
             <ChevronDown className="size-3" />

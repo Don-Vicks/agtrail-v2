@@ -13,16 +13,16 @@ export function TransferCard({ transfer, onAction }: TransferCardProps) {
   const isReadyForPickup = transfer.status === 'ready_for_pickup'
 
   return (
-    <div className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm transition-all hover:shadow-md">
+    <div className="rounded-md border border-gray-100 bg-white p-5 shadow-sm transition-all hover:shadow-md hover:border-brand/20 group">
       <div className="flex items-start justify-between mb-4">
-        <div className="flex size-16 items-center justify-center rounded-md bg-gray-50 text-gray-400">
+        <div className="flex size-16 items-center justify-center rounded-md bg-gray-50 text-gray-400 group-hover:bg-brand/5 group-hover:text-brand transition-colors">
           <QrCode className="size-10" />
         </div>
         <div className="flex flex-col items-end gap-1.5">
-          <Badge className="bg-[#1d3d1e] text-white px-3 py-1 text-sm font-bold rounded-md">
+          <Badge className="bg-brand text-white px-3 py-1 text-sm font-bold rounded-md border-none shadow-sm">
             {transfer.quantity.toLocaleString()}{transfer.unit}
           </Badge>
-          <span className="text-[10px] font-bold text-orange-500 uppercase tracking-widest bg-orange-50 px-1.5 py-0.5 rounded">
+          <span className="text-[10px] font-black text-amber-600 uppercase tracking-widest bg-amber-50 px-1.5 py-0.5 rounded-sm border border-amber-100">
             {transfer.batchId}
           </span>
         </div>
@@ -49,10 +49,10 @@ export function TransferCard({ transfer, onAction }: TransferCardProps) {
         <Button
           onClick={() => onAction?.(transfer)}
           className={cn(
-            "w-full h-11 uppercase tracking-widest text-[10px] font-bold shadow-sm transition-all",
+            "w-full h-11 uppercase tracking-widest text-[10px] font-black shadow-sm transition-all active:scale-[0.98] rounded-md",
             isReadyForPickup
-              ? "bg-[#1d3d1e] hover:bg-black text-white"
-              : "bg-[#1d3d1e] hover:bg-black text-white"
+              ? "bg-brand hover:bg-brand/90 text-white"
+              : "bg-brand hover:bg-brand/90 text-white"
           )}
         >
           {isReadyForPickup ? 'Ready for pickup' : 'Initiate Product Transfer'}

@@ -25,6 +25,12 @@ export function InitiateTransferModal({ isOpen, onClose, product }: InitiateTran
   const [quantity, setQuantity] = useState('')
   const [unit, setUnit] = useState(product?.unit || 'KG')
   const [buyer, setBuyer] = useState('')
+  const [buyerEmail, setBuyerEmail] = useState('')
+  const [country, setCountry] = useState('')
+  const [region, setRegion] = useState('')
+  const [phone1, setPhone1] = useState('')
+  const [phone2, setPhone2] = useState('')
+  const [address, setAddress] = useState('')
   const [price, setPrice] = useState('')
 
   const { mutateAsync: initiateTransfer, isPending } = usePostTransfers()
@@ -36,6 +42,12 @@ export function InitiateTransferModal({ isOpen, onClose, product }: InitiateTran
       const payload: any = {
         productType: product.productType || 'farm_product',
         toUserId: buyer,
+        toUserEmail: buyerEmail,
+        destinationCountry: country,
+        destinationRegion: region,
+        destinationPhone1: phone1,
+        destinationPhone2: phone2,
+        destinationAddress: address,
         quantityTransferred: Number(quantity),
         unit: unit,
         currency: 'NGN',
@@ -62,7 +74,7 @@ export function InitiateTransferModal({ isOpen, onClose, product }: InitiateTran
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-0 border-none rounded-xl">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-0 border-none rounded-md">
         <DialogHeader className="p-8 pb-4">
           <div className="flex items-center justify-between mb-2">
             <DialogTitle className="text-2xl font-extrabold text-[#1d3d1e] tracking-tight">
@@ -73,8 +85,8 @@ export function InitiateTransferModal({ isOpen, onClose, product }: InitiateTran
             Fill in the details to handover goods to the transporter and secure the batch on the blockchain.
           </DialogDescription>
 
-          <div className="mt-4 p-3 bg-[#f0f9f0] rounded-md border border-[#e0f0e0]">
-            <span className="text-sm font-bold text-brand uppercase tracking-tight">
+          <div className="mt-4 p-3 bg-brand/5 rounded-md border border-brand/10">
+            <span className="text-sm font-black text-brand uppercase tracking-tight">
               #{product.batchId} {product.productName} ({product.quantity}{product.unit})
             </span>
           </div>
@@ -84,20 +96,20 @@ export function InitiateTransferModal({ isOpen, onClose, product }: InitiateTran
           {/* Top Section: Quantity and Unit */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Quantity to Transfer*</Label>
+              <Label className="text-[11px] font-black uppercase tracking-widest text-gray-400">Quantity to Transfer*</Label>
               <Input
                 type="number"
                 value={quantity}
                 onChange={(e) => setQuantity(e.target.value)}
                 placeholder="Enter Quantity"
-                className="h-11 rounded-md"
+                className="h-11 rounded-md border-gray-100 bg-white focus:border-brand shadow-sm transition-all text-xs"
               />
               <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">Available: {product.quantity}{product.unit}</p>
             </div>
             <div className="space-y-2">
-              <Label className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Unit *</Label>
-              <Select value={unit} onValueChange={setUnit}>
-                <SelectTrigger className="h-11 w-full rounded-md">
+              <Label className="text-[11px] font-black uppercase tracking-widest text-gray-400">Unit *</Label>
+              <Select value={unit} onValueChange={(val) => setUnit(val || '')}>
+                <SelectTrigger className="h-11 w-full rounded-md border-gray-100 bg-white focus:border-brand shadow-sm transition-all text-xs">
                   <SelectValue placeholder="Select a Unit" />
                 </SelectTrigger>
                 <SelectContent>
@@ -117,9 +129,9 @@ export function InitiateTransferModal({ isOpen, onClose, product }: InitiateTran
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Buyer *</Label>
-                <Select value={buyer} onValueChange={setBuyer}>
-                  <SelectTrigger className="h-11 w-full rounded-md">
+                <Label className="text-[11px] font-black uppercase tracking-widest text-gray-400">Buyer *</Label>
+                <Select value={buyer} onValueChange={(val) => setBuyer(val || '')}>
+                  <SelectTrigger className="h-11 w-full rounded-md border-gray-100 bg-white focus:border-brand shadow-sm transition-all text-xs">
                     <SelectValue placeholder="Select Buyer" />
                   </SelectTrigger>
                   <SelectContent>
@@ -129,57 +141,87 @@ export function InitiateTransferModal({ isOpen, onClose, product }: InitiateTran
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Buyer Email</Label>
-                <Input placeholder="Enter Supplier Email" className="h-11 rounded-md" />
+                <Label className="text-[11px] font-black uppercase tracking-widest text-gray-400">Buyer Email</Label>
+                <Input 
+                  placeholder="Enter Supplier Email" 
+                  className="h-11 rounded-md border-gray-100 bg-white focus:border-brand shadow-sm transition-all text-xs" 
+                  value={buyerEmail}
+                  onChange={(e) => setBuyerEmail(e.target.value)}
+                />
               </div>
               <div className="space-y-2">
-                <Label className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Country *</Label>
-                <Input placeholder="Enter Country" className="h-11 rounded-md" />
+                <Label className="text-[11px] font-black uppercase tracking-widest text-gray-400">Country *</Label>
+                <Input 
+                  placeholder="Enter Country" 
+                  className="h-11 rounded-md border-gray-100 bg-white focus:border-brand shadow-sm transition-all text-xs" 
+                  value={country}
+                  onChange={(e) => setCountry(e.target.value)}
+                />
               </div>
               <div className="space-y-2">
-                <Label className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Region/State</Label>
-                <Input placeholder="Enter Country Region" className="h-11 rounded-md" />
+                <Label className="text-[11px] font-black uppercase tracking-widest text-gray-400">Region/State</Label>
+                <Input 
+                  placeholder="Enter Country Region" 
+                  className="h-11 rounded-md border-gray-100 bg-white focus:border-brand shadow-sm transition-all text-xs" 
+                  value={region}
+                  onChange={(e) => setRegion(e.target.value)}
+                />
               </div>
               <div className="space-y-2">
-                <Label className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Contact Phone Number 1</Label>
-                <Input placeholder="Enter Phone" className="h-11 rounded-md" />
+                <Label className="text-[11px] font-black uppercase tracking-widest text-gray-400">Contact Phone Number 1</Label>
+                <Input 
+                  placeholder="Enter Phone" 
+                  className="h-11 rounded-md border-gray-100 bg-white focus:border-brand shadow-sm transition-all text-xs" 
+                  value={phone1}
+                  onChange={(e) => setPhone1(e.target.value)}
+                />
               </div>
               <div className="space-y-2">
-                <Label className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Contact Phone Number 2</Label>
-                <Input placeholder="Enter Phone" className="h-11 rounded-md" />
+                <Label className="text-[11px] font-black uppercase tracking-widest text-gray-400">Contact Phone Number 2</Label>
+                <Input 
+                  placeholder="Enter Phone" 
+                  className="h-11 rounded-md border-gray-100 bg-white focus:border-brand shadow-sm transition-all text-xs" 
+                  value={phone2}
+                  onChange={(e) => setPhone2(e.target.value)}
+                />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Address</Label>
-              <Input placeholder="Enter Address" className="h-11 rounded-md" />
+              <Label className="text-[11px] font-black uppercase tracking-widest text-gray-400">Address</Label>
+              <Input 
+                placeholder="Enter Address" 
+                className="h-11 rounded-md border-gray-100 bg-white focus:border-brand shadow-sm transition-all text-xs" 
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+              />
             </div>
           </div>
 
           {/* Pricing Section */}
-          <div className="bg-[#fff9e6] rounded-xl border border-[#feeeb7] p-6 space-y-4">
+          <div className="bg-amber-50 rounded-md border border-amber-100 p-6 space-y-4">
             <div className="flex items-center gap-2">
-              <div className="size-5 rounded-full bg-[#f59e0b] flex items-center justify-center text-white">
-                <span className="text-[10px] font-bold">₦</span>
+              <div className="size-5 rounded-full bg-amber-500 flex items-center justify-center text-white">
+                <span className="text-[10px] font-black">₦</span>
               </div>
-              <h3 className="text-sm font-bold text-[#92400e] uppercase tracking-tight">Set Your Price</h3>
+              <h3 className="text-sm font-black text-amber-900 uppercase tracking-tight">Set Your Price</h3>
             </div>
-            <p className="text-xs text-[#92400e] font-medium opacity-80">
+            <p className="text-xs text-amber-800 font-medium opacity-80">
               The processor will need to pay this amount to receive the products.
             </p>
             <div className="space-y-2">
-              <Label className="text-[11px] font-bold uppercase tracking-widest text-[#92400e]">Price (NGN) *</Label>
+              <Label className="text-[11px] font-black uppercase tracking-widest text-amber-900">Price (NGN) *</Label>
               <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">₦</span>
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-black">₦</span>
                 <Input
                   type="number"
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
                   placeholder="0.00"
-                  className="h-12 pl-8 rounded-md bg-white border-[#feeeb7] focus:border-[#f59e0b] focus:ring-[#f59e0b]"
+                  className="h-12 pl-8 rounded-md bg-white border-amber-200 focus:border-amber-500 focus:ring-amber-500 text-sm font-black text-amber-900"
                 />
               </div>
-              <p className="text-[10px] text-[#92400e] font-bold uppercase tracking-tight opacity-70">Payment will be made to your bank wallet</p>
+              <p className="text-[10px] text-amber-700 font-black uppercase tracking-tight opacity-70">Payment will be made to your bank wallet</p>
             </div>
           </div>
 
@@ -207,11 +249,11 @@ export function InitiateTransferModal({ isOpen, onClose, product }: InitiateTran
             <Button
               onClick={handleInitiate}
               disabled={isPending || !quantity || !buyer}
-              className="flex-1 h-12 bg-[#1d3d1e] hover:bg-black text-white font-bold uppercase tracking-widest text-xs rounded-md shadow-sm"
+              className="flex-1 h-12 bg-brand hover:bg-brand/90 text-white font-black uppercase tracking-widest text-[10px] rounded-md shadow-md transition-all active:scale-95"
             >
               {isPending ? 'Initiating...' : 'Dispatch Request'}
             </Button>
-            <Button variant="outline" className="flex-1 h-12 border-brand text-brand font-bold uppercase tracking-widest text-xs rounded-md hover:bg-brand/5">
+            <Button variant="outline" className="flex-1 h-12 border-gray-200 text-gray-500 font-black uppercase tracking-widest text-[10px] rounded-md hover:bg-gray-50 shadow-sm transition-all active:scale-95">
               Save as Draft
             </Button>
           </div>

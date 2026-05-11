@@ -5,6 +5,7 @@ import {
   prefix,
   route,
 } from '@react-router/dev/routes'
+import { farmerRoutes } from './routes/farmer/farmer-routes'
 import { processorRoutes } from './routes/processor/processor-routes'
 import { cooperativeRoutes } from './routes/cooperative/cooperative-routes'
 import { aggregatorRoutes } from './routes/aggregator/aggregator-routes'
@@ -27,125 +28,14 @@ export default [
   route('passport/:id', 'routes/public/passport.tsx'),
 
   // Farmer tenant
-  layout('routes/farmer/layout.tsx', [
-    ...prefix('farmer', [
-      index('routes/farmer/dashboard.tsx'),
-      route('farms', 'routes/farmer/farms.tsx'),
-      route('crop-cycle', 'routes/farmer/crop-cycle.tsx'),
-      route('products', 'routes/farmer/products/index.tsx'),
-      route('products/:id', 'routes/farmer/products/story.tsx'),
-      route('farms/:id', 'routes/farmer/farm-detail.tsx'),
-      route('inventory', 'routes/farmer/inventory.tsx'),
-      route('personnel', 'routes/farmer/personnel.tsx'),
+  ...farmerRoutes as any,
 
-      // Operations Routes
-      route('operations/new', 'routes/farmer/record-operation.tsx'),
-      route(
-        'operations/new/:cropCycleId/land-prep',
-        'routes/farmer/operations/land-prep.tsx',
-      ),
-      route(
-        'operations/new/:cropCycleId/planting',
-        'routes/farmer/operations/planting.tsx',
-      ),
-      route(
-        'operations/new/:cropCycleId/fertilizer',
-        'routes/farmer/operations/fertilizer.tsx',
-      ),
-      route(
-        'operations/new/:cropCycleId/irrigation',
-        'routes/farmer/operations/irrigation.tsx',
-      ),
-      route(
-        'operations/new/:cropCycleId/weeding',
-        'routes/farmer/operations/weeding.tsx',
-      ),
-      route(
-        'operations/new/:cropCycleId/pest-control',
-        'routes/farmer/operations/pest-control.tsx',
-      ),
-      route(
-        'operations/new/:cropCycleId/pruning',
-        'routes/farmer/operations/pruning.tsx',
-      ),
-      route(
-        'operations/new/:cropCycleId/harvesting',
-        'routes/farmer/operations/harvesting.tsx',
-      ),
-      route(
-        'operations/new/:cropCycleId/sorting',
-        'routes/farmer/operations/sorting.tsx',
-      ),
-      route(
-        'operations/new/:cropCycleId/drying',
-        'routes/farmer/operations/drying.tsx',
-      ),
-      route(
-        'operations/new/:cropCycleId/processing',
-        'routes/farmer/operations/processing.tsx',
-      ),
-      route(
-        'operations/new/:cropCycleId/packaging',
-        'routes/farmer/operations/packaging.tsx',
-      ),
-      route(
-        'operations/new/:cropCycleId/storage',
-        'routes/farmer/operations/storage.tsx',
-      ),
-      route(
-        'certifications/product',
-        'routes/farmer/certifications/product-certification.tsx',
-      ),
-      route(
-        'certifications/farm',
-        'routes/farmer/certifications/farm-certification.tsx',
-      ),
-      route(
-        'certifications/view',
-        'routes/farmer/certifications/view-certifications.tsx',
-      ),
-      route(
-        'finance/record-purchase',
-        'routes/farmer/finance/record-purchase.tsx',
-      ),
-      route('finance/receivables', 'routes/farmer/finance/receivables.tsx'),
-
-      // Reports & Analytics
-      ...prefix('reports', [
-        index('routes/farmer/reports/reports-analytics.tsx'),
-        route('crop-cycle', 'routes/farmer/reports/crop-cycle-summary.tsx'),
-        route('harvest-sales', 'routes/farmer/reports/harvest-sales-report.tsx'),
-        route('farm', 'routes/farmer/reports/farm-report.tsx'),
-        route('financial', 'routes/farmer/reports/financial-summary.tsx'),
-        route('payments', 'routes/farmer/reports/payment-history.tsx'),
-      ]),
-
-      // Compliance Analysis
-      // Compliance Analysis Workflow
-      ...prefix('compliance', [
-        index('routes/farmer/compliance/compliance-analysis.tsx'),
-        route('risk-assessment', 'routes/farmer/compliance/risk-assessment.tsx'),
-        route('market', 'routes/farmer/compliance/market-selection.tsx'),
-        route('readiness', 'routes/farmer/compliance/readiness-check.tsx'),
-        route('report', 'routes/farmer/compliance/compliance-report.tsx'),
-      ]),
-
-      // Settings
-      route('settings', 'routes/farmer/settings/settings-root.tsx'),
-
-      // Transfer
-      route('transfer/product-transfer', 'routes/farmer/farmer-product-transfer.tsx'),
-      route('transfer/pickup', 'routes/farmer/transfer/pickup.tsx'),
-      route('transfer/history', 'routes/farmer/farmer-transfer-history.tsx'),
+  // Admin tenant
+  layout('routes/admin/layout.tsx', [
+    ...prefix('admin', [
+      index('routes/admin/dashboard.tsx'),
     ]),
   ]),
-
-  // Future: buyer, admin tenants follow the same pattern
-  // layout('routes/buyer/layout.tsx', [
-  //   ...prefix('buyer', [
-  //     index('routes/buyer/dashboard.tsx'),
-  //   ]),
-  // ]),
 
   ...processorRoutes as any,
   ...cooperativeRoutes as any,

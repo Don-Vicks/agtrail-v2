@@ -388,7 +388,7 @@ export function Sidebar({ navigation, roleLabel }: SidebarProps) {
               <SelectValue className='text-sm font-semibold text-gray-900' />
             </SelectTrigger>
             <SelectContent>
-              {['Farmer', 'Processor', 'Cooperative', 'Aggregator', 'Transporter', 'Field Agent'].map((r) => (
+              {['Farmer', 'Processor', 'Cooperative', 'Aggregator', 'Transporter', 'Field Agent', 'Admin'].map((r) => (
                 <SelectItem
                   key={r}
                   value={r}

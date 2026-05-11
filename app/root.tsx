@@ -70,7 +70,7 @@ export default function App() {
                 <div className="absolute inset-0 bg-white/40 backdrop-blur-[2px] flex items-center justify-center pointer-events-auto transition-all">
                   <div className="bg-white px-6 py-4 rounded-md shadow-2xl border border-gray-100 flex items-center gap-4 animate-in fade-in zoom-in duration-300">
                     <Loader2 className="size-6 text-[#10b981] animate-spin" />
-                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-900">Synchronizing Journey</span>
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-900">Loading...</span>
                   </div>
                 </div>
               </div>
