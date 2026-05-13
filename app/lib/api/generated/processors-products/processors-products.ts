@@ -6,17 +6,28 @@
  * OpenAPI spec version: 1.0.0
  */
 import {
-  useMutation
+  useMutation,
+  useQuery
 } from '@tanstack/react-query';
 import type {
+  DataTag,
+  DefinedInitialDataOptions,
+  DefinedUseQueryResult,
   MutationFunction,
   QueryClient,
+  QueryFunction,
+  QueryKey,
+  UndefinedInitialDataOptions,
   UseMutationOptions,
-  UseMutationResult
+  UseMutationResult,
+  UseQueryOptions,
+  UseQueryResult
 } from '@tanstack/react-query';
 
 import type {
   AddBatchProductRequest,
+  GetProcessorsProducts200,
+  GetProcessorsProductsParams,
   PostProcessorsBatchesIdProducts201
 } from '.././models';
 
@@ -110,4 +121,121 @@ export const usePostProcessorsBatchesIdProducts = <TError = unknown,
       > => {
       return useMutation(getPostProcessorsBatchesIdProductsMutationOptions(options), queryClient);
     }
+    /**
+ * Returns every finished product the processor has produced, regardless of which batch it came from. Supports filtering by status.
+ * @summary List all batch products across all batches for the org
+ */
+export type getProcessorsProductsResponse200 = {
+  data: GetProcessorsProducts200
+  status: 200
+}
+
+export type getProcessorsProductsResponseSuccess = (getProcessorsProductsResponse200) & {
+  headers: Headers;
+};
+;
+
+export type getProcessorsProductsResponse = (getProcessorsProductsResponseSuccess)
+
+export const getGetProcessorsProductsUrl = (params?: GetProcessorsProductsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
     
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/processors/products?${stringifiedParams}` : `/processors/products`
+}
+
+export const getProcessorsProducts = async (params?: GetProcessorsProductsParams, options?: RequestInit): Promise<getProcessorsProductsResponse> => {
+  
+  return customFetch<getProcessorsProductsResponse>(getGetProcessorsProductsUrl(params),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+  
+
+
+
+
+export const getGetProcessorsProductsQueryKey = (params?: GetProcessorsProductsParams,) => {
+    return [
+    `/processors/products`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+    
+export const getGetProcessorsProductsQueryOptions = <TData = Awaited<ReturnType<typeof getProcessorsProducts>>, TError = unknown>(params?: GetProcessorsProductsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getProcessorsProducts>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetProcessorsProductsQueryKey(params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getProcessorsProducts>>> = ({ signal }) => getProcessorsProducts(params, { signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getProcessorsProducts>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetProcessorsProductsQueryResult = NonNullable<Awaited<ReturnType<typeof getProcessorsProducts>>>
+export type GetProcessorsProductsQueryError = unknown
+
+
+export function useGetProcessorsProducts<TData = Awaited<ReturnType<typeof getProcessorsProducts>>, TError = unknown>(
+ params: undefined |  GetProcessorsProductsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getProcessorsProducts>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getProcessorsProducts>>,
+          TError,
+          Awaited<ReturnType<typeof getProcessorsProducts>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetProcessorsProducts<TData = Awaited<ReturnType<typeof getProcessorsProducts>>, TError = unknown>(
+ params?: GetProcessorsProductsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getProcessorsProducts>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getProcessorsProducts>>,
+          TError,
+          Awaited<ReturnType<typeof getProcessorsProducts>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetProcessorsProducts<TData = Awaited<ReturnType<typeof getProcessorsProducts>>, TError = unknown>(
+ params?: GetProcessorsProductsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getProcessorsProducts>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary List all batch products across all batches for the org
+ */
+
+export function useGetProcessorsProducts<TData = Awaited<ReturnType<typeof getProcessorsProducts>>, TError = unknown>(
+ params?: GetProcessorsProductsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getProcessorsProducts>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetProcessorsProductsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+

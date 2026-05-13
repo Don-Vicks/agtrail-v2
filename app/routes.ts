@@ -10,8 +10,9 @@ import { processorRoutes } from './routes/processor/processor-routes'
 import { cooperativeRoutes } from './routes/cooperative/cooperative-routes'
 import { aggregatorRoutes } from './routes/aggregator/aggregator-routes'
 import { fieldAgentRoutes } from './routes/field-agent/field-agent-routes'
+import { transporterRoutes } from './routes/transporter/transporter-routes'
 
-// Triggering re-build for new routes
+// Triggering re-build for new routes - v3
 
 export default [
   index('routes/home.tsx'),
@@ -43,11 +44,5 @@ export default [
   ...fieldAgentRoutes as any,
 
   // Transporter tenant
-  layout('routes/transporter/layout.tsx', [
-    ...prefix('transporter', [
-      index('routes/transporter/dashboard.tsx'),
-      route('transfer/product-transfer', 'routes/transporter/transporter-transfer-offers.tsx'),
-      route('transfer/history', 'routes/transporter/transporter-transfer-history.tsx'),
-    ]),
-  ]),
+  ...transporterRoutes,
 ] satisfies RouteConfig

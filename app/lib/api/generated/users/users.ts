@@ -25,6 +25,8 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  GetUsersByRole200,
+  GetUsersByRoleParams,
   GetUsersKycLink200,
   GetUsersProfile200,
   PostUsersKyc200,
@@ -37,6 +39,131 @@ import { customFetch } from '../../custom-fetch';
 
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
+
+
+
+/**
+ * Returns a list of users with the given system role. Optionally filter by name or state. Use this before initiating a product transfer to find the target user ID.
+ * @summary Search users by role — for finding transfer recipients
+ */
+export type getUsersByRoleResponse200 = {
+  data: GetUsersByRole200
+  status: 200
+}
+
+export type getUsersByRoleResponse400 = {
+  data: void
+  status: 400
+}
+
+export type getUsersByRoleResponseSuccess = (getUsersByRoleResponse200) & {
+  headers: Headers;
+};
+export type getUsersByRoleResponseError = (getUsersByRoleResponse400) & {
+  headers: Headers;
+};
+
+export type getUsersByRoleResponse = (getUsersByRoleResponseSuccess | getUsersByRoleResponseError)
+
+export const getGetUsersByRoleUrl = (params: GetUsersByRoleParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/users/by-role?${stringifiedParams}` : `/users/by-role`
+}
+
+export const getUsersByRole = async (params: GetUsersByRoleParams, options?: RequestInit): Promise<getUsersByRoleResponse> => {
+  
+  return customFetch<getUsersByRoleResponse>(getGetUsersByRoleUrl(params),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+  
+
+
+
+
+export const getGetUsersByRoleQueryKey = (params?: GetUsersByRoleParams,) => {
+    return [
+    `/users/by-role`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+    
+export const getGetUsersByRoleQueryOptions = <TData = Awaited<ReturnType<typeof getUsersByRole>>, TError = void>(params: GetUsersByRoleParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUsersByRole>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetUsersByRoleQueryKey(params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getUsersByRole>>> = ({ signal }) => getUsersByRole(params, { signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getUsersByRole>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetUsersByRoleQueryResult = NonNullable<Awaited<ReturnType<typeof getUsersByRole>>>
+export type GetUsersByRoleQueryError = void
+
+
+export function useGetUsersByRole<TData = Awaited<ReturnType<typeof getUsersByRole>>, TError = void>(
+ params: GetUsersByRoleParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUsersByRole>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getUsersByRole>>,
+          TError,
+          Awaited<ReturnType<typeof getUsersByRole>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetUsersByRole<TData = Awaited<ReturnType<typeof getUsersByRole>>, TError = void>(
+ params: GetUsersByRoleParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUsersByRole>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getUsersByRole>>,
+          TError,
+          Awaited<ReturnType<typeof getUsersByRole>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetUsersByRole<TData = Awaited<ReturnType<typeof getUsersByRole>>, TError = void>(
+ params: GetUsersByRoleParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUsersByRole>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Search users by role — for finding transfer recipients
+ */
+
+export function useGetUsersByRole<TData = Awaited<ReturnType<typeof getUsersByRole>>, TError = void>(
+ params: GetUsersByRoleParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUsersByRole>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetUsersByRoleQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
 
 
 

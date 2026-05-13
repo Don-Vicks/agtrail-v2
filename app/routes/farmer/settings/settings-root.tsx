@@ -376,7 +376,7 @@ function IdentityVerificationTab() {
         // Upload to our backend storage
         const uploadRes = await uploadFile({ data: { kycDocument: file } })
         finalDocUrl = uploadRes?.data?.urls?.[0] || dojahImgUrl
-        
+
         toast.success('Identity verified and document secured!', { id: 'kyc-sync' })
       } catch (err) {
         console.error('Failed to upload KYC document:', err)
@@ -396,6 +396,8 @@ function IdentityVerificationTab() {
         documentUrl: finalDocUrl,
       },
     })
+
+    toast.success("Identity Verification successful.")
   }
 
   const response = (type: string, data: any) => {

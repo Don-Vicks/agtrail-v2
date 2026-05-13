@@ -30,7 +30,7 @@ export function DojahWidget({
 
   useEffect(() => {
     if (initializedRef.current) return
-    
+
     if (typeof window !== 'undefined' && window.Connect) {
       try {
         const options = {
@@ -40,15 +40,16 @@ export function DojahWidget({
           config,
           user_data: userData,
           metadata,
+
           onSuccess: (data: any) => response('success', data),
           onError: (data: any) => response('error', data),
           onClose: () => response('close'),
         }
-        
+
         const connect = new window.Connect(options)
         connect.setup()
         connect.open()
-        
+
         initializedRef.current = true
       } catch (err) {
         console.error('Failed to initialize Dojah widget:', err)

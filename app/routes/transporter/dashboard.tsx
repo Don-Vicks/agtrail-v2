@@ -1,7 +1,12 @@
-import { CheckCircle2, Eye, MapPin, Truck } from 'lucide-react'
+import { CheckCircle2, Eye, MapPin, Truck, ChevronRight } from 'lucide-react'
+import { useState } from 'react'
 import { Button } from '~/components/ui/button'
 import { PageHeader } from '~/components/page-header'
+import { Dialog, DialogContent } from '~/components/ui/dialog'
+import { Badge } from '~/components/ui/badge'
+import { BATCHES, VERIFIED_EVENTS, SHIPMENTS } from '~/lib/mock-data/transporter'
 import type { Route } from './+types/dashboard'
+import { cn } from '~/lib/utils'
 
 export function meta({ }: Route.MetaArgs) {
   return [
@@ -10,121 +15,31 @@ export function meta({ }: Route.MetaArgs) {
   ]
 }
 
-const BATCHES = [
-  {
-    id: '#BT - 98442',
-    origin: 'Akure, Nigeria',
-    commodity: 'Feed Corn',
-    weight: '300 Kg',
-    status: 'Available',
-  },
-  {
-    id: '#BT - 98442',
-    origin: 'Abeokuta, Nigeria',
-    commodity: 'Premium Wheat',
-    weight: '300 Kg',
-    status: 'Available',
-  },
-  {
-    id: '#BT - 98442',
-    origin: 'Abeokuta, Nigeria',
-    commodity: 'Grain',
-    weight: '300 Kg',
-    status: 'Available',
-  },
-]
-
-const VERIFIED_EVENTS = [
-  {
-    id: 1,
-    location: 'Chicago Central Silo',
-    verifiedBy: 'Mark K.',
-    time: '24m AGO',
-  },
-  {
-    id: 2,
-    location: 'Denver Processing',
-    verifiedBy: 'Sarah J.',
-    time: '1.5h AGO',
-  },
-  {
-    id: 3,
-    location: 'Denver Processing',
-    verifiedBy: 'Sarah J.',
-    time: '1.5h AGO',
-  },
-]
-
-const SHIPMENTS = [
-  {
-    id: 1,
-    driver: 'Marcus Thorne',
-    vessel: 'Vessel #4420-B',
-    path: 'NE Farm - Chicago',
-    progress: 75,
-    status: 'Operational',
-    eta: '14:45',
-    image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Marcus',
-  },
-  {
-    id: 2,
-    driver: 'Elena Rodriguez',
-    vessel: 'Vessel #5512-C',
-    path: 'South Silo - Port Mobile',
-    progress: 45,
-    status: 'Stationary',
-    eta: '19:20',
-    image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Elena',
-  },
-  {
-    id: 3,
-    driver: 'Julian Vose',
-    vessel: 'Vessel #8891-A',
-    path: 'Valley Ranch - Denver',
-    progress: 90,
-    status: 'Final Approach',
-    eta: '09:15',
-    image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Julian',
-  },
-  {
-    id: 4,
-    driver: 'Sarah McEnery',
-    vessel: 'Vessel #1042-X',
-    path: 'Agro Park - Chicago',
-    progress: 60,
-    status: 'Congestion',
-    eta: '11:55',
-    image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah',
-  },
-]
-
 export default function TransporterDashboard() {
+  const [showPickupModal, setShowPickupModal] = useState(false)
+
   return (
     <div className="space-y-8 pb-10">
       <PageHeader
         items={[
-          {
-            label: 'Transporter',
-            href: '/transporter',
-          },
-          { label: 'Dashboard' },
+          { label: 'Product', href: '#' },
         ]}
       />
 
-      {/* Header & Stats moved below PageHeader */}
-      <div className="px-1 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 uppercase tracking-tight">Operations Control</h1>
-          <p className="text-sm text-gray-500 mt-1 max-w-md">Institutional-grade logistics monitoring for the fleet.</p>
+      {/* Header & Stats */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+        <div className="space-y-1">
+          <h1 className="text-2xl font-bold text-brand tracking-tight">Operations Control</h1>
+          <p className="text-xs text-gray-400 font-medium max-w-sm">Institutional-grade logistics monitoring for the Sitsillia fleet. Ensuring optimal throughput across all supply nodes.</p>
         </div>
         <div className="flex items-center gap-4">
-          <div className="rounded-md border border-gray-100 bg-white p-5 shadow-sm min-w-[160px]">
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Active Fleet</p>
-            <p className="text-2xl font-bold text-gray-900 tracking-tight">156</p>
+          <div className="rounded-md border border-gray-100 bg-white p-6 shadow-sm min-w-[200px] h-28 flex flex-col justify-between">
+            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Active Fleet</p>
+            <p className="text-4xl font-bold text-gray-900 tracking-tight">156</p>
           </div>
-          <div className="rounded-md border border-gray-100 bg-white p-5 shadow-sm min-w-[160px]">
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Pending</p>
-            <p className="text-2xl font-bold text-gray-900 tracking-tight">24</p>
+          <div className="rounded-md border border-gray-100 bg-white p-6 shadow-sm min-w-[200px] h-28 flex flex-col justify-between">
+            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Pending</p>
+            <p className="text-4xl font-bold text-gray-900 tracking-tight">24</p>
           </div>
         </div>
       </div>
@@ -133,42 +48,45 @@ export default function TransporterDashboard() {
       <section className='space-y-4'>
         <div className='flex items-center justify-between'>
           <div className='flex items-center gap-2'>
-            <div className='size-8 rounded-md bg-brand/10 flex items-center justify-center text-brand'>
-              <Truck className='size-4' />
+            <div className='size-6 rounded bg-brand/5 flex items-center justify-center text-brand'>
+              <Truck className='size-3.5' />
             </div>
-            <h2 className='text-lg font-bold text-gray-900'>Available Batches</h2>
+            <h2 className='text-sm font-bold text-gray-900 uppercase tracking-widest'>Available Batches</h2>
           </div>
-          <Button variant='link' className='text-brand font-bold text-sm'>
+          <button className='text-brand font-bold text-[11px] uppercase tracking-widest hover:underline'>
             View All Batches
-          </Button>
+          </button>
         </div>
 
         <div className='rounded-md border border-gray-100 bg-white shadow-sm overflow-hidden'>
           <table className='w-full text-left text-sm'>
             <thead>
-              <tr className='bg-gray-50/50 border-b border-gray-100'>
-                <th className='px-6 py-4 font-bold text-gray-400 uppercase tracking-wider text-[10px]'>Batch Identifier</th>
-                <th className='px-6 py-4 font-bold text-gray-400 uppercase tracking-wider text-[10px]'>Origin Node</th>
-                <th className='px-6 py-4 font-bold text-gray-400 uppercase tracking-wider text-[10px]'>Commodity</th>
-                <th className='px-6 py-4 font-bold text-gray-400 uppercase tracking-wider text-[10px]'>Net Weight</th>
-                <th className='px-6 py-4 font-bold text-gray-400 uppercase tracking-wider text-[10px] text-right'>Action</th>
+              <tr className='bg-gray-50/30 border-b border-gray-100'>
+                <th className='px-6 py-4 font-semibold text-gray-400 uppercase tracking-widest text-[10px]'>Batch Identifier</th>
+                <th className='px-6 py-4 font-semibold text-gray-400 uppercase tracking-widest text-[10px]'>Origin Node</th>
+                <th className='px-6 py-4 font-semibold text-gray-400 uppercase tracking-widest text-[10px]'>Commodity</th>
+                <th className='px-6 py-4 font-semibold text-gray-400 uppercase tracking-widest text-[10px]'>Net Weight</th>
+                <th className='px-6 py-4 font-semibold text-gray-400 uppercase tracking-widest text-[10px]'>Action</th>
               </tr>
             </thead>
             <tbody className='divide-y divide-gray-50'>
               {BATCHES.map((batch, index) => (
-                <tr key={index} className='hover:bg-gray-50/50 transition-colors group'>
-                  <td className='px-6 py-5'>
-                    <span className='font-bold text-brand'>{batch.id}</span>
+                <tr key={index} className='hover:bg-gray-50/30 transition-colors group'>
+                  <td className='px-6 py-4'>
+                    <span className='font-bold text-brand text-[13px]'>{batch.id}</span>
                   </td>
-                  <td className='px-6 py-5 text-gray-600 font-medium'>{batch.origin}</td>
-                  <td className='px-6 py-5 text-gray-600 font-medium'>{batch.commodity}</td>
-                  <td className='px-6 py-5 text-gray-600 font-medium'>{batch.weight}</td>
-                  <td className='px-6 py-5'>
-                    <div className='flex items-center justify-end gap-3'>
-                      <Button className='bg-brand-dark hover:bg-black text-white font-bold text-xs px-6 h-9 rounded-md'>
+                  <td className='px-6 py-4 text-emerald-600 font-bold text-[13px]'>{batch.origin}</td>
+                  <td className='px-6 py-4 text-emerald-600 font-bold text-[13px]'>{batch.commodity}</td>
+                  <td className='px-6 py-4 text-emerald-600 font-bold text-[13px]'>{batch.weight}</td>
+                  <td className='px-6 py-4'>
+                    <div className='flex items-center gap-6'>
+                      <Button 
+                        onClick={() => setShowPickupModal(true)}
+                        className='bg-brand-dark hover:bg-black text-white font-bold text-[11px] uppercase tracking-widest px-8 h-9 rounded-md shadow-md active:scale-95 transition-all'
+                      >
                         Accept
                       </Button>
-                      <button className='text-gray-400 hover:text-brand transition-colors'>
+                      <button className='text-gray-300 hover:text-brand transition-colors'>
                         <Eye className='size-4' />
                       </button>
                     </div>
@@ -183,21 +101,21 @@ export default function TransporterDashboard() {
       {/* Verified Events */}
       <section className='space-y-4'>
         <div className='flex items-center gap-2'>
-          <div className='size-2 rounded-full bg-gray-400' />
-          <h2 className='text-sm font-bold text-gray-900 uppercase tracking-wider'>Verified Events</h2>
+          <div className='size-2 rounded-full bg-gray-400'></div>
+          <h2 className='text-[11px] font-bold text-gray-900 uppercase tracking-widest'>Verified Events</h2>
         </div>
-        <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
+        <div className='grid grid-cols-1 md:grid-cols-3 gap-8'>
           {VERIFIED_EVENTS.map((event) => (
             <div key={event.id} className='flex items-center gap-4'>
-              <div className='size-10 rounded-full border border-gray-100 flex items-center justify-center shadow-sm shrink-0'>
+              <div className='size-10 rounded-md border border-gray-100 flex items-center justify-center shadow-sm shrink-0 bg-white'>
                 <CheckCircle2 className='size-4 text-gray-400' />
               </div>
-              <div>
-                <p className='text-sm font-bold text-gray-900'>{event.location}</p>
-                <div className='flex items-center gap-2 mt-0.5'>
-                  <span className='text-[11px] text-gray-400'>Verified by {event.verifiedBy}</span>
-                  <span className='text-[11px] font-bold text-gray-400 flex items-center gap-1'>
-                    <span className='size-1 rounded-full bg-gray-300' />
+              <div className='space-y-0.5'>
+                <p className='text-[13px] font-bold text-gray-900'>{event.location}</p>
+                <div className='flex items-center gap-2'>
+                  <span className='text-[10px] font-semibold text-gray-300 uppercase'>Verified by {event.verifiedBy}</span>
+                  <span className='text-[10px] font-semibold text-gray-300 flex items-center gap-1.5'>
+                    <ClockIcon className='size-3' />
                     {event.time}
                   </span>
                 </div>
@@ -210,30 +128,30 @@ export default function TransporterDashboard() {
       {/* In-Transit Shipments */}
       <section className='space-y-6'>
         <div className='flex items-center gap-2'>
-          <div className='size-8 rounded-md bg-brand/10 flex items-center justify-center text-brand'>
+          <div className='size-8 rounded bg-brand/5 flex items-center justify-center text-brand'>
             <MapPin className='size-4' />
           </div>
-          <h2 className='text-lg font-bold text-gray-900'>In-Transit Shipments</h2>
+          <h2 className='text-lg font-bold text-gray-900 tracking-tight'>In-Transit Shipments</h2>
         </div>
 
         <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6'>
           {SHIPMENTS.map((shipment) => (
-            <div key={shipment.id} className='rounded-2xl border border-gray-100 bg-white p-6 shadow-sm space-y-5'>
-              <div className='flex items-center gap-3'>
-                <div className='size-12 rounded-md bg-gray-50 flex items-center justify-center overflow-hidden shrink-0 border border-gray-100'>
-                  <img src={shipment.image} alt={shipment.driver} className='size-10 object-contain opacity-80' />
+            <div key={shipment.id} className='rounded-2xl border border-gray-100 bg-white p-6 shadow-sm space-y-6'>
+              <div className='flex items-center gap-4'>
+                <div className='size-12 rounded-md bg-gray-900 flex items-center justify-center overflow-hidden shrink-0'>
+                  <img src={shipment.image} alt={shipment.driver} className='size-10 object-contain grayscale brightness-200' />
                 </div>
-                <div className='min-w-0'>
-                  <p className='text-sm font-bold text-gray-900 truncate'>{shipment.driver}</p>
-                  <p className='text-[11px] text-gray-400 font-medium'>{shipment.vessel}</p>
+                <div className='min-w-0 space-y-0.5'>
+                  <p className='text-sm font-bold text-gray-900 truncate tracking-tight'>{shipment.driver}</p>
+                  <p className='text-[11px] text-gray-400 font-bold uppercase tracking-widest'>{shipment.vessel}</p>
                 </div>
               </div>
 
-              <div className='space-y-2'>
-                <div className='flex items-center justify-between text-[11px] font-bold'>
-                  <span className='text-gray-400 uppercase tracking-wider'>Vector Path</span>
+              <div className="space-y-3">
+                <div>
+                  <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-widest mb-1.5">Vector Path</p>
+                  <p className="text-[11px] font-bold text-gray-900">{shipment.path}</p>
                 </div>
-                <p className='text-xs font-bold text-gray-900'>{shipment.path}</p>
                 <div className='h-2 w-full bg-gray-100 rounded-full overflow-hidden'>
                   <div
                     className='h-full bg-brand-dark rounded-full transition-all duration-1000'
@@ -242,20 +160,144 @@ export default function TransporterDashboard() {
                 </div>
               </div>
 
-              <div className='flex items-center justify-between pt-2'>
+              <div className="flex items-center justify-between pt-2">
                 <div>
-                  <p className='text-[10px] font-bold text-gray-400 uppercase tracking-wider'>Status</p>
-                  <p className='text-xs font-bold text-gray-700 mt-0.5'>{shipment.status}</p>
+                  <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-widest">Status</p>
+                  <p className="text-[11px] font-semibold text-gray-600 mt-0.5 tracking-tight">{shipment.status}</p>
                 </div>
-                <div className='text-right'>
-                  <p className='text-[10px] font-bold text-gray-400 uppercase tracking-wider'>ETA</p>
-                  <p className='text-xs font-bold text-gray-900 mt-0.5'>{shipment.eta}</p>
+                <div className="text-right">
+                  <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-widest">ETA</p>
+                  <p className="text-[11px] font-bold text-gray-900 mt-0.5">{shipment.eta}</p>
                 </div>
               </div>
             </div>
           ))}
         </div>
       </section>
+
+      <PickupRequestModal 
+        open={showPickupModal} 
+        onClose={() => setShowPickupModal(false)} 
+      />
     </div>
+  )
+}
+
+function ClockIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+      <circle cx="12" cy="12" r="10" />
+      <polyline points="12 6 12 12 16 14" />
+    </svg>
+  )
+}
+
+function PickupRequestModal({ open, onClose }: { open: boolean, onClose: () => void }) {
+  return (
+    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="sm:max-w-[480px] p-0 overflow-hidden rounded-md border-none shadow-2xl">
+        <div className="p-8 space-y-8">
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <h2 className="text-xl font-bold text-gray-900 tracking-tight">New Pickup Request</h2>
+              <div className="flex items-center gap-2">
+                <div className="size-5 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden">
+                   <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=John" className="size-4" />
+                </div>
+                <span className="text-[11px] text-gray-400 font-bold tracking-tight">From <span className="text-gray-900">John Mwangi</span></span>
+              </div>
+            </div>
+            <Badge variant="outline" className="bg-emerald-50 text-emerald-600 border-none font-bold text-[10px] uppercase tracking-widest rounded-md px-3">Pending</Badge>
+          </div>
+
+          <div className="space-y-6">
+            <div className="flex gap-4">
+               <div className="flex flex-col items-center gap-1.5 py-1">
+                  <div className="size-8 rounded-full bg-emerald-900 flex items-center justify-center text-white">
+                    <MapPin className="size-4" />
+                  </div>
+                  <div className="flex-1 w-0.5 bg-gray-100 border-dashed border-l-2"></div>
+                  <div className="size-8 rounded-full bg-red-600 flex items-center justify-center text-white">
+                    <MapPin className="size-4" />
+                  </div>
+               </div>
+               <div className="flex-1 space-y-8">
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Type of Goods</p>
+                    <p className="text-[13px] font-bold text-emerald-900">Kiambu Farm, Kiambu County</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Type of Goods</p>
+                    <p className="text-[13px] font-bold text-emerald-900">Kiambu Farm, Kiambu County</p>
+                  </div>
+               </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+               <div className="flex items-center gap-3 bg-gray-50/50 p-3 rounded-md border border-gray-100">
+                  <div className="size-8 rounded-md bg-white flex items-center justify-center shadow-sm text-emerald-900">
+                    <Truck className="size-4" />
+                  </div>
+                  <div>
+                    <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Type of Goods</p>
+                    <p className="text-[11px] font-bold text-emerald-900">Maize</p>
+                  </div>
+               </div>
+               <div className="flex items-center gap-3 bg-gray-50/50 p-3 rounded-md border border-gray-100">
+                  <div className="size-8 rounded-md bg-white flex items-center justify-center shadow-sm text-emerald-900">
+                    <Truck className="size-4" />
+                  </div>
+                  <div>
+                    <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Quantity</p>
+                    <p className="text-[11px] font-bold text-emerald-900">500Kg (10 Bags)</p>
+                  </div>
+               </div>
+               <div className="flex items-center gap-3 bg-gray-50/50 p-3 rounded-md border border-gray-100">
+                  <div className="size-8 rounded-md bg-white flex items-center justify-center shadow-sm text-emerald-900">
+                    <Truck className="size-4" />
+                  </div>
+                  <div>
+                    <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Distance</p>
+                    <p className="text-[11px] font-bold text-emerald-900">32 km</p>
+                  </div>
+               </div>
+               <div className="flex items-center gap-3 bg-gray-50/50 p-3 rounded-md border border-gray-100">
+                  <div className="size-8 rounded-md bg-white flex items-center justify-center shadow-sm text-emerald-900">
+                    <Truck className="size-4" />
+                  </div>
+                  <div>
+                    <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Est. Time</p>
+                    <p className="text-[11px] font-bold text-emerald-900">45 mins</p>
+                  </div>
+               </div>
+            </div>
+
+            <div className="bg-gray-50/50 p-6 rounded-md border border-gray-100 flex items-center justify-between">
+               <div className="flex items-center gap-3">
+                  <span className="text-xl font-bold text-emerald-600">$</span>
+                  <span className="text-lg font-bold text-emerald-900 tracking-tight">Payment</span>
+               </div>
+               <span className="text-2xl font-bold text-emerald-900 tracking-tight">2,500</span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <Button 
+              variant="outline" 
+              onClick={onClose}
+              className="h-12 bg-red-600 hover:bg-red-700 text-white border-none font-bold text-[13px] rounded-md active:scale-95 transition-all"
+            >
+              Decline
+            </Button>
+            <Button 
+              onClick={onClose}
+              className="h-12 bg-brand-dark hover:bg-black text-white font-bold text-[13px] rounded-md shadow-lg active:scale-95 transition-all"
+            >
+              Accept
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   )
 }
