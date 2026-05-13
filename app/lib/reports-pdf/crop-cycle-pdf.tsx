@@ -3,17 +3,20 @@ import { format } from 'date-fns'
 import type { GetReportsCooperativeCropCycleSummary200Data } from '~/lib/api/generated/models/getReportsCooperativeCropCycleSummary200Data'
 import type { GetReportsFarmerCropCycleSummary200Data } from '~/lib/api/generated/models/getReportsFarmerCropCycleSummary200Data'
 import {
-  PDF_ROW_CAP,
-  PdfFootnote,
   PdfMetaBlock,
   PdfSectionTitle,
   PdfTableHeader,
   PdfTableRow,
+  PDF_TABLE_ROWS_PER_PAGE,
+  chunkArray,
+  formatPdfUnknownField,
   pdfStyles,
-  sliceWithNote,
 } from '~/lib/reports-pdf/shared'
 
 export type CropCyclePdfData = GetReportsFarmerCropCycleSummary200Data | GetReportsCooperativeCropCycleSummary200Data
+
+/** Timeline cards are tall; fewer per page than dense tables. */
+const PDF_TIMELINE_EVENTS_PER_PAGE = 14
 
 export function CropCyclePdfDocument({
   title,
@@ -28,9 +31,10 @@ export function CropCyclePdfDocument({
 }) {
   const generatedAt = format(new Date(), "MMM d, yyyy 'at' HH:mm")
   const dist = data.activityDistribution ?? []
-  const distSlice = sliceWithNote(dist, 35)
+  const distChunks = chunkArray(dist, PDF_TABLE_ROWS_PER_PAGE)
   const maxCount = Math.max(1, ...dist.map((d) => d.count || 0))
-  const timeline = sliceWithNote(data.activityTimeline ?? [], PDF_ROW_CAP)
+  const timeline = data.activityTimeline ?? []
+  const timelineChunks = chunkArray(timeline, PDF_TIMELINE_EVENTS_PER_PAGE)
 
   return (
     <Document title={title} author="AgTrail">
@@ -76,18 +80,26 @@ export function CropCyclePdfDocument({
             </Text>
           </View>
         </View>
+      </Page>
 
-        <PdfSectionTitle>Operational intensity (logs per day)</PdfSectionTitle>
-        {distSlice.rows.length === 0 ? (
+      {distChunks.length === 0 ? (
+        <Page key="dist-empty" size="A4" style={pdfStyles.page}>
+          <PdfSectionTitle>Operational intensity (logs per day)</PdfSectionTitle>
           <Text style={pdfStyles.tdMuted}>No distribution rows.</Text>
-        ) : (
-          <>
+        </Page>
+      ) : (
+        distChunks.map((chunk, pageIdx) => (
+          <Page key={`dist-${pageIdx}`} size="A4" style={pdfStyles.page}>
+            <PdfSectionTitle>
+              Operational intensity (logs per day)
+              {pageIdx > 0 ? ` (continued ${pageIdx + 1}/${distChunks.length})` : ''}
+            </PdfSectionTitle>
             <PdfTableHeader>
               <Text style={[pdfStyles.th, { width: '30%' }]}>Date</Text>
               <Text style={[pdfStyles.th, { width: '15%' }]}>Count</Text>
               <Text style={[pdfStyles.th, { width: '55%' }]}>Relative</Text>
             </PdfTableHeader>
-            {distSlice.rows.map((row, i) => (
+            {chunk.map((row, i) => (
               <PdfTableRow key={i}>
                 <Text style={[pdfStyles.td, { width: '30%' }]}>{format(new Date(row.date), 'MMM d, yyyy')}</Text>
                 <Text style={[pdfStyles.td, { width: '15%' }]}>{row.count}</Text>
@@ -98,50 +110,60 @@ export function CropCyclePdfDocument({
                 </View>
               </PdfTableRow>
             ))}
-            {distSlice.omitted > 0 ? (
-              <PdfFootnote>Showing first {distSlice.rows.length} of {dist.length} days.</PdfFootnote>
-            ) : null}
-          </>
-        )}
-      </Page>
+          </Page>
+        ))
+      )}
 
-      <Page size="A4" style={pdfStyles.page}>
-        <PdfSectionTitle>Activity timeline</PdfSectionTitle>
-        {timeline.rows.length === 0 ? (
+      {timelineChunks.length === 0 ? (
+        <Page key="tl-empty" size="A4" style={pdfStyles.page}>
+          <PdfSectionTitle>Activity timeline</PdfSectionTitle>
           <Text style={pdfStyles.tdMuted}>No timeline events in range.</Text>
-        ) : (
-          timeline.rows.map((item, i) => (
-            <View key={item.id || i} style={pdfStyles.timelineBlock} wrap={false}>
-              <Text style={pdfStyles.timelineTitle}>{item.type}</Text>
-              <Text style={pdfStyles.timelineSub}>
-                {item.category} · {format(new Date(item.date), 'MMM d, yyyy')}
-                {item.time ? ` · ${item.time}` : ''}
-              </Text>
-              {item.description ? (
-                <Text style={[pdfStyles.td, { marginTop: 6 }]}>{item.description}</Text>
-              ) : null}
-              {item.cost != null && item.cost !== '' ? (
-                <Text style={[pdfStyles.tdMuted, { marginTop: 4 }]}>
-                  Cost: {Number(item.cost).toLocaleString()} {item.currency ?? '₦'}
-                </Text>
-              ) : null}
-              {item.equipmentUsed && item.equipmentUsed.length > 0 ? (
-                <Text style={[pdfStyles.tdMuted, { marginTop: 2 }]}>Equipment: {item.equipmentUsed.join(', ')}</Text>
-              ) : null}
-              {item.certificationNotes ? (
-                <Text style={[pdfStyles.td, { marginTop: 4, color: '#1e3a5f' }]}>
-                  Certification: {item.certificationNotes}
-                </Text>
-              ) : null}
-            </View>
-          ))
-        )}
-        {timeline.omitted > 0 ? (
-          <PdfFootnote>
-            Showing first {timeline.rows.length} of {data.activityTimeline.length} events. Export again after narrowing dates if needed.
-          </PdfFootnote>
-        ) : null}
-      </Page>
+        </Page>
+      ) : (
+        timelineChunks.map((chunk, pageIdx) => (
+          <Page key={`tl-${pageIdx}`} size="A4" style={pdfStyles.page}>
+            <PdfSectionTitle>
+              Activity timeline{pageIdx > 0 ? ` (continued ${pageIdx + 1}/${timelineChunks.length})` : ''}
+            </PdfSectionTitle>
+            {chunk.map((item, i) => {
+              const materials = formatPdfUnknownField(item.materialsUsed)
+              return (
+                <View key={item.id || `${pageIdx}-${i}`} style={pdfStyles.timelineBlock}>
+                  <Text style={pdfStyles.timelineTitle}>{item.type}</Text>
+                  <Text style={pdfStyles.timelineSub}>
+                    {item.category} · {format(new Date(item.date), 'MMM d, yyyy')}
+                    {item.time ? ` · ${item.time}` : ''}
+                  </Text>
+                  {item.description ? (
+                    <Text style={[pdfStyles.td, { marginTop: 6 }]}>{item.description}</Text>
+                  ) : null}
+                  {item.cost != null && item.cost !== '' ? (
+                    <Text style={[pdfStyles.tdMuted, { marginTop: 4 }]}>
+                      Cost: {Number(item.cost).toLocaleString()} {item.currency ?? '₦'}
+                    </Text>
+                  ) : null}
+                  {item.equipmentUsed && item.equipmentUsed.length > 0 ? (
+                    <Text style={[pdfStyles.tdMuted, { marginTop: 2 }]}>Equipment: {item.equipmentUsed.join(', ')}</Text>
+                  ) : null}
+                  {materials ? (
+                    <Text style={[pdfStyles.tdMuted, { marginTop: 2 }]}>Materials: {materials}</Text>
+                  ) : null}
+                  {item.certificationNotes ? (
+                    <Text style={[pdfStyles.td, { marginTop: 4, color: '#1e3a5f' }]}>
+                      Certification: {item.certificationNotes}
+                    </Text>
+                  ) : null}
+                  {item.environmentalNotes ? (
+                    <Text style={[pdfStyles.td, { marginTop: 4, color: '#14532d' }]}>
+                      Environmental: {item.environmentalNotes}
+                    </Text>
+                  ) : null}
+                </View>
+              )
+            })}
+          </Page>
+        ))
+      )}
     </Document>
   )
 }

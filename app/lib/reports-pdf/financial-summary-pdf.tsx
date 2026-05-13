@@ -3,14 +3,13 @@ import { format } from 'date-fns'
 import type { GetReportsCooperativeFinancialSummary200Data } from '~/lib/api/generated/models/getReportsCooperativeFinancialSummary200Data'
 import type { GetReportsFarmerFinancialSummary200Data } from '~/lib/api/generated/models/getReportsFarmerFinancialSummary200Data'
 import {
-  PDF_ROW_CAP,
-  PdfFootnote,
   PdfMetaBlock,
   PdfSectionTitle,
   PdfTableHeader,
   PdfTableRow,
+  PDF_TABLE_ROWS_PER_PAGE,
+  chunkArray,
   pdfStyles,
-  sliceWithNote,
 } from '~/lib/reports-pdf/shared'
 
 export type FinancialSummaryPdfData =
@@ -34,12 +33,15 @@ export function FinancialSummaryPdfDocument({
 }) {
   const generatedAt = format(new Date(), "MMM d, yyyy 'at' HH:mm")
   const trend = data.revenueCostsTrend ?? []
-  const trendSlice = sliceWithNote(trend, PDF_ROW_CAP)
   const costRows = data.costBreakdown ?? []
   const marginRows = data.cropSalesDetail ?? []
-  const cropDetailSlice = sliceWithNote(data.cropSalesDetail ?? [], PDF_ROW_CAP)
-  const txSlice = sliceWithNote(data.recentTransactions?.data ?? [], PDF_ROW_CAP)
+  const cropRows = data.cropSalesDetail ?? []
+  const txRows = data.recentTransactions?.data ?? []
   const maxMargin = Math.max(1, ...marginRows.map((r) => Math.abs(r.marginPct) || 0))
+  const trendChunks = chunkArray(trend, PDF_TABLE_ROWS_PER_PAGE)
+  const cropChunks = chunkArray(cropRows, PDF_TABLE_ROWS_PER_PAGE)
+  const txChunks = chunkArray(txRows, PDF_TABLE_ROWS_PER_PAGE)
+  const curr = data.kpis.totalRevenue.currency ?? '₦'
 
   return (
     <Document title={title} author="AgTrail">
@@ -84,40 +86,21 @@ export function FinancialSummaryPdfDocument({
           </View>
         </View>
 
-        <PdfSectionTitle>Daily profit (ledger trend)</PdfSectionTitle>
-        {trendSlice.rows.length === 0 ? (
-          <Text style={pdfStyles.tdMuted}>No trend rows for this range.</Text>
-        ) : (
-          <>
-            <PdfTableHeader>
-              <Text style={[pdfStyles.th, { width: '28%' }]}>Date</Text>
-              <Text style={[pdfStyles.th, { width: '72%' }]}>Net profit</Text>
-            </PdfTableHeader>
-            {trendSlice.rows.map((row, i) => (
-              <PdfTableRow key={i}>
-                <Text style={[pdfStyles.td, { width: '28%' }]}>{format(new Date(row.date), 'MMM d, yyyy')}</Text>
-                <Text style={[pdfStyles.td, { width: '72%' }]}>{row.profit.toLocaleString()}</Text>
-              </PdfTableRow>
-            ))}
-            {trendSlice.omitted > 0 ? (
-              <PdfFootnote>Showing first {trendSlice.rows.length} of {trend.length} days.</PdfFootnote>
-            ) : null}
-          </>
-        )}
-
         <PdfSectionTitle>Cost breakdown</PdfSectionTitle>
         {costRows.length === 0 ? (
           <Text style={pdfStyles.tdMuted}>No cost categories.</Text>
         ) : (
           <>
             <PdfTableHeader>
-              <Text style={[pdfStyles.th, { width: '55%' }]}>Category</Text>
-              <Text style={[pdfStyles.th, { width: '45%' }]}>Amount</Text>
+              <Text style={[pdfStyles.th, { width: '45%' }]}>Category</Text>
+              <Text style={[pdfStyles.th, { width: '30%' }]}>Amount</Text>
+              <Text style={[pdfStyles.th, { width: '25%' }]}>% of costs</Text>
             </PdfTableHeader>
             {costRows.map((c, i) => (
               <PdfTableRow key={i}>
-                <Text style={[pdfStyles.td, { width: '55%' }]}>{c.category}</Text>
-                <Text style={[pdfStyles.td, { width: '45%' }]}>{c.amount.toLocaleString()}</Text>
+                <Text style={[pdfStyles.td, { width: '45%' }]}>{c.category}</Text>
+                <Text style={[pdfStyles.td, { width: '30%' }]}>{c.amount.toLocaleString()}</Text>
+                <Text style={[pdfStyles.td, { width: '25%' }]}>{c.percentage.toFixed(1)}%</Text>
               </PdfTableRow>
             ))}
           </>
@@ -141,22 +124,65 @@ export function FinancialSummaryPdfDocument({
         )}
       </Page>
 
-      <Page size="A4" style={pdfStyles.page}>
-        <PdfSectionTitle>Crop sales detail</PdfSectionTitle>
-        {cropDetailSlice.rows.length === 0 ? (
-          <Text style={pdfStyles.tdMuted}>No crop sales rows.</Text>
-        ) : (
-          <>
+      {trendChunks.length === 0 ? (
+        <Page key="trend-empty" size="A4" style={pdfStyles.page}>
+          <PdfSectionTitle>Daily revenue, costs and profit</PdfSectionTitle>
+          <Text style={pdfStyles.tdMuted}>No trend rows for this range.</Text>
+        </Page>
+      ) : (
+        trendChunks.map((chunk, pageIdx) => (
+          <Page key={`trend-${pageIdx}`} size="A4" style={pdfStyles.page}>
+            <PdfSectionTitle>
+              Daily revenue, costs and profit{pageIdx > 0 ? ` (continued ${pageIdx + 1}/${trendChunks.length})` : ''}
+            </PdfSectionTitle>
             <PdfTableHeader>
-              <Text style={[pdfStyles.th, { width: '22%' }]}>Crop</Text>
+              <Text style={[pdfStyles.th, { width: '22%' }]}>Date</Text>
+              <Text style={[pdfStyles.th, { width: '26%' }]}>Revenue</Text>
+              <Text style={[pdfStyles.th, { width: '26%' }]}>Costs</Text>
+              <Text style={[pdfStyles.th, { width: '26%' }]}>Profit</Text>
+            </PdfTableHeader>
+            {chunk.map((row, i) => (
+              <PdfTableRow key={i}>
+                <Text style={[pdfStyles.td, { width: '22%' }]}>{format(new Date(row.date), 'MMM d, yyyy')}</Text>
+                <Text style={[pdfStyles.td, { width: '26%' }]}>
+                  {curr}
+                  {row.revenue.toLocaleString()}
+                </Text>
+                <Text style={[pdfStyles.td, { width: '26%' }]}>
+                  {curr}
+                  {row.costs.toLocaleString()}
+                </Text>
+                <Text style={[pdfStyles.td, { width: '26%' }]}>
+                  {curr}
+                  {row.profit.toLocaleString()}
+                </Text>
+              </PdfTableRow>
+            ))}
+          </Page>
+        ))
+      )}
+
+      {cropChunks.length === 0 ? (
+        <Page key="crop-empty" size="A4" style={pdfStyles.page}>
+          <PdfSectionTitle>Crop sales detail</PdfSectionTitle>
+          <Text style={pdfStyles.tdMuted}>No crop sales rows.</Text>
+        </Page>
+      ) : (
+        cropChunks.map((chunk, pageIdx) => (
+          <Page key={`crop-${pageIdx}`} size="A4" style={pdfStyles.page}>
+            <PdfSectionTitle>
+              Crop sales detail{pageIdx > 0 ? ` (continued ${pageIdx + 1}/${cropChunks.length})` : ''}
+            </PdfSectionTitle>
+            <PdfTableHeader>
+              <Text style={[pdfStyles.th, { width: '20%' }]}>Crop</Text>
               <Text style={[pdfStyles.th, { width: '20%' }]}>Revenue</Text>
               <Text style={[pdfStyles.th, { width: '20%' }]}>Costs</Text>
               <Text style={[pdfStyles.th, { width: '20%' }]}>Profit</Text>
-              <Text style={[pdfStyles.th, { width: '18%' }]}>Margin</Text>
+              <Text style={[pdfStyles.th, { width: '20%' }]}>Margin</Text>
             </PdfTableHeader>
-            {cropDetailSlice.rows.map((c, i) => (
+            {chunk.map((c, i) => (
               <PdfTableRow key={i}>
-                <Text style={[pdfStyles.td, { width: '22%' }]}>{c.crop}</Text>
+                <Text style={[pdfStyles.td, { width: '20%' }]}>{c.crop}</Text>
                 <Text style={[pdfStyles.td, { width: '20%' }]}>
                   {c.currency}
                   {c.revenue.toLocaleString()}
@@ -169,50 +195,49 @@ export function FinancialSummaryPdfDocument({
                   {c.currency}
                   {c.profit.toLocaleString()}
                 </Text>
-                <Text style={[pdfStyles.td, { width: '18%' }]}>{c.marginPct.toFixed(1)}%</Text>
+                <Text style={[pdfStyles.td, { width: '20%' }]}>{c.marginPct.toFixed(1)}%</Text>
               </PdfTableRow>
             ))}
-            {cropDetailSlice.omitted > 0 ? (
-              <PdfFootnote>
-                Showing first {cropDetailSlice.rows.length} of {data.cropSalesDetail.length} crops.
-              </PdfFootnote>
-            ) : null}
-          </>
-        )}
+          </Page>
+        ))
+      )}
 
-        <PdfSectionTitle>Recent transactions</PdfSectionTitle>
-        {txSlice.rows.length === 0 ? (
+      {txChunks.length === 0 ? (
+        <Page key="tx-empty" size="A4" style={pdfStyles.page}>
+          <PdfSectionTitle>Recent transactions</PdfSectionTitle>
           <Text style={pdfStyles.tdMuted}>No recent transactions.</Text>
-        ) : (
-          <>
+        </Page>
+      ) : (
+        txChunks.map((chunk, pageIdx) => (
+          <Page key={`tx-${pageIdx}`} size="A4" style={pdfStyles.page}>
+            <PdfSectionTitle>
+              Recent transactions{pageIdx > 0 ? ` (continued ${pageIdx + 1}/${txChunks.length})` : ''}
+            </PdfSectionTitle>
             <PdfTableHeader>
-              <Text style={[pdfStyles.th, { width: '22%' }]}>Batch</Text>
-              <Text style={[pdfStyles.th, { width: '18%' }]}>Crop</Text>
-              <Text style={[pdfStyles.th, { width: '20%' }]}>Date</Text>
-              <Text style={[pdfStyles.th, { width: '15%' }]}>Harvest kg</Text>
+              <Text style={[pdfStyles.th, { width: '18%' }]}>Batch</Text>
+              <Text style={[pdfStyles.th, { width: '14%' }]}>Crop</Text>
+              <Text style={[pdfStyles.th, { width: '14%' }]}>Date</Text>
+              <Text style={[pdfStyles.th, { width: '12%' }]}>Exp. kg</Text>
+              <Text style={[pdfStyles.th, { width: '12%' }]}>Harvest kg</Text>
               <Text style={[pdfStyles.th, { width: '12%' }]}>Purch.</Text>
-              <Text style={[pdfStyles.th, { width: '13%' }]}>Compliance</Text>
+              <Text style={[pdfStyles.th, { width: '18%' }]}>Compliance</Text>
             </PdfTableHeader>
-            {txSlice.rows.map((t, i) => (
+            {chunk.map((t, i) => (
               <PdfTableRow key={i}>
-                <Text style={[pdfStyles.td, { width: '22%' }]}>#{t.batchId.slice(0, 10)}</Text>
-                <Text style={[pdfStyles.td, { width: '18%' }]}>{t.crop}</Text>
-                <Text style={[pdfStyles.tdMuted, { width: '20%' }]}>
+                <Text style={[pdfStyles.td, { width: '18%' }]}>#{t.batchId.slice(0, 12)}</Text>
+                <Text style={[pdfStyles.td, { width: '14%' }]}>{t.crop}</Text>
+                <Text style={[pdfStyles.tdMuted, { width: '14%' }]}>
                   {t.date ? format(new Date(t.date), 'MMM d, yyyy') : '—'}
                 </Text>
-                <Text style={[pdfStyles.td, { width: '15%' }]}>{t.quantityHarvestedKg.toLocaleString()}</Text>
+                <Text style={[pdfStyles.td, { width: '12%' }]}>{t.expectedYieldKg.toLocaleString()}</Text>
+                <Text style={[pdfStyles.td, { width: '12%' }]}>{t.quantityHarvestedKg.toLocaleString()}</Text>
                 <Text style={[pdfStyles.td, { width: '12%' }]}>{t.quantityPurchased.toLocaleString()}</Text>
-                <Text style={[pdfStyles.tdMuted, { width: '13%' }]}>{t.complianceStatus}</Text>
+                <Text style={[pdfStyles.tdMuted, { width: '18%' }]}>{t.complianceStatus}</Text>
               </PdfTableRow>
             ))}
-            {txSlice.omitted > 0 ? (
-              <PdfFootnote>
-                Showing first {txSlice.rows.length} of {data.recentTransactions.data.length} transactions.
-              </PdfFootnote>
-            ) : null}
-          </>
-        )}
-      </Page>
+          </Page>
+        ))
+      )}
     </Document>
   )
 }

@@ -3,14 +3,13 @@ import { format } from 'date-fns'
 import type { GetReportsCooperativeHarvestSales200Data } from '~/lib/api/generated/models/getReportsCooperativeHarvestSales200Data'
 import type { GetReportsFarmerHarvestSales200Data } from '~/lib/api/generated/models/getReportsFarmerHarvestSales200Data'
 import {
-  PDF_ROW_CAP,
-  PdfFootnote,
   PdfMetaBlock,
   PdfSectionTitle,
   PdfTableHeader,
   PdfTableRow,
+  PDF_TABLE_ROWS_PER_PAGE,
+  chunkArray,
   pdfStyles,
-  sliceWithNote,
 } from '~/lib/reports-pdf/shared'
 
 export type HarvestSalesPdfData = GetReportsFarmerHarvestSales200Data | GetReportsCooperativeHarvestSales200Data
@@ -27,7 +26,8 @@ export function HarvestSalesPdfDocument({
   data: HarvestSalesPdfData
 }) {
   const generatedAt = format(new Date(), "MMM d, yyyy 'at' HH:mm")
-  const batches = sliceWithNote(data.recentHarvestBatches?.data ?? [], PDF_ROW_CAP)
+  const batches = data.recentHarvestBatches?.data ?? []
+  const batchChunks = chunkArray(batches, PDF_TABLE_ROWS_PER_PAGE)
   const maxRev = Math.max(1, ...data.cropSalesRevenue.map((r) => r.revenue || 0))
 
   return (
@@ -75,21 +75,23 @@ export function HarvestSalesPdfDocument({
           </View>
         </View>
 
-        <PdfSectionTitle>Crop distribution (% of batches)</PdfSectionTitle>
+        <PdfSectionTitle>Crop distribution (batches by crop)</PdfSectionTitle>
         {data.cropDistribution.length === 0 ? (
           <Text style={pdfStyles.tdMuted}>No distribution data.</Text>
         ) : (
           <>
             <PdfTableHeader>
-              <Text style={[pdfStyles.th, { width: '50%' }]}>Crop</Text>
-              <Text style={[pdfStyles.th, { width: '25%' }]}>%</Text>
-              <Text style={[pdfStyles.th, { width: '25%' }]}>Visual</Text>
+              <Text style={[pdfStyles.th, { width: '35%' }]}>Crop</Text>
+              <Text style={[pdfStyles.th, { width: '15%' }]}>Batches</Text>
+              <Text style={[pdfStyles.th, { width: '15%' }]}>%</Text>
+              <Text style={[pdfStyles.th, { width: '35%' }]}>Share</Text>
             </PdfTableHeader>
             {data.cropDistribution.map((d, i) => (
               <PdfTableRow key={i}>
-                <Text style={[pdfStyles.td, { width: '50%' }]}>{d.crop}</Text>
-                <Text style={[pdfStyles.td, { width: '25%' }]}>{d.percentage.toFixed(1)}%</Text>
-                <View style={{ width: '25%', justifyContent: 'center' }}>
+                <Text style={[pdfStyles.td, { width: '35%' }]}>{d.crop}</Text>
+                <Text style={[pdfStyles.td, { width: '15%' }]}>{d.count.toLocaleString()}</Text>
+                <Text style={[pdfStyles.td, { width: '15%' }]}>{d.percentage.toFixed(1)}%</Text>
+                <View style={{ width: '35%', justifyContent: 'center' }}>
                   <View style={pdfStyles.barTrack}>
                     <View style={[pdfStyles.barFill, { width: `${Math.min(100, d.percentage)}%` }]} />
                   </View>
@@ -119,38 +121,40 @@ export function HarvestSalesPdfDocument({
         )}
       </Page>
 
-      <Page size="A4" style={pdfStyles.page}>
-        <PdfSectionTitle>Recent harvest batches</PdfSectionTitle>
-        {batches.rows.length === 0 ? (
+      {batchChunks.length === 0 ? (
+        <Page key="batches-empty" size="A4" style={pdfStyles.page}>
+          <PdfSectionTitle>Recent harvest batches</PdfSectionTitle>
           <Text style={pdfStyles.tdMuted}>No batch rows.</Text>
-        ) : (
-          <>
+        </Page>
+      ) : (
+        batchChunks.map((chunk, pageIdx) => (
+          <Page key={`batches-${pageIdx}`} size="A4" style={pdfStyles.page}>
+            <PdfSectionTitle>
+              Recent harvest batches{pageIdx > 0 ? ` (continued ${pageIdx + 1}/${batchChunks.length})` : ''}
+            </PdfSectionTitle>
             <PdfTableHeader>
-              <Text style={[pdfStyles.th, { width: '22%' }]}>Batch</Text>
-              <Text style={[pdfStyles.th, { width: '18%' }]}>Crop</Text>
-              <Text style={[pdfStyles.th, { width: '22%' }]}>Date</Text>
-              <Text style={[pdfStyles.th, { width: '14%' }]}>Expected kg</Text>
+              <Text style={[pdfStyles.th, { width: '16%' }]}>Batch</Text>
+              <Text style={[pdfStyles.th, { width: '14%' }]}>Crop</Text>
               <Text style={[pdfStyles.th, { width: '12%' }]}>Harvest kg</Text>
-              <Text style={[pdfStyles.th, { width: '12%' }]}>Purch.</Text>
+              <Text style={[pdfStyles.th, { width: '12%' }]}>Exp. kg</Text>
+              <Text style={[pdfStyles.th, { width: '10%' }]}>Purch.</Text>
+              <Text style={[pdfStyles.th, { width: '14%' }]}>Date</Text>
+              <Text style={[pdfStyles.th, { width: '22%' }]}>Compliance</Text>
             </PdfTableHeader>
-            {batches.rows.map((b, i) => (
+            {chunk.map((b, i) => (
               <PdfTableRow key={i}>
-                <Text style={[pdfStyles.td, { width: '22%' }]}>#{b.batchId.slice(0, 10)}</Text>
-                <Text style={[pdfStyles.td, { width: '18%' }]}>{b.crop}</Text>
-                <Text style={[pdfStyles.tdMuted, { width: '22%' }]}>{format(new Date(b.date), 'MMM d, yyyy')}</Text>
-                <Text style={[pdfStyles.td, { width: '14%' }]}>{b.expectedYieldKg.toLocaleString()}</Text>
+                <Text style={[pdfStyles.td, { width: '16%' }]}>#{b.batchId.slice(0, 12)}</Text>
+                <Text style={[pdfStyles.td, { width: '14%' }]}>{b.crop}</Text>
                 <Text style={[pdfStyles.td, { width: '12%' }]}>{b.quantityHarvestedKg.toLocaleString()}</Text>
-                <Text style={[pdfStyles.td, { width: '12%' }]}>{b.quantityPurchased.toLocaleString()}</Text>
+                <Text style={[pdfStyles.td, { width: '12%' }]}>{b.expectedYieldKg.toLocaleString()}</Text>
+                <Text style={[pdfStyles.td, { width: '10%' }]}>{b.quantityPurchased.toLocaleString()}</Text>
+                <Text style={[pdfStyles.tdMuted, { width: '14%' }]}>{format(new Date(b.date), 'MMM d, yyyy')}</Text>
+                <Text style={[pdfStyles.tdMuted, { width: '22%' }]}>{b.complianceStatus}</Text>
               </PdfTableRow>
             ))}
-            {batches.omitted > 0 ? (
-              <PdfFootnote>
-                Showing first {batches.rows.length} of {data.recentHarvestBatches.data.length} batches.
-              </PdfFootnote>
-            ) : null}
-          </>
-        )}
-      </Page>
+          </Page>
+        ))
+      )}
     </Document>
   )
 }

@@ -1,7 +1,8 @@
 import { StyleSheet, Text, View } from '@react-pdf/renderer'
 import type { ReactNode } from 'react'
 
-export const PDF_ROW_CAP = 45
+/** Rows per PDF page for long tables (avoids clipping; headers repeat each page). */
+export const PDF_TABLE_ROWS_PER_PAGE = 32
 
 export const pdfStyles = StyleSheet.create({
   page: {
@@ -156,9 +157,26 @@ export const pdfStyles = StyleSheet.create({
   },
 })
 
-export function sliceWithNote<T>(items: T[], cap: number): { rows: T[]; omitted: number } {
-  if (items.length <= cap) return { rows: items, omitted: 0 }
-  return { rows: items.slice(0, cap), omitted: items.length - cap }
+/** Split into chunks for multi-page tables. Returns [] if input is empty. */
+export function chunkArray<T>(items: readonly T[], chunkSize: number): T[][] {
+  if (chunkSize < 1) throw new Error('chunkSize must be >= 1')
+  if (items.length === 0) return []
+  const out: T[][] = []
+  for (let i = 0; i < items.length; i += chunkSize) {
+    out.push(items.slice(i, i + chunkSize) as T[])
+  }
+  return out
+}
+
+export function formatPdfUnknownField(value: unknown): string | null {
+  if (value == null) return null
+  if (typeof value === 'string') return value.trim() ? value : null
+  try {
+    const s = JSON.stringify(value)
+    return s === '{}' || s === '[]' ? null : s
+  } catch {
+    return String(value)
+  }
 }
 
 export function PdfMetaBlock({

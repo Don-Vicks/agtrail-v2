@@ -3,14 +3,13 @@ import { format } from 'date-fns'
 import type { GetReportsCooperativeFarmSummary200Data } from '~/lib/api/generated/models/getReportsCooperativeFarmSummary200Data'
 import type { GetReportsFarmerFarmSummary200Data } from '~/lib/api/generated/models/getReportsFarmerFarmSummary200Data'
 import {
-  PDF_ROW_CAP,
-  PdfFootnote,
   PdfMetaBlock,
   PdfSectionTitle,
   PdfTableHeader,
   PdfTableRow,
+  PDF_TABLE_ROWS_PER_PAGE,
+  chunkArray,
   pdfStyles,
-  sliceWithNote,
 } from '~/lib/reports-pdf/shared'
 
 export type FarmSummaryPdfData = GetReportsFarmerFarmSummary200Data | GetReportsCooperativeFarmSummary200Data
@@ -27,9 +26,10 @@ export function FarmSummaryPdfDocument({
   data: FarmSummaryPdfData
 }) {
   const generatedAt = format(new Date(), "MMM d, yyyy 'at' HH:mm")
-  const plots = sliceWithNote(data.farmPerformance?.data ?? [], PDF_ROW_CAP)
   const activity = data.activityDistribution ?? []
-  const activitySlice = sliceWithNote(activity, 40)
+  const activityChunks = chunkArray(activity, PDF_TABLE_ROWS_PER_PAGE)
+  const plots = data.farmPerformance?.data ?? []
+  const plotChunks = chunkArray(plots, PDF_TABLE_ROWS_PER_PAGE)
   const maxCount = Math.max(1, ...activity.map((a) => a.count || 0))
 
   return (
@@ -76,18 +76,26 @@ export function FarmSummaryPdfDocument({
             </Text>
           </View>
         </View>
+      </Page>
 
-        <PdfSectionTitle>Activity distribution (daily counts)</PdfSectionTitle>
-        {activitySlice.rows.length === 0 ? (
+      {activityChunks.length === 0 ? (
+        <Page key="act-empty" size="A4" style={pdfStyles.page}>
+          <PdfSectionTitle>Activity distribution (daily counts)</PdfSectionTitle>
           <Text style={pdfStyles.tdMuted}>No activity buckets in range.</Text>
-        ) : (
-          <>
+        </Page>
+      ) : (
+        activityChunks.map((chunk, pageIdx) => (
+          <Page key={`act-${pageIdx}`} size="A4" style={pdfStyles.page}>
+            <PdfSectionTitle>
+              Activity distribution (daily counts)
+              {pageIdx > 0 ? ` (continued ${pageIdx + 1}/${activityChunks.length})` : ''}
+            </PdfSectionTitle>
             <PdfTableHeader>
               <Text style={[pdfStyles.th, { width: '30%' }]}>Date</Text>
               <Text style={[pdfStyles.th, { width: '15%' }]}>Count</Text>
               <Text style={[pdfStyles.th, { width: '55%' }]}>Intensity</Text>
             </PdfTableHeader>
-            {activitySlice.rows.map((a, i) => (
+            {chunk.map((a, i) => (
               <PdfTableRow key={i}>
                 <Text style={[pdfStyles.td, { width: '30%' }]}>{format(new Date(a.date), 'MMM d, yyyy')}</Text>
                 <Text style={[pdfStyles.td, { width: '15%' }]}>{a.count}</Text>
@@ -98,47 +106,53 @@ export function FarmSummaryPdfDocument({
                 </View>
               </PdfTableRow>
             ))}
-            {activitySlice.omitted > 0 ? (
-              <PdfFootnote>Showing first {activitySlice.rows.length} of {activity.length} days.</PdfFootnote>
-            ) : null}
-          </>
-        )}
-      </Page>
+          </Page>
+        ))
+      )}
 
-      <Page size="A4" style={pdfStyles.page}>
-        <PdfSectionTitle>Plot & crop performance</PdfSectionTitle>
-        {plots.rows.length === 0 ? (
+      {plotChunks.length === 0 ? (
+        <Page key="plots-empty" size="A4" style={pdfStyles.page}>
+          <PdfSectionTitle>Plot and crop performance</PdfSectionTitle>
           <Text style={pdfStyles.tdMuted}>No plot rows.</Text>
-        ) : (
-          <>
+        </Page>
+      ) : (
+        plotChunks.map((chunk, pageIdx) => (
+          <Page key={`plots-${pageIdx}`} size="A4" style={pdfStyles.page}>
+            <PdfSectionTitle>
+              Plot and crop performance
+              {pageIdx > 0 ? ` (continued ${pageIdx + 1}/${plotChunks.length})` : ''}
+            </PdfSectionTitle>
             <PdfTableHeader>
-              <Text style={[pdfStyles.th, { width: '18%' }]}>Farm</Text>
-              <Text style={[pdfStyles.th, { width: '16%' }]}>Farmer</Text>
-              <Text style={[pdfStyles.th, { width: '10%' }]}>Ha</Text>
-              <Text style={[pdfStyles.th, { width: '14%' }]}>Exp (t)</Text>
-              <Text style={[pdfStyles.th, { width: '14%' }]}>Act (t)</Text>
-              <Text style={[pdfStyles.th, { width: '14%' }]}>Status</Text>
+              <Text style={[pdfStyles.th, { width: '16%' }]}>Farm</Text>
+              <Text style={[pdfStyles.th, { width: '12%' }]}>Product ID</Text>
+              <Text style={[pdfStyles.th, { width: '14%' }]}>Farmer</Text>
+              <Text style={[pdfStyles.th, { width: '8%' }]}>Ha</Text>
+              <Text style={[pdfStyles.th, { width: '12%' }]}>Exp (t)</Text>
+              <Text style={[pdfStyles.th, { width: '12%' }]}>Act (t)</Text>
+              <Text style={[pdfStyles.th, { width: '12%' }]}>Status</Text>
               <Text style={[pdfStyles.th, { width: '14%' }]}>Compliance</Text>
             </PdfTableHeader>
-            {plots.rows.map((p, i) => (
+            {chunk.map((p, i) => (
               <PdfTableRow key={i}>
-                <Text style={[pdfStyles.td, { width: '18%' }]}>{p.farmName}</Text>
-                <Text style={[pdfStyles.td, { width: '16%' }]}>{p.farmerName}</Text>
-                <Text style={[pdfStyles.td, { width: '10%' }]}>{p.hectares}</Text>
-                <Text style={[pdfStyles.td, { width: '14%' }]}>{p.expectedYieldTons.toLocaleString()}</Text>
-                <Text style={[pdfStyles.td, { width: '14%' }]}>{p.actualYieldTons.toLocaleString()}</Text>
-                <Text style={[pdfStyles.tdMuted, { width: '14%' }]}>{p.status}</Text>
+                <Text style={[pdfStyles.td, { width: '16%' }]}>{p.farmName}</Text>
+                <Text style={[pdfStyles.tdMuted, { width: '12%' }]}>{p.productId}</Text>
+                <Text style={[pdfStyles.td, { width: '14%' }]}>{p.farmerName}</Text>
+                <Text style={[pdfStyles.td, { width: '8%' }]}>{p.hectares}</Text>
+                <Text style={[pdfStyles.td, { width: '12%' }]}>{p.expectedYieldTons.toLocaleString()}</Text>
+                <Text style={[pdfStyles.td, { width: '12%' }]}>{p.actualYieldTons.toLocaleString()}</Text>
+                <Text style={[pdfStyles.tdMuted, { width: '12%' }]}>{p.status}</Text>
                 <Text style={[pdfStyles.tdMuted, { width: '14%' }]}>{p.complianceStatus}</Text>
               </PdfTableRow>
             ))}
-            {plots.omitted > 0 ? (
-              <PdfFootnote>
-                Showing first {plots.rows.length} of {data.farmPerformance.data.length} rows (page {data.farmPerformance.page}, limit {data.farmPerformance.limit}).
-              </PdfFootnote>
+            {pageIdx === plotChunks.length - 1 && data.farmPerformance.total > plots.length ? (
+              <Text style={[pdfStyles.footnote, { marginTop: 10 }]}>
+                API total rows: {data.farmPerformance.total} (showing page {data.farmPerformance.page}, limit{' '}
+                {data.farmPerformance.limit}).
+              </Text>
             ) : null}
-          </>
-        )}
-      </Page>
+          </Page>
+        ))
+      )}
     </Document>
   )
 }

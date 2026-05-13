@@ -3,19 +3,27 @@ import { format } from 'date-fns'
 import type { GetReportsCooperativeFinancialSummary200DataRecentTransactionsDataItem } from '~/lib/api/generated/models/getReportsCooperativeFinancialSummary200DataRecentTransactionsDataItem'
 import type { GetReportsFarmerFinancialSummary200DataRecentTransactionsDataItem } from '~/lib/api/generated/models/getReportsFarmerFinancialSummary200DataRecentTransactionsDataItem'
 import {
-  PDF_ROW_CAP,
-  PdfFootnote,
   PdfMetaBlock,
   PdfSectionTitle,
   PdfTableHeader,
   PdfTableRow,
+  PDF_TABLE_ROWS_PER_PAGE,
+  chunkArray,
   pdfStyles,
-  sliceWithNote,
 } from '~/lib/reports-pdf/shared'
 
 export type PaymentLedgerTxn =
   | GetReportsFarmerFinancialSummary200DataRecentTransactionsDataItem
   | GetReportsCooperativeFinancialSummary200DataRecentTransactionsDataItem
+
+function formatTxnDate(iso: string | null): string {
+  if (!iso) return '—'
+  try {
+    return format(new Date(iso), 'MMM d, yyyy HH:mm')
+  } catch {
+    return iso
+  }
+}
 
 /** KPI snapshot + ledger rows (typically filtered to match the UI). */
 export function PaymentLedgerPdfDocument({
@@ -39,7 +47,7 @@ export function PaymentLedgerPdfDocument({
   txnFilterLabel: string
 }) {
   const generatedAt = format(new Date(), "MMM d, yyyy 'at' HH:mm")
-  const slice = sliceWithNote(ledgerRows, PDF_ROW_CAP)
+  const chunks = chunkArray(ledgerRows, PDF_TABLE_ROWS_PER_PAGE)
 
   return (
     <Document title={title} author="AgTrail">
@@ -80,41 +88,47 @@ export function PaymentLedgerPdfDocument({
             </Text>
           </View>
         </View>
+      </Page>
 
-        <PdfSectionTitle>Ledger rows</PdfSectionTitle>
-        {slice.rows.length === 0 ? (
+      {chunks.length === 0 ? (
+        <Page key="ledger-empty" size="A4" style={pdfStyles.page}>
+          <PdfSectionTitle>Ledger rows</PdfSectionTitle>
           <Text style={pdfStyles.tdMuted}>No transactions for this filter.</Text>
-        ) : (
-          <>
+        </Page>
+      ) : (
+        chunks.map((chunk, pageIdx) => (
+          <Page key={`ledger-${pageIdx}`} size="A4" style={pdfStyles.page}>
+            <PdfSectionTitle>
+              Ledger rows{pageIdx > 0 ? ` (continued ${pageIdx + 1}/${chunks.length})` : ''}
+            </PdfSectionTitle>
             <PdfTableHeader>
-              <Text style={[pdfStyles.th, { width: '22%' }]}>Batch</Text>
-              <Text style={[pdfStyles.th, { width: '18%' }]}>Crop</Text>
-              <Text style={[pdfStyles.th, { width: '18%' }]}>Harvest kg</Text>
-              <Text style={[pdfStyles.th, { width: '15%' }]}>Purch.</Text>
-              <Text style={[pdfStyles.th, { width: '15%' }]}>Type</Text>
-              <Text style={[pdfStyles.th, { width: '12%' }]}>Date</Text>
+              <Text style={[pdfStyles.th, { width: '14%' }]}>Batch</Text>
+              <Text style={[pdfStyles.th, { width: '12%' }]}>Crop</Text>
+              <Text style={[pdfStyles.th, { width: '12%' }]}>Exp. kg</Text>
+              <Text style={[pdfStyles.th, { width: '12%' }]}>Harvest kg</Text>
+              <Text style={[pdfStyles.th, { width: '10%' }]}>Purch.</Text>
+              <Text style={[pdfStyles.th, { width: '14%' }]}>Type</Text>
+              <Text style={[pdfStyles.th, { width: '14%' }]}>Date</Text>
+              <Text style={[pdfStyles.th, { width: '12%' }]}>Compliance</Text>
             </PdfTableHeader>
-            {slice.rows.map((t, i) => {
+            {chunk.map((t, i) => {
               const inbound = t.quantityPurchased > 0
               return (
                 <PdfTableRow key={i}>
-                  <Text style={[pdfStyles.td, { width: '22%' }]}>#{t.batchId.slice(0, 10)}</Text>
-                  <Text style={[pdfStyles.td, { width: '18%' }]}>{t.crop}</Text>
-                  <Text style={[pdfStyles.td, { width: '18%' }]}>{t.quantityHarvestedKg.toLocaleString()}</Text>
-                  <Text style={[pdfStyles.td, { width: '15%' }]}>{t.quantityPurchased.toLocaleString()}</Text>
-                  <Text style={[pdfStyles.tdMuted, { width: '15%' }]}>{inbound ? 'Purchased' : 'No purchase qty'}</Text>
-                  <Text style={[pdfStyles.tdMuted, { width: '12%' }]}>
-                    {t.date ? format(new Date(t.date), 'MMM d, yyyy') : '—'}
-                  </Text>
+                  <Text style={[pdfStyles.td, { width: '14%' }]}>#{t.batchId.slice(0, 12)}</Text>
+                  <Text style={[pdfStyles.td, { width: '12%' }]}>{t.crop}</Text>
+                  <Text style={[pdfStyles.td, { width: '12%' }]}>{t.expectedYieldKg.toLocaleString()}</Text>
+                  <Text style={[pdfStyles.td, { width: '12%' }]}>{t.quantityHarvestedKg.toLocaleString()}</Text>
+                  <Text style={[pdfStyles.td, { width: '10%' }]}>{t.quantityPurchased.toLocaleString()}</Text>
+                  <Text style={[pdfStyles.tdMuted, { width: '14%' }]}>{inbound ? 'Purchased' : 'No purchase qty'}</Text>
+                  <Text style={[pdfStyles.tdMuted, { width: '14%' }]}>{formatTxnDate(t.date)}</Text>
+                  <Text style={[pdfStyles.tdMuted, { width: '12%' }]}>{t.complianceStatus}</Text>
                 </PdfTableRow>
               )
             })}
-            {slice.omitted > 0 ? (
-              <PdfFootnote>Showing first {slice.rows.length} of {ledgerRows.length} rows.</PdfFootnote>
-            ) : null}
-          </>
-        )}
-      </Page>
+          </Page>
+        ))
+      )}
     </Document>
   )
 }
