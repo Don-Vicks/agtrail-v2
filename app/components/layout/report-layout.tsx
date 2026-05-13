@@ -1,7 +1,7 @@
 import React from 'react'
 import { PageHeader } from '~/components/page-header'
 import { Button } from '~/components/ui/button'
-import { Download, Share2 } from 'lucide-react'
+import { Download, Loader2, Share2 } from 'lucide-react'
 
 interface ReportLayoutProps {
   title: string
@@ -9,6 +9,10 @@ interface ReportLayoutProps {
   breadcrumb: { label: string; href?: string }[]
   children: React.ReactNode
   actions?: React.ReactNode
+  /** When set, enables the Download PDF control. */
+  onDownloadPdf?: () => void | Promise<void>
+  downloadPdfDisabled?: boolean
+  downloadPdfLoading?: boolean
 }
 
 export function ReportLayout({
@@ -17,7 +21,13 @@ export function ReportLayout({
   breadcrumb,
   children,
   actions,
+  onDownloadPdf,
+  downloadPdfDisabled,
+  downloadPdfLoading,
 }: ReportLayoutProps) {
+  const canDownload = Boolean(onDownloadPdf)
+  const downloadBlocked = Boolean(downloadPdfDisabled || downloadPdfLoading)
+
   return (
     <div className="space-y-6 pb-10">
       <PageHeader
@@ -25,10 +35,20 @@ export function ReportLayout({
         action={
           <div className="flex items-center gap-2">
             <Button
+              type="button"
               variant="outline"
-              className="flex items-center gap-2 h-10 border-gray-200 text-gray-700 hover:bg-gray-50"
+              disabled={!canDownload || downloadBlocked}
+              className="flex items-center gap-2 h-10 border-gray-200 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              onClick={() => {
+                if (!onDownloadPdf || downloadBlocked) return
+                void onDownloadPdf()
+              }}
             >
-              <Download className="size-4" />
+              {downloadPdfLoading ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Download className="size-4" />
+              )}
               <span className="font-bold uppercase tracking-wide text-[10px]">Download PDF</span>
             </Button>
             <Button

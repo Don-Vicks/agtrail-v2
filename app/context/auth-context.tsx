@@ -34,6 +34,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const login = (newUser: AuthResponseDataUser, token: string) => {
+    // Avoid carrying cooperative / other-session org into the new user (GET /farms + reports can 500).
+    localStorage.removeItem('agrolinking_organization_id')
     localStorage.setItem('agrolinking_token', token)
     localStorage.setItem('agrolinking_user', JSON.stringify(newUser))
     setUser(newUser)
@@ -42,6 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = () => {
     localStorage.removeItem('agrolinking_token')
     localStorage.removeItem('agrolinking_user')
+    localStorage.removeItem('agrolinking_organization_id')
     setUser(null)
   }
 

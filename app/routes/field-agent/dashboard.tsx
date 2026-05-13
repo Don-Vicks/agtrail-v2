@@ -39,11 +39,10 @@ export default function FieldAgentDashboard() {
       <PageHeader
         items={[
           {
-            label: 'Dashboard',
+            label: 'Field Agent',
             href: '/field-agent',
             icon: <Archive className='size-4 text-gray-400' />,
           },
-          { label: 'Field Agent' },
         ]}
       />
 

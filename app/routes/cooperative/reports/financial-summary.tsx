@@ -7,8 +7,12 @@ import { TrendStatCard } from '~/components/trend-stat-card'
 import { SimpleAreaChart } from '~/components/charts/simple-area-chart'
 import { DonutChart, SimpleBarChart } from '~/components/charts/report-charts'
 import { EmptyReportState } from '~/components/empty-report-state'
-import type { GetReportsFarmerFinancialSummaryParams } from '~/lib/api/generated/models/getReportsFarmerFinancialSummaryParams'
-import { useGetReportsFarmerFinancialSummary } from '~/lib/api/generated/reports-farmer/reports-farmer'
+import type { GetReportsCooperativeFinancialSummaryParams } from '~/lib/api/generated/models/getReportsCooperativeFinancialSummaryParams'
+import { useGetReportsCooperativeFinancialSummary } from '~/lib/api/generated/reports-cooperative/reports-cooperative'
+import {
+  cooperativeReportsQueryEnabled,
+  MissingCooperativeOrgBanner,
+} from './report-org-context'
 import { downloadClientPdf } from '~/lib/reports-pdf/download-client-pdf'
 import { FinancialSummaryPdfDocument } from '~/lib/reports-pdf/financial-summary-pdf'
 
@@ -18,25 +22,40 @@ function defaultDateRange() {
   return { startDate: format(start, 'yyyy-MM-dd'), endDate: format(end, 'yyyy-MM-dd') }
 }
 
-export default function FinancialSummaryPage() {
+export default function CooperativeFinancialSummaryPage() {
   const defaults = useMemo(() => defaultDateRange(), [])
+  const [selectedFarmerId, setSelectedFarmerId] = useState('')
   const [startDate, setStartDate] = useState(defaults.startDate)
   const [endDate, setEndDate] = useState(defaults.endDate)
-  const [applied, setApplied] = useState<GetReportsFarmerFinancialSummaryParams | null>(null)
+  const [applied, setApplied] = useState<GetReportsCooperativeFinancialSummaryParams | null>(null)
   const [pdfLoading, setPdfLoading] = useState(false)
 
   const queryParams = applied ?? {}
+  const coopEnabled = cooperativeReportsQueryEnabled()
   const { data: reportResponse, isLoading, isFetching, isError, error } =
-    useGetReportsFarmerFinancialSummary(queryParams, { query: { enabled: true } })
+    useGetReportsCooperativeFinancialSummary(queryParams, { query: { enabled: coopEnabled } })
 
   const reportData = reportResponse?.data?.data
+  const filterOptions = reportData?.filterOptions
+
+  const farmerOptions =
+    filterOptions?.farmers?.map((f) => ({
+      label: f.name,
+      value: f.id,
+    })) ?? []
 
   const handleGenerate = () => {
     setApplied({
+      farmerId: selectedFarmerId || undefined,
       startDate: startDate || undefined,
       endDate: endDate || undefined,
     })
   }
+
+  const farmerLabel = useMemo(() => {
+    if (!selectedFarmerId) return 'All farmers'
+    return farmerOptions.find((o) => o.value === selectedFarmerId)?.label ?? selectedFarmerId
+  }, [farmerOptions, selectedFarmerId])
 
   const handleDownloadPdf = useCallback(async () => {
     if (!reportData || !applied) return
@@ -45,18 +64,19 @@ export default function FinancialSummaryPage() {
       await downloadClientPdf(
         <FinancialSummaryPdfDocument
           title="Financial summary"
-          scopeLabel="Farmer"
+          scopeLabel="Cooperative"
           metaLines={[
+            `Farmer filter: ${farmerLabel}`,
             `Date range: ${applied.startDate ?? '—'} → ${applied.endDate ?? '—'}`,
           ]}
           data={reportData}
         />,
-        'agtrail-farmer-financial-summary',
+        'agtrail-cooperative-financial-summary',
       )
     } finally {
       setPdfLoading(false)
     }
-  }, [reportData, applied])
+  }, [reportData, applied, farmerLabel])
 
   const profitTrend = useMemo(() => {
     if (!reportData?.revenueCostsTrend?.length) return []
@@ -86,12 +106,26 @@ export default function FinancialSummaryPage() {
 
   const isBusy = isLoading || (isFetching && applied !== null)
 
+  const filters = farmerOptions.length
+    ? [
+        {
+          label: 'Farmer',
+          placeholder: 'All farmers',
+          options: farmerOptions,
+          value: selectedFarmerId,
+          onChange: setSelectedFarmerId,
+          isLoading: isLoading && !filterOptions,
+        },
+      ]
+    : []
+
   return (
     <ReportLayout
       title="Financial Summary"
-      subtitle="Comprehensive overview of revenue, costs, and profit margins"
+      subtitle="Cooperative revenue, costs, and profit"
       breadcrumb={[
-        { label: 'Reports & Analytics', href: '/farmer/reports' },
+        { label: 'Dashboard', href: '/cooperative' },
+        { label: 'Reports & Analytics', href: '/cooperative/reports' },
         { label: 'Financial Summary' },
       ]}
       onDownloadPdf={reportData && applied ? handleDownloadPdf : undefined}
@@ -99,8 +133,9 @@ export default function FinancialSummaryPage() {
       downloadPdfLoading={pdfLoading}
     >
       <div className="space-y-6">
+        <MissingCooperativeOrgBanner />
         <ReportFilter
-          filters={[]}
+          filters={filters}
           isGenerating={isBusy && applied !== null}
           onGenerate={handleGenerate}
           startDate={startDate}
@@ -111,10 +146,8 @@ export default function FinancialSummaryPage() {
 
         {isBusy && applied ? (
           <div className="flex flex-col items-center justify-center gap-4 rounded-md border border-gray-100 bg-white py-20">
-            <div className="flex size-16 items-center justify-center rounded-full border-4 border-gray-50 border-t-brand">
-              <Loader2 className="size-5 animate-spin text-brand" />
-            </div>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Aggregating ledger…</p>
+            <Loader2 className="size-8 animate-spin text-brand" />
+            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Loading…</p>
           </div>
         ) : isError ? (
           <div className="rounded-md border border-red-100 bg-red-50/50 p-6 text-center text-sm text-red-800">
@@ -156,18 +189,13 @@ export default function FinancialSummaryPage() {
             </div>
 
             <div className="rounded-md border border-gray-100 bg-white p-6 shadow-sm">
-              <div className="mb-6">
-                <h3 className="text-sm font-bold uppercase tracking-tight text-gray-900">Profit trend</h3>
-                <p className="mt-0.5 text-[10px] font-bold uppercase tracking-widest text-gray-400">
-                  Daily net profit across the range
-                </p>
-              </div>
+              <h3 className="mb-4 text-sm font-bold text-gray-900">Profit trend</h3>
               <div className="flex h-[200px] items-end">
                 {profitTrend.length > 1 ? (
                   <SimpleAreaChart data={profitTrend} height={200} />
                 ) : (
-                  <div className="flex h-full w-full flex-col items-center justify-center gap-2 rounded-md border border-dashed border-gray-100 bg-gray-50/50 text-[10px] font-bold uppercase text-gray-400">
-                    Insufficient data for trend analysis
+                  <div className="flex h-full w-full items-center justify-center rounded-md border border-dashed border-gray-100 bg-gray-50/50 text-[10px] font-bold uppercase text-gray-400">
+                    Insufficient data
                   </div>
                 )}
               </div>
@@ -175,18 +203,9 @@ export default function FinancialSummaryPage() {
 
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
               <div className="rounded-md border border-gray-100 bg-white p-6 shadow-sm">
-                <div className="mb-6">
-                  <h3 className="text-sm font-bold uppercase tracking-tight text-gray-900">Cost breakdown</h3>
-                  <p className="mt-0.5 text-[10px] font-bold uppercase tracking-widest text-gray-400">
-                    Spend by category
-                  </p>
-                </div>
+                <h3 className="mb-4 text-sm font-bold text-gray-900">Cost breakdown</h3>
                 {costDonut.length > 0 ? (
-                  <DonutChart
-                    centerLabel="Categories"
-                    centerValue={String(costDonut.length)}
-                    data={costDonut}
-                  />
+                  <DonutChart centerLabel="Categories" centerValue={String(costDonut.length)} data={costDonut} />
                 ) : (
                   <div className="flex h-40 items-center justify-center text-[10px] font-bold uppercase text-gray-400">
                     No cost data
@@ -194,12 +213,7 @@ export default function FinancialSummaryPage() {
                 )}
               </div>
               <div className="rounded-md border border-gray-100 bg-white p-6 shadow-sm">
-                <div className="mb-6">
-                  <h3 className="text-sm font-bold uppercase tracking-tight text-gray-900">Margin by crop</h3>
-                  <p className="mt-0.5 text-[10px] font-bold uppercase tracking-widest text-gray-400">
-                    Margin % (higher is better)
-                  </p>
-                </div>
+                <h3 className="mb-4 text-sm font-bold text-gray-900">Margin by crop</h3>
                 {cropMarginBars.length > 0 ? (
                   <SimpleBarChart data={cropMarginBars} />
                 ) : (
@@ -212,96 +226,38 @@ export default function FinancialSummaryPage() {
 
             <div className="overflow-hidden rounded-md border border-gray-100 bg-white shadow-sm">
               <div className="border-b border-gray-50 p-5">
-                <h3 className="text-base font-bold tracking-tight text-gray-900">Crop sales detail</h3>
-                <p className="mt-0.5 text-[10px] font-bold uppercase tracking-widest text-gray-400">
-                  Revenue, cost, and profit by crop
-                </p>
+                <h3 className="text-base font-bold text-gray-900">Crop sales detail</h3>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm">
                   <thead className="bg-gray-50/50">
                     <tr>
-                      <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-gray-500">Crop</th>
-                      <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-gray-500">
-                        Revenue
-                      </th>
-                      <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-gray-500">Costs</th>
-                      <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-gray-500">Profit</th>
-                      <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-gray-500">Margin</th>
+                      <th className="px-6 py-3 text-[10px] font-bold uppercase text-gray-500">Crop</th>
+                      <th className="px-6 py-3 text-[10px] font-bold uppercase text-gray-500">Revenue</th>
+                      <th className="px-6 py-3 text-[10px] font-bold uppercase text-gray-500">Costs</th>
+                      <th className="px-6 py-3 text-[10px] font-bold uppercase text-gray-500">Profit</th>
+                      <th className="px-6 py-3 text-[10px] font-bold uppercase text-gray-500">Margin</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
                     {reportData.cropSalesDetail.map((c, i) => (
-                      <tr key={`${c.crop}-${i}`} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 font-bold text-gray-900">{c.crop}</td>
-                        <td className="px-6 py-4 font-bold text-emerald-700">
+                      <tr key={`${c.crop}-${i}`}>
+                        <td className="px-6 py-3 font-bold">{c.crop}</td>
+                        <td className="px-6 py-3 font-bold text-emerald-700">
                           {c.currency}
                           {c.revenue.toLocaleString()}
                         </td>
-                        <td className="px-6 py-4 font-bold text-gray-700">
+                        <td className="px-6 py-3 font-bold">
                           {c.currency}
                           {c.costs.toLocaleString()}
                         </td>
-                        <td className="px-6 py-4 font-bold text-gray-900">
+                        <td className="px-6 py-3 font-bold">
                           {c.currency}
                           {c.profit.toLocaleString()}
                         </td>
-                        <td className="px-6 py-4 text-[11px] font-bold text-gray-600">{c.marginPct.toFixed(1)}%</td>
+                        <td className="px-6 py-3 font-bold text-gray-600">{c.marginPct.toFixed(1)}%</td>
                       </tr>
                     ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <div className="overflow-hidden rounded-md border border-gray-100 bg-white shadow-sm">
-              <div className="border-b border-gray-50 p-5">
-                <h3 className="text-base font-bold tracking-tight text-gray-900">Recent transactions</h3>
-                <p className="mt-0.5 text-[10px] font-bold uppercase tracking-widest text-gray-400">
-                  Latest batches linked to purchases
-                </p>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm">
-                  <thead className="bg-gray-50/50">
-                    <tr>
-                      <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-gray-500">Batch</th>
-                      <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-gray-500">Crop</th>
-                      <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-gray-500">Date</th>
-                      <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-gray-500">
-                        Harvested (kg)
-                      </th>
-                      <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-gray-500">
-                        Purchased qty
-                      </th>
-                      <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-gray-500">
-                        Compliance
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-50">
-                    {reportData.recentTransactions.data.length === 0 ? (
-                      <tr>
-                        <td colSpan={6} className="px-6 py-10 text-center text-[10px] font-bold uppercase text-gray-400">
-                          No recent transactions
-                        </td>
-                      </tr>
-                    ) : (
-                      reportData.recentTransactions.data.map((t, i) => (
-                        <tr key={`${t.batchId}-${i}`} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 text-[11px] font-bold uppercase tracking-tight text-gray-900">
-                            #{t.batchId.slice(0, 12)}
-                          </td>
-                          <td className="px-6 py-4 font-bold text-gray-800">{t.crop}</td>
-                          <td className="px-6 py-4 text-[10px] font-bold uppercase text-gray-500">
-                            {t.date ? format(new Date(t.date), 'MMM d, yyyy') : '—'}
-                          </td>
-                          <td className="px-6 py-4 font-bold text-gray-900">{t.quantityHarvestedKg.toLocaleString()}</td>
-                          <td className="px-6 py-4 font-bold text-gray-900">{t.quantityPurchased.toLocaleString()}</td>
-                          <td className="px-6 py-4 text-[10px] font-bold uppercase text-gray-600">{t.complianceStatus}</td>
-                        </tr>
-                      ))
-                    )}
                   </tbody>
                 </table>
               </div>
@@ -309,8 +265,8 @@ export default function FinancialSummaryPage() {
           </>
         ) : (
           <EmptyReportState
-            title="Generate Financial Summary"
-            description="Pick a start and end date, then generate revenue, cost, and profit analytics."
+            title="Financial Summary"
+            description="Optionally pick a farmer, set dates, then generate."
             icon="search"
           />
         )}

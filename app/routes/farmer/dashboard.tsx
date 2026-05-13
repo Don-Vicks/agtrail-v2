@@ -72,7 +72,6 @@ export default function FarmerDashboard() {
             label: 'Farmer',
             href: '/farmer',
           },
-          { label: 'Dashboard' },
         ]}
         action={
           <div className="flex items-center gap-2">

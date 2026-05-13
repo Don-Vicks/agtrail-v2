@@ -150,11 +150,11 @@ export default function ProcessorBatches() {
       <PageHeader
         items={[
           {
-            label: 'Dashboard',
+            label: 'Processor',
             href: '/processor',
             icon: <Layers className="size-4 text-gray-400" />,
           },
-          { label: 'Processing Batches' },
+          { label: 'Processing Batches', href: '#' },
         ]}
       />
 

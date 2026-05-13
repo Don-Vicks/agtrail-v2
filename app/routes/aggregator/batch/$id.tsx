@@ -10,47 +10,74 @@ import {
   MapPin,
   QrCode,
   Share2,
-  User
+  User,
+  Loader2
 } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { Button } from '~/components/ui/button'
 import { ViewObservationLogModal } from '~/components/view-observation-log-modal'
-import { useAggregatorIncomingBatches } from '~/lib/aggregator/use-aggregator-data'
+import { useGetFarmersProductsId } from '~/lib/api/generated/farm-products/farm-products'
 import { useDraftLot } from '~/lib/aggregator/use-draft-lot'
 import { cn } from '~/lib/utils'
 
 export default function BatchDetailsPage() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { batches } = useAggregatorIncomingBatches()
-  const { addBatch, draftLotBatches } = useDraftLot()
+  const { data: productResponse, isLoading: isLoadingProduct } = useGetFarmersProductsId(id ?? '')
+  const { addBatch, draftLotBatches, isAdding } = useDraftLot()
 
   const [activeTab, setActiveTab] = useState('Journey')
   const [view, setView] = useState<'details' | 'weight'>('details')
   const [isObservationLogOpen, setIsObservationLogOpen] = useState(false)
 
-  // Decode the ID in case it contains spaces or special characters
-  const decodedId = id ? decodeURIComponent(id) : ''
-  const batch = batches.find((b) => b.id === decodedId) || batches[0]
+  const batch = productResponse?.data?.data
 
   const handleContinue = () => {
     setView('weight')
   }
 
-  const handleSaveWeight = () => {
+  const handleSaveWeight = async (measuredWeight: number) => {
     if (batch && !draftLotBatches.some((existing) => existing.id === batch.id)) {
-      addBatch(batch)
+      try {
+        await addBatch(batch.batchNumber || batch.id)
+        navigate('/aggregator/batch-qr-scan')
+      } catch (err) {
+        // Error handled in addBatch toast
+      }
     }
-    navigate('/aggregator/batch-qr-scan')
   }
 
-  // If batch is not found, we can still render a placeholder based on the screenshot
-  const commodityName = batch?.goodsType || 'CHERRY TOMATOES'
-  const batchIdDisplay = batch?.batchIdentifier || 'BATCH-175683816381A2'
-  const location = batch?.location || 'Zone 16, Kute, Iwo Road'
-  const plantedDate = '3rd, January 2025' // Placeholder
-  const fieldAgent = batch?.fieldAgentName || 'Sunday Abel'
+  if (isLoadingProduct) {
+    return (
+      <div className="flex h-[400px] items-center justify-center">
+        <Loader2 className="size-8 animate-spin text-brand" />
+      </div>
+    )
+  }
+
+  if (!batch) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[400px] text-center p-6">
+        <div className="size-12 rounded-full bg-red-50 flex items-center justify-center mb-4">
+          <AlertTriangle className="size-6 text-red-500" />
+        </div>
+        <h3 className="text-lg font-bold text-gray-900">Batch Not Found</h3>
+        <p className="text-sm text-gray-500 max-w-xs mt-2">The batch identifier provided does not exist or you do not have permission to view it.</p>
+        <Link to="/aggregator/batch-qr-scan" className="mt-6 text-brand font-bold hover:underline">Back to Scan</Link>
+      </div>
+    )
+  }
+
+  const commodityName = batch.productName || 'PRODUCE'
+  const batchIdDisplay = batch.batchNumber || `#BT-${batch.id.slice(-6)}`
+  const location = batch.storageLocation || 'Unknown Location'
+  const harvestedDate = batch.harvestDate || 'N/A'
+  const quantity = Number(batch.quantityAvailable || batch.quantityHarvested || 0)
+  
+  // These might be missing in the base model but could be in the response
+  const plantedDate = (batch as any).plantingDate || 'N/A'
+  const fieldAgent = (batch as any).fieldAgentName || 'Assigned Agent'
 
   const tabs = ['Journey', 'Impact', 'Quality', 'People']
 
@@ -128,7 +155,7 @@ export default function BatchDetailsPage() {
   ]
 
   if (view === 'weight') {
-    return <WeightConfirmationForm onSave={handleSaveWeight} />
+    return <WeightConfirmationForm onSave={handleSaveWeight} reportWeight={quantity} />
   }
 
   return (
@@ -340,7 +367,9 @@ function DetailItem({ label, value }: { label: string, value: string }) {
   )
 }
 
-function WeightConfirmationForm({ onSave }: { onSave: () => void }) {
+function WeightConfirmationForm({ onSave, reportWeight }: { onSave: (measuredWeight: number) => void, reportWeight: number }) {
+  const [measuredWeight, setMeasuredWeight] = useState(reportWeight)
+
   return (
     <div className="space-y-6 pb-20">
       <div className="mb-4">
@@ -368,8 +397,9 @@ function WeightConfirmationForm({ onSave }: { onSave: () => void }) {
               <label className="text-[11px] font-bold text-[#2e7d32]">Received Weight (Kg)</label>
               <div className="relative">
                 <input
-                  type="text"
-                  defaultValue="00.000"
+                  type="number"
+                  value={measuredWeight}
+                  onChange={(e) => setMeasuredWeight(Number(e.target.value))}
                   className="w-full h-12 rounded-md border border-gray-300 px-4 font-medium text-gray-900 focus:border-[#2e7d32] focus:ring-1 focus:ring-[#2e7d32] outline-none transition-shadow"
                 />
                 <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-medium text-gray-500">Kg</span>
@@ -391,7 +421,7 @@ function WeightConfirmationForm({ onSave }: { onSave: () => void }) {
             <label className="text-[11px] font-bold text-[#2e7d32]">Report Weight</label>
             <input
               type="text"
-              defaultValue="1,680"
+              value={reportWeight.toLocaleString()}
               readOnly
               className="w-full h-12 rounded-md border border-gray-300 bg-gray-50 px-4 font-medium text-gray-600 outline-none"
             />
@@ -401,8 +431,9 @@ function WeightConfirmationForm({ onSave }: { onSave: () => void }) {
             <label className="text-[11px] font-bold text-[#2e7d32]">Measured Weight</label>
             <div className="relative">
               <input
-                type="text"
-                defaultValue="1,675"
+                type="number"
+                value={measuredWeight}
+                onChange={(e) => setMeasuredWeight(Number(e.target.value))}
                 className="w-full h-12 rounded-md border border-gray-300 px-4 font-medium text-gray-900 focus:border-[#2e7d32] focus:ring-1 focus:ring-[#2e7d32] outline-none transition-shadow"
               />
               <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-medium text-gray-500">Kg</span>
@@ -421,8 +452,11 @@ function WeightConfirmationForm({ onSave }: { onSave: () => void }) {
             <button className="h-12 rounded-md bg-[#dc2626] text-white font-bold text-sm shadow-sm hover:bg-[#b91c1c] transition-colors px-6">
               Flag Discrepancy
             </button>
-            <button onClick={onSave} className="flex-1 h-12 rounded-md bg-[#1a4332] text-white font-bold text-sm shadow-sm hover:bg-[#122e22] transition-colors px-6">
-              Save
+            <button 
+              onClick={() => onSave(measuredWeight)} 
+              className="flex-1 h-12 rounded-md bg-[#1a4332] text-white font-bold text-sm shadow-sm hover:bg-[#122e22] transition-colors px-6"
+            >
+              Save & Add to Draft
             </button>
           </div>
         </div>

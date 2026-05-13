@@ -1,51 +1,51 @@
-import { AlertTriangle, Building2, ChevronRight, History, MapPin } from 'lucide-react'
+import { AlertTriangle, Building2, ChevronRight, History, MapPin, Loader2 } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import { FarmMap } from '~/components/farm-map.client'
 import { StatCard } from './stat-card'
+import { usePostAggregatorLotsDraftIdFinalise } from '~/lib/api/generated/aggregator/aggregator'
+import { useDraftLot } from '~/lib/aggregator/use-draft-lot'
+import { useNavigate } from 'react-router'
+import { toast } from 'sonner'
+import { useQueryClient } from '@tanstack/react-query'
 
 interface FinalizeReviewProps {
+  draftId?: string
   onBack: () => void
   onFinalize: () => void
 }
 
-const mockFarms = [
-  {
-    id: 'F1',
-    name: 'Jonathan Arable Farm',
-    location: 'North Valley Flats',
-    region: 'Western Region',
-    hectares: 240.5,
-    lat: 7.1881,
-    lng: 2.1033,
-    boundary: [
-      { lat: 7.190, lng: 2.100 },
-      { lat: 7.195, lng: 2.105 },
-      { lat: 7.190, lng: 2.110 },
-      { lat: 7.185, lng: 2.105 }
-    ]
-  },
-  {
-    id: 'F2',
-    name: 'Sarah Greenfield Farm',
-    location: 'East Ridge',
-    region: 'Eastern Region',
-    hectares: 188.0,
-    lat: 7.2500,
-    lng: 2.2000,
-    boundary: [
-      { lat: 7.255, lng: 2.195 },
-      { lat: 7.260, lng: 2.205 },
-      { lat: 7.255, lng: 2.215 },
-      { lat: 7.245, lng: 2.205 }
-    ]
-  }
-]
+export function FinalizeReview({ draftId, onBack, onFinalize }: FinalizeReviewProps) {
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
+  const { stats, draftLotBatches } = useDraftLot()
+  const finalizeMutation = usePostAggregatorLotsDraftIdFinalise()
 
-export function FinalizeReview({ onBack, onFinalize }: FinalizeReviewProps) {
+  const handleFinalize = async () => {
+    if (!draftId) return
+    
+    try {
+      await finalizeMutation.mutateAsync({
+        draftId,
+        data: {
+          actualWeight: stats.totalDraftWeightKg
+        }
+      })
+      queryClient.invalidateQueries({ queryKey: [`/aggregator/lots`] })
+      queryClient.invalidateQueries({ queryKey: [`/aggregator/lots/draft`] })
+      toast.success('Lot finalized successfully')
+      navigate('/aggregator')
+    } catch (err) {
+      toast.error('Failed to finalize lot')
+    }
+  }
+
+  // Unique farmers count
+  const uniqueFarmers = new Set(draftLotBatches.map(b => b.farmerName)).size
+
   return (
     <div className='space-y-6'>
       <div className='space-y-1'>
-        <h1 className='text-2xl font-extrabold text-[#2e7d32] tracking-tight'>
+        <h1 className='text-2xl font-bold text-[#2e7d32] tracking-tight'>
           Finalize Lot Review
         </h1>
         <p className='text-[13px] text-gray-500 font-medium'>
@@ -57,18 +57,18 @@ export function FinalizeReview({ onBack, onFinalize }: FinalizeReviewProps) {
       <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
         <StatCard
           label='Total Batches'
-          value='142'
+          value={stats.scanned.toString()}
           subtext='All Verified'
         />
         <StatCard
           label='Total Farmers'
-          value='2'
+          value={uniqueFarmers.toString()}
           subtext='Direct Sourcing'
         />
         <StatCard
           label='Final Weight'
-          value='1000 kg'
-          subtext='+12% vs last Most'
+          value={`${stats.totalDraftWeightKg.toLocaleString()} kg`}
+          subtext='Aggregated Total'
         />
       </div>
 
@@ -89,7 +89,7 @@ export function FinalizeReview({ onBack, onFinalize }: FinalizeReviewProps) {
               <p className='text-[9px] text-white/70 uppercase tracking-widest font-bold mb-1'>
                 Lot Root
               </p>
-              <p className='text-lg font-bold'>LOT-2023-001</p>
+              <p className='text-lg font-bold'>{draftId ? `#DRAFT-${draftId.slice(-6)}` : 'NEW LOT'}</p>
             </div>
 
             <div className='w-px h-6 bg-gray-200 shrink-0'></div>
@@ -104,21 +104,21 @@ export function FinalizeReview({ onBack, onFinalize }: FinalizeReviewProps) {
                 <MapPin className='size-5 text-[#2e7d32]' />
                 <div className='text-center'>
                   <p className='text-sm font-bold text-gray-900'>
-                    Sector A
+                    Inbound Batches
                   </p>
                   <p className='text-[10px] font-medium text-gray-500'>
-                    5 Batches
+                    {stats.scanned} Batches
                   </p>
                 </div>
               </div>
               <div className='bg-white border border-gray-200 rounded-md p-4 w-52 flex items-center justify-center gap-3 shadow-sm'>
-                <MapPin className='size-5 text-[#2e7d32]' />
+                <Building2 className='size-5 text-[#2e7d32]' />
                 <div className='text-center'>
                   <p className='text-sm font-bold text-gray-900'>
-                    Sector B
+                    Direct Source
                   </p>
                   <p className='text-[10px] font-medium text-gray-500'>
-                    4 Batches
+                    {uniqueFarmers} Farmers
                   </p>
                 </div>
               </div>
@@ -155,27 +155,37 @@ export function FinalizeReview({ onBack, onFinalize }: FinalizeReviewProps) {
           </div>
         </div>
 
-        {/* Geographic Origin */}
+        {/* Geographic Origin Summary */}
         <div className='bg-white border border-gray-100 rounded-md p-6 shadow-sm flex flex-col'>
           <h3 className='text-sm font-bold text-gray-900 mb-4'>
-            Geographic Origin
+            Lot Content
           </h3>
-          <div className='flex-1 mb-4 min-h-[300px]'>
-            <FarmMap farms={mockFarms} className="h-full w-full" />
+          <div className='flex-1 space-y-4 overflow-y-auto max-h-[400px] pr-2'>
+            {draftLotBatches.map(batch => (
+              <div key={batch.id} className="p-3 rounded-md bg-gray-50 border border-gray-100">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="text-xs font-bold text-gray-900">{batch.batchIdentifier}</p>
+                    <p className="text-[10px] text-gray-500">{batch.farmerName}</p>
+                  </div>
+                  <span className="text-[10px] font-bold text-brand">{batch.quantityKg} Kg</span>
+                </div>
+              </div>
+            ))}
           </div>
-          <div className='space-y-3'>
+          <div className='pt-4 border-t border-gray-100 mt-4 space-y-3'>
             <div className='flex justify-between items-center text-xs'>
               <span className='text-gray-500 font-medium'>
-                Primary Region
+                Total Batches
               </span>
               <span className='font-bold text-gray-900'>
-                North Valley Flats
+                {stats.scanned}
               </span>
             </div>
             <div className='flex justify-between items-center text-xs'>
-              <span className='text-gray-500 font-medium'>Total Area</span>
+              <span className='text-gray-500 font-medium'>Net Weight</span>
               <span className='font-bold text-gray-900'>
-                428.5 Hectares
+                {stats.totalDraftWeightKg} Kg
               </span>
             </div>
           </div>
@@ -201,14 +211,17 @@ export function FinalizeReview({ onBack, onFinalize }: FinalizeReviewProps) {
           onClick={onBack}
           variant='outline'
           className='h-11 px-6 rounded-md font-bold text-gray-600'
+          disabled={finalizeMutation.isPending}
         >
-          Save as Draft
+          Back
         </Button>
         <Button
-          onClick={onFinalize}
-          className='h-11 px-6 rounded-md bg-[#1a4332] hover:bg-[#122e22] font-bold text-white shadow-sm'
+          onClick={handleFinalize}
+          className='h-11 px-6 rounded-md bg-[#1a4332] hover:bg-[#122e22] font-bold text-white shadow-sm gap-2'
+          disabled={finalizeMutation.isPending || !draftId}
         >
-          Finalize & Create Lot <ChevronRight className='ml-2 size-4' />
+          {finalizeMutation.isPending && <Loader2 className="size-4 animate-spin" />}
+          Finalize & Create Lot <ChevronRight className='size-4' />
         </Button>
       </div>
     </div>

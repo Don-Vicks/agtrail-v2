@@ -22,7 +22,7 @@ export default function TransporterDashboard() {
     <div className="space-y-8 pb-10">
       <PageHeader
         items={[
-          { label: 'Product', href: '#' },
+          { label: 'Transporter', href: '/transporter' },
         ]}
       />
 

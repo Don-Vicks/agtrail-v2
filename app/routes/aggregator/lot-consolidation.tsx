@@ -4,95 +4,18 @@ import { BatchSelection } from './lot-consolidation/components/batch-selection'
 import { CompositionTree } from './lot-consolidation/components/composition-tree'
 import { FinalizeReview } from './lot-consolidation/components/finalize-review'
 import { StorageModal } from './lot-consolidation/components/storage-modal'
-
-// Mock Data
-const mockBatches = [
-  {
-    id: '#BT - 98442',
-    farmer: 'Sarah Greenfield',
-    farmerId: 'F - 006',
-    quantity: '420 Unit',
-    harvested: '2025-04-13',
-    weight: '250.00 Kg',
-  },
-  {
-    id: '#BT - 98443',
-    farmer: 'Sarah Rogers',
-    farmerId: 'F - 004',
-    quantity: '500 Unit',
-    harvested: '2025-04-13',
-    weight: '250.00 Kg',
-  },
-  {
-    id: '#BT - 98444',
-    farmer: 'Sarah Greenfield',
-    farmerId: 'F - 006',
-    quantity: '52 Unit',
-    harvested: '2025-04-13',
-    weight: '250.00 Kg',
-  },
-  {
-    id: '#BT - 98445',
-    farmer: 'Sarah Rogers',
-    farmerId: 'F - 008',
-    quantity: '300 Unit',
-    harvested: '2025-04-13',
-    weight: '250.00 Kg',
-  },
-  {
-    id: '#BT - 98446',
-    farmer: 'Johnathan Arable',
-    farmerId: 'F - 007',
-    quantity: '10 Unit',
-    harvested: '2025-04-13',
-    weight: '250.00 Kg',
-  },
-  {
-    id: '#BT - 98447',
-    farmer: 'Sarah Rogers',
-    farmerId: 'F - 008',
-    quantity: '300 Unit',
-    harvested: '2025-04-13',
-    weight: '250.00 Kg',
-  },
-  {
-    id: '#BT - 98448',
-    farmer: 'Johnathan Arable',
-    farmerId: 'F - 007',
-    quantity: '10 Unit',
-    harvested: '2025-04-13',
-    weight: '250.00 Kg',
-  },
-]
-
-const auditLogs = [
-  {
-    timestamp: '24 Oct 2023, 09:12 AM',
-    action: 'Lot Composition Finalized',
-    entity: 'LOT-2023-001',
-    performedBy: 'Robert Miller (Manager)',
-    status: 'COMPLETED',
-  },
-  {
-    timestamp: '23 Oct 2023, 04:45 PM',
-    action: 'Batch G05 Verified',
-    entity: 'Sarah Greenfield',
-    performedBy: 'System Autocheck',
-    status: 'VERIFIED',
-  },
-  {
-    timestamp: '22 Oct 2023, 11:30 AM',
-    action: 'New Farmer Onboarding',
-    entity: 'Jonathan Arable',
-    performedBy: 'Alice Wong (Admin)',
-    status: 'COMPLETED',
-  },
-]
+import { useDraftLot } from '~/lib/aggregator/use-draft-lot'
+import { useGetAggregatorLotsDraft } from '~/lib/api/generated/aggregator/aggregator'
+import { Loader2 } from 'lucide-react'
 
 export default function AggregatorLotConsolidationPage() {
   const [step, setStep] = useState(1)
   const [selectedBatches, setSelectedBatches] = useState<string[]>([])
   const [isStorageModalOpen, setIsStorageModalOpen] = useState(false)
+  
+  const { draftLotBatches, stats, isLoading } = useDraftLot()
+  const { data: draftResponse } = useGetAggregatorLotsDraft()
+  const draftId = draftResponse?.data?.data?.id
 
   const toggleBatch = (id: string) => {
     setSelectedBatches((prev) =>
@@ -101,11 +24,21 @@ export default function AggregatorLotConsolidationPage() {
   }
 
   const selectedCount = selectedBatches.length
-  const totalWeight = selectedCount * 250 // Mocking 250kg per batch
+  const totalWeight = draftLotBatches
+    .filter(b => selectedBatches.includes(b.id))
+    .reduce((sum, b) => sum + b.quantityKg, 0)
 
   const handleSaveEntry = () => {
     setIsStorageModalOpen(false)
     setStep(1)
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex h-[400px] items-center justify-center">
+        <Loader2 className="size-8 animate-spin text-brand" />
+      </div>
+    )
   }
 
   return (
@@ -113,7 +46,7 @@ export default function AggregatorLotConsolidationPage() {
       <PageHeader
         items={[
           {
-            label: 'Dashboard',
+            label: 'Aggregator',
             href: '/aggregator',
           },
           { label: 'Lot Consolidation' },
@@ -122,7 +55,14 @@ export default function AggregatorLotConsolidationPage() {
 
       {step === 1 && (
         <BatchSelection 
-          batches={mockBatches}
+          batches={draftLotBatches.map(b => ({
+            id: b.id,
+            farmer: b.farmerName,
+            farmerId: b.farmerId,
+            quantity: `${b.quantityKg} Kg`,
+            harvested: b.harvestedAt,
+            weight: `${b.quantityKg} Kg`,
+          }))}
           selectedBatches={selectedBatches}
           onToggleBatch={toggleBatch}
           onContinue={() => setStep(2)}
@@ -132,7 +72,7 @@ export default function AggregatorLotConsolidationPage() {
 
       {step === 2 && (
         <CompositionTree 
-          auditLogs={auditLogs}
+          auditLogs={[]} // Notifications can be used here if needed
           onBack={() => setStep(1)}
           onContinue={() => setStep(3)}
         />
@@ -140,6 +80,7 @@ export default function AggregatorLotConsolidationPage() {
 
       {step === 3 && (
         <FinalizeReview 
+          draftId={draftId}
           onBack={() => setStep(2)}
           onFinalize={() => setIsStorageModalOpen(true)}
         />
@@ -149,6 +90,7 @@ export default function AggregatorLotConsolidationPage() {
         open={isStorageModalOpen}
         onOpenChange={setIsStorageModalOpen}
         onSave={handleSaveEntry}
+        draftId={draftId}
       />
     </div>
   )

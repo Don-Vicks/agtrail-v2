@@ -20,7 +20,7 @@ export function CompositionTree({ auditLogs, onBack, onContinue }: CompositionTr
   return (
     <div className='space-y-8'>
       <div className='space-y-1'>
-        <h1 className='text-2xl font-extrabold text-[#2e7d32] tracking-tight'>
+        <h1 className='text-2xl font-bold text-[#2e7d32] tracking-tight'>
           Lot Composition Tress
         </h1>
         <p className='text-[13px] text-gray-500 font-medium'>
@@ -78,7 +78,7 @@ export function CompositionTree({ auditLogs, onBack, onContinue }: CompositionTr
                       />
                     </div>
                     <div>
-                      <h4 className='text-sm font-extrabold text-[#1a4332]'>
+                      <h4 className='text-sm font-bold text-[#1a4332]'>
                         Jonathan Arable
                       </h4>
                       <p className='text-[10px] text-gray-500 uppercase font-bold tracking-wider mt-0.5'>
@@ -90,7 +90,7 @@ export function CompositionTree({ auditLogs, onBack, onContinue }: CompositionTr
                     <span className='font-bold text-gray-500'>
                       Contribution:
                     </span>
-                    <span className='font-extrabold text-[#1a4332]'>
+                    <span className='font-bold text-[#1a4332]'>
                       7,200 kg
                     </span>
                   </div>
@@ -107,7 +107,7 @@ export function CompositionTree({ auditLogs, onBack, onContinue }: CompositionTr
                 {/* Batches for Farmer 1 */}
                 <div className='flex gap-3 md:gap-4'>
                   <div className='bg-gray-50 border border-gray-200 rounded-md p-3 w-28 text-center shadow-sm'>
-                    <p className='text-[10px] font-extrabold text-gray-900'>
+                    <p className='text-[10px] font-bold text-gray-900'>
                       BATCH-A12
                     </p>
                     <p className='text-[11px] font-medium text-gray-600 my-1'>
@@ -118,7 +118,7 @@ export function CompositionTree({ auditLogs, onBack, onContinue }: CompositionTr
                     </p>
                   </div>
                   <div className='bg-gray-50 border border-gray-200 rounded-md p-3 w-28 text-center shadow-sm'>
-                    <p className='text-[10px] font-extrabold text-gray-900'>
+                    <p className='text-[10px] font-bold text-gray-900'>
                       BATCH-A15
                     </p>
                     <p className='text-[11px] font-medium text-gray-600 my-1'>
@@ -145,7 +145,7 @@ export function CompositionTree({ auditLogs, onBack, onContinue }: CompositionTr
                       />
                     </div>
                     <div>
-                      <h4 className='text-sm font-extrabold text-[#1a4332]'>
+                      <h4 className='text-sm font-bold text-[#1a4332]'>
                         Sarah Greenfield
                       </h4>
                       <p className='text-[10px] text-gray-500 uppercase font-bold tracking-wider mt-0.5'>
@@ -157,7 +157,7 @@ export function CompositionTree({ auditLogs, onBack, onContinue }: CompositionTr
                     <span className='font-bold text-gray-500'>
                       Contribution:
                     </span>
-                    <span className='font-extrabold text-[#1a4332]'>
+                    <span className='font-bold text-[#1a4332]'>
                       5,250 kg
                     </span>
                   </div>
@@ -173,7 +173,7 @@ export function CompositionTree({ auditLogs, onBack, onContinue }: CompositionTr
                 {/* Batches for Farmer 2 */}
                 <div className='flex gap-3 md:gap-4'>
                   <div className='bg-gray-50 border border-gray-200 rounded-md p-3 w-28 text-center shadow-sm'>
-                    <p className='text-[10px] font-extrabold text-gray-900'>
+                    <p className='text-[10px] font-bold text-gray-900'>
                       BATCH-G02
                     </p>
                     <p className='text-[11px] font-medium text-gray-600 my-1'>
@@ -184,7 +184,7 @@ export function CompositionTree({ auditLogs, onBack, onContinue }: CompositionTr
                     </p>
                   </div>
                   <div className='bg-gray-50 border border-gray-200 rounded-md p-3 w-28 text-center shadow-sm'>
-                    <p className='text-[10px] font-extrabold text-gray-900'>
+                    <p className='text-[10px] font-bold text-gray-900'>
                       BATCH-G05
                     </p>
                     <p className='text-[11px] font-medium text-gray-600 my-1'>
@@ -202,7 +202,7 @@ export function CompositionTree({ auditLogs, onBack, onContinue }: CompositionTr
 
         {/* Compliance Sidebar */}
         <div className='w-full lg:w-80 bg-white border border-gray-100 rounded-md p-6 shadow-sm shrink-0'>
-          <h3 className='text-base font-extrabold text-[#1a4332] mb-6'>
+          <h3 className='text-base font-bold text-[#1a4332] mb-6'>
             Compliance
             <br />
             Summary
@@ -210,7 +210,7 @@ export function CompositionTree({ auditLogs, onBack, onContinue }: CompositionTr
 
           <div className='flex flex-col items-center justify-center mb-8'>
             <div className='size-20 rounded-full border-[3px] border-[#2e7d32] flex flex-col items-center justify-center mb-2 shadow-sm'>
-              <span className='text-xl font-extrabold text-[#2e7d32]'>
+              <span className='text-xl font-bold text-[#2e7d32]'>
                 98
               </span>
               <span className='text-[8px] font-bold text-[#2e7d32] uppercase tracking-widest'>
@@ -253,7 +253,7 @@ export function CompositionTree({ auditLogs, onBack, onContinue }: CompositionTr
 
       <div className='space-y-4 pt-4'>
         <div className='flex items-center justify-between'>
-          <h2 className='text-xl font-extrabold text-gray-900 tracking-tight'>
+          <h2 className='text-xl font-bold text-gray-900 tracking-tight'>
             Audit Log
           </h2>
           <button className='text-sm font-bold text-[#2e7d32] hover:underline flex items-center gap-1'>
@@ -305,7 +305,7 @@ export function CompositionTree({ auditLogs, onBack, onContinue }: CompositionTr
                   <td className='px-6 py-4 text-right'>
                     <span
                       className={cn(
-                        'px-2.5 py-1 text-[9px] font-extrabold uppercase tracking-widest rounded-full border',
+                        'px-2.5 py-1 text-[9px] font-bold uppercase tracking-widest rounded-full border',
                         log.status === 'COMPLETED' ||
                           log.status === 'VERIFIED'
                           ? 'bg-[#e8f5e9]/50 text-[#2e7d32] border-[#2e7d32]/20'

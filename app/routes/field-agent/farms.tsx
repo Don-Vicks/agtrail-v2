@@ -101,11 +101,11 @@ export default function FieldAgentFarms() {
       <PageHeader
         items={[
           {
-            label: 'Dashboard',
+            label: 'Field Agent',
             href: '/field-agent',
             icon: <Archive className='size-4 text-gray-400' />,
           },
-          { label: 'Farm Assets' },
+          { label: 'Farm Assets', href: '#' },
         ]}
       />
 

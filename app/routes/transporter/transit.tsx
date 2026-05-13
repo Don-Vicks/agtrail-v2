@@ -1,4 +1,5 @@
 import { MapPin, Clock, Navigation, Thermometer, Fuel, MessageSquare, CheckCircle2, RotateCcw, Package } from 'lucide-react'
+import { FarmMap } from '~/components/farm-map.client'
 import { PageHeader } from '~/components/page-header'
 import { Badge } from '~/components/ui/badge'
 import { cn } from '~/lib/utils'
@@ -8,7 +9,8 @@ export default function ActiveTransitPage() {
     <div className="space-y-8 pb-10">
       <PageHeader
         items={[
-          { label: 'Product', href: '#' },
+          { label: 'Transporter', href: '/transporter' },
+          { label: 'Active Transit Monitoring', href: '#' },
         ]}
       />
 
@@ -45,9 +47,29 @@ export default function ActiveTransitPage() {
                   <span className="text-[10px] font-bold text-gray-900 uppercase tracking-widest">Live Telemetry Active</span>
                </div>
             </div>
-            <div className="h-[600px] bg-gray-50 grayscale contrast-125 opacity-90">
-               <img src="/map-placeholder-large.png" className="w-full h-full object-cover" alt="Transit Map" />
-               <div className="absolute inset-0 bg-brand/5 pointer-events-none"></div>
+            <div className="h-[600px] relative">
+               <FarmMap 
+                 farms={[
+                   {
+                     id: 'origin',
+                     name: 'Green Valley Farm',
+                     location: 'Akure South',
+                     region: 'Ondo',
+                     hectares: 45,
+                     lat: 7.2507,
+                     lng: 5.2103
+                   },
+                   {
+                     id: 'destination',
+                     name: 'Central Bio-Processor',
+                     location: 'Industrial Estate',
+                     region: 'Ondo',
+                     hectares: 10,
+                     lat: 7.2907,
+                     lng: 5.2403
+                   }
+                 ]}
+               />
             </div>
          </div>
 

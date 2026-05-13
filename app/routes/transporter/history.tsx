@@ -8,7 +8,8 @@ export default function ShipmentHistoryPage() {
     <div className="space-y-8 pb-10">
       <PageHeader
         items={[
-          { label: 'Product', href: '#' },
+          { label: 'Transporter', href: '/transporter' },
+          { label: 'Shipment History', href: '#' },
         ]}
       />
 

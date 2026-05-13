@@ -1,61 +1,93 @@
-import React, { useState, useMemo } from 'react'
+import React, { useCallback, useMemo, useState } from 'react'
+import { format } from 'date-fns'
+import { Loader2 } from 'lucide-react'
 import { ReportLayout } from '~/components/layout/report-layout'
 import { ReportFilter } from '~/components/report-filter'
 import { TrendStatCard } from '~/components/trend-stat-card'
 import { DonutChart, SimpleBarChart } from '~/components/charts/report-charts'
 import { EmptyReportState } from '~/components/empty-report-state'
 import { Badge } from '~/components/ui/badge'
-import { Loader2 } from 'lucide-react'
-import { useGetPurchases } from '~/lib/api/generated/purchases/purchases'
-import { useGetFarmersDashboardStats } from '~/lib/api/generated/farmers/farmers'
-import { format } from 'date-fns'
+import type { GetReportsFarmerHarvestSalesParams } from '~/lib/api/generated/models/getReportsFarmerHarvestSalesParams'
+import { useGetReportsFarmerHarvestSales } from '~/lib/api/generated/reports-farmer/reports-farmer'
+import { useReportFarmOptions } from '~/lib/use-report-farm-options'
+import { downloadClientPdf } from '~/lib/reports-pdf/download-client-pdf'
+import { HarvestSalesPdfDocument } from '~/lib/reports-pdf/harvest-sales-pdf'
+
+const currentYear = new Date().getFullYear()
 
 export default function HarvestSalesReportPage() {
-  const [isGenerating, setIsGenerating] = useState(false)
-  const [hasGenerated, setHasGenerated] = useState(false)
+  const { farmOptions, isLoadingFarms } = useReportFarmOptions()
+  const [selectedFarmId, setSelectedFarmId] = useState('')
+  const [selectedYear, setSelectedYear] = useState(String(currentYear))
+  const [applied, setApplied] = useState<GetReportsFarmerHarvestSalesParams | null>(null)
+  const [pdfLoading, setPdfLoading] = useState(false)
 
-  // 1. Fetch Dashboard Stats for overall metrics
-  const { data: dashboardResponse, isLoading: isLoadingStats } = useGetFarmersDashboardStats()
-  const metrics = dashboardResponse?.data?.data?.metrics
-  const productCategories = dashboardResponse?.data?.data?.productCategories || []
-
-  // 2. Fetch Purchases (Sales)
-  const { data: purchasesResponse, isLoading: isLoadingPurchases } = useGetPurchases()
-  const purchases = purchasesResponse?.data?.data || []
-
-  const handleGenerate = () => {
-    setIsGenerating(true)
-    setTimeout(() => {
-      setIsGenerating(false)
-      setHasGenerated(true)
-    }, 800)
+  const queryParams: GetReportsFarmerHarvestSalesParams = applied ?? {
+    year: Number(selectedYear) || currentYear,
   }
 
-  // Calculate Total Sales Revenue from purchases
-  const totalRevenue = useMemo(() => {
-    return purchases.reduce((acc, p) => acc + Number(p.amount || 0), 0)
-  }, [purchases])
+  const { data: reportResponse, isLoading, isFetching, isError, error } =
+    useGetReportsFarmerHarvestSales(queryParams, { query: { enabled: true } })
 
-  // Process data for Donut Chart
-  const donutData = useMemo(() => {
-    const colors = ['#1B4332', '#2D6A4F', '#40916C', '#52B788', '#74C69D']
-    return productCategories.map((cat, i) => ({
-      label: cat.name,
-      value: cat.percentage,
-      color: colors[i % colors.length]
-    }))
-  }, [productCategories])
+  const reportData = reportResponse?.data?.data
+  const filterOptions = reportData?.filterOptions
 
-  // Process data for Bar Chart (Sales by Month)
-  const barData = useMemo(() => {
-    if (!purchases.length) return []
-    const months: Record<string, number> = {}
-    purchases.forEach(p => {
-      const m = format(new Date(p.createdAt as string), 'MMM')
-      months[m] = (months[m] || 0) + Number(p.amount)
+  const handleGenerate = () => {
+    setApplied({
+      year: Number(selectedYear) || currentYear,
+      farmId: selectedFarmId || undefined,
     })
-    return Object.entries(months).map(([label, value]) => ({ label, value }))
-  }, [purchases])
+  }
+
+  const farmLabel = useMemo(() => {
+    if (!selectedFarmId) return 'All farms'
+    return farmOptions.find((o) => o.value === selectedFarmId)?.label ?? selectedFarmId
+  }, [farmOptions, selectedFarmId])
+
+  const handleDownloadPdf = useCallback(async () => {
+    if (!reportData || !applied) return
+    setPdfLoading(true)
+    try {
+      await downloadClientPdf(
+        <HarvestSalesPdfDocument
+          title="Harvest & sales report"
+          scopeLabel="Farmer"
+          metaLines={[`Harvest year: ${applied.year}`, `Farm: ${farmLabel}`]}
+          data={reportData}
+        />,
+        'agtrail-farmer-harvest-sales',
+      )
+    } finally {
+      setPdfLoading(false)
+    }
+  }, [reportData, applied, farmLabel])
+
+  const donutData = useMemo(() => {
+    if (!reportData?.cropDistribution) return []
+    const colors = ['#1B4332', '#2D6A4F', '#40916C', '#52B788', '#74C69D']
+    return reportData.cropDistribution.map((item, i) => ({
+      label: item.crop,
+      value: item.percentage,
+      color: colors[i % colors.length],
+    }))
+  }, [reportData?.cropDistribution])
+
+  const barData = useMemo(() => {
+    if (!reportData?.cropSalesRevenue) return []
+    return reportData.cropSalesRevenue.map((item) => ({
+      label: item.crop,
+      value: item.revenue,
+    }))
+  }, [reportData?.cropSalesRevenue])
+
+  const yearOptions = useMemo(() => {
+    const years = filterOptions?.years?.length
+      ? filterOptions.years
+      : [currentYear, currentYear - 1, currentYear - 2]
+    return years.map((y) => ({ label: String(y), value: String(y) }))
+  }, [filterOptions?.years])
+
+  const isBusy = isLoading || (isFetching && applied !== null)
 
   return (
     <ReportLayout
@@ -65,79 +97,107 @@ export default function HarvestSalesReportPage() {
         { label: 'Reports & Analytics', href: '/farmer/reports' },
         { label: 'Harvest & Sales Report' },
       ]}
+      onDownloadPdf={reportData && applied ? handleDownloadPdf : undefined}
+      downloadPdfDisabled={!reportData || !applied}
+      downloadPdfLoading={pdfLoading}
     >
       <div className="space-y-6">
-        {/* Filters */}
         <ReportFilter
-          isGenerating={isGenerating}
+          showDateRange={false}
+          isGenerating={isBusy && applied !== null}
           onGenerate={handleGenerate}
           filters={[
             {
-              label: 'Analysis Year',
-              placeholder: 'Current Year',
-              options: [{ label: '2024', value: '2024' }],
-              value: '2024'
+              label: 'Harvest Year',
+              placeholder: 'Year',
+              options: yearOptions,
+              value: selectedYear,
+              onChange: setSelectedYear,
+              isLoading: isLoading && !filterOptions,
+            },
+            {
+              label: 'Select Farm',
+              placeholder: 'All farms',
+              options: farmOptions,
+              value: selectedFarmId,
+              onChange: setSelectedFarmId,
+              isLoading: isLoadingFarms,
             },
           ]}
         />
 
-        {isLoadingStats || isLoadingPurchases ? (
-           <div className="flex flex-col items-center justify-center py-20 gap-4 bg-white rounded-md border border-gray-100">
-             <div className="relative">
-               <div className="size-16 rounded-full border-4 border-gray-50 border-t-brand animate-spin" />
-               <div className="absolute inset-0 flex items-center justify-center">
-                  <Loader2 className="size-5 text-brand" />
-               </div>
-             </div>
-             <div className="text-center">
-               <p className="text-lg font-bold text-gray-900 uppercase tracking-tight">Processing Logs</p>
-               <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Aggregating transactions...</p>
-             </div>
-           </div>
-        ) : hasGenerated ? (
+        {isBusy && applied ? (
+          <div className="flex flex-col items-center justify-center gap-4 rounded-md border border-gray-100 bg-white py-20">
+            <div className="relative">
+              <div className="size-16 animate-spin rounded-full border-4 border-gray-50 border-t-brand" />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Loader2 className="size-5 text-brand" />
+              </div>
+            </div>
+            <div className="text-center">
+              <p className="text-lg font-bold uppercase tracking-tight text-gray-900">Processing Logs</p>
+              <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                Aggregating harvest and sales…
+              </p>
+            </div>
+          </div>
+        ) : isError ? (
+          <div className="rounded-md border border-red-100 bg-red-50/50 p-6 text-center text-sm text-red-800">
+            {(error as unknown) instanceof Error ? (error as unknown as Error).message : 'Could not load report.'}
+          </div>
+        ) : reportData && applied ? (
           <>
-            {/* Stats Row */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <TrendStatCard
-                title="Sales Revenue"
-                value={`₦${totalRevenue.toLocaleString()}`}
-                trend={{ value: "+8.4%", isUp: true }}
-                description="Total income from sales"
-                trendLabel="Based on verified logs"
+                title="Total Harvested"
+                value={`${reportData.kpis.totalHarvested.value.toLocaleString()} ${reportData.kpis.totalHarvested.unit ?? 'kg'}`}
+                trend={{
+                  value: `${reportData.kpis.totalHarvested.trend >= 0 ? '+' : ''}${reportData.kpis.totalHarvested.trend.toFixed(1)}%`,
+                  isUp: reportData.kpis.totalHarvested.trend >= 0,
+                }}
+                description="Volume in period"
+                trendLabel="Vs prior period"
               />
               <TrendStatCard
-                title="Harvest Count"
-                value={purchases.length.toString()}
-                trend={{ value: "Live", isUp: true }}
-                description="Total batches harvested"
-                trendLabel="Production batch count"
+                title="Total Revenue"
+                value={`${reportData.kpis.totalRevenue.currency ?? '₦'}${reportData.kpis.totalRevenue.value.toLocaleString()}`}
+                trend={{
+                  value: `${reportData.kpis.totalRevenue.trend >= 0 ? '+' : ''}${reportData.kpis.totalRevenue.trend.toFixed(1)}%`,
+                  isUp: reportData.kpis.totalRevenue.trend >= 0,
+                }}
+                description="Sales in period"
+                trendLabel="Vs prior period"
               />
               <TrendStatCard
-                title="Active Products"
-                value={(metrics?.activeProducts || 0).toString()}
-                trend={{ value: "Stable", isUp: true }}
-                description="Currently tracked items"
-                trendLabel="Market-ready stock"
+                title="Sustainability"
+                value={`${reportData.kpis.sustainabilityScore.value}${reportData.kpis.sustainabilityScore.unit ?? '%'}`}
+                trend={{
+                  value: `${reportData.kpis.sustainabilityScore.trend >= 0 ? '+' : ''}${reportData.kpis.sustainabilityScore.trend.toFixed(1)}%`,
+                  isUp: reportData.kpis.sustainabilityScore.trend >= 0,
+                }}
+                description="Sustainability score"
+                trendLabel="Vs prior period"
               />
             </div>
 
-            {/* Charts Row */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
               <div className="rounded-md border border-gray-100 bg-white p-6 shadow-sm">
                 <div className="mb-6">
-                  <h3 className="text-sm font-bold text-gray-900 uppercase tracking-tight">Category Distribution</h3>
-                  <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Production volume by type</p>
+                  <h3 className="text-sm font-bold uppercase tracking-tight text-gray-900">Crop Distribution</h3>
+                  <p className="mt-0.5 text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                    Production volume by type
+                  </p>
                 </div>
                 <div className="py-2">
                   {donutData.length > 0 ? (
-                    <DonutChart 
-                      centerLabel="Types" 
-                      centerValue={donutData.length.toString()} 
+                    <DonutChart
+                      centerLabel="Crops"
+                      centerValue={String(donutData.length)}
                       data={donutData}
                     />
                   ) : (
-                    <div className="h-40 flex items-center justify-center text-[10px] text-gray-400 uppercase font-bold bg-gray-50/50 rounded-md border border-dashed border-gray-100">
-                      No Category Data
+                    <div className="flex h-40 items-center justify-center rounded-md border border-dashed border-gray-100 bg-gray-50/50 text-[10px] font-bold uppercase text-gray-400">
+                      No Distribution Data
                     </div>
                   )}
                 </div>
@@ -145,14 +205,16 @@ export default function HarvestSalesReportPage() {
 
               <div className="rounded-md border border-gray-100 bg-white p-6 shadow-sm">
                 <div className="mb-6">
-                  <h3 className="text-sm font-bold text-gray-900 uppercase tracking-tight">Monthly Sales</h3>
-                  <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Revenue generated monthly</p>
+                  <h3 className="text-sm font-bold uppercase tracking-tight text-gray-900">Revenue per Crop</h3>
+                  <p className="mt-0.5 text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                    Financial breakdown by crop
+                  </p>
                 </div>
                 <div className="py-2">
                   {barData.length > 0 ? (
                     <SimpleBarChart data={barData} />
                   ) : (
-                    <div className="h-40 flex items-center justify-center text-[10px] text-gray-400 uppercase font-bold bg-gray-50/50 rounded-md border border-dashed border-gray-100">
+                    <div className="flex h-40 items-center justify-center rounded-md border border-dashed border-gray-100 bg-gray-50/50 text-[10px] font-bold uppercase text-gray-400">
                       No Sales History
                     </div>
                   )}
@@ -160,40 +222,66 @@ export default function HarvestSalesReportPage() {
               </div>
             </div>
 
-            {/* Sales Transactions Table */}
-            <div className="rounded-md border border-gray-100 bg-white shadow-sm overflow-hidden">
-              <div className="p-5 border-b border-gray-50">
-                <h3 className="text-base font-bold text-gray-900 tracking-tight">Verified Sale Logs</h3>
-                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Detailed transaction history</p>
+            <div className="overflow-hidden rounded-md border border-gray-100 bg-white shadow-sm">
+              <div className="border-b border-gray-50 p-5">
+                <h3 className="text-base font-bold tracking-tight text-gray-900">Recent Harvest Logs</h3>
+                <p className="mt-0.5 text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                  Detailed batch history
+                </p>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm">
                   <thead className="bg-gray-50/50">
                     <tr>
-                      <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-gray-500">Log Ref</th>
-                      <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-gray-500">Amount</th>
+                      <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-gray-500">
+                        Batch ID
+                      </th>
+                      <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-gray-500">Crop</th>
+                      <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-gray-500">
+                        Quantity
+                      </th>
                       <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-gray-500">Date</th>
-                      <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-gray-500">Status</th>
+                      <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-gray-500">Compliance</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
-                    {purchases.length > 0 ? purchases.map((p, i) => (
-                      <tr key={p.id || i} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-2">
-                            <div className="size-6 rounded-md bg-gray-100 flex items-center justify-center text-[8px] font-bold text-gray-400 uppercase tracking-tighter">TRX</div>
-                            <span className="text-[10px] font-bold text-gray-900 tracking-widest uppercase">#{p.id?.slice(0, 10) || 'REF'}</span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 font-bold text-gray-900 tracking-tight text-sm">₦{Number(p.amount).toLocaleString()}</td>
-                        <td className="px-6 py-4 text-[10px] font-bold text-gray-500 uppercase">{format(new Date(p.createdAt as string), 'MMM d, yyyy')}</td>
-                        <td className="px-6 py-4">
-                          <Badge variant="outline" className="text-[8px] font-bold uppercase tracking-widest bg-emerald-50 text-emerald-600 border-emerald-100 px-2 py-0.5 rounded-md">Settled</Badge>
-                        </td>
-                      </tr>
-                    )) : (
+                    {reportData.recentHarvestBatches.data.length > 0 ? (
+                      reportData.recentHarvestBatches.data.map((b, i) => (
+                        <tr key={`${b.batchId}-${i}`} className="transition-colors hover:bg-gray-50">
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-2">
+                              <div className="flex size-6 items-center justify-center rounded-md bg-gray-100 text-[8px] font-bold uppercase tracking-tighter text-gray-400">
+                                BT
+                              </div>
+                              <span className="text-[10px] font-bold uppercase tracking-widest text-gray-900">
+                                #{b.batchId.slice(0, 12)}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 text-[11px] font-bold uppercase tracking-tight text-gray-900">
+                            {b.crop}
+                          </td>
+                          <td className="px-6 py-4 text-sm font-bold tracking-tight text-gray-900">
+                            {Number(b.quantityHarvestedKg).toLocaleString()} kg
+                          </td>
+                          <td className="px-6 py-4 text-[10px] font-bold uppercase text-gray-500">
+                            {format(new Date(b.date), 'MMM d, yyyy')}
+                          </td>
+                          <td className="px-6 py-4">
+                            <Badge
+                              variant="outline"
+                              className="rounded-md border-emerald-100 bg-emerald-50 px-2 py-0.5 text-[8px] font-bold uppercase tracking-widest text-emerald-600"
+                            >
+                              {b.complianceStatus}
+                            </Badge>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
                       <tr>
-                        <td colSpan={4} className="px-6 py-10 text-center text-[10px] text-gray-400 uppercase font-bold italic">No sales found</td>
+                        <td colSpan={5} className="px-6 py-10 text-center text-[10px] font-bold uppercase italic text-gray-400">
+                          No harvest logs found
+                        </td>
                       </tr>
                     )}
                   </tbody>
@@ -202,9 +290,9 @@ export default function HarvestSalesReportPage() {
             </div>
           </>
         ) : (
-          <EmptyReportState 
+          <EmptyReportState
             title="Analyze Sales Performance"
-            description="Generate a detailed report of your harvests, sales volumes, and market category distribution."
+            description="Choose harvest year and optional farm, then generate harvest and sales analytics."
             icon="chart"
           />
         )}

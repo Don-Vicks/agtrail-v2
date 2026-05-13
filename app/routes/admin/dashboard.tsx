@@ -6,8 +6,7 @@ export default function AdminDashboardPage() {
     <div className="space-y-8 pb-10 h-[calc(100vh-100px)] flex flex-col">
       <PageHeader
         items={[
-          { label: 'Platform', href: '/admin' },
-          { label: 'Admin Dashboard' },
+          { label: 'Admin', href: '/admin' },
         ]}
       />
 

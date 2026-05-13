@@ -89,8 +89,8 @@ export default function CooperativeFarms() {
     <div className="space-y-6 pb-10 px-1">
       <PageHeader
         items={[
-          { label: 'Dashboard', href: '/cooperative' },
-          { label: 'Farms' },
+          { label: 'Cooperative', href: '/cooperative' },
+          { label: 'Farms', href: '#' },
         ]}
       />
 

@@ -3,6 +3,107 @@ import { buildGetCacheKey, getCachedGetResponse, setCachedGetResponse } from '~/
 import { enqueueOfflineAction } from '~/lib/offline/queue-storage'
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
 
+/** Verbose API logging: on in dev, or set `VITE_DEBUG_API=true` in `.env` for staging/production. */
+const DEBUG_API =
+  Boolean(import.meta.env.DEV) ||
+  import.meta.env.VITE_DEBUG_API === 'true' ||
+  import.meta.env.VITE_DEBUG_API === '1'
+
+const MAX_JSON_LOG_CHARS = 80_000
+
+function redactHeadersForLog(headers: Record<string, string>): Record<string, string> {
+  const out = { ...headers }
+  const auth = out.Authorization
+  if (auth && typeof auth === 'string') {
+    if (auth.startsWith('Bearer ')) {
+      const token = auth.slice(7).trim()
+      out.Authorization =
+        token.length <= 8 ? 'Bearer ***' : `Bearer ***${token.slice(-6)}`
+    } else {
+      out.Authorization = '***'
+    }
+  }
+  return out
+}
+
+function summarizeRequestBody(body: BodyInit | null | undefined, isFormData: boolean): unknown {
+  if (body == null || body === undefined) return undefined
+  if (isFormData && body instanceof FormData) {
+    const entries: Record<string, string> = {}
+    for (const [k, v] of body.entries()) {
+      entries[k] = v instanceof File ? `File(${v.name}, ${v.size} bytes)` : String(v)
+    }
+    return entries
+  }
+  if (typeof body === 'string') {
+    const s = body.trim()
+    if (!s) return undefined
+    try {
+      return JSON.parse(s) as unknown
+    } catch {
+      return s.length > 4000 ? `${s.slice(0, 4000)}… (${s.length} chars)` : s
+    }
+  }
+  return '[non-string body]'
+}
+
+function stringifyForLog(value: unknown): string {
+  try {
+    return JSON.stringify(value, null, 2)
+  } catch {
+    return String(value)
+  }
+}
+
+function logApiRequest(params: {
+  fullUrl: string
+  cleanPath: string
+  method: string
+  headers: Record<string, string>
+  bodySummary: unknown
+}) {
+  if (!DEBUG_API) return
+  const { fullUrl, cleanPath, method, headers, bodySummary } = params
+  console.groupCollapsed(`[API] → ${method} ${cleanPath}`)
+  console.log('url', fullUrl)
+  console.log('headers', redactHeadersForLog(headers))
+  if (bodySummary !== undefined) console.log('body', bodySummary)
+  console.groupEnd()
+}
+
+function logApiResponseOk(params: {
+  cleanPath: string
+  method: string
+  status: number
+  ms: number
+  parsed: unknown
+}) {
+  if (!DEBUG_API) return
+  const { cleanPath, method, status, ms, parsed } = params
+  let text = stringifyForLog(parsed)
+  if (text.length > MAX_JSON_LOG_CHARS) {
+    text = `${text.slice(0, MAX_JSON_LOG_CHARS)}\n… [truncated, total ${text.length} chars]`
+  }
+  console.groupCollapsed(`[API] ← ${status} ${method} ${cleanPath} (${ms}ms)`)
+  console.log('parsed (object)', parsed)
+  console.log('parsed (JSON)\n', text)
+  console.groupEnd()
+}
+
+function logApiBlobResponse(params: {
+  cleanPath: string
+  method: string
+  status: number
+  ms: number
+  blob: Blob
+}) {
+  if (!DEBUG_API) return
+  const { cleanPath, method, status, ms, blob } = params
+  console.groupCollapsed(`[API] ← ${status} ${method} ${cleanPath} (${ms}ms) [binary]`)
+  console.log('type', blob.type, 'size', blob.size)
+  console.groupEnd()
+}
+
 function normalizePathAgainstBase(baseUrl: string, pathOrUrl: string): string {
   const cleanBase = baseUrl.replace(/\/+$/, '')
   const cleanPath = pathOrUrl.trim().replace(/^\/+/, '')
@@ -80,6 +181,17 @@ function isOfflineQueueablePath(path: string) {
   return true
 }
 
+/**
+ * Farmer report routes resolve the subject from the JWT (authenticated farmer).
+ * Sending X-Organization-Id from a prior cooperative session can break some backends
+ * (wrong tenant / mixed context) and surface as HTTP 500.
+ */
+function shouldAttachOrganizationIdHeader(path: string): boolean {
+  const normalized = path.replace(/^\/+/, '').toLowerCase()
+  if (normalized.startsWith('reports/farmer/')) return false
+  return true
+}
+
 export const customFetch = async <T>(
   url: string,
   options?: RequestInit,
@@ -99,7 +211,9 @@ export const customFetch = async <T>(
   const mergedHeaders = {
     ...(!isFormData ? { 'Content-Type': 'application/json' } : {}),
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    ...(organizationId ? { 'X-Organization-Id': organizationId } : {}),
+    ...(organizationId && shouldAttachOrganizationIdHeader(cleanPath)
+      ? { 'X-Organization-Id': organizationId }
+      : {}),
     ...headersToRecord(options?.headers),
   }
 
@@ -108,6 +222,11 @@ export const customFetch = async <T>(
       const cacheKey = buildGetCacheKey(cleanPath, organizationId)
       const cached = getCachedGetResponse(cacheKey)
       if (cached) {
+        if (DEBUG_API) {
+          console.groupCollapsed(`[API] ← (offline cache) GET ${cleanPath}`)
+          console.log('parsed', cached.value)
+          console.groupEnd()
+        }
         return {
           data: cached.value,
           status: cached.status,
@@ -141,6 +260,12 @@ export const customFetch = async <T>(
         idempotencyKey,
       })
 
+      if (DEBUG_API) {
+        console.groupCollapsed(`[API] ← (offline queued) ${method} ${cleanPath}`)
+        console.log('note', 'Saved offline. Sync will resume when online.')
+        console.groupEnd()
+      }
+
       return {
         data: {
           success: true,
@@ -152,10 +277,14 @@ export const customFetch = async <T>(
     }
   }
 
-  const t0 = import.meta.env.DEV ? Date.now() : 0
-  if (import.meta.env.DEV) {
-    console.log(`[API] → ${method} ${cleanPath}`)
-  }
+  const t0 = DEBUG_API ? Date.now() : 0
+  logApiRequest({
+    fullUrl,
+    cleanPath,
+    method,
+    headers: mergedHeaders,
+    bodySummary: summarizeRequestBody(body, isFormData),
+  })
 
   let response: Response
   try {
@@ -164,7 +293,7 @@ export const customFetch = async <T>(
       headers: mergedHeaders,
     })
   } catch (error) {
-    if (import.meta.env.DEV) {
+    if (DEBUG_API) {
       console.error(`[API] ✗ ${method} ${cleanPath} — Network error`, error)
     }
     // Network blip while browser still reports online.
@@ -188,6 +317,12 @@ export const customFetch = async <T>(
         idempotencyKey,
       })
 
+      if (DEBUG_API) {
+        console.groupCollapsed(`[API] ← (offline queued) ${method} ${cleanPath}`)
+        console.log('note', 'Connection unstable. Request queued for retry.')
+        console.groupEnd()
+      }
+
       return {
         data: {
           success: true,
@@ -200,15 +335,14 @@ export const customFetch = async <T>(
     throw error
   }
 
-  if (import.meta.env.DEV) {
-    const ms = Date.now() - t0
-    console.log(`[API] ← ${response.status} ${method} ${cleanPath} (${ms}ms)`)
-  }
-
   if (!response.ok) {
     const errorData = await response.json().catch(() => null)
-    if (import.meta.env.DEV) {
-      console.error(`[API] ✗ ${response.status} ${method} ${cleanPath}`, errorData)
+    if (DEBUG_API) {
+      const ms = Date.now() - t0
+      console.groupCollapsed(`[API] ✗ ${response.status} ${method} ${cleanPath} (${ms}ms)`)
+      console.log('url', fullUrl)
+      console.log('error body', errorData)
+      console.groupEnd()
     }
     const err = new Error(`HTTP ${response.status}: ${response.statusText}`)
     // Attach response context so that our onError handlers can extract it like axios
@@ -219,7 +353,15 @@ export const customFetch = async <T>(
   const contentType = response.headers.get('content-type')
   if (contentType?.includes('application/json')) {
     const text = await response.text()
-    if (!text) return { data: {} as any, status: response.status } as unknown as T
+    const ms = DEBUG_API ? Date.now() - t0 : 0
+    if (!text) {
+      if (DEBUG_API) {
+        console.groupCollapsed(`[API] ← ${response.status} ${method} ${cleanPath} (${ms}ms) [empty body]`)
+        console.log('parsed', {})
+        console.groupEnd()
+      }
+      return { data: {} as any, status: response.status } as unknown as T
+    }
     const parsed = JSON.parse(text)
     persistOrganizationIdFromResponse(parsed)
     if (method === 'GET') {
@@ -229,6 +371,13 @@ export const customFetch = async <T>(
         response.status,
       )
     }
+    logApiResponseOk({
+      cleanPath,
+      method,
+      status: response.status,
+      ms,
+      parsed,
+    })
     return {
       data: parsed,
       status: response.status,
@@ -237,6 +386,14 @@ export const customFetch = async <T>(
 
   // Handle binary data (images, PDFs, etc.)
   const blob = await response.blob()
+  const msBlob = DEBUG_API ? Date.now() - t0 : 0
+  logApiBlobResponse({
+    cleanPath,
+    method,
+    status: response.status,
+    ms: msBlob,
+    blob,
+  })
   return {
     data: blob,
     status: response.status,

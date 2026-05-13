@@ -190,9 +190,9 @@ export default function RecordObservationForm() {
     <div className='space-y-6 pb-20 text-left'>
       <PageHeader
         items={[
-          { label: 'Dashboard', href: '/field-agent' },
+          { label: 'Field Agent', href: '/field-agent' },
           { label: 'Record observation', href: '/field-agent/record-observation' },
-          { label: opTitle },
+          { label: opTitle, href: '#' },
         ]}
       />
 

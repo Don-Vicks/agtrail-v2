@@ -4,25 +4,27 @@ import {
   CircleAlert,
   Eye,
   Gamepad2,
-  Monitor,
   PackageCheck,
   QrCode,
-  ScanLine,
-  XCircle
+  Video,
+  VideoOff,
+  XCircle,
 } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
+import { toast } from 'sonner'
+import { BatchQrCameraScanner } from '~/components/aggregator/batch-qr-camera-scanner'
 import { PageHeader } from '~/components/page-header'
 import { Button } from '~/components/ui/button'
-import type { AggregatorBatch } from '~/lib/aggregator/types'
+import { parseBatchScannedText } from '~/lib/aggregator/parse-batch-qr'
 import { useAggregatorIncomingBatches } from '~/lib/aggregator/use-aggregator-data'
 import { useDraftLot } from '~/lib/aggregator/use-draft-lot'
 
 export default function AggregatorBatchQrScanPage() {
-  const { batches, isLoading } = useAggregatorIncomingBatches()
-  const { draftLotBatches, stats, addBatch } = useDraftLot()
-  const [isScanModalOpen, setIsScanModalOpen] = useState(false)
-  const [selectedBatch, setSelectedBatch] = useState<AggregatorBatch | null>(null)
+  const { batches } = useAggregatorIncomingBatches()
+  const { draftLotBatches, stats } = useDraftLot()
+  const [cameraOn, setCameraOn] = useState(false)
+  const [manualBatchNumber, setManualBatchNumber] = useState('')
 
   const navigate = useNavigate()
 
@@ -35,6 +37,42 @@ export default function AggregatorBatchQrScanPage() {
     if (!nextScannableBatch) return
     navigate(`/aggregator/batch/${nextScannableBatch.id}`)
   }
+
+  const handleManualScan = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!manualBatchNumber.trim()) return
+    const segment = parseBatchScannedText(manualBatchNumber)
+    if (!segment) return
+
+    const foundBatch = batches.find(
+      (b) => b.batchIdentifier === segment || b.id === segment,
+    )
+
+    if (foundBatch) {
+      navigate(`/aggregator/batch/${foundBatch.id}`)
+    } else {
+      navigate(`/aggregator/batch/${encodeURIComponent(segment)}`)
+    }
+  }
+
+  const handleQrDecoded = useCallback(
+    (text: string) => {
+      const segment = parseBatchScannedText(text)
+      if (!segment) {
+        toast.error('Could not read a batch id from this QR code.')
+        return
+      }
+      toast.success('Batch QR detected — opening details')
+      setCameraOn(false)
+      navigate(`/aggregator/batch/${encodeURIComponent(segment)}`)
+    },
+    [navigate],
+  )
+
+  const handleCameraError = useCallback((message: string) => {
+    toast.error(message)
+    setCameraOn(false)
+  }, [])
 
   return (
     <div className="space-y-6 pb-10">
@@ -86,13 +124,34 @@ export default function AggregatorBatchQrScanPage() {
                 </div>
                 <div>
                   <h3 className="text-xs font-bold text-gray-900 tracking-tight uppercase">QR Scan Station</h3>
-                  <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Aim at a batch QR or simulate scans</p>
+                  <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">
+                    Point at a batch QR (HTTPS + camera permission required)
+                  </p>
                 </div>
               </div>
               <div className="flex gap-2">
-                <Button variant="outline" size="sm" className="h-7 px-2 text-[9px] font-bold uppercase tracking-widest bg-[#1a4332] text-white hover:bg-[#1a4332]/90 border-none shadow-sm">
-                  <Monitor className="size-3 mr-1" />
-                  Camera
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className={`h-7 px-2 text-[9px] font-bold uppercase tracking-widest border-none shadow-sm ${
+                    cameraOn
+                      ? 'border border-red-200 bg-red-50 text-red-800 hover:bg-red-100'
+                      : 'bg-[#1a4332] text-white hover:bg-[#1a4332]/90'
+                  }`}
+                  onClick={() => setCameraOn((v) => !v)}
+                >
+                  {cameraOn ? (
+                    <>
+                      <VideoOff className="size-3 mr-1" />
+                      Stop
+                    </>
+                  ) : (
+                    <>
+                      <Video className="size-3 mr-1" />
+                      Start camera
+                    </>
+                  )}
                 </Button>
                 <Button
                   variant="outline"
@@ -107,22 +166,55 @@ export default function AggregatorBatchQrScanPage() {
               </div>
             </div>
 
-            <div className="aspect-video md:aspect-2/1 rounded-md bg-[#1a4332] flex flex-col items-center justify-center text-white border border-[#2e7d32]/20">
-              <ScanLine className="size-8 text-white/20 mb-2" />
-              <p className="text-xs font-bold tracking-tight">Camera Off</p>
-              <p className="text-[9px] font-bold uppercase tracking-widest text-white/60 mt-0.5">Use the buttons below</p>
+            <div className="relative aspect-video md:aspect-2/1 overflow-hidden rounded-md border border-[#2e7d32]/20 bg-[#1a4332]">
+              <BatchQrCameraScanner
+                active={cameraOn}
+                onDecoded={handleQrDecoded}
+                onScannerError={handleCameraError}
+                className="min-h-[220px] md:min-h-[280px]"
+              />
             </div>
 
-            <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-2">
-              <button className="flex items-center justify-center gap-1.5 rounded-md border border-gray-100 bg-white py-2 px-1 hover:bg-gray-50 hover:shadow-sm transition-all group">
+            <form onSubmit={handleManualScan} className="mt-4 flex flex-col gap-2 sm:flex-row">
+              <input
+                type="text"
+                placeholder="Enter batch id or batch number manually…"
+                value={manualBatchNumber}
+                onChange={(e) => setManualBatchNumber(e.target.value)}
+                className="h-10 flex-1 rounded-md border border-gray-200 px-3 text-xs font-bold text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-brand"
+              />
+              <Button
+                type="submit"
+                className="h-10 shrink-0 bg-brand px-4 font-bold text-white hover:bg-brand/90"
+                disabled={!manualBatchNumber.trim()}
+              >
+                Open batch
+              </Button>
+            </form>
+
+            <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-3">
+              <button
+                type="button"
+                onClick={handleSimulateScan}
+                disabled={!nextScannableBatch}
+                className="flex items-center justify-center gap-1.5 rounded-md border border-gray-100 bg-white py-2 px-1 transition-all hover:bg-gray-50 hover:shadow-sm group disabled:cursor-not-allowed disabled:opacity-50"
+              >
                 <CheckCircle2 className="size-3.5 text-[#2e7d32]" />
-                <span className="text-[8px] font-bold uppercase tracking-tight text-[#2e7d32]">Valid batch</span>
+                <span className="text-[8px] font-bold uppercase tracking-tight text-[#2e7d32]">Simulate valid</span>
               </button>
-              <button className="flex items-center justify-center gap-1.5 rounded-md border border-gray-100 bg-white py-2 px-1 hover:bg-gray-50 hover:shadow-sm transition-all group">
+              <button
+                type="button"
+                className="flex cursor-not-allowed items-center justify-center gap-1.5 rounded-md border border-gray-100 bg-white py-2 px-1 opacity-50 group"
+                disabled
+              >
                 <CircleAlert className="size-3.5 text-amber-500" />
-                <span className="text-[8px] font-bold uppercase tracking-tight text-amber-600">Flagged Batch</span>
+                <span className="text-[8px] font-bold uppercase tracking-tight text-amber-600">Flagged batch</span>
               </button>
-              <button className="flex items-center justify-center gap-1.5 rounded-md border border-gray-100 bg-white py-2 px-1 hover:bg-gray-50 hover:shadow-sm transition-all group">
+              <button
+                type="button"
+                className="flex cursor-not-allowed items-center justify-center gap-1.5 rounded-md border border-gray-100 bg-white py-2 px-1 opacity-50 group"
+                disabled
+              >
                 <XCircle className="size-3.5 text-red-500" />
                 <span className="text-[8px] font-bold uppercase tracking-tight text-red-600">Rejected QR</span>
               </button>
@@ -251,18 +343,3 @@ function StatCard({ label, value }: { label: string; value: number }) {
     </div>
   )
 }
-
-function InfoItem({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
-  return (
-    <div className="flex items-center gap-3 p-3 rounded-2xl bg-gray-50/50">
-      <div className="flex size-10 items-center justify-center rounded-md bg-[#e8f5e9] text-[#1a4332]">
-        {icon}
-      </div>
-      <div className="space-y-0.5">
-        <p className='text-[10px] font-bold text-gray-400'>{label}</p>
-        <p className='text-[13px] font-bold text-[#1a4332] tracking-tight'>{value}</p>
-      </div>
-    </div>
-  )
-}
-

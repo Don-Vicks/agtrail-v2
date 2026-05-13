@@ -6,7 +6,8 @@ export interface AggregatorBatch {
   farmId?: string
   cropCycleId?: string
   farmerName: string
-  farmerCode: string
+  farmerId: string
+  farmerCode?: string
   location: string
   harvestedAt: string
   quantityKg: number

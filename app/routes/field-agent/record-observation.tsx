@@ -118,8 +118,8 @@ export default function FieldAgentRecordObservation() {
     <div className='space-y-6 pb-10'>
       <PageHeader
         items={[
-          { label: 'Dashboard', href: '/field-agent' },
-          { label: 'Record Observation' },
+          { label: 'Field Agent', href: '/field-agent' },
+          { label: 'Record Observation', href: '#' },
         ]}
       />
       <div>

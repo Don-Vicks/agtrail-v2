@@ -68,8 +68,8 @@ export default function FarmerFarms() {
     <div className="space-y-6 pb-10 px-1">
       <PageHeader
         items={[
-          { label: 'Dashboard', href: '/farmer' },
-          { label: 'Farm Assets' },
+          { label: 'Farmer', href: '/farmer' },
+          { label: 'Farm Assets', href: '#' },
         ]}
       />
 

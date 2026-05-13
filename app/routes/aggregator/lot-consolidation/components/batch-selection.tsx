@@ -34,9 +34,9 @@ export function BatchSelection({
       <div className='flex flex-col md:flex-row md:items-end justify-between gap-4'>
         <div className='space-y-1'>
           <p className='text-[10px] font-bold text-gray-400 uppercase tracking-widest'>
-            INBOUND CONSOLIDATION - DRAFT-2026-04-22
+            INBOUND CONSOLIDATION - DRAFT
           </p>
-          <h1 className='text-2xl font-extrabold text-[#2e7d32] tracking-tight'>
+          <h1 className='text-2xl font-bold text-[#2e7d32] tracking-tight'>
             Consolidate the harvest
           </h1>
           <p className='text-[13px] text-gray-500 font-medium'>
@@ -44,30 +44,21 @@ export function BatchSelection({
             immutable composition
           </p>
         </div>
-        <div className='flex items-center gap-3'>
-          <Button
-            disabled={selectedCount === 0}
-            className='rounded-md border-gray-200 bg-white text-[#1a4332] border shadow-sm hover:bg-gray-50 h-10 px-4 text-xs font-bold gap-2 disabled:opacity-50'
-          >
-            <Plus className='size-4' />
-            New Consolidation {selectedCount > 0 && `(${selectedCount})`}
-          </Button>
-        </div>
       </div>
 
       <div className='grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4'>
-        <StatCard label='Available Batches' value='8' />
-        <StatCard label='Lots Sealed' value='0' />
+        <StatCard label='Available Batches' value={batches.length.toString()} />
+        <StatCard label='Selected' value={selectedCount.toString()} />
         <StatCard
-          label='Total KG Consolidated'
-          value={`${totalWeight || 8} kg`}
+          label='Total Weight Selected'
+          value={`${totalWeight.toLocaleString()} kg`}
         />
-        <StatCard label='Anomalies Flagged' value='0' />
+        <StatCard label='Target Lots' value='1' subtext='Consolidated Root' />
       </div>
 
       <div className='space-y-4 pt-4'>
         <h2 className='text-sm font-bold text-gray-900 tracking-tight'>
-          Available Farmer
+          Available Batches in Draft
         </h2>
         <div className='rounded-md border border-gray-100 bg-white overflow-x-auto shadow-sm'>
           <table className='w-full text-left border-collapse min-w-[700px]'>
@@ -93,12 +84,12 @@ export function BatchSelection({
               </tr>
             </thead>
             <tbody className='divide-y divide-gray-50'>
-              {batches.map((batch, idx) => {
-                const isSelected = selectedBatches.includes(batch.id + idx)
+              {batches.map((batch) => {
+                const isSelected = selectedBatches.includes(batch.id)
                 return (
                   <tr
-                    key={idx}
-                    onClick={() => onToggleBatch(batch.id + idx)}
+                    key={batch.id}
+                    onClick={() => onToggleBatch(batch.id)}
                     className={cn(
                       'group hover:bg-gray-50/50 transition-colors cursor-pointer',
                       isSelected && 'bg-[#e8f5e9]/10',
@@ -119,13 +110,13 @@ export function BatchSelection({
                       </div>
                     </td>
                     <td className='px-6 py-5'>
-                      <span className='text-[13px] font-extrabold text-[#2e7d32] tracking-tight'>
-                        {batch.id}
+                      <span className='text-[13px] font-bold text-[#2e7d32] tracking-tight'>
+                        {batch.id.slice(0, 12)}...
                       </span>
                     </td>
                     <td className='px-6 py-5'>
                       <div>
-                        <p className='text-[13px] font-extrabold text-[#2e7d32] tracking-tight'>
+                        <p className='text-[13px] font-bold text-[#2e7d32] tracking-tight'>
                           {batch.farmer}
                         </p>
                         <p className='text-[10px] font-bold text-gray-400 uppercase tracking-widest'>
@@ -150,6 +141,13 @@ export function BatchSelection({
                   </tr>
                 )
               })}
+              {batches.length === 0 && (
+                <tr>
+                  <td colSpan={7} className="px-6 py-10 text-center text-xs text-gray-400 font-medium">
+                    No batches in draft. Scan batches first.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -157,14 +155,16 @@ export function BatchSelection({
 
       <div className='flex justify-end gap-3 pt-6'>
         <Button
+          onClick={() => window.history.back()}
           variant='outline'
           className='h-10 px-6 rounded-md font-bold text-gray-600'
         >
-          Cancel
+          Back
         </Button>
         <Button
           onClick={onContinue}
-          className='h-10 px-6 rounded-md bg-[#1a4332] hover:bg-[#122e22] font-bold text-white shadow-sm'
+          disabled={selectedCount === 0}
+          className='h-10 px-6 rounded-md bg-[#1a4332] hover:bg-[#122e22] font-bold text-white shadow-sm disabled:opacity-50'
         >
           Continue to Next Step <ChevronRight className='ml-2 size-4' />
         </Button>

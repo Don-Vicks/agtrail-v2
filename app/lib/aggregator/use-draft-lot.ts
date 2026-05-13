@@ -1,66 +1,37 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
+import { 
+  useGetAggregatorLotsDraft, 
+  usePostAggregatorLotsDraftScanBatch, 
+  useDeleteAggregatorLotsDraftBatchesFarmProductId,
+  getGetAggregatorLotsDraftQueryKey
+} from '~/lib/api/generated/aggregator/aggregator'
+import { getGetFarmersProductsQueryKey } from '~/lib/api/generated/farm-products/farm-products'
 import type { AggregatorBatch, AggregatorStats } from './types'
-
-const DRAFT_LOT_KEY = 'aggregator_draft_lot_v2'
-
-const MOCK_BATCHES: AggregatorBatch[] = [
-  {
-    id: 'b1',
-    batchIdentifier: '#BT-98442',
-    farmerName: 'Marcus Chen',
-    location: 'Takoradi, GHA',
-    harvestedAt: '2025-04-13',
-    quantityKg: 250.00,
-    verificationStatus: 'verified',
-    goodsType: 'Cocoa Beans',
-    fieldAgentName: 'John Doe',
-    estimatedInspectionMins: 15
-  },
-  {
-    id: 'b2',
-    batchIdentifier: '#BT-98443',
-    farmerName: 'Sarah Rogers',
-    location: 'Soubre, CV',
-    harvestedAt: '2025-04-13',
-    quantityKg: 250.00,
-    verificationStatus: 'verified',
-    goodsType: 'Cocoa Beans',
-    fieldAgentName: 'Jane Smith',
-    estimatedInspectionMins: 20
-  },
-  {
-    id: 'b3',
-    batchIdentifier: '#BT-98444',
-    farmerName: 'Alex Jenkins',
-    location: 'Kumasi, GHA',
-    harvestedAt: '2025-04-13',
-    quantityKg: 250.00,
-    verificationStatus: 'verified',
-    goodsType: 'Cocoa Beans',
-    fieldAgentName: 'Bob Wilson',
-    estimatedInspectionMins: 12
-  }
-]
-
-function readStoredDraftLot(): AggregatorBatch[] {
-  if (typeof window === 'undefined') return []
-  try {
-    const raw = window.localStorage.getItem(DRAFT_LOT_KEY)
-    if (!raw) return []
-    const parsed = JSON.parse(raw)
-    return Array.isArray(parsed) ? parsed : []
-  } catch {
-    return []
-  }
-}
+import { useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 
 export function useDraftLot() {
-  const [draftLotBatches, setDraftLotBatches] = useState<AggregatorBatch[]>(() => readStoredDraftLot())
+  const queryClient = useQueryClient()
+  const { data: draftData, isLoading, error } = useGetAggregatorLotsDraft()
+  const scanBatchMutation = usePostAggregatorLotsDraftScanBatch()
+  const removeBatchMutation = useDeleteAggregatorLotsDraftBatchesFarmProductId()
 
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-    window.localStorage.setItem(DRAFT_LOT_KEY, JSON.stringify(draftLotBatches))
-  }, [draftLotBatches])
+  const draftLotBatches = useMemo<AggregatorBatch[]>(() => {
+    const apiBatches = (draftData?.data?.data as any)?.batches ?? []
+    return apiBatches.map((batch: any) => ({
+      id: batch.id,
+      batchIdentifier: batch.batchNumber || `#BT-${batch.id.slice(-6)}`,
+      farmerName: batch.farmerName || batch.farmer?.name || 'Unknown Farmer',
+      farmerId: batch.farmerId || batch.farmer?.id || '',
+      location: batch.storageLocation || batch.farm?.name || 'Unknown Location',
+      harvestedAt: batch.harvestDate || '',
+      quantityKg: Number(batch.quantity || 0),
+      verificationStatus: (batch.verificationStatus as any) || 'verified',
+      goodsType: batch.productName || 'Produce',
+      fieldAgentName: batch.fieldAgentName || 'N/A',
+      estimatedInspectionMins: 15
+    }))
+  }, [draftData])
 
   const stats = useMemo<AggregatorStats>(() => {
     const scanned = draftLotBatches.length
@@ -72,18 +43,42 @@ export function useDraftLot() {
     return { scanned, verified, flagged, rejected, totalDraftWeightKg }
   }, [draftLotBatches])
 
-  const addBatch = (batch: AggregatorBatch) => {
-    setDraftLotBatches((prev) => {
-      if (prev.some((item) => item.id === batch.id)) return prev
-      return [...prev, batch]
-    })
+  const addBatch = async (batchNumber: string) => {
+    try {
+      await scanBatchMutation.mutateAsync({
+        data: { batchNumber }
+      })
+      queryClient.invalidateQueries({ queryKey: getGetAggregatorLotsDraftQueryKey() })
+      queryClient.invalidateQueries({ queryKey: getGetFarmersProductsQueryKey() })
+      toast.success('Batch added to draft lot')
+    } catch (err) {
+      toast.error('Failed to add batch')
+      throw err
+    }
   }
 
-  const removeBatch = (batchId: string) => {
-    setDraftLotBatches((prev) => prev.filter((item) => item.id !== batchId))
+  const removeBatch = async (batchId: string) => {
+    try {
+      await removeBatchMutation.mutateAsync({
+        farmProductId: batchId
+      })
+      queryClient.invalidateQueries({ queryKey: getGetAggregatorLotsDraftQueryKey() })
+      queryClient.invalidateQueries({ queryKey: getGetFarmersProductsQueryKey() })
+      toast.success('Batch removed from draft lot')
+    } catch (err) {
+      toast.error('Failed to remove batch')
+    }
   }
 
-  const clearDraftLot = () => setDraftLotBatches([])
-
-  return { draftLotBatches, stats, addBatch, removeBatch, clearDraftLot }
+  return { 
+    draftLotBatches, 
+    stats, 
+    addBatch, 
+    removeBatch, 
+    isLoading,
+    isAdding: scanBatchMutation.isPending,
+    isRemoving: removeBatchMutation.isPending,
+    error 
+  }
 }
+

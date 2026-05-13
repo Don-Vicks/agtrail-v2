@@ -43,6 +43,11 @@ export const cooperativeRoutes: RouteConfig = [
     route('cooperative/finance/receivables', 'routes/cooperative/finance/receivables.tsx'),
 
     // Reports & Compliance
+    route('cooperative/reports/crop-cycle', 'routes/cooperative/reports/crop-cycle-summary.tsx'),
+    route('cooperative/reports/harvest-sales', 'routes/cooperative/reports/harvest-sales-report.tsx'),
+    route('cooperative/reports/farm', 'routes/cooperative/reports/farm-report.tsx'),
+    route('cooperative/reports/financial', 'routes/cooperative/reports/financial-summary.tsx'),
+    route('cooperative/reports/payments', 'routes/cooperative/reports/payment-history.tsx'),
     route('cooperative/reports', 'routes/cooperative/reports/index.tsx'),
     route('cooperative/compliance', 'routes/cooperative/compliance/index.tsx'),
 

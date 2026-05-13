@@ -108,12 +108,12 @@ export default function RecordPurchasePage() {
       <PageHeader
         items={[
           {
-            label: 'Dashboard',
+            label: 'Cooperative',
             href: '/cooperative',
             icon: <LayoutDashboard className="size-4 text-gray-400" />,
           },
-          { label: 'Finance', icon: <Wallet className="size-4 text-gray-400" /> },
-          { label: 'Register Purchase' },
+          { label: 'Finance', href: '#' },
+          { label: 'Register Purchase', href: '#' },
         ]}
       />
 

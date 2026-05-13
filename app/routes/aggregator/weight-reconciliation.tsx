@@ -26,7 +26,6 @@ export default function AggregatorWeightReconciliationPage() {
             label: 'Aggregator',
             href: '/aggregator',
           },
-          { label: 'Dashboard', href: '/aggregator' },
           { label: 'Weight Reconciliation' }
         ]}
         action={

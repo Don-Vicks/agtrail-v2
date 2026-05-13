@@ -1,3 +1,4 @@
+import { Link } from 'react-router'
 import { PageHeader } from '~/components/page-header'
 import type { Route } from './+types/index'
 
@@ -62,11 +63,13 @@ function EyeIcon() {
 function ReportCard({
   icon,
   title,
-  description
+  description,
+  href,
 }: {
   icon: React.ReactNode;
   title: string;
   description: string;
+  href: string;
 }) {
   return (
     <div className="flex items-center justify-between rounded-md border border-gray-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md">
@@ -81,11 +84,13 @@ function ReportCard({
           <p className="text-sm text-gray-500">{description}</p>
         </div>
       </div>
-      {/* View Button */}
-      <button className="flex h-9 items-center justify-center gap-2 rounded-md bg-brand px-4 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#1b5e20]">
+      <Link
+        to={href}
+        className="flex h-9 items-center justify-center gap-2 rounded-md bg-brand px-4 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#1b5e20]"
+      >
         <EyeIcon />
         View
-      </button>
+      </Link>
     </div>
   )
 }
@@ -125,16 +130,19 @@ export default function ReportsAnalyticsPage() {
             icon={<SeedlingIcon />}
             title="Crop Cycle Summary"
             description="Complete activity timeline and performance for a specific crop cycle"
+            href="/cooperative/reports/crop-cycle"
           />
           <ReportCard
             icon={<TrendingUpIcon />}
             title="Harvest & Sales Report"
             description="Detailed record of all harvests, sales transformations, and buyer data"
+            href="/cooperative/reports/harvest-sales"
           />
           <ReportCard
             icon={<BarChartIcon />}
             title="Farm Report"
             description="Comprehensive overview of farm activities, infrastructure, and status"
+            href="/cooperative/reports/farm"
           />
         </div>
       </div>
@@ -147,11 +155,13 @@ export default function ReportsAnalyticsPage() {
             icon={<DollarIcon />}
             title="Financial Summary"
             description="Revenue, costs, profit margins, and wallet activity"
+            href="/cooperative/reports/financial"
           />
           <ReportCard
             icon={<CreditCardIcon />}
             title="Payment History"
             description="All payments received from buyers and token rewards"
+            href="/cooperative/reports/payments"
           />
         </div>
       </div>

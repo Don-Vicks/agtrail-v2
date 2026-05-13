@@ -9,7 +9,8 @@ export default function DeliveryCustodyPage() {
     <div className="space-y-8 pb-10">
       <PageHeader
         items={[
-          { label: 'Product', href: '#' },
+          { label: 'Transporter', href: '/transporter' },
+          { label: 'Delivery & Proof of Custody', href: '#' },
         ]}
       />
 

@@ -16,7 +16,6 @@ import { OfflineBanner } from "~/components/offline/offline-banner";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "~/components/ui/sonner";
 import { Loader2 } from "lucide-react";
-import { cn } from "~/lib/utils";
 import type { Route } from "./+types/root";
 import "./app.css";
 
@@ -33,6 +32,23 @@ export const links: Route.LinksFunction = () => [
   },
 ];
 
+/** Wraps all route UI so auth / theme / query work during SSR and for every root child. */
+function RootProviders({ children }: { children: React.ReactNode }) {
+  return (
+    <ThemeProvider attribute="class" defaultTheme="light" forcedTheme="light" enableSystem={false}>
+      <AuthProvider>
+        <OfflineProvider>
+          <QueryClientProvider client={queryClient}>
+            <OfflineBanner />
+            {children}
+            <Toaster position="top-right" richColors />
+          </QueryClientProvider>
+        </OfflineProvider>
+      </AuthProvider>
+    </ThemeProvider>
+  );
+}
+
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
@@ -45,7 +61,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <script src="https://widget.dojah.io/widget.js"></script>
       </head>
       <body className="font-sans">
-        {children}
+        <RootProviders>{children}</RootProviders>
         <ScrollRestoration />
         <Scripts />
       </body>
@@ -58,30 +74,22 @@ export default function App() {
   const isLoading = navigation.state === "loading";
 
   return (
-    <ThemeProvider attribute="class" defaultTheme="light" forcedTheme="light" enableSystem={false}>
-      <AuthProvider>
-        <OfflineProvider>
-          <QueryClientProvider client={queryClient}>
-            {isLoading && (
-              <div className="fixed inset-0 z-[9999] pointer-events-none">
-                <div className="absolute top-0 left-0 right-0 h-1 overflow-hidden">
-                  <div className="h-full bg-[#10b981] animate-progress-bar shadow-[0_0_10px_#10b981]" />
-                </div>
-                <div className="absolute inset-0 bg-white/40 backdrop-blur-[2px] flex items-center justify-center pointer-events-auto transition-all">
-                  <div className="bg-white px-6 py-4 rounded-md shadow-2xl border border-gray-100 flex items-center gap-4 animate-in fade-in zoom-in duration-300">
-                    <Loader2 className="size-6 text-[#10b981] animate-spin" />
-                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-900">Loading...</span>
-                  </div>
-                </div>
-              </div>
-            )}
-            <OfflineBanner />
-            <Outlet />
-            <Toaster position="top-right" richColors />
-          </QueryClientProvider>
-        </OfflineProvider>
-      </AuthProvider>
-    </ThemeProvider>
+    <>
+      {isLoading && (
+        <div className="fixed inset-0 z-[9999] pointer-events-none">
+          <div className="absolute top-0 left-0 right-0 h-1 overflow-hidden">
+            <div className="h-full bg-[#10b981] animate-progress-bar shadow-[0_0_10px_#10b981]" />
+          </div>
+          <div className="absolute inset-0 bg-white/40 backdrop-blur-[2px] flex items-center justify-center pointer-events-auto transition-all">
+            <div className="bg-white px-6 py-4 rounded-md shadow-2xl border border-gray-100 flex items-center gap-4 animate-in fade-in zoom-in duration-300">
+              <Loader2 className="size-6 text-[#10b981] animate-spin" />
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-900">Loading...</span>
+            </div>
+          </div>
+        </div>
+      )}
+      <Outlet />
+    </>
   );
 }
 

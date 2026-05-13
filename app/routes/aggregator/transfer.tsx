@@ -1,91 +1,81 @@
 import { useState } from 'react'
-import { Search, ChevronDown, QrCode, ArrowUpRight, ClipboardList, X, Calendar } from 'lucide-react'
+import { Search, ChevronDown, QrCode, ArrowUpRight, ClipboardList, X, Calendar, Loader2 } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import { PageHeader } from '~/components/page-header'
 import { Dialog, DialogContent, DialogTitle, DialogHeader } from '~/components/ui/dialog'
 import { cn } from '~/lib/utils'
-
-interface TransferItem {
-  id: string
-  product: string
-  batchId: string
-  farmer: string
-  farmName: string
-  location: string
-  weight: string
-  status: 'available' | 'ready'
-}
-
-const mockTransfers: TransferItem[] = [
-  {
-    id: '1',
-    product: 'Cashew',
-    batchId: 'BATCH-1758814569861',
-    farmer: 'Deborah Ogunyemi Farm',
-    farmName: 'Deborah Ogunyemi Farm',
-    location: 'Zone 16, Kute, Iwo Road',
-    weight: '2,000KG',
-    status: 'available'
-  },
-  {
-    id: '2',
-    product: 'Cashew',
-    batchId: 'BATCH-1758814569861',
-    farmer: 'Deborah Ogunyemi Farm',
-    farmName: 'Deborah Ogunyemi Farm',
-    location: 'Zone 16, Kute, Iwo Road',
-    weight: '2,000KG',
-    status: 'available'
-  },
-  {
-    id: '3',
-    product: 'Cashew',
-    batchId: 'BATCH-1758814569861',
-    farmer: 'Deborah Ogunyemi Farm',
-    farmName: 'Deborah Ogunyemi Farm',
-    location: 'Zone 16, Kute, Iwo Road',
-    weight: '2,000KG',
-    status: 'available'
-  },
-  {
-    id: '4',
-    product: 'Cashew',
-    batchId: 'BATCH-1758814569861',
-    farmer: 'Deborah Ogunyemi Farm',
-    farmName: 'Deborah Ogunyemi Farm',
-    location: 'Zone 16, Kute, Iwo Road',
-    weight: '2,000KG',
-    status: 'available'
-  }
-]
+import { useGetAggregatorLots, usePostAggregatorLotsLotIdCustodyTransfers } from '~/lib/api/generated/aggregator/aggregator'
+import { useGetUsersByRole } from '~/lib/api/generated/users/users'
+import { toast } from 'sonner'
+import { useQueryClient } from '@tanstack/react-query'
 
 export default function AggregatorTransferPage() {
-  const [items, setItems] = useState<TransferItem[]>(mockTransfers)
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [selectedItem, setSelectedItem] = useState<TransferItem | null>(null)
+  const queryClient = useQueryClient()
+  const { data: lotsResponse, isLoading: isLoadingLots } = useGetAggregatorLots()
+  const { data: processorsResponse } = useGetUsersByRole({ role: 'processor' })
+  const transferMutation = usePostAggregatorLotsLotIdCustodyTransfers()
 
-  const handleInitiate = (item: TransferItem) => {
-    setSelectedItem(item)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [selectedLot, setSelectedLot] = useState<any>(null)
+  
+  // Form state
+  const [receiverId, setReceiverId] = useState('')
+  const [quantity, setQuantity] = useState('')
+  const [transferDate, setTransferDate] = useState(new Date().toISOString().split('T')[0])
+  const [price, setPrice] = useState('0.00')
+
+  const lots = lotsResponse?.data?.data ?? []
+  const processors = (processorsResponse?.data as any)?.data ?? []
+
+  const handleInitiate = (lot: any) => {
+    setSelectedLot(lot)
+    setQuantity(lot.actualWeight || lot.declaredTotalWeight || '0')
     setIsModalOpen(true)
   }
 
-  const handleDispatchRequest = () => {
-    if (selectedItem) {
-      setItems(prev => prev.map(it => it.id === selectedItem.id ? { ...it, status: 'ready' } : it))
+  const handleDispatchRequest = async () => {
+    if (!selectedLot || !receiverId || !quantity) {
+      toast.error('Please fill all required fields')
+      return
     }
-    setIsModalOpen(false)
+
+    try {
+      await transferMutation.mutateAsync({
+        lotId: selectedLot.id,
+        data: {
+          receiverId,
+          quantityTransferred: Number(quantity),
+          transferDate: new Date(transferDate).toISOString(),
+          weightUnit: selectedLot.weightUnit || 'kg'
+        }
+      })
+      queryClient.invalidateQueries({ queryKey: [`/aggregator/lots`] })
+      toast.success('Transfer initiated successfully')
+      setIsModalOpen(false)
+    } catch (err) {
+      toast.error('Failed to initiate transfer')
+    }
+  }
+
+  if (isLoadingLots) {
+    return (
+      <div className="flex h-[400px] items-center justify-center">
+        <Loader2 className="size-8 animate-spin text-brand" />
+      </div>
+    )
   }
 
   return (
     <div className="space-y-6 pb-10 text-left">
       <PageHeader
         items={[
-          { label: 'Product' }
+          { label: 'Aggregator', href: '/aggregator' },
+          { label: 'Product Transfer' }
         ]}
       />
 
       <div className="space-y-1">
-        <h1 className="text-2xl font-bold text-[#1a4332] tracking-tight">Initiate Product</h1>
+        <h1 className="text-2xl font-bold text-[#1a4332] tracking-tight">Initiate Product Transfer</h1>
         <p className="text-sm text-gray-500 font-medium">Initiate product transfer from your stock to any stakeholders</p>
       </div>
 
@@ -94,7 +84,7 @@ export default function AggregatorTransferPage() {
         <div className="relative flex-1 min-w-[240px] max-w-sm">
           <input
             type="text"
-            placeholder="Search Farm..."
+            placeholder="Search Lots..."
             className="w-full h-10 pl-4 pr-10 rounded-md border border-gray-200 bg-white text-sm outline-none focus:border-[#2e7d32] transition-all"
           />
         </div>
@@ -102,106 +92,59 @@ export default function AggregatorTransferPage() {
           <Search className="size-4 text-[#2e7d32]" />
           Search
         </Button>
-        <div className="relative">
-          <Button variant="outline" className="h-10 border-gray-200 text-gray-600 font-semibold gap-2 px-4 rounded-md hover:bg-gray-50">
-            <ClipboardList className="size-4 text-gray-400" />
-            Sort by Farmer
-            <ChevronDown className="size-4 text-gray-400" />
-          </Button>
-        </div>
-        <div className="relative">
-          <Button variant="outline" className="h-10 border-gray-200 text-gray-600 font-semibold gap-2 px-4 rounded-md hover:bg-gray-50">
-            <ClipboardList className="size-4 text-gray-400" />
-            Sort by Product
-            <ChevronDown className="size-4 text-gray-400" />
-          </Button>
-        </div>
       </div>
 
-      {/* Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {items.map((item) => (
-          <div key={item.id} className="bg-white border border-gray-100 rounded-md p-6 shadow-sm hover:shadow-md transition-all group">
+        {lots.filter(l => l.status === 'finalised' || l.status === 'received').map((lot) => (
+          <div key={lot.id} className="bg-white border border-gray-100 rounded-md p-6 shadow-sm hover:shadow-md transition-all group">
             <div className="flex justify-between items-start mb-6">
               <div className="size-20 rounded-md border border-gray-100 flex items-center justify-center p-2 bg-gray-50/30">
                 <QrCode className="size-full text-[#2e7d32]" />
               </div>
               <div className="flex flex-col items-end gap-2">
                 <div className="bg-[#1a4332] px-3 py-1 rounded text-white font-bold text-xs uppercase tracking-wider">
-                  {item.weight}
+                  {lot.actualWeight || lot.declaredTotalWeight} {lot.weightUnit || 'KG'}
                 </div>
                 <div className="bg-[#fff7ed] px-3 py-1 rounded border border-[#ffedd5]">
-                  <p className="text-[10px] font-bold text-[#9a3412] tracking-wider uppercase">{item.batchId}</p>
+                  <p className="text-[10px] font-bold text-[#9a3412] tracking-wider uppercase">{lot.lotId || `#LOT-${lot.id.slice(-6)}`}</p>
                 </div>
               </div>
             </div>
 
             <div className="space-y-4 mb-8 text-left">
               <div>
-                <h3 className="text-xl font-bold text-[#1a4332] tracking-tight">{item.product}</h3>
+                <h3 className="text-xl font-bold text-[#1a4332] tracking-tight">
+                  Consolidated Lot
+                </h3>
               </div>
 
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <svg className="size-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" />
-                  </svg>
-                  <p className="text-sm font-bold text-gray-900">{item.farmer}</p>
+                  <ClipboardList className="size-4 text-gray-400" />
+                  <p className="text-sm font-bold text-gray-900">{lot.compositionTree?.length || 0} Batches Included</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <svg className="size-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                    <path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                  </svg>
-                  <p className="text-sm font-semibold text-gray-600">{item.farmName}</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <svg className="size-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                    <path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  <p className="text-xs text-gray-500 font-semibold uppercase tracking-wider">{item.location}</p>
+                  <Calendar className="size-4 text-gray-400" />
+                  <p className="text-sm font-semibold text-gray-600">Created: {new Date(lot.createdAt).toLocaleDateString()}</p>
                 </div>
               </div>
             </div>
 
             <div className="pt-2">
               <Button 
-                onClick={() => handleInitiate(item)}
-                className={cn(
-                  "w-full h-11 font-bold rounded-md shadow-sm transition-all",
-                  item.status === 'ready' 
-                    ? "bg-[#1a4332] hover:bg-[#122e22] text-white" 
-                    : "bg-[#1a4332] hover:bg-[#122e22] text-white"
-                )}
+                onClick={() => handleInitiate(lot)}
+                className="w-full h-11 font-bold rounded-md shadow-sm bg-[#1a4332] hover:bg-[#122e22] text-white"
               >
-                {item.status === 'ready' ? 'Ready for pickup' : 'Initiate Product Transfer'}
+                Initiate Product Transfer
               </Button>
             </div>
           </div>
         ))}
-      </div>
-
-      {/* Pagination Footer */}
-      <div className="flex items-center justify-between pt-4 border-t border-gray-50">
-        <p className="text-xs font-semibold text-gray-400">0 of 100 row(s) selected.</p>
-        <div className="flex items-center gap-6">
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest">Rows per page</span>
-            <select className="h-8 rounded-md border border-gray-200 bg-white px-2 text-[10px] font-semibold outline-none">
-              <option>10</option>
-              <option>20</option>
-              <option>50</option>
-            </select>
+        {lots.length === 0 && (
+          <div className="col-span-full py-20 text-center bg-gray-50 rounded-md border border-dashed border-gray-200">
+            <p className="text-gray-500 font-medium">No available lots for transfer. Finalize a draft lot first.</p>
           </div>
-          <div className="flex items-center gap-4">
-            <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest">Page 1 of 4</span>
-            <div className="flex gap-1">
-              <button className="size-8 rounded-md border border-gray-100 flex items-center justify-center text-gray-300 disabled:opacity-50" disabled>&laquo;</button>
-              <button className="size-8 rounded-md border border-gray-100 flex items-center justify-center text-gray-300 disabled:opacity-50" disabled>&lsaquo;</button>
-              <button className="size-8 rounded-md border border-gray-200 bg-white flex items-center justify-center text-gray-600 font-semibold">&rsaquo;</button>
-              <button className="size-8 rounded-md border border-gray-200 bg-white flex items-center justify-center text-gray-600 font-semibold">&raquo;</button>
-            </div>
-          </div>
-        </div>
+        )}
       </div>
 
       {/* Initiate Pickup Request Modal */}
@@ -221,30 +164,32 @@ export default function AggregatorTransferPage() {
             <div className="px-8 pb-8 space-y-6">
               {/* Product Badge */}
               <div className="bg-[#f0fdf4] border border-[#dcfce7] rounded-md px-4 py-2 text-[#1a4332] font-bold text-sm">
-                #AG-8829 Arabica Coffee - Grade A (20.5 Tons)
+                {selectedLot?.lotId || `#LOT-${selectedLot?.id?.slice(-6)}`} - {selectedLot?.actualWeight || selectedLot?.declaredTotalWeight} {selectedLot?.weightUnit || 'KG'}
               </div>
 
               <div className="grid grid-cols-2 gap-6">
-                <FormGroup label="Quantity to Transfer*" placeholder="Enter Quantity Purchased" />
-                <FormGroup label="Unit *" placeholder="Select a Unit" isSelect />
-              </div>
-
-              <div className="space-y-4 pt-2">
-                <h3 className="text-base font-bold text-gray-900 tracking-tight">Destination & Buyer Information</h3>
-                <div className="grid grid-cols-2 gap-6">
-                  <FormGroup label="Buyer *" placeholder="Select Buyer" isSelect />
-                  <FormGroup label="Buyer Email" placeholder="Enter Supplier Email" />
-                  <FormGroup label="Country *" placeholder="Enter Country" />
-                  <FormGroup label="Region/State" placeholder="Enter Country Region" />
-                  <FormGroup label="Contact Phone Number 1" placeholder="Enter Country Region" />
-                  <FormGroup label="Contact Phone Number 2" placeholder="Enter Country Region" />
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-gray-900 uppercase tracking-widest">Quantity to Transfer*</label>
+                  <input 
+                    type="number"
+                    value={quantity}
+                    onChange={(e) => setQuantity(e.target.value)}
+                    placeholder="Enter Quantity"
+                    className="w-full h-11 rounded-md border border-gray-200 px-4 text-sm font-medium text-gray-900 focus:border-[#2e7d32] outline-none transition-all"
+                  />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-gray-900 uppercase tracking-widest">Address</label>
-                  <textarea 
-                    placeholder="Enter Country Region"
-                    className="w-full h-24 rounded-md border border-gray-200 p-4 text-sm font-medium text-gray-900 outline-none focus:border-[#2e7d32] transition-all resize-none"
-                  />
+                  <label className="text-xs font-bold text-gray-900 uppercase tracking-widest">Receiver (Processor)*</label>
+                  <select 
+                    value={receiverId}
+                    onChange={(e) => setReceiverId(e.target.value)}
+                    className="w-full h-11 rounded-md border border-gray-200 px-4 text-sm font-medium text-gray-900 focus:border-[#2e7d32] outline-none transition-all bg-white"
+                  >
+                    <option value="">Select Processor</option>
+                    {processors.map((p: any) => (
+                      <option key={p.id} value={p.id}>{p.firstName} {p.lastName}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
@@ -263,11 +208,11 @@ export default function AggregatorTransferPage() {
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm">₦</span>
                     <input 
                       type="text"
-                      defaultValue="0.00"
+                      value={price}
+                      onChange={(e) => setPrice(e.target.value)}
                       className="w-full h-11 pl-8 pr-4 rounded-md border border-gray-200 bg-white text-sm font-bold text-gray-900 outline-none"
                     />
                   </div>
-                  <p className="text-[10px] font-semibold text-gray-400">Payment will be made to your bank wallet</p>
                 </div>
               </div>
 
@@ -278,28 +223,31 @@ export default function AggregatorTransferPage() {
                     <label className="text-xs font-bold text-gray-900 uppercase tracking-widest">Scheduled Date *</label>
                     <div className="relative">
                       <input 
-                        placeholder="Pick a date"
+                        type="date"
+                        value={transferDate}
+                        onChange={(e) => setTransferDate(e.target.value)}
                         className="w-full h-11 pl-4 pr-10 rounded-md border border-gray-200 text-sm font-medium outline-none"
                       />
-                      <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
                     </div>
                   </div>
-                  <FormGroup label="Price per Unit" placeholder="Enter Price" />
                 </div>
               </div>
 
               <div className="flex gap-4 pt-6">
                 <Button 
                   onClick={handleDispatchRequest}
-                  className="flex-1 h-12 bg-[#1a4332] hover:bg-[#122e22] text-white font-bold rounded-md shadow-sm"
+                  disabled={transferMutation.isPending}
+                  className="flex-1 h-12 bg-[#1a4332] hover:bg-[#122e22] text-white font-bold rounded-md shadow-sm gap-2"
                 >
+                  {transferMutation.isPending && <Loader2 className="size-4 animate-spin" />}
                   Dispatch Request
                 </Button>
                 <Button 
                   variant="outline"
+                  onClick={() => setIsModalOpen(false)}
                   className="flex-1 h-12 border-[#1a4332] text-[#1a4332] font-bold rounded-md hover:bg-[#1a4332]/5"
                 >
-                  Save as Draft
+                  Cancel
                 </Button>
               </div>
             </div>

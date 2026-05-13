@@ -159,8 +159,8 @@ export default function HarvestApprovalPage() {
     <div className='space-y-6 pb-10 text-left'>
       <PageHeader
         items={[
-          { label: 'Dashboard', href: '/field-agent', icon: <Archive className='size-4 text-gray-400' /> },
-          { label: 'Harvest approval' },
+          { label: 'Field Agent', href: '/field-agent', icon: <Archive className='size-4 text-gray-400' /> },
+          { label: 'Harvest approval', href: '#' },
         ]}
       />
 

@@ -7,9 +7,13 @@ import { TrendStatCard } from '~/components/trend-stat-card'
 import { EmptyReportState } from '~/components/empty-report-state'
 import { Badge } from '~/components/ui/badge'
 import { cn } from '~/lib/utils'
-import type { GetReportsFarmerFarmSummaryParams } from '~/lib/api/generated/models/getReportsFarmerFarmSummaryParams'
-import { useGetReportsFarmerFarmSummary } from '~/lib/api/generated/reports-farmer/reports-farmer'
+import type { GetReportsCooperativeFarmSummaryParams } from '~/lib/api/generated/models/getReportsCooperativeFarmSummaryParams'
+import { useGetReportsCooperativeFarmSummary } from '~/lib/api/generated/reports-cooperative/reports-cooperative'
 import { useReportFarmOptions } from '~/lib/use-report-farm-options'
+import {
+  cooperativeReportsQueryEnabled,
+  MissingCooperativeOrgBanner,
+} from './report-org-context'
 import { downloadClientPdf } from '~/lib/reports-pdf/download-client-pdf'
 import { FarmSummaryPdfDocument } from '~/lib/reports-pdf/farm-summary-pdf'
 
@@ -19,31 +23,47 @@ function defaultDateRange() {
   return { startDate: format(start, 'yyyy-MM-dd'), endDate: format(end, 'yyyy-MM-dd') }
 }
 
-export default function FarmReportPage() {
-  const { farmOptions, isLoadingFarms } = useReportFarmOptions()
+export default function CooperativeFarmReportPage() {
   const defaults = useMemo(() => defaultDateRange(), [])
+  const coopEnabled = cooperativeReportsQueryEnabled()
+  const { farmOptions, isLoadingFarms } = useReportFarmOptions({
+    query: { enabled: coopEnabled },
+  })
+  const [selectedFarmerId, setSelectedFarmerId] = useState('')
   const [selectedFarmId, setSelectedFarmId] = useState('')
   const [selectedCrop, setSelectedCrop] = useState('')
   const [startDate, setStartDate] = useState(defaults.startDate)
   const [endDate, setEndDate] = useState(defaults.endDate)
-  const [applied, setApplied] = useState<GetReportsFarmerFarmSummaryParams | null>(null)
+  const [applied, setApplied] = useState<GetReportsCooperativeFarmSummaryParams | null>(null)
   const [pdfLoading, setPdfLoading] = useState(false)
 
   const queryParams = applied ?? {}
   const { data: reportResponse, isLoading, isFetching, isError, error } =
-    useGetReportsFarmerFarmSummary(queryParams, { query: { enabled: true } })
+    useGetReportsCooperativeFarmSummary(queryParams, { query: { enabled: coopEnabled } })
 
   const reportData = reportResponse?.data?.data
   const filterOptions = reportData?.filterOptions
 
+  const farmerOptions =
+    filterOptions?.farmers?.map((f) => ({
+      label: f.name,
+      value: f.id,
+    })) ?? []
+
   const handleGenerate = () => {
     setApplied({
+      farmerId: selectedFarmerId || undefined,
       farmId: selectedFarmId || undefined,
       crop: selectedCrop || undefined,
       startDate: startDate || undefined,
       endDate: endDate || undefined,
     })
   }
+
+  const farmerLabel = useMemo(() => {
+    if (!selectedFarmerId) return 'All farmers'
+    return farmerOptions.find((o) => o.value === selectedFarmerId)?.label ?? selectedFarmerId
+  }, [farmerOptions, selectedFarmerId])
 
   const farmLabel = useMemo(() => {
     if (!selectedFarmId) return 'All farms'
@@ -57,30 +77,63 @@ export default function FarmReportPage() {
       await downloadClientPdf(
         <FarmSummaryPdfDocument
           title="Farm analysis report"
-          scopeLabel="Farmer"
+          scopeLabel="Cooperative"
           metaLines={[
+            `Farmer: ${farmerLabel}`,
             `Farm: ${farmLabel}`,
             `Crop filter: ${selectedCrop || 'All crops'}`,
             `Date range: ${applied.startDate ?? '—'} → ${applied.endDate ?? '—'}`,
           ]}
           data={reportData}
         />,
-        'agtrail-farmer-farm-analysis',
+        'agtrail-cooperative-farm-analysis',
       )
     } finally {
       setPdfLoading(false)
     }
-  }, [reportData, applied, farmLabel, selectedCrop])
+  }, [reportData, applied, farmerLabel, farmLabel, selectedCrop])
 
   const plots = reportData?.farmPerformance?.data ?? []
   const isBusy = isLoading || (isFetching && applied !== null)
 
+  const filters = [
+    ...(farmerOptions.length
+      ? [
+          {
+            label: 'Farmer',
+            placeholder: 'All farmers',
+            options: farmerOptions,
+            value: selectedFarmerId,
+            onChange: setSelectedFarmerId,
+            isLoading: isLoading && !filterOptions,
+          },
+        ]
+      : []),
+    {
+      label: 'Target Farm',
+      placeholder: 'Choose a Farm',
+      options: farmOptions,
+      value: selectedFarmId,
+      onChange: setSelectedFarmId,
+      isLoading: isLoadingFarms,
+    },
+    {
+      label: 'Crop (optional)',
+      placeholder: 'All crops',
+      options: filterOptions?.crops.map((c) => ({ label: c, value: c })) || [],
+      value: selectedCrop,
+      onChange: setSelectedCrop,
+      isLoading: isLoading && !filterOptions,
+    },
+  ]
+
   return (
     <ReportLayout
       title="Farm Analysis Report"
-      subtitle="Detailed overview of farm units, land usage, and infrastructure"
+      subtitle="Cooperative farm performance and compliance"
       breadcrumb={[
-        { label: 'Reports & Analytics', href: '/farmer/reports' },
+        { label: 'Dashboard', href: '/cooperative' },
+        { label: 'Reports & Analytics', href: '/cooperative/reports' },
         { label: 'Farm Analysis' },
       ]}
       onDownloadPdf={reportData && applied ? handleDownloadPdf : undefined}
@@ -88,6 +141,7 @@ export default function FarmReportPage() {
       downloadPdfLoading={pdfLoading}
     >
       <div className="space-y-6">
+        <MissingCooperativeOrgBanner />
         <ReportFilter
           isGenerating={isBusy && applied !== null}
           onGenerate={handleGenerate}
@@ -95,32 +149,13 @@ export default function FarmReportPage() {
           endDate={endDate}
           onStartDateChange={setStartDate}
           onEndDateChange={setEndDate}
-          filters={[
-            {
-              label: 'Target Farm',
-              placeholder: 'Choose a Farm',
-              options: farmOptions,
-              value: selectedFarmId,
-              onChange: setSelectedFarmId,
-              isLoading: isLoadingFarms,
-            },
-            {
-              label: 'Crop (optional)',
-              placeholder: 'All crops',
-              options: filterOptions?.crops.map((c) => ({ label: c, value: c })) || [],
-              value: selectedCrop,
-              onChange: setSelectedCrop,
-              isLoading: isLoading && !filterOptions,
-            },
-          ]}
+          filters={filters}
         />
 
         {isBusy && applied ? (
           <div className="flex flex-col items-center justify-center gap-4 rounded-md border border-gray-100 bg-white py-20">
-            <div className="flex size-16 items-center justify-center rounded-full border-4 border-gray-50 border-t-brand">
-              <Loader2 className="size-5 animate-spin text-brand" />
-            </div>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Surveying Land Data…</p>
+            <Loader2 className="size-8 animate-spin text-brand" />
+            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Loading…</p>
           </div>
         ) : isError ? (
           <div className="rounded-md border border-red-100 bg-red-50/50 p-6 text-center text-sm text-red-800">
@@ -163,35 +198,24 @@ export default function FarmReportPage() {
 
             <div className="overflow-hidden rounded-md border border-gray-100 bg-white shadow-sm">
               <div className="border-b border-gray-50 p-5">
-                <h3 className="text-base font-bold uppercase tracking-widest tracking-tight text-gray-900">
-                  Plot & crop performance
-                </h3>
-                <p className="mt-0.5 text-[10px] font-bold uppercase tracking-widest text-gray-400">
-                  Yield and compliance by farm unit
-                </p>
+                <h3 className="text-base font-bold text-gray-900">Plot & crop performance</h3>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm">
                   <thead className="bg-gray-50/50">
                     <tr>
-                      <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-gray-500">Farm</th>
-                      <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-gray-500">Farmer</th>
-                      <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-gray-500">Hectares</th>
-                      <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-gray-500">
-                        Expected (t)
-                      </th>
-                      <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-gray-500">
-                        Actual (t)
-                      </th>
-                      <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-gray-500">Status</th>
-                      <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-gray-500">
-                        Compliance
-                      </th>
+                      <th className="px-6 py-4 text-[10px] font-bold uppercase text-gray-500">Farm</th>
+                      <th className="px-6 py-4 text-[10px] font-bold uppercase text-gray-500">Farmer</th>
+                      <th className="px-6 py-4 text-[10px] font-bold uppercase text-gray-500">Ha</th>
+                      <th className="px-6 py-4 text-[10px] font-bold uppercase text-gray-500">Expected (t)</th>
+                      <th className="px-6 py-4 text-[10px] font-bold uppercase text-gray-500">Actual (t)</th>
+                      <th className="px-6 py-4 text-[10px] font-bold uppercase text-gray-500">Status</th>
+                      <th className="px-6 py-4 text-[10px] font-bold uppercase text-gray-500">Compliance</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
                     {plots.map((row, i) => (
-                      <tr key={`${row.productId}-${i}`} className="transition-colors hover:bg-gray-50">
+                      <tr key={`${row.productId}-${i}`} className="hover:bg-gray-50">
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
                             <div className="flex size-8 items-center justify-center rounded-md bg-brand/10 text-brand">
@@ -199,31 +223,25 @@ export default function FarmReportPage() {
                             </div>
                             <div>
                               <p className="text-[13px] font-bold text-gray-900">{row.farmName}</p>
-                              <p className="text-[9px] font-bold uppercase tracking-tight text-gray-300">
-                                {row.productId.slice(0, 12)}…
-                              </p>
+                              <p className="text-[9px] font-bold text-gray-300">{row.productId.slice(0, 12)}…</p>
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-[11px] font-bold text-gray-800">{row.farmerName}</td>
-                        <td className="px-6 py-4 text-sm font-bold tracking-tight text-gray-900">{row.hectares}</td>
-                        <td className="px-6 py-4 text-sm font-bold tracking-tight text-gray-900">
-                          {row.expectedYieldTons.toLocaleString()}
-                        </td>
-                        <td className="px-6 py-4 text-sm font-bold tracking-tight text-gray-900">
-                          {row.actualYieldTons.toLocaleString()}
-                        </td>
+                        <td className="px-6 py-4 text-[11px] font-bold">{row.farmerName}</td>
+                        <td className="px-6 py-4 font-bold">{row.hectares}</td>
+                        <td className="px-6 py-4 font-bold">{row.expectedYieldTons.toLocaleString()}</td>
+                        <td className="px-6 py-4 font-bold">{row.actualYieldTons.toLocaleString()}</td>
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-1.5 text-gray-500">
                             <Package className="size-3.5" />
-                            <span className="text-[10px] font-bold uppercase tracking-widest">{row.status}</span>
+                            <span className="text-[10px] font-bold uppercase">{row.status}</span>
                           </div>
                         </td>
                         <td className="px-6 py-4">
                           <Badge
                             variant="outline"
                             className={cn(
-                              'rounded-md px-2 py-0.5 text-[8px] font-bold uppercase tracking-widest',
+                              'rounded-md px-2 py-0.5 text-[8px] font-bold uppercase',
                               row.complianceStatus?.toLowerCase().includes('compliant')
                                 ? 'border-emerald-100 bg-emerald-50 text-emerald-600'
                                 : 'border-blue-100 bg-blue-50 text-blue-600',
@@ -236,8 +254,8 @@ export default function FarmReportPage() {
                     ))}
                     {plots.length === 0 ? (
                       <tr>
-                        <td colSpan={7} className="px-6 py-10 text-center text-[10px] font-bold uppercase italic text-gray-400">
-                          No plot performance rows for this selection
+                        <td colSpan={7} className="px-6 py-10 text-center text-[10px] font-bold uppercase text-gray-400">
+                          No rows for this selection
                         </td>
                       </tr>
                     ) : null}
@@ -249,7 +267,7 @@ export default function FarmReportPage() {
         ) : (
           <EmptyReportState
             title="Generate Farm Analysis"
-            description="Select farm, optional crop, and date range to view land and performance metrics."
+            description="Filter by farmer, farm, optional crop, and dates, then generate."
             icon="file"
           />
         )}

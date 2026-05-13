@@ -1,4 +1,5 @@
 import { QrCode, Scan, Camera, Key, CheckCircle2, ShieldCheck, MapPin } from 'lucide-react'
+import { FarmMap } from '~/components/farm-map.client'
 import { PageHeader } from '~/components/page-header'
 import { Button } from '~/components/ui/button'
 import { Badge } from '~/components/ui/badge'
@@ -9,7 +10,8 @@ export default function PickupVerificationPage() {
     <div className="space-y-8 pb-10">
       <PageHeader
         items={[
-          { label: 'Product', href: '#' },
+          { label: 'Transporter', href: '/transporter' },
+          { label: 'Pickup Verification', href: '#' },
         ]}
       />
 
@@ -93,12 +95,21 @@ export default function PickupVerificationPage() {
                 </div>
                 <Badge className="bg-emerald-50 text-emerald-600 border-none font-semibold text-[10px] uppercase tracking-widest rounded-md px-3">GPRS Active</Badge>
              </div>
-             <div className="h-[300px] bg-gray-100 relative grayscale contrast-125 opacity-80">
-                <img src="/map-placeholder.png" className="w-full h-full object-cover" alt="Map" />
-                <div className="absolute inset-0 flex items-center justify-center">
-                   <p className="text-xs font-medium text-gray-400 uppercase tracking-widest bg-white/80 px-4 py-2 rounded-md border border-gray-200 backdrop-blur-sm">Map View Integrated</p>
-                </div>
-             </div>
+              <div className="h-[300px] relative">
+                <FarmMap 
+                  farms={[
+                    {
+                      id: 'pickup-node',
+                      name: 'Northern Grain Silos',
+                      location: 'Akure, Nigeria',
+                      region: 'Ondo State',
+                      hectares: 120,
+                      lat: 7.2507,
+                      lng: 5.2103
+                    }
+                  ]}
+                />
+              </div>
           </div>
         </div>
 
