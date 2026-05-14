@@ -115,6 +115,7 @@ export default function PestControl() {
           onChange={(_, item) => setSelectedItem(item)}
           placeholder="Select pesticide item"
           categoryFilter="Pesticide"
+          warnNonOrganicInventory={layoutCropCycle.status === 'planned'}
         />
         <div>
           <label className="mb-1.5 block text-sm font-semibold text-gray-900">Quantity Applied</label>

@@ -93,6 +93,7 @@ export default function FertilizerApplication() {
           onChange={(_, item) => setSelectedItem(item)}
           placeholder="Select fertilizer item"
           categoryFilter="Fertilizer"
+          warnNonOrganicInventory={layoutCropCycle.status === 'planned'}
         />
         <div>
           <label className="mb-1.5 block text-sm font-semibold text-gray-900">Quantity Applied <span className="text-red-500">*</span></label>

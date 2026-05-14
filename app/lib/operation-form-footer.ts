@@ -51,15 +51,24 @@ const WEATHER_LABEL: Record<string, string> = {
   rainy: 'Rainy',
 }
 
+export type ValidateOperationFormFooterOptions = {
+  /** When false, area hectares is not validated (e.g. harvesting flow). */
+  requireAreaCovered?: boolean
+}
+
 export function validateOperationFormFooter(
   v: OperationFormFooterValues,
+  options?: ValidateOperationFormFooterOptions,
 ): { ok: true } | { ok: false; message: string } {
+  const requireArea = options?.requireAreaCovered !== false
   if (!v.mainEnergySource) {
     return { ok: false, message: 'Select your main energy source.' }
   }
-  const area = parseFloat(String(v.areaHectares).replace(/,/g, '').trim())
-  if (!Number.isFinite(area) || area <= 0) {
-    return { ok: false, message: 'Enter a valid area covered greater than zero (hectares).' }
+  if (requireArea) {
+    const area = parseFloat(String(v.areaHectares).replace(/,/g, '').trim())
+    if (!Number.isFinite(area) || area <= 0) {
+      return { ok: false, message: 'Enter a valid area covered greater than zero (hectares).' }
+    }
   }
   const costRaw = String(v.costNgn).replace(/,/g, '').trim()
   if (costRaw !== '') {
@@ -85,7 +94,12 @@ export function formatOperationLogDescription(
   lines.push(
     `Weather: ${WEATHER_LABEL[footer.weatherConditions] ?? footer.weatherConditions}`,
   )
-  lines.push(`Area covered (ha): ${String(footer.areaHectares).trim()}`)
+  const areaLine = String(footer.areaHectares).trim()
+  lines.push(
+    areaLine === ''
+      ? 'Area covered (ha): not recorded for this operation'
+      : `Area covered (ha): ${areaLine}`,
+  )
   const costRaw = String(footer.costNgn).replace(/,/g, '').trim()
   lines.push(costRaw === '' ? 'Cost (₦): not recorded' : `Cost (₦): ${costRaw}`)
   const notes = footer.additionalNotes.trim()

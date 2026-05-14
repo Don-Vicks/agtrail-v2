@@ -48,6 +48,7 @@ export default function Harvesting() {
       onSubmit={handleSubmit}
       isSubmitting={isPending}
       submitLabel="Log Harvesting Operation"
+      hideAreaCovered
       organicWarning={
         layoutCropCycle.status === 'planned' ? 'This is an organic crop cycle.' : undefined
       }
@@ -147,7 +148,6 @@ export default function Harvesting() {
           <input type="text" placeholder="e.g., Harvester, Sickle, Baskets (comma-separated)" className="w-full rounded-md border border-gray-200 px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20" />
           <p className="mt-1 text-xs text-gray-500">Separate multiple items with commas</p>
         </div>
-        {/* Area is handled by layout now... BUT the design for Harvesting shows Equipment next to Area Covered. We will just use the Layout's area for now to keep things DRY unless strict overrides are required */}
       </div>
 
     </OperationFormLayout>

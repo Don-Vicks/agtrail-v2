@@ -15,7 +15,10 @@ export type InventoryOption = {
   currency: string
   batchNumber: string
   currentStockLevel: number
+  /** Display label */
   certificationStatus: string
+  /** From `SuppliesInventory.certification` */
+  isOrganicCertified: boolean
 }
 
 const categoryMap: Record<string, string> = {
@@ -39,6 +42,7 @@ function toInventoryOption(item: SuppliesInventory): InventoryOption {
     batchNumber: `BATCH-${item.id.slice(0, 6).toUpperCase()}`,
     currentStockLevel: Number.isFinite(currentStockLevel) ? currentStockLevel : 0,
     certificationStatus: item.certification === 'organic' ? 'Organic' : 'Conventional',
+    isOrganicCertified: item.certification === 'organic',
   }
 }
 
@@ -51,6 +55,12 @@ interface InventoryFieldProps {
   placeholder?: string
   className?: string
   categoryFilter?: string // Optional filter for specific categories like 'Seeds', 'Fertilizer'
+  /**
+   * When true, show a warning if the chosen inventory item is not organic-certified.
+   * Call sites use `layoutCropCycle.status === 'planned'` as the organic-program proxy
+   * (same as other operation forms); replace when the API exposes an explicit organic path flag.
+   */
+  warnNonOrganicInventory?: boolean
 }
 
 export function InventoryField({
@@ -62,6 +72,7 @@ export function InventoryField({
   placeholder = "Select inventory item",
   className,
   categoryFilter,
+  warnNonOrganicInventory = false,
 }: InventoryFieldProps) {
   const [internalValue, setInternalValue] = useState(defaultValue ?? '')
   const { data } = useGetSuppliesInventory()
@@ -100,6 +111,11 @@ export function InventoryField({
     ? `${selectedItem.itemName} - ${selectedItem.supplierName} (${selectedItem.category})`
     : undefined
 
+  const showConventionalWarning =
+    warnNonOrganicInventory &&
+    selectedItem != null &&
+    !selectedItem.isOrganicCertified
+
   return (
     <div className={className}>
       <Label htmlFor={id} className="mb-1.5 block text-sm font-semibold text-gray-900">
@@ -122,6 +138,15 @@ export function InventoryField({
         </SelectContent>
       </Select>
       <input type="hidden" name={id} value={inputValue} />
+      {showConventionalWarning && (
+        <p
+          className="mt-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-950"
+          role="status"
+        >
+          This product is not listed as organic in inventory. Using it on an organic crop program may
+          reduce compliance or quality scores—confirm before you continue.
+        </p>
+      )}
     </div>
   )
 }

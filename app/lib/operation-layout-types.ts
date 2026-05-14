@@ -14,5 +14,6 @@ export type OperationLayoutCropCycle = {
   farmer: string
   farmerInitials: string
   farmerColor: string
+  /** Crop cycle workflow status; several operation forms treat `planned` as the organic-program proxy until the API exposes an explicit flag. */
   status?: string
 }

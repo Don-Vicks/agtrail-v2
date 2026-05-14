@@ -54,14 +54,21 @@ export function buildLogFarmOperationRequest(
 
   if (footer) {
     const costRaw = String(footer.costNgn).replace(/,/g, '').trim()
+    const omitArea = routeSlug === 'harvesting'
+    const areaPayload =
+      omitArea
+        ? {}
+        : {
+            areaCovered: footer.areaHectares,
+            areaUnit: 'hectares' as const,
+          }
     return {
       ...baseRequest,
       cost: costRaw || undefined as any,
       currency: footer.currency || 'NGN',
       personnelId: footer.personnelId,
       weatherConditions: footer.weatherData as any,
-      areaCovered: footer.areaHectares,
-      areaUnit: 'hectares',
+      ...areaPayload,
     }
   }
 

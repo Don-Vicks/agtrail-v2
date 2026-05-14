@@ -105,6 +105,7 @@ export default function Planting() {
             onChange={(_, item) => setSelectedSeed(item)}
             placeholder="Select seed item"
             categoryFilter="Seeds"
+            warnNonOrganicInventory={layoutCropCycle.status === 'planned'}
           />
           <div>
             <label className="mb-1.5 block text-sm font-semibold text-gray-900">Quantity Used (kg)</label>

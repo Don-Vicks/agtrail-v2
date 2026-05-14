@@ -6,6 +6,7 @@ import type { OperationFormFooterValues } from '~/lib/operation-form-footer'
 import {
   DEFAULT_OPERATION_FOOTER,
   validateOperationFormFooter,
+  type ValidateOperationFormFooterOptions,
 } from '~/lib/operation-form-footer'
 import type { OperationLayoutCropCycle } from '~/lib/operation-layout-types'
 import { getOperationsListPath } from '~/lib/operations-list-path'
@@ -23,6 +24,8 @@ interface OperationFormLayoutProps {
   ) => void | Promise<void>
   submitLabel: string
   organicWarning?: string
+  /** When true, footer omits area covered (harvesting only). */
+  hideAreaCovered?: boolean
   isSubmitting?: boolean
 }
 
@@ -34,6 +37,7 @@ export function OperationFormLayout({
   onSubmit,
   submitLabel,
   organicWarning,
+  hideAreaCovered = false,
   isSubmitting = false,
 }: OperationFormLayoutProps) {
   const navigate = useNavigate()
@@ -125,7 +129,10 @@ export function OperationFormLayout({
       personnelId,
     }
 
-    const footerCheck = validateOperationFormFooter(footer)
+    const validateOptions: ValidateOperationFormFooterOptions = {
+      requireAreaCovered: !hideAreaCovered,
+    }
+    const footerCheck = validateOperationFormFooter(footer, validateOptions)
     if (!footerCheck.ok) {
       toast.error(footerCheck.message)
       return
@@ -314,51 +321,59 @@ export function OperationFormLayout({
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="mb-2 block text-sm font-semibold text-gray-900 text-left">Area Covered (hectares) <span className="text-red-500">*</span></label>
-                  <div className="mb-2 flex flex-wrap items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={applyCycleArea}
-                      className="rounded-full border border-[#bfdbfe] bg-[#eff6ff] px-3.5 py-1.5 text-sm font-medium text-[#2563EB] hover:bg-blue-100 transition-colors"
-                    >
-                      {cycleAreaNumber != null
-                        ? `Use crop cycle area (${cycleAreaNumber} ha)`
-                        : 'Use crop cycle area'}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={applyCycleArea}
-                      className="rounded-full border border-[#bbf7d0] bg-white px-3.5 py-1.5 text-sm font-medium text-[#16A34A] hover:bg-green-50 transition-colors"
-                    >
-                      Use full farm area
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => areaInputRef.current?.focus()}
-                      className="flex items-center gap-1.5 rounded-full border border-[#fbd5a1] bg-[#FFF7ED] px-3.5 py-1.5 text-sm font-medium text-[#EA580C] hover:bg-orange-100 transition-colors"
-                    >
-                      <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
-                      </svg>
-                      Draw custom area
-                    </button>
+              <div
+                className={
+                  hideAreaCovered
+                    ? 'grid grid-cols-1 gap-6'
+                    : 'grid grid-cols-1 md:grid-cols-2 gap-6'
+                }
+              >
+                {!hideAreaCovered && (
+                  <div>
+                    <label className="mb-2 block text-sm font-semibold text-gray-900 text-left">Area Covered (hectares) <span className="text-red-500">*</span></label>
+                    <div className="mb-2 flex flex-wrap items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={applyCycleArea}
+                        className="rounded-full border border-[#bfdbfe] bg-[#eff6ff] px-3.5 py-1.5 text-sm font-medium text-[#2563EB] hover:bg-blue-100 transition-colors"
+                      >
+                        {cycleAreaNumber != null
+                          ? `Use crop cycle area (${cycleAreaNumber} ha)`
+                          : 'Use crop cycle area'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={applyCycleArea}
+                        className="rounded-full border border-[#bbf7d0] bg-white px-3.5 py-1.5 text-sm font-medium text-[#16A34A] hover:bg-green-50 transition-colors"
+                      >
+                        Use full farm area
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => areaInputRef.current?.focus()}
+                        className="flex items-center gap-1.5 rounded-full border border-[#fbd5a1] bg-[#FFF7ED] px-3.5 py-1.5 text-sm font-medium text-[#EA580C] hover:bg-orange-100 transition-colors"
+                      >
+                        <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+                        </svg>
+                        Draw custom area
+                      </button>
+                    </div>
+                    <input
+                      ref={areaInputRef}
+                      name="opAreaHa"
+                      type="text"
+                      inputMode="decimal"
+                      autoComplete="off"
+                      required
+                      value={areaHectares}
+                      onChange={(e) => setAreaHectares(e.target.value)}
+                      placeholder="Enter area in hectares"
+                      className="w-full rounded-md border border-gray-200 px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+                    />
                   </div>
-                  <input
-                    ref={areaInputRef}
-                    name="opAreaHa"
-                    type="text"
-                    inputMode="decimal"
-                    autoComplete="off"
-                    required
-                    value={areaHectares}
-                    onChange={(e) => setAreaHectares(e.target.value)}
-                    placeholder="Enter area in hectares"
-                    className="w-full rounded-md border border-gray-200 px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
-                  />
-                </div>
+                )}
                 <div>
                   <label className="mb-2 block text-sm font-semibold text-gray-900 text-left">Cost (₦)</label>
                   <input
@@ -369,7 +384,10 @@ export function OperationFormLayout({
                     value={costNgn}
                     onChange={(e) => setCostNgn(e.target.value)}
                     placeholder="Enter cost (optional)"
-                    className="mt-7 w-full rounded-md border border-gray-200 px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+                    className={cn(
+                      'w-full rounded-md border border-gray-200 px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20',
+                      !hideAreaCovered && 'mt-7',
+                    )}
                   />
                 </div>
               </div>
