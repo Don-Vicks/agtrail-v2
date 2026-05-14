@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~
 import { Textarea } from '~/components/ui/textarea'
 import { usePostFarmsIdCropCycles } from '~/lib/api/generated/farms-crop-cycles/farms-crop-cycles'
 import { useGetUsersProfile } from '~/lib/api/generated/users/users'
-import { isVerifiedKycStatus } from '~/lib/kyc'
+import { getKycStatusFromUsersProfileBody, isVerifiedKycStatus } from '~/lib/kyc'
 import { cn } from '~/lib/utils'
 
 interface StartCropCycleModalProps {
@@ -117,7 +117,7 @@ export function StartCropCycleModal({
     fieldIdentifiers: '',
   })
   const { data: profileResponse, isLoading: isProfileLoading } = useGetUsersProfile()
-  const kycStatus = profileResponse?.data?.user?.kycStatus
+  const kycStatus = getKycStatusFromUsersProfileBody(profileResponse?.data)
   const isKycVerified = isVerifiedKycStatus(kycStatus)
   const kycSettingsPath = location.pathname.startsWith('/cooperative')
     ? '/cooperative/settings?tab=kyc'

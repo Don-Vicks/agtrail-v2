@@ -8,26 +8,25 @@ import {
   Plus,
   QrCode,
   Settings,
-  UploadCloud,
   Loader2
 } from 'lucide-react'
-import { useState } from 'react'
-import { Link, useParams, useNavigate } from 'react-router'
+import { useState, useEffect } from 'react'
+import { Link, useParams } from 'react-router'
 import { PageHeader } from '~/components/page-header'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
-import { DatePicker } from '~/components/ui/date-picker'
+import { DateTimePicker } from '~/components/ui/date-time-picker'
 import { Input } from '~/components/ui/input'
+import type { AddProcessingStepRequest } from '~/lib/api/generated/models'
+import { ProcessorBatchStatus } from '~/lib/api/generated/models/processorBatchStatus'
 import { useGetProcessorsBatchesId, usePutProcessorsBatchesIdStatus } from '~/lib/api/generated/processors-batches/processors-batches'
 import { usePostProcessorsBatchesIdProcessingSteps } from '~/lib/api/generated/processors-operations/processors-operations'
 import { usePostProcessorsBatchesIdProducts } from '~/lib/api/generated/processors-products/processors-products'
-import { usePostProcessorsBatchesIdInputMaterials } from '~/lib/api/generated/processors-materials/processors-materials'
 import { cn } from '~/lib/utils'
 import { toast } from 'sonner'
 
 export default function BatchDetailsPage() {
   const params = useParams()
-  const navigate = useNavigate()
   const batchId = params.id as string
 
   const { data: batchData, isLoading: isBatchLoading, refetch } = useGetProcessorsBatchesId(batchId, {
@@ -39,7 +38,6 @@ export default function BatchDetailsPage() {
   const { mutateAsync: addStep, isPending: isAddingStep } = usePostProcessorsBatchesIdProcessingSteps()
   const { mutateAsync: addProduct, isPending: isAddingProduct } = usePostProcessorsBatchesIdProducts()
   const { mutateAsync: updateStatus, isPending: isUpdatingStatus } = usePutProcessorsBatchesIdStatus()
-  const { mutateAsync: addMaterial, isPending: isAddingMaterial } = usePostProcessorsBatchesIdInputMaterials()
 
   // Live Data overrides
   const batch = batchData?.data?.data
@@ -47,6 +45,10 @@ export default function BatchDetailsPage() {
   const productName = batch?.outputProductName || 'Loading...'
   const productType = batch?.outputProductType || 'Loading...'
   const status = batch?.status || 'Active'
+  const batchStatus = batch?.status
+  const isReadOnly =
+    batchStatus === ProcessorBatchStatus.completed ||
+    batchStatus === ProcessorBatchStatus.cancelled
 
   const [currentStep, setCurrentStep] = useState(1)
 
@@ -62,19 +64,41 @@ export default function BatchDetailsPage() {
   const [showAddQualityTestForm, setShowAddQualityTestForm] = useState(false)
   const [showAddPackagingForm, setShowAddPackagingForm] = useState(false)
 
+  useEffect(() => {
+    if (!isReadOnly) return
+    setShowAddStepForm(false)
+    setShowAddFortificationForm(false)
+    setShowAddQualityTestForm(false)
+    setShowAddPackagingForm(false)
+  }, [isReadOnly])
+
   // Submissions
   const handleAddStep = async () => {
+    if (isReadOnly) return
     if (!stepData.stepName) {
       toast.error('Step name is required')
       return
     }
+    const n = (v: unknown) => {
+      const x = typeof v === 'number' ? v : parseFloat(String(v))
+      return Number.isFinite(x) ? x : undefined
+    }
+    const payload: AddProcessingStepRequest = {
+      stepName: stepData.stepName,
+      stepOrder: ((batch as any)?.processingSteps?.length ?? 0) + 1,
+      description: stepData.description || undefined,
+      startTime: stepData.startTime || undefined,
+      endTime: stepData.endTime || undefined,
+      personnelResponsible: stepData.personnelResponsible || undefined,
+      equipmentUsed: stepData.equipmentUsed || undefined,
+      temperature: n(stepData.temperature),
+      humidity: n(stepData.humidity),
+      pressure: n(stepData.pressure),
+    }
     try {
       await addStep({
         id: batchId,
-        data: {
-          ...stepData,
-          stepOrder: (batch as any)?.processingSteps?.length + 1 || 1
-        }
+        data: payload,
       })
       toast.success('Processing step added')
       setStepData({ stepName: '', stepOrder: 1 })
@@ -86,6 +110,7 @@ export default function BatchDetailsPage() {
   }
 
   const handleAddProduct = async () => {
+    if (isReadOnly) return
     if (!packData.quantityProduced) {
       toast.error('Quantity is required')
       return
@@ -97,7 +122,7 @@ export default function BatchDetailsPage() {
           ...packData,
           productName: productName,
           category: productType,
-          unit: batch?.unit || 'KG'
+          unit: 'kg',
         }
       })
       
@@ -144,6 +169,12 @@ export default function BatchDetailsPage() {
           status?.toLowerCase() === 'completed' ? "border-green-200 text-emerald-600 bg-green-50" : "border-brand/40 text-brand bg-brand/5"
         )}>{status}</Badge>
       </div>
+
+      {isReadOnly && (
+        <div className="rounded-md border border-emerald-200 bg-emerald-50/90 px-4 py-3 text-sm font-medium text-emerald-900">
+          This batch is closed for editing. You can review each step below; changes and new records are disabled.
+        </div>
+      )}
 
       {/* Progress Section */}
       <div className="rounded-md border border-gray-200 bg-white p-6 shadow-sm">
@@ -226,7 +257,7 @@ export default function BatchDetailsPage() {
                 Input materials have been reviewed and successfully associated with this batch. Traceability for all source products is active.
               </p>
 
-              <Button onClick={() => setCurrentStep(2)} className="bg-brand hover:bg-brand/90 text-white px-10 font-black uppercase tracking-widest text-[10px] h-12 rounded-md shadow-lg transition-all active:scale-95">
+              <Button onClick={() => setCurrentStep(2)} disabled={isReadOnly} className="bg-brand hover:bg-brand/90 text-white px-10 font-black uppercase tracking-widest text-[10px] h-12 rounded-md shadow-lg transition-all active:scale-95">
                 Continue to Processing <ArrowRight className="size-4 ml-2" />
               </Button>
             </div>
@@ -255,12 +286,14 @@ export default function BatchDetailsPage() {
 
               <div className="flex gap-4 w-full sm:w-auto">
                 <Button
+                  disabled={isReadOnly}
                   onClick={() => { setShowAddStepForm(true); setShowAddFortificationForm(false); }}
                   className="bg-brand hover:bg-brand/90 text-white h-11 px-6 text-[10px] font-black tracking-widest uppercase flex-1 sm:flex-none rounded-md shadow-md transition-all active:scale-95"
                 >
                   <Plus className="size-4 mr-2" /> Add Operation
                 </Button>
                 <Button
+                  disabled={isReadOnly}
                   onClick={() => { setShowAddFortificationForm(true); setShowAddStepForm(false); }}
                   variant="outline"
                   className="h-11 px-6 text-[10px] border-gray-200 text-gray-600 font-black tracking-widest uppercase flex-1 sm:flex-none rounded-md hover:bg-gray-50 shadow-sm transition-all active:scale-95"
@@ -304,20 +337,20 @@ export default function BatchDetailsPage() {
                   </div>
                   <div className="space-y-2">
                     <label className="text-[11px] font-black uppercase tracking-widest text-gray-400">Start Time</label>
-                    <Input
-                      type="datetime-local"
-                      value={stepData.startTime || ''}
-                      onChange={e => setStepData({ ...stepData, startTime: e.target.value })}
-                      className="h-12 rounded-md border-gray-100 bg-white focus:border-brand shadow-sm transition-all text-xs"
+                    <DateTimePicker
+                      disabled={isReadOnly}
+                      value={stepData.startTime}
+                      onChange={(iso) => setStepData({ ...stepData, startTime: iso })}
+                      placeholder="Start date & time"
                     />
                   </div>
                   <div className="space-y-2">
                     <label className="text-[11px] font-black uppercase tracking-widest text-gray-400">End Time</label>
-                    <Input
-                      type="datetime-local"
-                      value={stepData.endTime || ''}
-                      onChange={e => setStepData({ ...stepData, endTime: e.target.value })}
-                      className="h-12 rounded-md border-gray-100 bg-white focus:border-brand shadow-sm transition-all text-xs"
+                    <DateTimePicker
+                      disabled={isReadOnly}
+                      value={stepData.endTime}
+                      onChange={(iso) => setStepData({ ...stepData, endTime: iso })}
+                      placeholder="End date & time"
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
@@ -325,8 +358,20 @@ export default function BatchDetailsPage() {
                       <label className="text-[11px] font-black uppercase tracking-widest text-gray-400">Temp (°C)</label>
                       <Input
                         type="number"
-                        value={stepData.temperature || ''}
-                        onChange={e => setStepData({ ...stepData, temperature: parseFloat(e.target.value) })}
+                        value={
+                          stepData.temperature === undefined ||
+                          stepData.temperature === null ||
+                          Number.isNaN(stepData.temperature)
+                            ? ''
+                            : stepData.temperature
+                        }
+                        onChange={(e) => {
+                          const v = e.target.value
+                          setStepData({
+                            ...stepData,
+                            temperature: v === '' ? undefined : parseFloat(v),
+                          })
+                        }}
                         placeholder="25.0"
                         className="h-12 rounded-md border-gray-100 bg-white focus:border-brand shadow-sm transition-all text-xs"
                       />
@@ -335,8 +380,20 @@ export default function BatchDetailsPage() {
                       <label className="text-[11px] font-black uppercase tracking-widest text-gray-400">Humidity (%)</label>
                       <Input
                         type="number"
-                        value={stepData.humidity || ''}
-                        onChange={e => setStepData({ ...stepData, humidity: parseFloat(e.target.value) })}
+                        value={
+                          stepData.humidity === undefined ||
+                          stepData.humidity === null ||
+                          Number.isNaN(stepData.humidity)
+                            ? ''
+                            : stepData.humidity
+                        }
+                        onChange={(e) => {
+                          const v = e.target.value
+                          setStepData({
+                            ...stepData,
+                            humidity: v === '' ? undefined : parseFloat(v),
+                          })
+                        }}
                         placeholder="60.0"
                         className="h-12 rounded-md border-gray-100 bg-white focus:border-brand shadow-sm transition-all text-xs"
                       />
@@ -346,8 +403,20 @@ export default function BatchDetailsPage() {
                     <label className="text-[11px] font-black uppercase tracking-widest text-gray-400">Pressure (Bar)</label>
                     <Input
                       type="number"
-                      value={stepData.pressure || ''}
-                      onChange={e => setStepData({ ...stepData, pressure: parseFloat(e.target.value) })}
+                      value={
+                        stepData.pressure === undefined ||
+                        stepData.pressure === null ||
+                        Number.isNaN(stepData.pressure)
+                          ? ''
+                          : stepData.pressure
+                      }
+                      onChange={(e) => {
+                        const v = e.target.value
+                        setStepData({
+                          ...stepData,
+                          pressure: v === '' ? undefined : parseFloat(v),
+                        })
+                      }}
                       placeholder="1.0"
                       className="h-12 rounded-md border-gray-100 bg-white focus:border-brand shadow-sm transition-all text-xs"
                     />
@@ -374,10 +443,16 @@ export default function BatchDetailsPage() {
                 </div>
 
                 <div className="flex justify-end gap-4 pt-6 border-t border-gray-50">
-                  <Button variant="ghost" onClick={() => setShowAddStepForm(false)} className="text-[10px] uppercase tracking-widest font-black h-11 px-8 text-gray-400 hover:text-gray-600">Cancel</Button>
+                  <Button
+                    variant="ghost"
+                    onClick={() => setShowAddStepForm(false)}
+                    className="text-[10px] uppercase tracking-widest font-black h-11 px-8 text-gray-400 hover:text-gray-600"
+                  >
+                    Cancel
+                  </Button>
                   <Button
                     onClick={handleAddStep}
-                    disabled={isAddingStep}
+                    disabled={isAddingStep || isReadOnly}
                     className="bg-brand text-white hover:bg-brand/90 text-[10px] uppercase tracking-widest font-black h-11 px-10 rounded-md shadow-lg transition-all active:scale-95 flex items-center gap-2"
                   >
                     {isAddingStep ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />}
@@ -421,11 +496,11 @@ export default function BatchDetailsPage() {
                   </div>
                   <div className="space-y-2">
                     <label className="text-[11px] font-black uppercase tracking-widest text-gray-400">Date & Time of Addition</label>
-                    <Input
-                      type="datetime-local"
-                      value={fortData.additionTime || ''}
-                      onChange={e => setFortData({ ...fortData, additionTime: e.target.value })}
-                      className="h-12 rounded-md border-gray-100 bg-white focus:border-brand shadow-sm transition-all text-xs"
+                    <DateTimePicker
+                      disabled={isReadOnly}
+                      value={fortData.additionTime}
+                      onChange={(iso) => setFortData({ ...fortData, additionTime: iso })}
+                      placeholder="Addition date & time"
                     />
                   </div>
                   <div className="space-y-2">
@@ -478,6 +553,7 @@ export default function BatchDetailsPage() {
                   <Button variant="ghost" onClick={() => setShowAddFortificationForm(false)} className="text-[10px] uppercase tracking-widest font-black h-11 px-8 text-gray-400 hover:text-gray-600">Cancel</Button>
                   <Button
                     onClick={handleAddStep}
+                    disabled={isReadOnly}
                     className="bg-brand text-white hover:bg-brand/90 text-[10px] uppercase tracking-widest font-black h-11 px-10 rounded-md shadow-lg transition-all active:scale-95 flex items-center gap-2"
                   >
                     <Plus className="size-4" />
@@ -581,6 +657,7 @@ export default function BatchDetailsPage() {
               </div>
 
               <Button
+                disabled={isReadOnly}
                 onClick={() => setShowAddQualityTestForm(true)}
                 className="bg-brand hover:bg-brand/90 text-white h-11 px-6 text-[10px] font-black tracking-widest uppercase rounded-md shadow-md transition-all active:scale-95"
               >
@@ -630,10 +707,12 @@ export default function BatchDetailsPage() {
                     />
                   </div>
                   <div className="space-y-2 flex flex-col">
-                    <label className="text-[11px] font-black uppercase tracking-widest text-gray-400">Test Date</label>
-                    <DatePicker
+                    <label className="text-[11px] font-black uppercase tracking-widest text-gray-400">Test Date & Time</label>
+                    <DateTimePicker
+                      disabled={isReadOnly}
                       value={qualityData.date}
-                      onChange={(date) => setQualityData({ ...qualityData, date: date?.toISOString() })}
+                      onChange={(iso) => setQualityData({ ...qualityData, date: iso })}
+                      placeholder="Test date & time"
                     />
                   </div>
                 </div>
@@ -642,6 +721,7 @@ export default function BatchDetailsPage() {
                   <Button variant="ghost" onClick={() => setShowAddQualityTestForm(false)} className="text-[10px] uppercase tracking-widest font-black h-11 px-8 text-gray-400 hover:text-gray-600">Cancel</Button>
                   <Button
                     onClick={handleAddStep}
+                    disabled={isReadOnly}
                     className="bg-brand text-white hover:bg-brand/90 text-[10px] uppercase tracking-widest font-black h-11 px-10 rounded-md shadow-lg transition-all active:scale-95 flex items-center gap-2"
                   >
                     <FlaskConical className="size-4" />
@@ -708,12 +788,14 @@ export default function BatchDetailsPage() {
 
               <div className="flex gap-4 w-full sm:w-auto">
                 <Button
+                  disabled={isReadOnly}
                   onClick={() => setShowAddPackagingForm(true)}
                   className="bg-brand hover:bg-brand/90 text-white h-11 px-6 text-[10px] font-black tracking-widest uppercase flex-1 sm:flex-none rounded-md shadow-md transition-all active:scale-95"
                 >
                   <Plus className="size-4 mr-2" /> Record Packaging
                 </Button>
                 <Button
+                  disabled={isReadOnly}
                   variant="outline"
                   className="h-11 px-6 text-[10px] border-gray-200 text-gray-600 font-black tracking-widest uppercase flex-1 sm:flex-none rounded-md hover:bg-gray-50 shadow-sm transition-all active:scale-95"
                 >
@@ -758,8 +840,20 @@ export default function BatchDetailsPage() {
                     <label className="text-[11px] font-black uppercase tracking-widest text-gray-400">Quantity Produced *</label>
                     <Input
                       type="number"
-                      value={packData.quantityProduced || ''}
-                      onChange={e => setPackData({ ...packData, quantityProduced: parseFloat(e.target.value) })}
+                      value={
+                        packData.quantityProduced === undefined ||
+                        packData.quantityProduced === null ||
+                        Number.isNaN(packData.quantityProduced)
+                          ? ''
+                          : packData.quantityProduced
+                      }
+                      onChange={(e) => {
+                        const v = e.target.value
+                        setPackData({
+                          ...packData,
+                          quantityProduced: v === '' ? undefined : parseFloat(v),
+                        })
+                      }}
                       placeholder="1000"
                       className="h-12 rounded-md border-gray-100 bg-white focus:border-brand shadow-sm transition-all text-xs"
                     />
@@ -769,8 +863,20 @@ export default function BatchDetailsPage() {
                       <label className="text-[11px] font-black uppercase tracking-widest text-gray-400">Package Size</label>
                       <Input
                         type="number"
-                        value={packData.packageSize || ''}
-                        onChange={e => setPackData({ ...packData, packageSize: parseFloat(e.target.value) })}
+                        value={
+                          packData.packageSize === undefined ||
+                          packData.packageSize === null ||
+                          Number.isNaN(packData.packageSize)
+                            ? ''
+                            : packData.packageSize
+                        }
+                        onChange={(e) => {
+                          const v = e.target.value
+                          setPackData({
+                            ...packData,
+                            packageSize: v === '' ? undefined : parseFloat(v),
+                          })
+                        }}
                         placeholder="1.0"
                         className="h-12 rounded-md border-gray-100 bg-white focus:border-brand shadow-sm transition-all text-xs"
                       />
@@ -779,8 +885,20 @@ export default function BatchDetailsPage() {
                       <label className="text-[11px] font-black uppercase tracking-widest text-gray-400">Packages Count</label>
                       <Input
                         type="number"
-                        value={packData.packagesCount || ''}
-                        onChange={e => setPackData({ ...packData, packagesCount: parseInt(e.target.value) })}
+                        value={
+                          packData.packagesCount === undefined ||
+                          packData.packagesCount === null ||
+                          Number.isNaN(packData.packagesCount)
+                            ? ''
+                            : packData.packagesCount
+                        }
+                        onChange={(e) => {
+                          const v = e.target.value
+                          setPackData({
+                            ...packData,
+                            packagesCount: v === '' ? undefined : parseInt(v, 10),
+                          })
+                        }}
                         placeholder="100"
                         className="h-12 rounded-md border-gray-100 bg-white focus:border-brand shadow-sm transition-all text-xs"
                       />
@@ -788,16 +906,20 @@ export default function BatchDetailsPage() {
                   </div>
                   <div className="space-y-2 flex flex-col">
                     <label className="text-[11px] font-black uppercase tracking-widest text-gray-400">Packaging Date *</label>
-                    <DatePicker
+                    <DateTimePicker
+                      disabled={isReadOnly}
                       value={packData.packagingDate}
-                      onChange={(date) => setPackData({ ...packData, packagingDate: date?.toISOString() })}
+                      onChange={(iso) => setPackData({ ...packData, packagingDate: iso })}
+                      placeholder="Packaging date & time"
                     />
                   </div>
                   <div className="space-y-2 flex flex-col">
-                    <label className="text-[11px] font-black uppercase tracking-widest text-gray-400">Expiry Date</label>
-                    <DatePicker
+                    <label className="text-[11px] font-black uppercase tracking-widest text-gray-400">Expiry Date & Time</label>
+                    <DateTimePicker
+                      disabled={isReadOnly}
                       value={packData.expiryDate}
-                      onChange={(date) => setPackData({ ...packData, expiryDate: date?.toISOString() })}
+                      onChange={(iso) => setPackData({ ...packData, expiryDate: iso })}
+                      placeholder="Expiry date & time"
                     />
                   </div>
                 </div>
@@ -806,7 +928,7 @@ export default function BatchDetailsPage() {
                   <Button variant="ghost" onClick={() => setShowAddPackagingForm(false)} className="text-[10px] uppercase tracking-widest font-black h-11 px-8 text-gray-400 hover:text-gray-600">Cancel</Button>
                   <Button
                     onClick={handleAddProduct}
-                    disabled={isAddingProduct || isUpdatingStatus}
+                    disabled={isAddingProduct || isUpdatingStatus || isReadOnly}
                     className="bg-brand text-white hover:bg-brand/90 text-[10px] uppercase tracking-widest font-black h-11 px-10 rounded-md shadow-lg transition-all active:scale-95 flex items-center gap-2"
                   >
                     {isAddingProduct || isUpdatingStatus ? <Loader2 className="size-4 animate-spin" /> : <Package className="size-4" />}

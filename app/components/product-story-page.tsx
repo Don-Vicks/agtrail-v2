@@ -28,15 +28,15 @@ import {
 } from 'lucide-react'
 import { useMemo, useState, useEffect, lazy, Suspense } from 'react'
 import { useParams } from 'react-router'
-import { toast } from 'sonner'
 import { PageHeader } from '~/components/page-header'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
 import { Skeleton } from '~/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
-import { useGetFarmersProductsId, getFarmersProductsIdQr } from '~/lib/api/generated/farm-products/farm-products'
-import { useGetFarms } from '~/lib/api/generated/farms/farms'
-import { useGetPublicTraceBatchNumber, useGetPublicPassportProductId } from '~/lib/api/generated/public-traceability/public-traceability'
+import { useGetFarmersProductsId } from '~/lib/api/generated/farm-products/farm-products'
+import { useGetProcessorsProducts } from '~/lib/api/generated/processors-products/processors-products'
+import { useGetPublicPassportProductId } from '~/lib/api/generated/public-traceability/public-traceability'
+import { getClientOrganizationId, getOrganizationHeaders } from '~/lib/organization-context'
 import { PDFDownloadLink } from '@react-pdf/renderer'
 import { ProductStoryPDF } from './product-story-pdf'
 import { ShareQRModal } from './share-qr-modal'
@@ -47,6 +47,8 @@ const PassportMap = lazy(() => import('~/components/passport-map.client').then(m
 interface ProductStoryPageProps {
   dashboardHref: string
   productsHref: string
+  /** When `processor`, loads `BatchProduct` from processors products list (same passport URL as farmer). */
+  productContext?: 'farmer' | 'processor'
 }
 
 function LoadingSkeleton() {
@@ -396,268 +398,57 @@ function SummaryCard({ count, label, color = "gray" }: { count: string; label: s
   )
 }
 
-export function ProductStoryPage({ dashboardHref, productsHref }: ProductStoryPageProps) {
-  const { id } = useParams()
-  const [activeTab, setActiveTab] = useState('journey')
-
-  const { data: productResponse, isLoading: isLoadingProduct } = useGetFarmersProductsId(id ?? '', {
-    query: {
-      enabled: Boolean(id),
-    },
-  })
-
-  // Reuse the public passport endpoint for enriched data
-  const { data: passportResponse, isLoading: isLoadingPassport } = useGetPublicPassportProductId(id ?? '', {
-    query: {
-      enabled: Boolean(id),
-    },
-  })
-
-  const passport = useMemo(() => {
-    if (!passportResponse?.data) return null
-    const raw = passportResponse.data as any
-    return raw.data || raw
-  }, [passportResponse])
-
-  const passportStats = passport?.stats
-  const syntheticSummary = passport?.syntheticSummary
-
-  const product = productResponse?.data?.data as any
-  const farm = product?.farm
-  const cropCycle = product?.cropCycle
-  const harvestOp = product?.harvestOperation
-  const certifications = product?.certifications || []
-  const fieldOperations = cropCycle?.operations || product?.operations || []
-
-  const qualityTests = useMemo(() => {
-    const tests: any[] = []
-    if (passport?.operations) {
-      passport.operations.forEach((op: any) => {
-        if (op.qualityAssessment) {
-          tests.push({
-            ...op.qualityAssessment,
-            operationType: op.operationType,
-            operationDate: op.operationDate
-          })
-        }
-      })
-    }
-    // Fallback to harvestOp from product data if passport has no tests yet
-    if (tests.length === 0 && harvestOp?.qualityAssessment) {
-      tests.push({
-        ...harvestOp.qualityAssessment,
-        operationType: harvestOp.operationType,
-        operationDate: harvestOp.operationDate
-      })
-    }
-    return tests
-  }, [passport, harvestOp])
-
-  const getNote = (stepData: any) => {
-    return stepData?.environmentalImpactNotes || stepData?.notes || product?.aiSummary || ""
-  }
-
-  const journeySteps = useMemo(() => {
-    // If we have live passport operations, they are the source of truth for the public journey
-    if (passport?.operations && passport.operations.length > 0) {
-      return passport.operations.map((op: any) => ({
-        title: op.operationType,
-        description: op.description || 'Field operation recorded.',
-        date: new Date(op.operationDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }),
-        time: op.operationTime || '10:00 AM',
-        details: [
-          { label: 'Type', value: op.operationType },
-          { label: 'Personnel', value: op.personnelResponsible || 'N/A' },
-          { label: 'Weather', value: op.weatherConditions || 'N/A' }
-        ],
-        note: op.description || getNote(op),
-        stellarTxHash: op.stellarTxHash
-      })).sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime())
-    }
-
-    const steps = []
-    if (fieldOperations.length > 0) {
-      fieldOperations.forEach((op: any) => {
-        steps.push({
-          title: op.operationType || op.operationCategory,
-          description: op.description || 'Field operation recorded.',
-          date: new Date(op.operationDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }),
-          time: op.operationTime || '10:00 AM',
-          details: [
-            { label: 'Category', value: op.operationCategory },
-            { label: 'Operator', value: op.operatorName || 'N/A' },
-            { label: 'Area', value: `${op.areaCovered} ${op.areaUnit}` }
-          ],
-          note: getNote(op)
-        })
-      })
-    } else if (cropCycle) {
-      steps.push({
-        title: 'Planting',
-        description: `Sowing ${cropCycle.variety} variety seeds.`,
-        date: new Date(cropCycle.plantingDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }),
-        time: '08:30 AM',
-        details: [
-          { label: 'Variety', value: cropCycle.variety },
-          { label: 'Area Planted', value: `${cropCycle.areaPlanted} ${cropCycle.areaUnit}` },
-          { label: 'Season', value: cropCycle.season }
-        ],
-        note: cropCycle.notes || getNote(null)
-      })
-    }
-
-    if (harvestOp) {
-      steps.push({
-        title: 'Harvesting',
-        description: harvestOp.description || 'Harvesting operation completed.',
-        date: new Date(harvestOp.operationDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }),
-        time: harvestOp.operationTime || '09:00 AM',
-        details: [
-          { label: 'Quantity', value: `${product.quantityHarvested} ${product.unit}` },
-          { label: 'Operator', value: harvestOp.operatorName },
-          { label: 'Grade', value: harvestOp.qualityAssessment?.grade || 'N/A' }
-        ],
-        note: getNote(harvestOp)
-      })
-    }
-
-    if (certifications.length > 0) {
-      certifications.forEach((cert: any) => {
-        steps.push({
-          title: 'Certification Status',
-          description: `${cert.certificationType?.name?.toUpperCase()} Certification Issued.`,
-          date: new Date(cert.issueDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }),
-          time: '11:00 AM',
-          details: [
-            { label: 'Certificate No', value: cert.certificateNumber },
-            { label: 'Status', value: cert.status }
-          ],
-          note: cert.verificationNotes || getNote(null)
-        })
-      })
-    }
-
-    return steps.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-  }, [cropCycle, harvestOp, certifications, fieldOperations, product, passport])
-
-  const safaDimensions = useMemo(() => buildSafaDimensions(passportStats), [passportStats])
-
+/** Owns client-only state (share modal, PDF mount) so `ProductStoryPage` has no hooks after loading gates. */
+function ProductStoryDetailView({
+  productContext,
+  id,
+  product,
+  farm,
+  cropCycle,
+  harvestOp,
+  certifications,
+  passport,
+  passportStats,
+  syntheticSummary,
+  journeySteps,
+  qualityTests,
+  safaDimensions,
+  people,
+  sustainabilityScore,
+  qualityScore,
+  complianceRate,
+  activeTab,
+  setActiveTab,
+}: {
+  productContext: 'farmer' | 'processor'
+  id: string | undefined
+  product: any
+  farm: any
+  cropCycle: any
+  harvestOp: any
+  certifications: any[]
+  passport: any
+  passportStats: any
+  syntheticSummary: any
+  journeySteps: any[]
+  qualityTests: any[]
+  safaDimensions: any[]
+  people: any[]
+  sustainabilityScore: number
+  qualityScore: number
+  complianceRate: number
+  activeTab: string
+  setActiveTab: (v: string) => void
+}) {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false)
   const [isMounted, setIsMounted] = useState(false)
 
   useEffect(() => {
     setIsMounted(true)
-    console.log('[DEBUG] ProductStoryPage ID:', id)
-  }, [id])
+  }, [])
 
-  const handleDownloadQr = async () => {
-    if (!id) return
-    const toastId = toast.loading('Generating QR code...')
-    try {
-      const response = await getFarmersProductsIdQr(id)
-
-      if (response.status === 200 && response.data) {
-        const url = window.URL.createObjectURL(response.data)
-        const link = document.createElement('a')
-        link.href = url
-        link.download = `product-qr-${product?.batchNumber || id}.png`
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
-        window.URL.revokeObjectURL(url)
-        toast.success('QR Code downloaded successfully!', { id: toastId })
-      } else {
-        throw new Error('Failed to download QR code')
-      }
-    } catch (error) {
-      console.error('QR Download Error:', error)
-      toast.error('Failed to download QR code. Please try again.', { id: toastId })
-    }
-  }
-
-  if (isLoadingProduct || isLoadingPassport) return <LoadingSkeleton />
-
-  const sustainabilityScore = passportStats?.sustainabilityScore ?? 56
-  const qualityScore = passportStats?.qualityScore ?? (harvestOp?.qualityAssessment?.grade === 'A' ? 95 : 56)
-  const complianceRate = passportStats?.complianceScore ?? (certifications.length > 0 ? 100 : 56)
-
-  // Pre-fill farmer info if missing
-  const farmerName = farm?.ownerName || passport?.farmer?.name || 'Agrolinking Administrator'
-  const farmerOrg = farm?.name || passport?.farm?.name
-
-  const people = useMemo(() => {
-    const list: any[] = []
-    const seen = new Map<string, any>()
-
-    const addPerson = (name: string, role: string, organization: any, details: any, icon: any, date?: string) => {
-      if (!name || name === 'Agrolinking Administrator') return
-      const key = name.toLowerCase().trim()
-      if (seen.has(key)) {
-        const existing = seen.get(key)
-        if (!existing.role.includes(role)) {
-          existing.role = `${existing.role} & ${role}`
-        }
-        return
-      }
-      const person = { name, role, organization, details, icon, date }
-      list.push(person)
-      seen.set(key, person)
-    }
-
-    // Add Farmer
-    addPerson(farmerName, 'Farmer', farmerOrg, 'Source farm details tracked via operations', Sprout)
-
-    // Add Harvest Operator
-    if (harvestOp?.operatorName) {
-      addPerson(
-        harvestOp.operatorName,
-        'Operator',
-        farm?.name || passport?.farm?.name,
-        `${harvestOp.operationType} performed successfully on the field.`,
-        User,
-        new Date(harvestOp.operationDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
-      )
-    }
-
-    // Add more from passport operations if any
-    if (passport?.operations) {
-      passport.operations.forEach((op: any) => {
-        if (op.personnelResponsible) {
-          addPerson(
-            op.personnelResponsible,
-            'Operator',
-            farm?.name || passport?.farm?.name,
-            op.description || 'Verified operation personnel.',
-            User,
-            new Date(op.operationDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
-          )
-        }
-      })
-    }
-
-    return list
-  }, [farmerName, farmerOrg, harvestOp, farm, passport])
-  
   return (
-    <div className="space-y-6 pb-20 text-left w-full">
-      <PageHeader
-        items={[
-          { label: 'Dashboard', href: dashboardHref },
-          { label: 'Products', href: productsHref },
-          { label: 'Product View Story' },
-        ]}
-      />
-
-      {!product ? (
-        <div className="px-4 md:px-6 lg:px-8">
-          <div className="rounded-md border border-gray-200 bg-white p-12 text-center shadow-sm">
-            <Package className="size-12 text-gray-200 mx-auto mb-4" />
-            <h2 className="text-xl font-bold text-gray-900">Product Not Found</h2>
-            <p className="text-sm text-gray-500 mt-2">The requested product details could not be loaded for ID: {id}</p>
-          </div>
-        </div>
-      ) : (
-        <div className="space-y-12">
+    <div className="space-y-12">
           {/* Header Section */}
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-8 px-4 md:px-6 lg:px-8">
             <div className="rounded-md border border-gray-100 bg-white p-6 md:p-12 flex flex-col md:flex-row gap-10">
@@ -681,26 +472,39 @@ export function ProductStoryPage({ dashboardHref, productsHref }: ProductStoryPa
                       <div className="size-10 rounded-md bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
                         <MapPin className="size-5" />
                       </div>
-                      <span className="text-sm md:text-base font-extrabold tracking-tight">{farm?.name || 'Local Farm'}</span>
+                      <span className="text-sm md:text-base font-extrabold tracking-tight">
+                        {farm?.name || passport?.farm?.name || (productContext === 'processor' ? 'Processor output' : 'Local Farm')}
+                      </span>
                     </div>
                     <div className="flex items-center gap-4 text-gray-600">
                       <div className="size-10 rounded-md bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
                         <Calendar className="size-5" />
                       </div>
-                      <span className="text-sm md:text-base font-extrabold tracking-tight">Planted: {cropCycle?.plantingDate ? new Date(cropCycle.plantingDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : 'N/A'}</span>
+                      <span className="text-sm md:text-base font-extrabold tracking-tight">
+                        {productContext === 'processor'
+                          ? `Available: ${product.quantityHarvested ?? '—'} ${product.unit || ''}`.trim()
+                          : `Planted: ${cropCycle?.plantingDate ? new Date(cropCycle.plantingDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : 'N/A'}`}
+                      </span>
                     </div>
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-3 pt-4">
+                  <div className="flex flex-col gap-2 pt-4">
+                    <div className="flex flex-wrap items-center gap-3">
                     <Button
+                      type="button"
+                      aria-label="View digital passport — opens QR code and public link"
+                      title="Tap to view digital passport (QR code)"
                       onClick={() => setIsShareModalOpen(true)}
                       className="flex-1 md:flex-none bg-[#1d3d1e] hover:bg-black text-white px-8 h-12 gap-2 font-black uppercase tracking-widest text-[10px] shadow-xl shadow-brand/10 rounded-md"
                     >
-                      <QrCode className="size-5" />
-                      QR Code
+                      <QrCode className="size-5 shrink-0" aria-hidden />
+                      <span className="flex flex-col items-start gap-0.5 leading-tight text-left">
+                        <span>View passport</span>
+                        <span className="text-[9px] font-bold normal-case tracking-normal text-white/70">QR & link</span>
+                      </span>
                     </Button>
 
-                    {isMounted ? (
+                    {isMounted && productContext === 'farmer' ? (
                       <PDFDownloadLink
                         document={
                           <ProductStoryPDF
@@ -729,7 +533,7 @@ export function ProductStoryPage({ dashboardHref, productsHref }: ProductStoryPa
                           </Button>
                         )}
                       </PDFDownloadLink>
-                    ) : (
+                    ) : productContext === 'processor' ? null : (
                       <Button variant="outline" className="flex-1 md:flex-none h-12 px-8 border-gray-200 text-gray-700 hover:bg-gray-50 font-black uppercase tracking-widest text-[10px] gap-2 rounded-md">
                         <Download className="size-5" />
                         Download
@@ -737,13 +541,20 @@ export function ProductStoryPage({ dashboardHref, productsHref }: ProductStoryPa
                     )}
 
                     <Button
+                      type="button"
+                      aria-label="Share digital passport — same as view passport"
+                      title="Open share dialog with link and QR"
                       onClick={() => setIsShareModalOpen(true)}
                       variant="outline"
                       className="w-full md:w-auto h-12 px-8 border-gray-200 text-gray-700 hover:bg-gray-50 font-black uppercase tracking-widest text-[10px] gap-2 rounded-md"
                     >
-                      <Share2 className="size-5" />
+                      <Share2 className="size-5 shrink-0" aria-hidden />
                       Share
                     </Button>
+                    </div>
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest max-w-xl pl-0.5">
+                      Tap View passport or Share to see the public digital passport (QR code).
+                    </p>
                   </div>
                 </div>
               </div>
@@ -1002,6 +813,304 @@ export function ProductStoryPage({ dashboardHref, productsHref }: ProductStoryPa
             </Tabs>
           </div>
         </div>
+  )
+}
+
+export function ProductStoryPage({
+  dashboardHref,
+  productsHref,
+  productContext = 'farmer',
+}: ProductStoryPageProps) {
+  const { id } = useParams()
+  const [activeTab, setActiveTab] = useState('journey')
+
+  const organizationId = getClientOrganizationId()
+  const organizationHeaders = getOrganizationHeaders()
+
+  const { data: farmerProductResponse, isLoading: isLoadingFarmerProduct } = useGetFarmersProductsId(id ?? '', {
+    query: {
+      enabled: Boolean(id) && productContext === 'farmer',
+    },
+  })
+
+  const { data: processorProductsResponse, isLoading: isLoadingProcessorProducts } = useGetProcessorsProducts(
+    undefined,
+    {
+      request: { headers: organizationHeaders },
+      query: {
+        enabled: Boolean(id) && productContext === 'processor' && Boolean(organizationId),
+      },
+    },
+  )
+
+  const batchProduct = useMemo(() => {
+    if (productContext !== 'processor' || !id) return null
+    const list = processorProductsResponse?.data?.data ?? []
+    return list.find((p) => p.id === id) ?? null
+  }, [productContext, processorProductsResponse?.data?.data, id])
+
+  // Reuse the public passport endpoint for enriched data
+  const { data: passportResponse, isLoading: isLoadingPassport } = useGetPublicPassportProductId(id ?? '', {
+    query: {
+      enabled: Boolean(id),
+    },
+  })
+
+  const passport = useMemo(() => {
+    if (!passportResponse?.data) return null
+    const raw = passportResponse.data as any
+    return raw.data || raw
+  }, [passportResponse])
+
+  const passportStats = passport?.stats
+  const syntheticSummary = passport?.syntheticSummary
+
+  const farmerProduct = farmerProductResponse?.data?.data as any
+
+  const product = useMemo(() => {
+    if (productContext === 'processor') {
+      if (!batchProduct) return null
+      return {
+        ...batchProduct,
+        productName: batchProduct.productName,
+        batchNumber: batchProduct.batchNumber,
+        imageUrl: null as string | null,
+        farm: null,
+        cropCycle: null,
+        harvestOperation: null,
+        certifications: [] as any[],
+        operations: [] as any[],
+        quantityHarvested: batchProduct.quantityAvailable,
+        unit: batchProduct.unit,
+      }
+    }
+    return farmerProduct
+  }, [productContext, batchProduct, farmerProduct])
+
+  const isLoadingProduct =
+    productContext === 'farmer' ? isLoadingFarmerProduct : isLoadingProcessorProducts
+  const farm = product?.farm
+  const cropCycle = product?.cropCycle
+  const harvestOp = product?.harvestOperation
+  const certifications = product?.certifications || []
+  const fieldOperations = cropCycle?.operations || product?.operations || []
+
+  const qualityTests = useMemo(() => {
+    const tests: any[] = []
+    if (passport?.operations) {
+      passport.operations.forEach((op: any) => {
+        if (op.qualityAssessment) {
+          tests.push({
+            ...op.qualityAssessment,
+            operationType: op.operationType,
+            operationDate: op.operationDate
+          })
+        }
+      })
+    }
+    // Fallback to harvestOp from product data if passport has no tests yet
+    if (tests.length === 0 && harvestOp?.qualityAssessment) {
+      tests.push({
+        ...harvestOp.qualityAssessment,
+        operationType: harvestOp.operationType,
+        operationDate: harvestOp.operationDate
+      })
+    }
+    return tests
+  }, [passport, harvestOp])
+
+  const getNote = (stepData: any) => {
+    return stepData?.environmentalImpactNotes || stepData?.notes || product?.aiSummary || ""
+  }
+
+  const journeySteps = useMemo(() => {
+    // If we have live passport operations, they are the source of truth for the public journey
+    if (passport?.operations && passport.operations.length > 0) {
+      return passport.operations.map((op: any) => ({
+        title: op.operationType,
+        description: op.description || 'Field operation recorded.',
+        date: new Date(op.operationDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }),
+        time: op.operationTime || '10:00 AM',
+        details: [
+          { label: 'Type', value: op.operationType },
+          { label: 'Personnel', value: op.personnelResponsible || 'N/A' },
+          { label: 'Weather', value: op.weatherConditions || 'N/A' }
+        ],
+        note: op.description || getNote(op),
+        stellarTxHash: op.stellarTxHash
+      })).sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    }
+
+    const steps = []
+    if (fieldOperations.length > 0) {
+      fieldOperations.forEach((op: any) => {
+        steps.push({
+          title: op.operationType || op.operationCategory,
+          description: op.description || 'Field operation recorded.',
+          date: new Date(op.operationDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }),
+          time: op.operationTime || '10:00 AM',
+          details: [
+            { label: 'Category', value: op.operationCategory },
+            { label: 'Operator', value: op.operatorName || 'N/A' },
+            { label: 'Area', value: `${op.areaCovered} ${op.areaUnit}` }
+          ],
+          note: getNote(op)
+        })
+      })
+    } else if (cropCycle) {
+      steps.push({
+        title: 'Planting',
+        description: `Sowing ${cropCycle.variety} variety seeds.`,
+        date: new Date(cropCycle.plantingDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }),
+        time: '08:30 AM',
+        details: [
+          { label: 'Variety', value: cropCycle.variety },
+          { label: 'Area Planted', value: `${cropCycle.areaPlanted} ${cropCycle.areaUnit}` },
+          { label: 'Season', value: cropCycle.season }
+        ],
+        note: cropCycle.notes || getNote(null)
+      })
+    }
+
+    if (harvestOp) {
+      steps.push({
+        title: 'Harvesting',
+        description: harvestOp.description || 'Harvesting operation completed.',
+        date: new Date(harvestOp.operationDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }),
+        time: harvestOp.operationTime || '09:00 AM',
+        details: [
+          { label: 'Quantity', value: `${product.quantityHarvested} ${product.unit}` },
+          { label: 'Operator', value: harvestOp.operatorName },
+          { label: 'Grade', value: harvestOp.qualityAssessment?.grade || 'N/A' }
+        ],
+        note: getNote(harvestOp)
+      })
+    }
+
+    if (certifications.length > 0) {
+      certifications.forEach((cert: any) => {
+        steps.push({
+          title: 'Certification Status',
+          description: `${cert.certificationType?.name?.toUpperCase()} Certification Issued.`,
+          date: new Date(cert.issueDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }),
+          time: '11:00 AM',
+          details: [
+            { label: 'Certificate No', value: cert.certificateNumber },
+            { label: 'Status', value: cert.status }
+          ],
+          note: cert.verificationNotes || getNote(null)
+        })
+      })
+    }
+
+    return steps.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+  }, [cropCycle, harvestOp, certifications, fieldOperations, product, passport])
+
+  const safaDimensions = useMemo(() => buildSafaDimensions(passportStats), [passportStats])
+
+  const sustainabilityScore = passportStats?.sustainabilityScore ?? 56
+  const qualityScore = passportStats?.qualityScore ?? (harvestOp?.qualityAssessment?.grade === 'A' ? 95 : 56)
+  const complianceRate = passportStats?.complianceScore ?? (certifications.length > 0 ? 100 : 56)
+
+  // Pre-fill farmer info if missing
+  const farmerName = farm?.ownerName || passport?.farmer?.name || 'Agrolinking Administrator'
+  const farmerOrg = farm?.name || passport?.farm?.name
+
+  const people = useMemo(() => {
+    const list: any[] = []
+    const seen = new Map<string, any>()
+
+    const addPerson = (name: string, role: string, organization: any, details: any, icon: any, date?: string) => {
+      if (!name || name === 'Agrolinking Administrator') return
+      const key = name.toLowerCase().trim()
+      if (seen.has(key)) {
+        const existing = seen.get(key)
+        if (!existing.role.includes(role)) {
+          existing.role = `${existing.role} & ${role}`
+        }
+        return
+      }
+      const person = { name, role, organization, details, icon, date }
+      list.push(person)
+      seen.set(key, person)
+    }
+
+    // Add Farmer
+    addPerson(farmerName, 'Farmer', farmerOrg, 'Source farm details tracked via operations', Sprout)
+
+    // Add Harvest Operator
+    if (harvestOp?.operatorName) {
+      addPerson(
+        harvestOp.operatorName,
+        'Operator',
+        farm?.name || passport?.farm?.name,
+        `${harvestOp.operationType} performed successfully on the field.`,
+        User,
+        new Date(harvestOp.operationDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+      )
+    }
+
+    // Add more from passport operations if any
+    if (passport?.operations) {
+      passport.operations.forEach((op: any) => {
+        if (op.personnelResponsible) {
+          addPerson(
+            op.personnelResponsible,
+            'Operator',
+            farm?.name || passport?.farm?.name,
+            op.description || 'Verified operation personnel.',
+            User,
+            new Date(op.operationDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+          )
+        }
+      })
+    }
+
+    return list
+  }, [farmerName, farmerOrg, harvestOp, farm, passport])
+
+  if (isLoadingProduct || isLoadingPassport) return <LoadingSkeleton />
+
+  return (
+    <div className="space-y-6 pb-20 text-left w-full">
+      <PageHeader
+        items={[
+          { label: 'Dashboard', href: dashboardHref },
+          { label: 'Products', href: productsHref },
+          { label: 'Product View Story' },
+        ]}
+      />
+
+      {!product ? (
+        <div className="px-4 md:px-6 lg:px-8">
+          <div className="rounded-md border border-gray-200 bg-white p-12 text-center shadow-sm">
+            <Package className="size-12 text-gray-200 mx-auto mb-4" />
+            <h2 className="text-xl font-bold text-gray-900">Product Not Found</h2>
+            <p className="text-sm text-gray-500 mt-2">The requested product details could not be loaded for ID: {id}</p>
+          </div>
+        </div>
+      ) : (
+        <ProductStoryDetailView
+          productContext={productContext}
+          id={id}
+          product={product}
+          farm={farm}
+          cropCycle={cropCycle}
+          harvestOp={harvestOp}
+          certifications={certifications}
+          passport={passport}
+          passportStats={passportStats}
+          syntheticSummary={syntheticSummary}
+          journeySteps={journeySteps}
+          qualityTests={qualityTests}
+          safaDimensions={safaDimensions}
+          people={people}
+          sustainabilityScore={sustainabilityScore}
+          qualityScore={qualityScore}
+          complianceRate={complianceRate}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+        />
       )}
     </div>
   )

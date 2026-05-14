@@ -7,6 +7,7 @@ import { InventoryField, type InventoryOption } from '~/components/inventory-fie
 import { PersonField } from '~/components/person-field'
 import { OperationFormError, OperationFormLoading } from '~/components/operation-form-load-state'
 import { useFarmOperationPage } from '~/hooks/use-farm-operation-page'
+import { buildFertilizerMaterialsUsedPayload, fertilizerTypeDisplayLabel } from '~/lib/fertilizer-operation-material'
 import type { FarmOperationRouteSlug } from '~/lib/farm-operation-log'
 import type { Route } from './+types/fertilizer'
 
@@ -36,18 +37,7 @@ export default function FertilizerApplication() {
     }
     const quantity = parseFloat(quantityApplied) || 0
     const extraData = {
-      materialsUsed: selectedItem
-        ? [
-            {
-              inventoryItemId: selectedItem.id,
-              name: selectedItem.itemName,
-              quantity,
-              unit: selectedItem.unitOfMeasurement || 'unit',
-              cost: selectedItem.unitCost * quantity,
-              currency: selectedItem.currency || 'NGN',
-            },
-          ]
-        : [],
+      materialsUsed: selectedItem ? [buildFertilizerMaterialsUsedPayload(selectedItem, quantity)] : [],
     }
     try {
       await submitLog(description.trim(), footer, extraData)
@@ -94,6 +84,7 @@ export default function FertilizerApplication() {
           placeholder="Select fertilizer item"
           categoryFilter="Fertilizer"
           warnNonOrganicInventory={layoutCropCycle.status === 'planned'}
+          showFertilizerTypeSuffix
         />
         <div>
           <label className="mb-1.5 block text-sm font-semibold text-gray-900">Quantity Applied <span className="text-red-500">*</span></label>
@@ -103,6 +94,17 @@ export default function FertilizerApplication() {
 
       {/* Auto-filled fields */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="md:col-span-2">
+          <label className="mb-1.5 block text-sm font-semibold text-gray-900">Fertilizer type</label>
+          <input
+            type="text"
+            value={fertilizerTypeDisplayLabel(selectedItem)}
+            placeholder="Select inventory to set type"
+            className="w-full rounded-md border border-gray-200 px-3.5 py-2.5 text-sm placeholder:text-gray-400 bg-gray-50"
+            readOnly
+          />
+          <p className="mt-1 text-xs text-gray-500">From inventory certification (organic vs conventional).</p>
+        </div>
         <div>
           <label className="mb-1.5 block text-sm font-semibold text-gray-900">Brand / Product Name</label>
           <input type="text" value={selectedItem?.itemName || ''} placeholder="Auto-filled from inventory" className="w-full rounded-md border border-gray-200 px-3.5 py-2.5 text-sm placeholder:text-gray-400 bg-gray-50" readOnly />

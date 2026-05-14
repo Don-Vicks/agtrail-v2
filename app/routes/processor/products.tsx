@@ -1,28 +1,32 @@
 import {
   Activity,
   ArrowRight,
+  BookOpen,
   Boxes as BoxesIcon,
   CheckCircle,
   ChevronDown,
   Clock,
-  LayoutDashboard,
   Package,
   Plus,
-  QrCode,
   Search,
   Send,
-  Settings
 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router'
 import { EmptyState } from '~/components/empty-state'
 import { PageHeader } from '~/components/page-header'
+import { ShareQRModal } from '~/components/share-qr-modal'
 import { StatCard } from '~/components/stat-card'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
 import { useGetProcessorsBatches } from '~/lib/api/generated/processors-batches/processors-batches'
+import { useGetProcessorsProducts } from '~/lib/api/generated/processors-products/processors-products'
+import { ProcessorBatchStatus } from '~/lib/api/generated/models/processorBatchStatus'
+import type { BatchProduct, ProcessorBatch } from '~/lib/api/generated/models'
 import { useGetTransfers } from '~/lib/api/generated/transfers/transfers'
+import { getClientOrganizationId, getOrganizationHeaders } from '~/lib/organization-context'
 import { cn } from '~/lib/utils'
+import { QRCodeSVG } from 'qrcode.react'
 import type { Route } from './+types/products'
 
 export function meta({ }: Route.MetaArgs) {
@@ -38,8 +42,38 @@ export function meta({ }: Route.MetaArgs) {
 // ─── Components ───
 
 function InventoryTab() {
-  const { data: batchesResp, isLoading } = useGetProcessorsBatches()
-  const batches = batchesResp?.data?.data || []
+  const organizationId = getClientOrganizationId()
+  const organizationHeaders = getOrganizationHeaders()
+  const { data: batchesResp, isLoading: isLoadingBatches } = useGetProcessorsBatches({
+    request: { headers: organizationHeaders },
+    query: { enabled: Boolean(organizationId) },
+  })
+  const { data: batchProductsResp, isLoading: isLoadingBatchProducts } = useGetProcessorsProducts(undefined, {
+    request: { headers: organizationHeaders },
+    query: { enabled: Boolean(organizationId) },
+  })
+  const batches: ProcessorBatch[] = batchesResp?.data?.data || []
+  const isLoading = isLoadingBatches || isLoadingBatchProducts
+
+  const productsByBatchId = useMemo(() => {
+    const map = new Map<string, BatchProduct[]>()
+    const list = batchProductsResp?.data?.data ?? []
+    for (const p of list) {
+      const arr = map.get(p.processorBatchId) ?? []
+      arr.push(p)
+      map.set(p.processorBatchId, arr)
+    }
+    for (const [, arr] of map) {
+      arr.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    }
+    return map
+  }, [batchProductsResp?.data?.data])
+
+  const [passportModal, setPassportModal] = useState<{
+    productId: string
+    productName: string
+    batchNumber?: string
+  } | null>(null)
 
   // Pagination & Filtering state
   const [search, setSearch] = useState('')
@@ -168,7 +202,15 @@ function InventoryTab() {
             action={hasActiveFilters ? { label: "Clear Filters", onClick: clearFilters } : undefined}
           />
         ) : (
-          paginatedBatches.map((item) => (
+          paginatedBatches.map((item) => {
+            const primaryProduct = productsByBatchId.get(item.id)?.[0] ?? null
+            const isCompleted = item.status === ProcessorBatchStatus.completed
+            const passportUrl =
+              typeof window !== 'undefined' && primaryProduct
+                ? `${window.location.origin}/passport/${primaryProduct.id}`
+                : ''
+
+            return (
             <div
               key={item.id}
               className='group relative rounded-2xl border border-gray-100 bg-white p-6 transition-all hover:border-brand/30 hover:shadow-lg overflow-hidden flex flex-col sm:flex-row sm:items-center gap-6 shadow-sm'
@@ -178,7 +220,24 @@ function InventoryTab() {
               </div>
 
               <div className='flex-shrink-0 size-14 rounded-2xl bg-brand/5 border border-brand/10 flex items-center justify-center text-brand transition-transform group-hover:scale-110'>
-                <Package className='size-7' />
+                {primaryProduct && passportUrl ? (
+                  <button
+                    type='button'
+                    title='Open product passport (QR)'
+                    onClick={() =>
+                      setPassportModal({
+                        productId: primaryProduct.id,
+                        productName: primaryProduct.productName,
+                        batchNumber: primaryProduct.batchNumber,
+                      })
+                    }
+                    className='rounded-xl border border-brand/20 bg-white p-1 shadow-inner hover:border-brand/40'
+                  >
+                    <QRCodeSVG value={passportUrl} size={48} level='M' includeMargin={false} />
+                  </button>
+                ) : (
+                  <Package className='size-7' />
+                )}
               </div>
 
               <div className='flex-1 min-w-0 relative z-10 space-y-1'>
@@ -206,54 +265,66 @@ function InventoryTab() {
                   </div>
                   <div className='space-y-1'>
                     <span className='text-gray-300 block'>Category</span>
-                    <span className='text-gray-900 block'>
+                    <span className='text-gray-900 block not-italic'>
                       {item.outputProductType}
                     </span>
                   </div>
                   <div className='space-y-1'>
                     <span className='text-gray-300 block'>Quantity</span>
-                    <span className='text-gray-900 block italic opacity-50'>
-                      N/A
+                    <span className='text-gray-900 block not-italic'>
+                      {primaryProduct
+                        ? `${primaryProduct.quantityAvailable} ${primaryProduct.unit}`
+                        : isCompleted
+                          ? '—'
+                          : 'Pending'}
                     </span>
                   </div>
                   <div className='space-y-1'>
                     <span className='text-gray-300 block'>Date</span>
-                    <span className='text-gray-900 block'>
+                    <span className='text-gray-900 block not-italic'>
                       {new Date(item.createdAt).toLocaleDateString()}
                     </span>
                   </div>
                 </div>
               </div>
 
-              <div className='relative z-10 flex items-center gap-2'>
-                <Link to={`/processor/batches/${item.id}`}>
+              <div className='relative z-10 flex flex-wrap items-center gap-2'>
+                {primaryProduct ? (
+                  <Link to={`/processor/products/${primaryProduct.id}`}>
+                    <Button
+                      variant='ghost'
+                      size='sm'
+                      className='h-10 px-3 text-[10px] font-bold uppercase tracking-widest text-brand hover:bg-brand/5 gap-2'
+                    >
+                      <BookOpen className='size-3.5' />
+                      View story
+                    </Button>
+                  </Link>
+                ) : (
                   <Button
                     variant='ghost'
                     size='sm'
-                    className='h-10 px-3 text-[10px] font-bold uppercase tracking-widest text-brand hover:bg-brand/5 gap-2'
+                    disabled
+                    title='Complete packaging on the batch to create a batch product and unlock the story.'
+                    className='h-10 px-3 text-[10px] font-bold uppercase tracking-widest text-gray-400 gap-2'
                   >
-                    <Settings className='size-3.5' />
-                    Manage Batch
+                    <BookOpen className='size-3.5' />
+                    View story
                   </Button>
-                </Link>
-                <Button
-                  variant='ghost'
-                  size='sm'
-                  className='h-10 px-3 text-[10px] font-bold uppercase tracking-widest text-brand hover:bg-brand/5 gap-2'
-                >
-                  <QrCode className='size-3.5' />
-                  Identity Card
-                </Button>
+                )}
                 <Button
                   size='sm'
-                  className='bg-[#1b3d1e] hover:bg-black text-white h-10 px-5 font-bold uppercase tracking-widest text-[10px] gap-2 shadow-sm'
+                  disabled={isCompleted}
+                  title={isCompleted ? 'Transfers are locked for completed batches in this view.' : undefined}
+                  className='bg-[#1b3d1e] hover:bg-black text-white h-10 px-5 font-bold uppercase tracking-widest text-[10px] gap-2 shadow-sm disabled:opacity-40'
                 >
                   <Send className='size-3.5' />
                   Transfer
                 </Button>
               </div>
             </div>
-          ))
+            )
+          })
         )}
       </div>
 
@@ -302,6 +373,14 @@ function InventoryTab() {
           </div>
         </div>
       )}
+
+      <ShareQRModal
+        isOpen={passportModal !== null}
+        onClose={() => setPassportModal(null)}
+        productId={passportModal?.productId ?? ''}
+        productName={passportModal?.productName ?? ''}
+        batchNumber={passportModal?.batchNumber}
+      />
     </div>
   )
 }

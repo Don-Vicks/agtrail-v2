@@ -1,10 +1,10 @@
 import { Link } from 'react-router'
 import { useGetUsersProfile } from '~/lib/api/generated/users/users'
-import { isVerifiedKycStatus } from '~/lib/kyc'
+import { getKycStatusFromUsersProfileBody, isVerifiedKycStatus } from '~/lib/kyc'
 
 export function KYCBanner() {
   const { data: profileResponse, isLoading } = useGetUsersProfile()
-  const kycStatus = profileResponse?.data?.user?.kycStatus
+  const kycStatus = getKycStatusFromUsersProfileBody(profileResponse?.data)
   const isVerified = isVerifiedKycStatus(kycStatus)
 
   if (isLoading || isVerified) return null

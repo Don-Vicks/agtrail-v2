@@ -1,7 +1,8 @@
-import { useRef, useState, useEffect } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router'
 import { toast } from 'sonner'
 import { PageHeader } from '~/components/page-header'
+import { GoogleMapPolygonPicker } from '~/components/google-map-polygon-picker.client'
 import type { OperationFormFooterValues } from '~/lib/operation-form-footer'
 import {
   DEFAULT_OPERATION_FOOTER,
@@ -12,6 +13,28 @@ import type { OperationLayoutCropCycle } from '~/lib/operation-layout-types'
 import { getOperationsListPath } from '~/lib/operations-list-path'
 import { useWeather } from '~/hooks/use-weather'
 import { cn } from '~/lib/utils'
+
+type LatLngPoint = [number, number]
+
+/** Spherical excess polygon area in square meters (same approach as start-crop-cycle modal). */
+function calculatePolygonAreaSqM(points: LatLngPoint[]): number {
+  if (points.length < 3) return 0
+
+  const toRadians = (deg: number) => (deg * Math.PI) / 180
+  const R = 6371000
+  let area = 0
+  const n = points.length
+
+  for (let i = 0; i < n; i++) {
+    const j = (i + 1) % n
+    const lat1 = toRadians(points[i][0])
+    const lat2 = toRadians(points[j][0])
+    const dLng = toRadians(points[j][1] - points[i][1])
+    area += dLng * (2 + Math.sin(lat1) + Math.sin(lat2))
+  }
+
+  return Math.abs((area * R * R) / 2)
+}
 
 interface OperationFormLayoutProps {
   title: string
@@ -42,8 +65,7 @@ export function OperationFormLayout({
 }: OperationFormLayoutProps) {
   const navigate = useNavigate()
   const location = useLocation()
-  const areaInputRef = useRef<HTMLInputElement>(null)
-  
+
   const {
     weather,
     isLoading: isWeatherLoading,
@@ -68,6 +90,8 @@ export function OperationFormLayout({
   const [areaHectares, setAreaHectares] = useState(
     DEFAULT_OPERATION_FOOTER.areaHectares,
   )
+  const [isMapPickerOpen, setIsMapPickerOpen] = useState(false)
+  const [boundaryPoints, setBoundaryPoints] = useState<LatLngPoint[]>([])
   const [costNgn, setCostNgn] = useState(DEFAULT_OPERATION_FOOTER.costNgn)
   const [additionalNotes, setAdditionalNotes] = useState(
     DEFAULT_OPERATION_FOOTER.additionalNotes,
@@ -82,19 +106,101 @@ export function OperationFormLayout({
       : '/farmer'
   const operationsListHref = getOperationsListPath(location.pathname)
 
-  const cycleAreaNumber = (() => {
+  const cycleAreaNumber = useMemo(() => {
     const a = cropCycle.area
     if (a == null || a === '') return null
     const n = typeof a === 'number' ? a : parseFloat(String(a))
     return Number.isFinite(n) && n > 0 ? n : null
-  })()
+  }, [cropCycle.area])
+
+  const farmAreaNumber = useMemo(() => {
+    const a = cropCycle.farmSizeHectares
+    if (a == null || a === '') return null
+    const n = typeof a === 'number' ? a : parseFloat(String(a))
+    return Number.isFinite(n) && n > 0 ? n : null
+  }, [cropCycle.farmSizeHectares])
+
+  const mapPickerCenter = useMemo<google.maps.LatLngLiteral | undefined>(() => {
+    const lat = cropCycle.latitude
+    const lng = cropCycle.longitude
+    if (lat != null && lng != null) {
+      const la = Number(lat)
+      const ln = Number(lng)
+      if (Number.isFinite(la) && Number.isFinite(ln)) {
+        return { lat: la, lng: ln }
+      }
+    }
+    return undefined
+  }, [cropCycle.latitude, cropCycle.longitude])
+
+  useEffect(() => {
+    setBoundaryPoints([])
+    setIsMapPickerOpen(false)
+    if (cycleAreaNumber != null) {
+      setAreaHectares(String(cycleAreaNumber))
+    } else {
+      setAreaHectares('')
+    }
+  }, [cropCycle.id, cycleAreaNumber])
+
+  const areaSqMetersFromPolygon = useMemo(
+    () => calculatePolygonAreaSqM(boundaryPoints),
+    [boundaryPoints],
+  )
+  const areaHaFromPolygon = areaSqMetersFromPolygon / 10_000
+
+  useEffect(() => {
+    if (boundaryPoints.length < 3 || areaHaFromPolygon <= 0) return
+    const mappedValue = areaHaFromPolygon.toFixed(2)
+    setAreaHectares((prev) => (prev === mappedValue ? prev : mappedValue))
+  }, [boundaryPoints.length, areaHaFromPolygon])
+
+  const handleAddPoint = useCallback((lat: number, lng: number) => {
+    setBoundaryPoints((prev) => [...prev, [lat, lng]])
+  }, [])
+
+  const handleRemoveLastPoint = () => {
+    setBoundaryPoints((prev) => {
+      if (prev.length === 0) return prev
+      const next = prev.slice(0, -1)
+      if (prev.length >= 3 && next.length < 3) {
+        if (cycleAreaNumber != null) setAreaHectares(String(cycleAreaNumber))
+        else setAreaHectares('')
+      }
+      return next
+    })
+  }
+
+  const handleClearPolygon = () => {
+    setBoundaryPoints([])
+    if (cycleAreaNumber != null) setAreaHectares(String(cycleAreaNumber))
+    else setAreaHectares('')
+  }
 
   const applyCycleArea = () => {
+    setBoundaryPoints([])
     if (cycleAreaNumber == null) {
-      toast.error('This crop cycle has no planted area on file. Enter hectares manually.')
+      toast.error(
+        farmAreaNumber != null
+          ? 'This crop cycle has no planted area on file. You can use the full farm area instead, or draw a custom polygon on the map.'
+          : 'This crop cycle has no planted area on file. Draw a custom polygon on the map, or update the crop cycle with planted hectares.',
+      )
       return
     }
     setAreaHectares(String(cycleAreaNumber))
+  }
+
+  const applyFarmArea = () => {
+    setBoundaryPoints([])
+    if (farmAreaNumber == null) {
+      toast.error(
+        cycleAreaNumber != null
+          ? 'Farm total size is not on file. Use the crop cycle area instead, or draw a custom polygon on the map.'
+          : 'Farm total size is not on file. Draw a custom polygon on the map, or add farm size on the farm record.',
+      )
+      return
+    }
+    setAreaHectares(String(farmAreaNumber))
   }
 
   const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -330,7 +436,12 @@ export function OperationFormLayout({
               >
                 {!hideAreaCovered && (
                   <div>
-                    <label className="mb-2 block text-sm font-semibold text-gray-900 text-left">Area Covered (hectares) <span className="text-red-500">*</span></label>
+                    <label className="mb-2 block text-sm font-semibold text-gray-900 text-left">
+                      Area Covered (hectares) <span className="text-red-500">*</span>
+                    </label>
+                    <p className="mb-2 text-xs text-gray-500">
+                      Hectares come from the crop cycle, full farm size, or a polygon you draw—this field is not typed in manually.
+                    </p>
                     <div className="mb-2 flex flex-wrap items-center gap-2">
                       <button
                         type="button"
@@ -343,34 +454,73 @@ export function OperationFormLayout({
                       </button>
                       <button
                         type="button"
-                        onClick={applyCycleArea}
+                        onClick={applyFarmArea}
                         className="rounded-full border border-[#bbf7d0] bg-white px-3.5 py-1.5 text-sm font-medium text-[#16A34A] hover:bg-green-50 transition-colors"
                       >
-                        Use full farm area
+                        {farmAreaNumber != null
+                          ? `Use full farm area (${farmAreaNumber} ha)`
+                          : 'Use full farm area'}
                       </button>
                       <button
                         type="button"
-                        onClick={() => areaInputRef.current?.focus()}
+                        onClick={() => setIsMapPickerOpen((open) => !open)}
                         className="flex items-center gap-1.5 rounded-full border border-[#fbd5a1] bg-[#FFF7ED] px-3.5 py-1.5 text-sm font-medium text-[#EA580C] hover:bg-orange-100 transition-colors"
                       >
                         <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
                           <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
                         </svg>
-                        Draw custom area
+                        {isMapPickerOpen ? 'Hide map' : 'Draw custom area'}
                       </button>
                     </div>
+                    {isMapPickerOpen && (
+                      <div className="mb-4 space-y-3 rounded-md border border-orange-100 bg-[#FFFBF5] p-4">
+                        <p className="text-xs text-gray-600">
+                          Tap the map to add vertices. After at least three points, the area below updates from the polygon shape.
+                        </p>
+                        <div className="h-[320px] max-h-[55vh] min-h-[240px] overflow-hidden rounded-md border border-gray-200">
+                          <GoogleMapPolygonPicker
+                            points={boundaryPoints}
+                            onAddPoint={handleAddPoint}
+                            variant="crop"
+                            minHeightPx={240}
+                            mapClassName="min-h-[240px]"
+                            mapCenter={mapPickerCenter}
+                          />
+                        </div>
+                        {boundaryPoints.length > 0 && (
+                          <div className="flex flex-wrap items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={handleRemoveLastPoint}
+                              className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50"
+                            >
+                              Undo last point
+                            </button>
+                            <button
+                              type="button"
+                              onClick={handleClearPolygon}
+                              className="rounded-md border border-red-200 bg-white px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50"
+                            >
+                              Clear polygon
+                            </button>
+                            <span className="ml-auto text-xs text-gray-500">
+                              {boundaryPoints.length < 3
+                                ? `Add ${3 - boundaryPoints.length} more point${3 - boundaryPoints.length > 1 ? 's' : ''} for area`
+                                : 'Polygon complete'}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    )}
                     <input
-                      ref={areaInputRef}
                       name="opAreaHa"
                       type="text"
-                      inputMode="decimal"
-                      autoComplete="off"
-                      required
+                      readOnly
+                      aria-readonly="true"
                       value={areaHectares}
-                      onChange={(e) => setAreaHectares(e.target.value)}
-                      placeholder="Enter area in hectares"
-                      className="w-full rounded-md border border-gray-200 px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+                      placeholder="Choose a source above"
+                      className="w-full cursor-default rounded-md border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400"
                     />
                   </div>
                 )}

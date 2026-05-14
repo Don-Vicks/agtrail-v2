@@ -5,6 +5,7 @@ import { Button } from '~/components/ui/button'
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '~/components/ui/dialog'
@@ -61,7 +62,7 @@ export function ShareQRModal({ isOpen, onClose, productId, productName, batchNum
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose() }}>
       <DialogContent className="sm:max-w-md w-[95vw] bg-white p-0 overflow-hidden border-none shadow-2xl rounded-2xl max-h-[90vh] flex flex-col">
         {/* Header Section - Sticky at top if needed */}
         <div className="bg-[#1d3d1e] p-6 sm:p-8 text-center text-white relative shrink-0">
@@ -78,6 +79,9 @@ export function ShareQRModal({ isOpen, onClose, productId, productName, batchNum
 
           <DialogHeader className="text-white">
             <DialogTitle className="text-xl sm:text-2xl font-black uppercase tracking-tight leading-tight">Share Traceability</DialogTitle>
+            <DialogDescription className="sr-only">
+              Public digital passport for this product. Scan the QR code or copy the link to open the passport page.
+            </DialogDescription>
             <p className="text-white/60 text-[10px] sm:text-xs font-bold uppercase tracking-widest mt-2 px-4 line-clamp-2">
               {productName} {batchNumber ? `• ${batchNumber}` : ''}
             </p>

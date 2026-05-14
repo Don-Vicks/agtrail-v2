@@ -5,6 +5,7 @@ import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import type { ProductTransfer } from '~/types/transfer'
 import { InitiateTransferModal } from './initiate-transfer-modal'
+import { PickupHandoffQRModal } from './pickup-handoff-qr-modal'
 import { TransferCard } from './transfer-card'
 
 interface TransferPageContentProps {
@@ -14,13 +15,18 @@ interface TransferPageContentProps {
 }
 
 export function TransferPageContent({ title, subtitle, transfers }: TransferPageContentProps) {
-  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isInitiateModalOpen, setIsInitiateModalOpen] = useState(false)
+  const [isPickupQrOpen, setIsPickupQrOpen] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState<ProductTransfer | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
 
-  const handleInitiate = (product: ProductTransfer) => {
+  const handleCardAction = (product: ProductTransfer) => {
     setSelectedProduct(product)
-    setIsModalOpen(true)
+    if (product.status === 'ready_for_pickup') {
+      setIsPickupQrOpen(true)
+    } else {
+      setIsInitiateModalOpen(true)
+    }
   }
 
   return (
@@ -62,7 +68,7 @@ export function TransferPageContent({ title, subtitle, transfers }: TransferPage
           <TransferCard
             key={transfer.id}
             transfer={transfer}
-            onAction={handleInitiate}
+            onAction={handleCardAction}
           />
         ))}
       </div>
@@ -74,9 +80,15 @@ export function TransferPageContent({ title, subtitle, transfers }: TransferPage
         <Pagination currentPage={1} totalPages={4} onPageChange={() => { }} />
       </div>
 
+      <PickupHandoffQRModal
+        isOpen={isPickupQrOpen}
+        onClose={() => setIsPickupQrOpen(false)}
+        transfer={selectedProduct}
+      />
+
       <InitiateTransferModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        isOpen={isInitiateModalOpen}
+        onClose={() => setIsInitiateModalOpen(false)}
         product={selectedProduct}
       />
     </div>

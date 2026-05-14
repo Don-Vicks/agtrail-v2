@@ -5,6 +5,7 @@ export default function ProductStory() {
     <ProductStoryPage
       dashboardHref="/processor"
       productsHref="/processor/products"
+      productContext="processor"
     />
   )
 }

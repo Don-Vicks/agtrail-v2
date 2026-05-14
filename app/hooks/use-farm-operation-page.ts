@@ -15,12 +15,15 @@ import type { Farm } from '~/lib/api/generated/models/farm'
 import type { GetFarmsCropCyclesId200 } from '~/lib/api/generated/models/getFarmsCropCyclesId200'
 import type { GetFarmsId200 } from '~/lib/api/generated/models/getFarmsId200'
 import type { LogFarmOperationRequest } from '~/lib/api/generated/models/logFarmOperationRequest'
-import { LogFarmOperationRequestOperationCategory } from '~/lib/api/generated/models/logFarmOperationRequestOperationCategory'
 import { buildLogFarmOperationRequest, type FarmOperationRouteSlug } from '~/lib/farm-operation-log'
 import type { OperationLayoutCropCycle } from '~/lib/operation-layout-types'
 import { getOperationsListPath } from '~/lib/operations-list-path'
 import { formatFarmLocation } from '~/lib/record-operation-dashboard'
 import type { OperationFormFooterValues } from '~/lib/operation-form-footer'
+import {
+  cropCyclePlantedAreaHectaresFromApi,
+  farmSizeHectaresFromApi,
+} from '~/lib/operation-area-from-api'
 
 function cropCycleFromQueryData(
   queryData: { data: GetFarmsCropCyclesId200 } | undefined,
@@ -37,7 +40,6 @@ function farmFromQueryData(queryData: { data: GetFarmsId200 } | undefined): Farm
 function parseFarmCoordinates(
   gpsCoordinates: unknown | null | undefined,
 ): { latitude: number | null; longitude: number | null } {
-  console.log('parseFarmCoordinates - input:', gpsCoordinates)
   if (!gpsCoordinates) {
     return { latitude: null, longitude: null }
   }
@@ -190,15 +192,10 @@ export function useFarmOperationPage(operationSlug: FarmOperationRouteSlug) {
 
   const layoutCropCycle: OperationLayoutCropCycle | null = useMemo(() => {
     if (!cycle) return null
-    console.log('useFarmOperationPage - cycle:', cycle)
-    console.log('useFarmOperationPage - farm:', farm)
     const cycleCoords = parseFarmCoordinates((cycle as any)?.gpsCoordinates || (cycle as any)?.gps_coordinates)
     const farmCoords = parseFarmCoordinates(farm?.gpsCoordinates || (farm as any)?.gps_coordinates)
-    console.log('useFarmOperationPage - parsed cycleCoords:', cycleCoords)
-    console.log('useFarmOperationPage - parsed farmCoords:', farmCoords)
     const latitude = cycleCoords.latitude ?? farmCoords.latitude
     const longitude = cycleCoords.longitude ?? farmCoords.longitude
-    console.log('useFarmOperationPage - final:', { latitude, longitude })
     const farmerName = user?.email?.split('@')[0] ?? 'Operator'
     const initials = farmerName.slice(0, 2).toUpperCase()
     return {
@@ -211,7 +208,8 @@ export function useFarmOperationPage(operationSlug: FarmOperationRouteSlug) {
       plantedDate: cycle.plantingDate
         ? new Date(cycle.plantingDate).toLocaleDateString()
         : null,
-      area: (cycle as CropCycle & { areaPlantedHectares?: number | null }).areaPlantedHectares ?? null,
+      area: cropCyclePlantedAreaHectaresFromApi(cycle),
+      farmSizeHectares: farmSizeHectaresFromApi(farm),
       season: cycle.season,
       farmName: farm?.name ?? 'Farm',
       farmLocation: formatFarmLocation(farm),

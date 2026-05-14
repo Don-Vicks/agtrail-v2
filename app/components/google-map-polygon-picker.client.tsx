@@ -33,6 +33,7 @@ function GoogleMapPolygonPickerLoaded({
   minHeightPx,
   className,
   mapClassName,
+  mapCenter,
 }: {
   apiKey: string
   points: PointTuple[]
@@ -41,6 +42,7 @@ function GoogleMapPolygonPickerLoaded({
   minHeightPx: number
   className?: string
   mapClassName?: string
+  mapCenter: google.maps.LatLngLiteral
 }) {
   const { isLoaded, loadError } = useJsApiLoader({
     id: loaderId,
@@ -54,8 +56,10 @@ function GoogleMapPolygonPickerLoaded({
       mapTypeControl: true,
       fullscreenControl: true,
     }),
-    []
+    [],
   )
+
+  const center = mapCenter
 
   const polygonOpts = useMemo(() => {
     const v = variantStyles[variant]
@@ -120,7 +124,7 @@ function GoogleMapPolygonPickerLoaded({
       <GoogleMap
         mapContainerClassName={cn('h-full w-full', mapClassName)}
         mapContainerStyle={{ width: '100%', height: '100%', minHeight: minHeightPx }}
-        center={DEFAULT_FARM_PLOT_CENTER}
+        center={center}
         zoom={13}
         onClick={onMapClick}
         onLoad={onMapLoad}
@@ -142,6 +146,7 @@ export function GoogleMapPolygonPicker({
   minHeightPx = 320,
   className,
   mapClassName,
+  mapCenter,
 }: {
   points: PointTuple[]
   onAddPoint: (lat: number, lng: number) => void
@@ -149,8 +154,11 @@ export function GoogleMapPolygonPicker({
   minHeightPx?: number
   className?: string
   mapClassName?: string
+  /** When omitted, uses the app default plot center (Nigeria). */
+  mapCenter?: google.maps.LatLngLiteral
 }) {
   const apiKey = getGoogleMapsApiKey()
+  const resolvedCenter = mapCenter ?? DEFAULT_FARM_PLOT_CENTER
 
   if (!apiKey) {
     return (
@@ -176,6 +184,7 @@ export function GoogleMapPolygonPicker({
       minHeightPx={minHeightPx}
       className={className}
       mapClassName={mapClassName}
+      mapCenter={resolvedCenter}
     />
   )
 }

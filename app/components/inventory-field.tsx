@@ -61,6 +61,11 @@ interface InventoryFieldProps {
    * (same as other operation forms); replace when the API exposes an explicit organic path flag.
    */
   warnNonOrganicInventory?: boolean
+  /**
+   * When true, append an organic vs inorganic label derived from inventory certification
+   * (fertilizer operation UX; same mapping as `fertilizerType` on the log payload).
+   */
+  showFertilizerTypeSuffix?: boolean
 }
 
 export function InventoryField({
@@ -73,6 +78,7 @@ export function InventoryField({
   className,
   categoryFilter,
   warnNonOrganicInventory = false,
+  showFertilizerTypeSuffix = false,
 }: InventoryFieldProps) {
   const [internalValue, setInternalValue] = useState(defaultValue ?? '')
   const { data } = useGetSuppliesInventory()
@@ -107,8 +113,14 @@ export function InventoryField({
       })()
     : inventory
   const selectedItem = inventory.find((item) => item.id === inputValue)
+  const typeSuffix = (item: InventoryOption) =>
+    showFertilizerTypeSuffix
+      ? item.isOrganicCertified
+        ? ' · Organic'
+        : ' · Inorganic'
+      : ''
   const selectedLabel = selectedItem
-    ? `${selectedItem.itemName} - ${selectedItem.supplierName} (${selectedItem.category})`
+    ? `${selectedItem.itemName} - ${selectedItem.supplierName} (${selectedItem.category})${typeSuffix(selectedItem)}`
     : undefined
 
   const showConventionalWarning =
@@ -132,7 +144,7 @@ export function InventoryField({
         <SelectContent>
           {filteredInventory.map((item) => (
             <SelectItem key={item.id} value={item.id}>
-              {item.itemName} - {item.supplierName} ({item.category})
+              {item.itemName} - {item.supplierName} ({item.category}){typeSuffix(item)}
             </SelectItem>
           ))}
         </SelectContent>

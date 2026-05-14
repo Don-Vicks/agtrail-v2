@@ -106,6 +106,17 @@ const certificationOptions = [
   { value: 'organic', label: 'Organic' },
 ] as const
 
+const fertilizerTypeOptions = [
+  { value: 'organic' as const, label: 'Organic' },
+  { value: 'conventional' as const, label: 'Inorganic (conventional)' },
+] as const
+
+/** Row label for inventory table / expanded compliance; fertilizer uses organic vs inorganic wording. */
+function complianceLabelForInventoryRow(item: InventoryItem): string {
+  if (item.category !== 'Fertilizer') return item.certificationStatus
+  return item.certificationStatus === 'Organic' ? 'Organic' : 'Inorganic'
+}
+
 const toNumber = (value?: string | null) => {
   const parsed = Number(value ?? 0)
   return Number.isFinite(parsed) ? parsed : 0
@@ -141,7 +152,8 @@ const mapApiInventoryItem = (item: SuppliesInventory): InventoryItem => {
     storageLocation: item.facilityId ?? 'Warehouse Main',
     currentStockLevel,
     minimumStockLevel: toNumber(item.minAlertLevel),
-    certificationStatus: item.certification === 'organic' ? 'Organic' : 'Conventional',
+    certificationStatus:
+      item.certification === 'organic' ? 'Organic' : 'Conventional',
     assignedFarms: [],
     notes: item.internalStorageNotes ?? '',
   }
@@ -393,6 +405,36 @@ export default function FarmerInventory() {
                       </SelectContent>
                     </Select>
                   </div>
+                  {formCategory === 'fertilizer' && (
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                        Fertilizer type
+                      </Label>
+                      <Select
+                        value={formCertification}
+                        onValueChange={(value) =>
+                          setFormCertification(
+                            value as CreateSuppliesInventoryRequestCertification,
+                          )
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {fertilizerTypeOptions.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <p className="text-[10px] text-gray-500 leading-snug">
+                        Organic vs inorganic is stored as inventory{' '}
+                        <span className="font-semibold text-gray-600">certification</span> and used when logging fertilizer operations.
+                      </p>
+                    </div>
+                  )}
                   <div className="space-y-2">
                     <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Brand / Manufacturer</Label>
                     <Input name="brand" defaultValue={editingItem?.brand} required placeholder="e.g. Dangote" />
@@ -435,26 +477,32 @@ export default function FarmerInventory() {
                     <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Expiry Date</Label>
                     <Input name="expiryDate" type="date" defaultValue={editingItem?.expiryDate} />
                   </div>
-                  <div className="space-y-2">
-                    <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Certification</Label>
-                    <Select
-                      value={formCertification}
-                      onValueChange={(value) =>
-                        setFormCertification(
-                          value as CreateSuppliesInventoryRequestCertification,
-                        )
-                      }
-                    >
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {certificationOptions.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  {formCategory !== 'fertilizer' && (
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                        Certification
+                      </Label>
+                      <Select
+                        value={formCertification}
+                        onValueChange={(value) =>
+                          setFormCertification(
+                            value as CreateSuppliesInventoryRequestCertification,
+                          )
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {certificationOptions.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
                 </div>
 
                 <div className="md:col-span-3 space-y-2 pt-4 border-t border-gray-50">
@@ -662,7 +710,9 @@ export default function FarmerInventory() {
                               <h4 className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">Compliance</h4>
                               <div className="p-4 rounded-2xl bg-white border border-gray-100">
                                 <p className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter mb-1">Cert Status</p>
-                                <Badge className="bg-blue-100 text-blue-700 text-[10px] font-bold border-none shadow-none">{item.certificationStatus}</Badge>
+                                <Badge className="bg-blue-100 text-blue-700 text-[10px] font-bold border-none shadow-none">
+                                  {complianceLabelForInventoryRow(item)}
+                                </Badge>
                                 <p className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter mt-4 mb-1">Expiry</p>
                                 <p className="text-xs font-bold text-red-600">{item.expiryDate}</p>
                               </div>

@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query'
-import { LogOut } from 'lucide-react'
+import { Copy, ExternalLink, LogOut } from 'lucide-react'
 import { useState } from 'react'
 import { NavLink, useLocation, useNavigate } from 'react-router'
 import { toast } from 'sonner'
@@ -14,6 +14,7 @@ import {
 import { useAuth } from '~/context/auth-context'
 import { customFetch } from '~/lib/api/custom-fetch'
 import { useGetWalletBalance } from '~/lib/api/generated/wallet/wallet'
+import { getAccountExplorerUrl, truncateAddress } from '~/lib/block-explorer'
 import { generateStellarKeypair, saveWalletLocal } from '~/lib/stellar/wallet'
 import {
   getTenantFromPathname,
@@ -332,6 +333,19 @@ export function Sidebar({ navigation, roleLabel }: SidebarProps) {
     walletData?.address ||
     walletData?.accountId
 
+  const accountExplorerUrl =
+    typeof walletAddress === 'string' ? getAccountExplorerUrl(walletAddress) : null
+
+  const copyWalletAddress = async () => {
+    if (!walletAddress || typeof walletAddress !== 'string') return
+    try {
+      await navigator.clipboard.writeText(walletAddress)
+      toast.success('Wallet address copied')
+    } catch {
+      toast.error('Could not copy address')
+    }
+  }
+
   const displayName = getUserDisplayName(user)
   const initials = getUserInitials(user)
   const activeRole = getTenantFromPathname(location.pathname)
@@ -441,51 +455,64 @@ export function Sidebar({ navigation, roleLabel }: SidebarProps) {
 
         {/* Wallet */}
         <div className='border-t border-gray-200 px-4 py-3 pb-4'>
-          <button
-            onClick={() => setIsWalletExpanded(!isWalletExpanded)}
-            className='flex w-full items-center justify-between gap-2 text-left'
-          >
-            <div className='flex items-center gap-2'>
+          <div className='flex w-full items-center gap-1.5'>
+            <button
+              type='button'
+              onClick={() => setIsWalletExpanded(!isWalletExpanded)}
+              className='flex min-w-0 flex-1 items-center justify-between gap-2 text-left'
+            >
+              <div className='flex min-w-0 items-center gap-2'>
+                <svg
+                  className='size-4 shrink-0 text-gray-500'
+                  fill='none'
+                  viewBox='0 0 24 24'
+                  stroke='currentColor'
+                  strokeWidth={2}
+                >
+                  <rect x='2' y='4' width='20' height='16' rx='2' />
+                  <path d='M22 10H2' />
+                </svg>
+                <div className='min-w-0'>
+                  <div className='text-[13px] font-bold text-gray-900'>
+                    Wallet
+                  </div>
+                  <div className='truncate text-[10px] text-gray-500 font-mono tracking-wide'>
+                    {isLoadingWallet
+                      ? 'Loading...'
+                      : walletAddress
+                        ? truncateAddress(walletAddress, 10, 4)
+                        : 'No Wallet Address'}
+                  </div>
+                </div>
+              </div>
               <svg
-                className='size-4 text-gray-500'
+                className={cn(
+                  'size-3.5 shrink-0 text-gray-500 transition-transform',
+                  isWalletExpanded ? 'rotate-180' : 'rotate-0',
+                )}
                 fill='none'
                 viewBox='0 0 24 24'
                 stroke='currentColor'
                 strokeWidth={2}
               >
-                <rect x='2' y='4' width='20' height='16' rx='2' />
-                <path d='M22 10H2' />
+                <path
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
+                  d='M19 9l-7 7-7-7'
+                />
               </svg>
-              <div>
-                <div className='text-[13px] font-bold text-gray-900'>
-                  Wallet
-                </div>
-                <div className='text-[10px] text-gray-500 font-mono tracking-wide'>
-                  {isLoadingWallet
-                    ? 'Loading...'
-                    : walletAddress
-                      ? `${walletAddress.slice(0, 10)}...${walletAddress.slice(-4)}`
-                      : 'No Wallet Address'}
-                </div>
-              </div>
-            </div>
-            <svg
-              className={cn(
-                'size-3.5 text-gray-500 transition-transform',
-                isWalletExpanded ? 'rotate-180' : 'rotate-0',
-              )}
-              fill='none'
-              viewBox='0 0 24 24'
-              stroke='currentColor'
-              strokeWidth={2}
-            >
-              <path
-                strokeLinecap='round'
-                strokeLinejoin='round'
-                d='M19 9l-7 7-7-7'
-              />
-            </svg>
-          </button>
+            </button>
+            {!isLoadingWallet && walletAddress ? (
+              <button
+                type='button'
+                onClick={copyWalletAddress}
+                className='shrink-0 rounded p-1.5 text-gray-500 transition-colors hover:bg-gray-200/80 hover:text-gray-800'
+                title='Copy address'
+              >
+                <Copy className='size-3.5' />
+              </button>
+            ) : null}
+          </div>
 
           {isWalletExpanded && (
             <div className='mt-3'>
@@ -527,19 +554,27 @@ export function Sidebar({ navigation, roleLabel }: SidebarProps) {
                   </div>
                 )}
 
-                <div className='flex items-center gap-5 pt-3 pb-1'>
-                  <button className='flex items-center gap-1.5 text-[13px] font-bold text-gray-900 hover:text-gray-600 transition-colors'>
-                    <svg className='size-4' fill='none' viewBox='0 0 24 24' stroke='currentColor' strokeWidth={2}>
-                      <path strokeLinecap='round' strokeLinejoin='round' d='M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z' />
-                    </svg>
+                <div className='flex flex-wrap items-center gap-x-4 gap-y-2 pt-3 pb-1'>
+                  <button
+                    type='button'
+                    onClick={copyWalletAddress}
+                    disabled={!walletAddress}
+                    className='flex items-center gap-1.5 text-[13px] font-bold text-gray-900 transition-colors hover:text-gray-600 disabled:pointer-events-none disabled:opacity-40'
+                  >
+                    <Copy className='size-4' />
                     Copy
                   </button>
-                  <button className='flex items-center gap-1.5 text-[13px] font-bold text-gray-900 hover:text-gray-600 transition-colors'>
-                    <svg className='size-4' fill='none' viewBox='0 0 24 24' stroke='currentColor' strokeWidth={2}>
-                      <path strokeLinecap='round' strokeLinejoin='round' d='M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14' />
-                    </svg>
-                    Explorer
-                  </button>
+                  {accountExplorerUrl ? (
+                    <a
+                      href={accountExplorerUrl}
+                      target='_blank'
+                      rel='noopener noreferrer'
+                      className='flex items-center gap-1.5 text-[13px] font-bold text-gray-900 transition-colors hover:text-gray-600'
+                    >
+                      <ExternalLink className='size-4' />
+                      View on explorer
+                    </a>
+                  ) : null}
                   <button
                     onClick={() => refetchWallet()}
                     className='ml-auto flex items-center justify-center text-gray-900 hover:text-gray-600 transition-colors'

@@ -1,13 +1,15 @@
 import { Package, Plus, ChevronDown } from 'lucide-react';
-import { useState } from 'react';
-import { useNavigate } from 'react-router';
+import { useMemo, useState } from 'react';
+import { Link, useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import { EmptyState } from '~/components/empty-state';
 import { PageHeader } from '~/components/page-header';
 import { Button } from '~/components/ui/button';
 import { Badge } from '~/components/ui/badge';
-import { getClientOrganizationId } from '~/lib/organization-context';
+import { DatePicker } from '~/components/ui/date-picker';
+import { getClientOrganizationId, getOrganizationHeaders } from '~/lib/organization-context';
 import type { CreateBatchRequest } from '~/lib/api/generated/models';
+import { useGetFacilities } from '~/lib/api/generated/facilities/facilities';
 import { usePostProcessorsBatches } from '~/lib/api/generated/processors-batches/processors-batches';
 import { usePostProcessorsBatchesIdInputMaterials } from '~/lib/api/generated/processors-materials/processors-materials';
 import { BatchMaterialSelectorModal } from '~/components/processor/batch-material-selector-modal';
@@ -44,6 +46,17 @@ function InputField({ label, required = false, children }: { label: string; requ
 export default function CreateNewBatch() {
   const navigate = useNavigate();
   const organizationId = getClientOrganizationId()
+  const organizationHeaders = getOrganizationHeaders()
+
+  const { data: facilitiesResponse } = useGetFacilities({
+    request: { headers: organizationHeaders },
+    query: { enabled: Boolean(organizationId) },
+  })
+
+  const operationalFacilities = useMemo(
+    () => (facilitiesResponse?.data?.data ?? []).filter((f) => f.status === 'operational'),
+    [facilitiesResponse?.data?.data],
+  )
   
   const { mutateAsync: createBatch, isPending: isCreatingBatch } = usePostProcessorsBatches({
     mutation: { networkMode: 'always' },
@@ -56,11 +69,10 @@ export default function CreateNewBatch() {
   });
 
   // Form state
+  const [selectedFacilityId, setSelectedFacilityId] = useState('');
   const [formData, setFormData] = useState({
     outputProductName: '',
     outputProductType: '',
-    facilityName: '',
-    facilityLocation: '',
     packagingDate: '',
     shelfLifeDays: '',
     storageConditions: '',
@@ -90,17 +102,28 @@ export default function CreateNewBatch() {
       return;
     }
 
+    if (operationalFacilities.length > 0 && !selectedFacilityId) {
+      toast.error('Select an operational processing facility for this batch.');
+      return;
+    }
+
     try {
       const payload: CreateBatchRequest = {
         outputProductName: formData.outputProductName.trim(),
         outputProductType: formData.outputProductType,
       };
 
-      if (formData.facilityName.trim()) payload.facilityName = formData.facilityName.trim();
-      if (formData.facilityLocation.trim()) payload.facilityLocation = formData.facilityLocation.trim();
-      if (formData.packagingDate) payload.packagingDate = formData.packagingDate;
+      if (selectedFacilityId) {
+        payload.facilityId = selectedFacilityId;
+      }
+      // TODO(backend): expectedQuantity / expectedUnit / productCategory from this form are not yet in CreateBatchRequest — align OpenAPI and persist when available.
+      if (formData.packagingDate) payload.packagingDate = formData.packagingDate.includes('T')
+        ? formData.packagingDate
+        : `${formData.packagingDate}T00:00:00.000Z`;
       if (formData.shelfLifeDays.trim()) payload.shelfLifeDays = parseInt(formData.shelfLifeDays, 10);
-      if (formData.storageConditions.trim()) payload.storageConditions = formData.storageConditions.trim();
+      if (formData.storageConditions.trim()) {
+        payload.storageConditions = { notes: formData.storageConditions.trim() };
+      }
 
       const batchResponse = await createBatch({ data: payload });
       const batchId = (batchResponse as any)?.data?.data?.id;
@@ -220,33 +243,57 @@ export default function CreateNewBatch() {
                 <ChevronDown className="absolute right-3 top-1/2 size-4 -translate-y-1/2 text-gray-400 pointer-events-none" />
               </div>
             </InputField>
-            <InputField label="Processing Facility">
-              <input
-                type="text"
-                name="facilityName"
-                value={formData.facilityName}
-                onChange={handleInputChange}
-                placeholder="e.g. Main Processing Plant"
-                className="w-full h-11 rounded-md border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
-              />
-            </InputField>
-            <InputField label="Facility Location">
-              <input
-                type="text"
-                name="facilityLocation"
-                value={formData.facilityLocation}
-                onChange={handleInputChange}
-                placeholder="e.g. Lagos, Nigeria"
-                className="w-full h-11 rounded-md border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
-              />
-            </InputField>
-            <InputField label="Packaging Date">
-              <input
-                type="date"
-                name="packagingDate"
+            {operationalFacilities.length === 0 ? (
+              <div className="md:col-span-2 rounded-md border border-amber-200 bg-amber-50/60 px-4 py-3 text-sm text-amber-950">
+                <p className="font-semibold text-amber-900">No operational facilities on file</p>
+                <p className="mt-1 text-xs text-amber-800/90">
+                  Add an operational processing facility before assigning this batch to a plant, or continue without linking one if your workflow allows it.
+                </p>
+                <Link
+                  to="/processor/facilities"
+                  className="mt-3 inline-flex text-xs font-bold uppercase tracking-widest text-brand underline-offset-4 hover:underline"
+                >
+                  Go to facilities
+                </Link>
+              </div>
+            ) : (
+              <>
+                <InputField label="Processing facility" required>
+                  <div className="relative">
+                    <select
+                      value={selectedFacilityId}
+                      onChange={(e) => setSelectedFacilityId(e.target.value)}
+                      required
+                      className="w-full h-11 appearance-none rounded-md border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+                    >
+                      <option value="">Select facility</option>
+                      {operationalFacilities.map((f) => (
+                        <option key={f.id} value={f.id}>
+                          {f.name}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-3 top-1/2 size-4 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                  </div>
+                </InputField>
+                <InputField label="Facility location">
+                  <input
+                    type="text"
+                    readOnly
+                    value={
+                      operationalFacilities.find((f) => f.id === selectedFacilityId)?.location?.trim() ||
+                      '—'
+                    }
+                    className="w-full h-11 cursor-not-allowed rounded-md border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-700"
+                  />
+                </InputField>
+              </>
+            )}
+            <InputField label="Packaging date">
+              <DatePicker
                 value={formData.packagingDate}
-                onChange={handleInputChange}
-                className="w-full h-11 rounded-md border border-gray-200 px-3 py-2.5 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+                onChange={(dateStr) => setFormData((prev) => ({ ...prev, packagingDate: dateStr }))}
+                placeholder="Select packaging date"
               />
             </InputField>
             <InputField label="Shelf Life (Days)">

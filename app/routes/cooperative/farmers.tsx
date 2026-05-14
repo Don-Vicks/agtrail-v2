@@ -33,6 +33,10 @@ import {
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
 import { useGetCooperativesFarmers as useGetCooperativeFarmers } from '~/lib/api/generated/cooperatives/cooperatives'
+import {
+  getKycStatusStringFromUserLike,
+  isVerifiedKycStatus,
+} from '~/lib/kyc'
 import type { Route } from './+types/farmers'
 
 export function meta({ }: Route.MetaArgs) {
@@ -57,15 +61,6 @@ export default function CooperativeFarmers() {
     error,
   } = useGetCooperativeFarmers()
   const members = membersResponse?.data?.data || []
-
-  const isVerifiedKyc = (status: string | null | undefined) => {
-    const normalized = (status || '').toLowerCase()
-    return (
-      normalized === 'verified' ||
-      normalized === 'approved' ||
-      normalized === 'completed'
-    )
-  }
 
   const formatJoinedDate = (value: unknown) => {
     if (
@@ -110,7 +105,9 @@ export default function CooperativeFarmers() {
 
   const farmerStats = useMemo(() => {
     const total = members.length
-    const verified = members.filter((m) => isVerifiedKyc(m.kycStatus)).length
+    const verified = members.filter((m) =>
+      isVerifiedKycStatus(getKycStatusStringFromUserLike(m)),
+    ).length
     const pending = total - verified
     return { total, verified, pending }
   }, [members])
@@ -336,8 +333,14 @@ export default function CooperativeFarmers() {
                 <span className='flex items-center gap-2 italic text-gray-300'>
                   <UserCheck className='size-3' /> KYC
                 </span>
-                <span className={isVerifiedKyc(member.kycStatus) ? 'text-brand' : 'text-orange-500'}>
-                  {member.kycStatus || 'Pending'}
+                <span
+                  className={
+                    isVerifiedKycStatus(getKycStatusStringFromUserLike(member))
+                      ? 'text-brand'
+                      : 'text-orange-500'
+                  }
+                >
+                  {getKycStatusStringFromUserLike(member) || 'Pending'}
                 </span>
               </div>
               <div className='flex items-center justify-between text-[11px] font-bold uppercase tracking-tight text-gray-400'>

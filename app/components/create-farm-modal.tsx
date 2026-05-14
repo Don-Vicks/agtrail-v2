@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~
 import { Textarea } from '~/components/ui/textarea'
 import { usePostFarms } from '~/lib/api/generated/farms/farms'
 import { useGetUsersProfile } from '~/lib/api/generated/users/users'
-import { isVerifiedKycStatus } from '~/lib/kyc'
+import { getKycStatusFromUsersProfileBody, isVerifiedKycStatus } from '~/lib/kyc'
 import { sortedLgasForStateCode, sortedNigeriaStates } from '~/lib/nigeria-geo-options'
 import { cn } from '~/lib/utils'
 
@@ -128,7 +128,7 @@ export function CreateFarmModal({ isOpen, onClose }: CreateFarmModalProps) {
   })
   const [deforestationRiskAcknowledged, setDeforestationRiskAcknowledged] = useState(false)
   const { data: profileResponse, isLoading: isProfileLoading } = useGetUsersProfile()
-  const kycStatus = profileResponse?.data?.user?.kycStatus
+  const kycStatus = getKycStatusFromUsersProfileBody(profileResponse?.data)
   const isKycVerified = isVerifiedKycStatus(kycStatus)
   const kycSettingsPath = location.pathname.startsWith('/cooperative')
     ? '/cooperative/settings?tab=kyc'
