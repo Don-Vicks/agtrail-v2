@@ -5,4 +5,4 @@ export function getGoogleMapsApiKey(): string {
 
 export const NIGERIA_ROUGH_CENTER = { lat: 9.082, lng: 8.6753 } as const
 
-export const DEFAULT_FARM_PLOT_CENTER = { lat: 9.06, lng: 7.49 } as const
+export const DEFAULT_MAP_ID = 'argolinking_map_id'

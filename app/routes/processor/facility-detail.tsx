@@ -1,7 +1,7 @@
-import { useMemo, useState } from 'react'
-import { useParams } from 'react-router'
 import { useQueryClient } from '@tanstack/react-query'
 import { Activity, ArrowUpRight, Building2, MapPin, Settings2, Wrench } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { useParams } from 'react-router'
 import { toast } from 'sonner'
 import { EmptyState } from '~/components/empty-state'
 import { PageHeader } from '~/components/page-header'
@@ -12,8 +12,6 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogT
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
-import { cn } from '~/lib/utils'
-import { getOrganizationHeaders } from '~/lib/organization-context'
 import {
   getGetFacilitiesIdQueryKey,
   getGetFacilitiesQueryKey,
@@ -21,6 +19,8 @@ import {
   usePatchFacilitiesId,
 } from '~/lib/api/generated/facilities/facilities'
 import type { UpdateFacilityRequestStatus } from '~/lib/api/generated/models'
+import { getOrganizationHeaders } from '~/lib/organization-context'
+import { cn } from '~/lib/utils'
 
 type FacilityStatus = UpdateFacilityRequestStatus
 
@@ -95,7 +95,7 @@ export default function FacilityDetailPage() {
     }
   }
 
-  if (isLoading) return <div className="h-44 rounded-2xl border border-gray-100 bg-gray-50 animate-pulse" />
+  if (isLoading) return <div className="h-44 rounded-md border border-gray-100 bg-gray-50 animate-pulse" />
   if (isError) return <EmptyState icon={<Building2 className="size-10" />} title="Facility failed to load" description="Check your connection and retry." action={{ label: 'Retry', onClick: () => refetch() }} />
   if (!facility) return <EmptyState icon={<Building2 className="size-10" />} title="Facility not found" description="This facility is unavailable for your organization." />
 
@@ -106,7 +106,7 @@ export default function FacilityDetailPage() {
       <div className="rounded-3xl border border-gray-100 bg-white p-8 shadow-sm">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="flex items-start gap-6">
-            <div className={cn('size-16 rounded-2xl flex items-center justify-center shadow-inner', facility.status === 'operational' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600')}>
+            <div className={cn('size-16 rounded-md flex items-center justify-center shadow-inner', facility.status === 'operational' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600')}>
               <Building2 className="size-8" />
             </div>
             <div>

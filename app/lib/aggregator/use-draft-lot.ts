@@ -5,7 +5,8 @@ import {
   useDeleteAggregatorLotsDraftBatchesFarmProductId,
   getGetAggregatorLotsDraftQueryKey
 } from '~/lib/api/generated/aggregator/aggregator'
-import { getGetFarmersProductsQueryKey } from '~/lib/api/generated/farm-products/farm-products'
+import { getGetFarmersProductsQueryKey, getFarmersProductsId } from '~/lib/api/generated/farm-products/farm-products'
+import { getProcessorsBatchesId } from '~/lib/api/generated/processors-batches/processors-batches'
 import type { AggregatorBatch, AggregatorStats } from './types'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
@@ -13,8 +14,16 @@ import { toast } from 'sonner'
 export function useDraftLot() {
   const queryClient = useQueryClient()
   const { data: draftData, isLoading, error } = useGetAggregatorLotsDraft()
-  const scanBatchMutation = usePostAggregatorLotsDraftScanBatch()
-  const removeBatchMutation = useDeleteAggregatorLotsDraftBatchesFarmProductId()
+  const scanBatchMutation = usePostAggregatorLotsDraftScanBatch({
+    request: {
+      headers: { 'X-Offline-Label': 'Draft new lot' }
+    }
+  } as any)
+  const removeBatchMutation = useDeleteAggregatorLotsDraftBatchesFarmProductId({
+    request: {
+      headers: { 'X-Offline-Label': 'Remove batch from draft' }
+    }
+  } as any)
 
   const draftLotBatches = useMemo<AggregatorBatch[]>(() => {
     const apiBatches = (draftData?.data?.data as any)?.batches ?? []
@@ -43,16 +52,53 @@ export function useDraftLot() {
     return { scanned, verified, flagged, rejected, totalDraftWeightKg }
   }, [draftLotBatches])
 
-  const addBatch = async (batchNumber: string) => {
+  const addBatch = async (batchNumberOrId: string) => {
+    let finalBatchNumber = batchNumberOrId
+
+    console.log('Attempting to add batch:', batchNumberOrId)
+
+    // If it looks like a UUID, we need to resolve it to a batchNumber first
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+    if (uuidRegex.test(batchNumberOrId)) {
+      try {
+        console.log('Resolving UUID...');
+        // Try farmer product lookup first
+        const productResponse = await getFarmersProductsId(batchNumberOrId)
+        if (productResponse.data?.data?.batchNumber) {
+          finalBatchNumber = productResponse.data.data.batchNumber
+          console.log('Resolved to Farmer Batch Number:', finalBatchNumber)
+        } else {
+          // Try processor batch lookup as fallback
+          const processorResponse = await getProcessorsBatchesId(batchNumberOrId)
+          if (processorResponse.data?.data?.batchNumber) {
+            finalBatchNumber = processorResponse.data.data.batchNumber
+            console.log('Resolved to Processor Batch Number:', finalBatchNumber)
+          }
+        }
+      } catch (err) {
+        console.error('Failed to resolve UUID to batchNumber', err)
+      }
+    }
+
     try {
-      await scanBatchMutation.mutateAsync({
-        data: { batchNumber }
+      console.log('Calling scan-batch API with:', finalBatchNumber);
+      const result = await scanBatchMutation.mutateAsync({
+        data: { batchNumber: finalBatchNumber }
       })
+      
+      console.log('API Result:', result);
+
+      if (result.status !== 200 && result.status !== 201) {
+        throw new Error(`API returned status ${result.status}`)
+      }
+
       queryClient.invalidateQueries({ queryKey: getGetAggregatorLotsDraftQueryKey() })
       queryClient.invalidateQueries({ queryKey: getGetFarmersProductsQueryKey() })
-      toast.success('Batch added to draft lot')
-    } catch (err) {
-      toast.error('Failed to add batch')
+      toast.success(`Batch ${finalBatchNumber} added to draft lot`)
+    } catch (err: any) {
+      console.error('Scan Batch API Error:', err);
+      const errorMsg = err.response?.data?.message || err.message || 'Batch not found or permission denied'
+      toast.error(`Error: ${errorMsg}`)
       throw err
     }
   }

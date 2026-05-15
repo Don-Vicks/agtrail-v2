@@ -114,7 +114,7 @@ export default function AggregatorLotStoragePage() {
       {/* Top Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+          <div key={i} className="rounded-md border border-gray-100 bg-white p-6 shadow-sm">
             <p className="text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-2">External Materials</p>
             <p className="text-2xl font-bold text-gray-900 tracking-tight">112 kg</p>
           </div>
@@ -132,7 +132,7 @@ export default function AggregatorLotStoragePage() {
                 key={lot.id}
                 onClick={() => setSelectedLotId(lot.id)}
                 className={cn(
-                  "w-full text-left rounded-2xl border p-6 transition-all duration-200 shadow-sm",
+                  "w-full text-left rounded-md border p-6 transition-all duration-200 shadow-sm",
                   selectedLotId === lot.id
                     ? "border-[#2e7d32] bg-white ring-1 ring-[#2e7d32]/10"
                     : "border-gray-100 bg-white hover:border-gray-200"
@@ -219,7 +219,7 @@ export default function AggregatorLotStoragePage() {
             <h2 className="text-sm font-bold text-gray-900 tracking-tight">Scanned Batches <span className="text-gray-300 ml-1">({mockLogs.length})</span></h2>
             <div className="space-y-4">
               {mockLogs.map(log => (
-                <div key={log.id} className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm relative overflow-hidden">
+                <div key={log.id} className="rounded-md border border-gray-100 bg-white p-6 shadow-sm relative overflow-hidden">
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex items-center gap-2">
                       <FileText className="size-3.5 text-[#2e7d32]" />
@@ -260,7 +260,7 @@ export default function AggregatorLotStoragePage() {
 
 function ConditionStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+    <div className="rounded-md border border-gray-100 bg-white p-4 shadow-sm">
       <p className="text-[8px] font-bold uppercase tracking-widest text-gray-400 mb-1">{label}</p>
       <p className="text-xs font-extrabold text-gray-900 tracking-tight">{value}</p>
     </div>

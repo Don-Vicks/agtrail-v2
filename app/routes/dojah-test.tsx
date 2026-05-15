@@ -18,7 +18,7 @@ export default function DojahTestPage() {
   const response = (type: string, data: any) => {
     console.log('Test Dojah event:', type, data)
     addLog(`Event received: ${type}`)
-    
+
     if (type === 'success') {
       addLog(`Success! Data: ${JSON.stringify(data)}`)
       setShouldLaunchKyc(false)
@@ -50,10 +50,10 @@ export default function DojahTestPage() {
 
   return (
     <div className='min-h-screen bg-gray-50 p-8'>
-      <div className='mx-auto max-w-2xl rounded-xl bg-white p-6 shadow-sm border border-gray-200'>
+      <div className='mx-auto max-w-2xl rounded-md bg-white p-6 shadow-sm border border-gray-200'>
         <h1 className='text-2xl font-bold text-gray-900 mb-2'>Dojah KYC Sandbox Test</h1>
         <p className='text-sm text-gray-500 mb-6'>
-          This is a completely isolated test environment with fresh reference IDs on every run. 
+          This is a completely isolated test environment with fresh reference IDs on every run.
           If DeviceGuard continues to fail here, there is an issue with the App ID/Public Key pairing or Sandbox configuration on Dojah's end.
         </p>
 
@@ -68,7 +68,7 @@ export default function DojahTestPage() {
           >
             Start Test Verification
           </button>
-          
+
           <button
             onClick={() => setLogs([])}
             className='rounded-md bg-gray-100 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-200'

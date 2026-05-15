@@ -1,12 +1,8 @@
 import { useQueries } from '@tanstack/react-query'
 import {
-  Activity,
   ArrowRight,
   Bookmark,
-  Calendar,
-  CheckCircle2,
   ChevronDown,
-  Clock,
   Layers,
   LayoutDashboard,
   Package,
@@ -15,6 +11,7 @@ import {
 import { QRCodeSVG } from 'qrcode.react'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router'
+import { CropCycleCard } from '~/components/crop-cycle-card'
 import { EmptyState } from '~/components/empty-state'
 import { PageHeader } from '~/components/page-header'
 import { SelectOperationModal } from '~/components/select-operation-modal'
@@ -22,7 +19,6 @@ import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import { ViewActivitiesModal } from '~/components/view-activities-modal'
-import { CropCycleCard } from '~/components/crop-cycle-card'
 import { useGetCooperativesFarms, useGetCooperativesProducts } from '~/lib/api/generated/cooperatives/cooperatives'
 import { getGetFarmsIdCropCyclesQueryOptions } from '~/lib/api/generated/farms-crop-cycles/farms-crop-cycles'
 import type { CropCycle, FarmProduct } from '~/lib/api/generated/models'
@@ -38,7 +34,7 @@ function ProductGridCard({ product }: { product: FarmProduct }) {
       </div>
 
       <div className="flex gap-6 relative z-10 mb-6">
-        <div className="shrink-0 size-24 rounded-2xl border-2 border-white shadow-sm ring-1 ring-gray-100 bg-white p-1.5 overflow-hidden">
+        <div className="shrink-0 size-24 rounded-md border-2 border-white shadow-sm ring-1 ring-gray-100 bg-white p-1.5 overflow-hidden">
           <QRCodeSVG value={product.batchNumber} style={{ width: '100%', height: '100%' }} />
         </div>
         <div className="flex-1 min-w-0 pt-1">

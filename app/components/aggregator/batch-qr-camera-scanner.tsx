@@ -100,7 +100,7 @@ export function BatchQrCameraScanner({
 
       {/* Viewfinder */}
       <div className="pointer-events-none absolute inset-0 flex items-center justify-center p-6">
-        <div className="relative aspect-square w-[min(72%,260px)] rounded-lg border-2 border-white/70 shadow-[0_0_0_9999px_rgba(0,0,0,0.45)]">
+        <div className="relative aspect-square w-[min(72%,260px)] rounded-md border-2 border-white/70 shadow-[0_0_0_9999px_rgba(0,0,0,0.45)]">
           <div className="absolute -left-0.5 -top-0.5 size-5 border-l-2 border-t-2 border-brand" />
           <div className="absolute -right-0.5 -top-0.5 size-5 border-r-2 border-t-2 border-brand" />
           <div className="absolute -bottom-0.5 -left-0.5 size-5 border-b-2 border-l-2 border-brand" />

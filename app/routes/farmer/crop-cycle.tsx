@@ -88,12 +88,6 @@ export default function FarmerCropCycle() {
           {
             label: 'Dashboard',
             href: '/farmer',
-            icon: (
-              <svg className="size-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                <line x1="9" y1="3" x2="9" y2="21" />
-              </svg>
-            ),
           },
           { label: 'Start Crop Cycle' },
         ]}
@@ -121,7 +115,7 @@ export default function FarmerCropCycle() {
         </div>
         <button
           onClick={() => setSearchQuery('')}
-          className="rounded-md border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 flex-shrink-0 transition-colors"
+          className="rounded-md border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 shrink-0 transition-colors"
         >
           {searchQuery ? 'Clear' : 'Search'}
         </button>

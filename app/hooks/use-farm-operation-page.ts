@@ -220,7 +220,30 @@ export function useFarmOperationPage(operationSlug: FarmOperationRouteSlug) {
     }
   }, [cycle, farm, user])
 
-  const { mutateAsync: postOperation, isPending } = usePostFarmsIdOperations()
+  const friendlyLabel = useMemo(() => {
+    const labels: Record<string, string> = {
+      'land-prep': 'Land Preparation',
+      'planting': 'Planting',
+      'fertilizer': 'Fertilizer Application',
+      'irrigation': 'Irrigation',
+      'weeding': 'Weeding',
+      'pest-control': 'Pest Control',
+      'pruning': 'Pruning',
+      'harvesting': 'Harvesting',
+      'sorting': 'Sorting',
+      'drying': 'Drying',
+      'processing': 'Processing',
+      'packaging': 'Packaging',
+      'storage': 'Storage',
+    }
+    return labels[operationSlug as string] || 'Record Operation'
+  }, [operationSlug])
+
+  const { mutateAsync: postOperation, isPending } = usePostFarmsIdOperations({
+    request: {
+      headers: { 'X-Offline-Label': `Record ${friendlyLabel}` }
+    }
+  } as any)
 
   const submitLog = async (
     description: string,

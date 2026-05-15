@@ -83,7 +83,11 @@ export default function DeforestationRiskPage() {
   const [lastAnalysis, setLastAnalysis] = useState<DeforestationAnalysis | null>(null)
 
   const { data: profileResponse, isLoading: isLoadingProfile } = useGetFarmersProfile()
-  const analyzeMutation = usePostDeforestationAnalyze()
+  const analyzeMutation = usePostDeforestationAnalyze({
+    request: {
+      headers: { 'X-Offline-Label': 'Analyze deforestation risk' }
+    }
+  } as any)
 
   const farms = useMemo(() => {
     return (profileResponse?.data?.data?.farms || []) as Farm[]

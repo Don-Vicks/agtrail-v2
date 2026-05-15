@@ -80,6 +80,9 @@ export function CreateProductModal({ isOpen, onClose }: CreateProductModalProps)
 
   const queryClient = useQueryClient()
   const { mutate: createProduct, isPending } = usePostFarmersProducts({
+    request: {
+      headers: { 'X-Offline-Label': 'Create farmer product' }
+    },
     mutation: {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: [`/farmers/products`] })

@@ -1,4 +1,4 @@
-import { MapPin, Phone } from 'lucide-react'
+import { MapPin } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import type { TransferOffer } from '~/types/transfer'
 
@@ -9,7 +9,7 @@ interface TransferOfferCardProps {
 
 export function TransferOfferCard({ offer, onAccept }: TransferOfferCardProps) {
   return (
-    <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm transition-all hover:shadow-md flex flex-col">
+    <div className="rounded-md border border-gray-100 bg-white p-6 shadow-sm transition-all hover:shadow-md flex flex-col">
       <div className="flex justify-end mb-2">
         <span className="text-xl font-extrabold text-[#1d3d1e]">
           {offer.quantity.toLocaleString()}/{offer.unit}

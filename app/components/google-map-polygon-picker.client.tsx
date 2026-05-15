@@ -1,9 +1,10 @@
-import { useCallback, useMemo } from 'react'
-import { GoogleMap, Marker, Polygon, useJsApiLoader } from '@react-google-maps/api'
+import { useCallback, useMemo, useState, useRef, useEffect } from 'react'
+import { GoogleMap, Polygon, useJsApiLoader } from '@react-google-maps/api'
 import { cn } from '~/lib/utils'
-import { DEFAULT_FARM_PLOT_CENTER, getGoogleMapsApiKey } from '~/lib/google-maps'
+import { DEFAULT_FARM_PLOT_CENTER, getGoogleMapsApiKey, DEFAULT_MAP_ID } from '~/lib/google-maps'
 
 const loaderId = 'argolinking-google-maps'
+const libraries: ("marker" | "drawing" | "geometry" | "localContext" | "places" | "visualization")[] = ['marker']
 
 export type GoogleMapPolygonPickerVariant = 'create-farm' | 'crop'
 
@@ -24,6 +25,35 @@ const variantStyles: Record<
 }
 
 type PointTuple = [number, number]
+
+function AdvancedMarker({ map, position }: { 
+  map?: google.maps.Map | null, 
+  position: google.maps.LatLngLiteral
+}) {
+  const markerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
+
+  useEffect(() => {
+    if (!map || !google.maps.marker?.AdvancedMarkerElement) return;
+
+    if (!markerRef.current) {
+      markerRef.current = new google.maps.marker.AdvancedMarkerElement({
+        map,
+        position,
+      });
+    } else {
+      markerRef.current.position = position;
+    }
+
+    return () => {
+      if (markerRef.current) {
+        markerRef.current.map = null;
+        markerRef.current = null;
+      }
+    };
+  }, [map, position]);
+
+  return null;
+}
 
 function GoogleMapPolygonPickerLoaded({
   apiKey,
@@ -47,7 +77,9 @@ function GoogleMapPolygonPickerLoaded({
   const { isLoaded, loadError } = useJsApiLoader({
     id: loaderId,
     googleMapsApiKey: apiKey,
+    libraries,
   })
+  const [map, setMap] = useState<google.maps.Map | null>(null)
 
   const mapOptions = useMemo(
     () => ({
@@ -55,6 +87,7 @@ function GoogleMapPolygonPickerLoaded({
       streetViewControl: false,
       mapTypeControl: true,
       fullscreenControl: true,
+      mapId: DEFAULT_MAP_ID,
     }),
     [],
   )
@@ -84,13 +117,14 @@ function GoogleMapPolygonPickerLoaded({
     [onAddPoint]
   )
 
-  const onMapLoad = useCallback((map: google.maps.Map) => {
+  const onMapLoad = useCallback((mapInstance: google.maps.Map) => {
+    setMap(mapInstance)
     window.setTimeout(() => {
-      const c = map.getCenter()
+      const c = mapInstance.getCenter()
       if (window.google?.maps?.event) {
-        window.google.maps.event.trigger(map, 'resize')
+        window.google.maps.event.trigger(mapInstance, 'resize')
       }
-      if (c) map.setCenter(c)
+      if (c) mapInstance.setCenter(c)
     }, 200)
   }, [])
 
@@ -131,7 +165,7 @@ function GoogleMapPolygonPickerLoaded({
         options={mapOptions}
       >
         {points.map((point, idx) => (
-          <Marker key={idx} position={{ lat: point[0], lng: point[1] }} />
+          <AdvancedMarker key={idx} map={map} position={{ lat: point[0], lng: point[1] }} />
         ))}
         {points.length >= 3 && <Polygon paths={pathLiteral} options={polygonOpts} />}
       </GoogleMap>

@@ -166,9 +166,21 @@ export function meta() {
 export default function FarmerInventory() {
   const queryClient = useQueryClient()
   const { data: inventoryResponse, isLoading, isError, refetch } = useGetSuppliesInventory()
-  const { mutateAsync: createInventoryItem, isPending: isCreating } = usePostSuppliesInventory()
-  const { mutateAsync: updateInventoryItem, isPending: isUpdating } = usePatchSuppliesInventoryId()
-  const { mutateAsync: deleteInventoryItem, isPending: isDeleting } = useDeleteSuppliesInventoryId()
+  const { mutateAsync: createInventoryItem, isPending: isCreating } = usePostSuppliesInventory({
+    request: {
+      headers: { 'X-Offline-Label': 'Add inventory item' }
+    }
+  } as any)
+  const { mutateAsync: updateInventoryItem, isPending: isUpdating } = usePatchSuppliesInventoryId({
+    request: {
+      headers: { 'X-Offline-Label': 'Update inventory item' }
+    }
+  } as any)
+  const { mutateAsync: deleteInventoryItem, isPending: isDeleting } = useDeleteSuppliesInventoryId({
+    request: {
+      headers: { 'X-Offline-Label': 'Remove inventory item' }
+    }
+  } as any)
   const [search, setSearch] = useState('')
   const [activeTab, setActiveTab] = useState('All')
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set())
@@ -534,7 +546,7 @@ export default function FarmerInventory() {
       </div>
 
       <div className="flex flex-col gap-4">
-        <div className="rounded-2xl border border-gray-100 bg-white p-1.5 shadow-sm inline-flex w-fit bg-gray-50/30">
+        <div className="rounded-md border border-gray-100 bg-white p-1.5 shadow-sm inline-flex w-fit bg-gray-50/30">
           <div className="flex flex-wrap gap-1">
             {categories.map((cat) => (
               <button
@@ -551,7 +563,7 @@ export default function FarmerInventory() {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden flex flex-col">
+        <div className="rounded-md border border-gray-100 bg-white shadow-sm overflow-hidden flex flex-col">
           <div className="p-5 border-b border-gray-50 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gray-50/10">
             <div className="relative w-full sm:w-80">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
@@ -631,7 +643,7 @@ export default function FarmerInventory() {
                       <td className="px-6 py-5">
                         <div className="flex items-center gap-4">
                           <div className={cn(
-                            "size-11 rounded-2xl flex items-center justify-center border transition-all group-hover:scale-105",
+                            "size-11 rounded-md flex items-center justify-center border transition-all group-hover:scale-105",
                             item.category === 'Fertilizer' ? 'bg-orange-50 border-orange-100 text-orange-600' :
                               item.category === 'Seeds' ? 'bg-emerald-50 border-emerald-100 text-emerald-600' :
                                 'bg-blue-50 border-blue-100 text-blue-600'
@@ -700,7 +712,7 @@ export default function FarmerInventory() {
                           <div className="grid grid-cols-1 md:grid-cols-4 gap-10 animate-in slide-in-from-top-4 duration-300">
                             <div className="space-y-4">
                               <h4 className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">Supply Chain</h4>
-                              <div className="p-4 rounded-2xl bg-white border border-gray-100">
+                              <div className="p-4 rounded-md bg-white border border-gray-100">
                                 <p className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter mb-1">Preferred Supplier</p>
                                 <p className="text-xs font-bold text-gray-900">{item.supplierName}</p>
                                 <p className="text-xs font-medium text-gray-500 mt-1">{item.supplierPhone}</p>
@@ -708,7 +720,7 @@ export default function FarmerInventory() {
                             </div>
                             <div className="space-y-4">
                               <h4 className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">Compliance</h4>
-                              <div className="p-4 rounded-2xl bg-white border border-gray-100">
+                              <div className="p-4 rounded-md bg-white border border-gray-100">
                                 <p className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter mb-1">Cert Status</p>
                                 <Badge className="bg-blue-100 text-blue-700 text-[10px] font-bold border-none shadow-none">
                                   {complianceLabelForInventoryRow(item)}
@@ -719,7 +731,7 @@ export default function FarmerInventory() {
                             </div>
                             <div className="md:col-span-2 space-y-4">
                               <h4 className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">Internal Documentation</h4>
-                              <div className="p-4 rounded-2xl bg-white border border-gray-100 min-h-[100px]">
+                              <div className="p-4 rounded-md bg-white border border-gray-100 min-h-[100px]">
                                 <p className="text-[10px] text-gray-600 leading-relaxed italic">"{item.notes}"</p>
                                 <div className="mt-4 flex gap-6 border-t border-gray-50 pt-4">
                                   <div>

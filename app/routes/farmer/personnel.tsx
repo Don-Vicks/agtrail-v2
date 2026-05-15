@@ -109,9 +109,21 @@ export function meta() {
 export default function FarmerPersonnel() {
   const queryClient = useQueryClient()
   const { data: personnelResponse, isLoading, isError, refetch } = useGetPersonnel()
-  const { mutateAsync: createPersonnel, isPending: isCreating } = usePostPersonnel()
-  const { mutateAsync: updatePersonnel, isPending: isUpdating } = usePatchPersonnelId()
-  const { mutateAsync: removePersonnel, isPending: isDeleting } = useDeletePersonnelId()
+  const { mutateAsync: createPersonnel, isPending: isCreating } = usePostPersonnel({
+    request: {
+      headers: { 'X-Offline-Label': 'Add personnel' }
+    }
+  } as any)
+  const { mutateAsync: updatePersonnel, isPending: isUpdating } = usePatchPersonnelId({
+    request: {
+      headers: { 'X-Offline-Label': 'Update personnel' }
+    }
+  } as any)
+  const { mutateAsync: removePersonnel, isPending: isDeleting } = useDeletePersonnelId({
+    request: {
+      headers: { 'X-Offline-Label': 'Remove personnel' }
+    }
+  } as any)
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState('All')
   const [statusFilter, setStatusFilter] = useState('All')

@@ -76,7 +76,11 @@ export default function RecordObservationForm() {
   const lastCheckIn = readFieldAgentLastCheckIn()
   const checkInReady = Boolean(lastCheckIn && farmId && lastCheckIn.farmId === farmId)
 
-  const { mutateAsync: submitObservation, isPending } = usePostFieldAgentsObservations()
+  const { mutateAsync: submitObservation, isPending } = usePostFieldAgentsObservations({
+    request: {
+      headers: { 'X-Offline-Label': 'Submit observation' }
+    }
+  } as any)
   const { mutateAsync: uploadFile, isPending: isUploading } = usePostUpload()
 
   const handleSubmit = async () => {

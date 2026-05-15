@@ -63,7 +63,7 @@ export function ShareQRModal({ isOpen, onClose, productId, productName, batchNum
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose() }}>
-      <DialogContent className="sm:max-w-md w-[95vw] bg-white p-0 overflow-hidden border-none shadow-2xl rounded-2xl max-h-[90vh] flex flex-col">
+      <DialogContent className="sm:max-w-md w-[95vw] bg-white p-0 overflow-hidden border-none shadow-2xl rounded-md max-h-[90vh] flex flex-col">
         {/* Header Section - Sticky at top if needed */}
         <div className="bg-[#1d3d1e] p-6 sm:p-8 text-center text-white relative shrink-0">
           <button
@@ -73,7 +73,7 @@ export function ShareQRModal({ isOpen, onClose, productId, productName, batchNum
             <X className="size-5" />
           </button>
 
-          <div className="mx-auto size-16 sm:size-20 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center mb-4">
+          <div className="mx-auto size-16 sm:size-20 rounded-md bg-white/10 backdrop-blur-md flex items-center justify-center mb-4">
             <Share2 className="size-8 sm:size-10 text-white" />
           </div>
 
@@ -91,7 +91,7 @@ export function ShareQRModal({ isOpen, onClose, productId, productName, batchNum
         {/* Content Section */}
         <div className="p-6 sm:p-8 space-y-6 overflow-y-auto">
           <div className="flex flex-col items-center justify-center space-y-4">
-            <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+            <div className="bg-white p-4 rounded-md shadow-sm border border-gray-100">
               <QRCodeSVG
                 id="share-qr-svg"
                 value={shareUrl}
@@ -107,7 +107,7 @@ export function ShareQRModal({ isOpen, onClose, productId, productName, batchNum
           <div className="space-y-4">
             <div className="space-y-2">
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Direct Link</label>
-              <div className="flex items-center gap-2 p-1 pl-4 rounded-xl border border-gray-100 bg-gray-50/50">
+              <div className="flex items-center gap-2 p-1 pl-4 rounded-md border border-gray-100 bg-gray-50/50">
                 <span className="flex-1 text-[11px] sm:text-xs font-bold text-gray-500 truncate mr-2">{shareUrl}</span>
                 <Button
                   onClick={handleCopyLink}
@@ -123,7 +123,7 @@ export function ShareQRModal({ isOpen, onClose, productId, productName, batchNum
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
               <Button
                 onClick={handleDownloadQR}
-                className="h-12 bg-[#1d3d1e] hover:bg-black text-white rounded-xl shadow-lg shadow-brand/10 font-black uppercase tracking-widest text-[10px] gap-2 w-full order-1 transition-all active:scale-95"
+                className="h-12 bg-[#1d3d1e] hover:bg-black text-white rounded-md shadow-lg shadow-brand/10 font-black uppercase tracking-widest text-[10px] gap-2 w-full order-1 transition-all active:scale-95"
               >
                 <Download className="size-4" />
                 Download QR
@@ -131,7 +131,7 @@ export function ShareQRModal({ isOpen, onClose, productId, productName, batchNum
               <Button
                 onClick={onClose}
                 variant="outline"
-                className="h-12 border-gray-200 text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-xl font-black uppercase tracking-widest text-[10px] w-full order-2 transition-all"
+                className="h-12 border-gray-200 text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-md font-black uppercase tracking-widest text-[10px] w-full order-2 transition-all"
               >
                 Close
               </Button>

@@ -70,7 +70,7 @@ export default function CooperativeFarmerDetails() {
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
           <div className="flex items-center gap-6">
             <div className="relative">
-              <div className="size-20 rounded-2xl overflow-hidden bg-gray-50 border-2 border-white shadow-sm ring-1 ring-gray-100">
+              <div className="size-20 rounded-md overflow-hidden bg-gray-50 border-2 border-white shadow-sm ring-1 ring-gray-100">
                 <img
                   src={farmer.avatar}
                   alt={farmer.name}

@@ -1,4 +1,5 @@
 import { useQueries, useQuery, useQueryClient } from '@tanstack/react-query'
+import { getClientOrganizationId } from '~/lib/organization-context'
 import { QRCodeSVG } from 'qrcode.react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
@@ -33,12 +34,7 @@ async function postBatchProductCertificateUpload(file: File): Promise<string[]> 
   const cleanBase = API_BASE_URL.replace(/\/+$/, '')
   const token =
     typeof window !== 'undefined' ? localStorage.getItem('agrolinking_token') : null
-  const orgId =
-    typeof window !== 'undefined'
-      ? localStorage.getItem('agrolinking_organization_id') ||
-      (import.meta.env.VITE_DEFAULT_ORGANIZATION_ID as string | undefined) ||
-      undefined
-      : (import.meta.env.VITE_DEFAULT_ORGANIZATION_ID as string | undefined)
+  const orgId = getClientOrganizationId() || undefined
   const formData = new FormData()
   formData.append('batchProductCertificate', file)
   const res = await fetch(`${cleanBase}/upload`, {
@@ -64,12 +60,7 @@ async function fetchProcessorBatchProducts(batchId: string) {
   const cleanBase = API_BASE_URL.replace(/\/+$/, '')
   const token =
     typeof window !== 'undefined' ? localStorage.getItem('agrolinking_token') : null
-  const orgId =
-    typeof window !== 'undefined'
-      ? localStorage.getItem('agrolinking_organization_id') ||
-      (import.meta.env.VITE_DEFAULT_ORGANIZATION_ID as string | undefined) ||
-      undefined
-      : (import.meta.env.VITE_DEFAULT_ORGANIZATION_ID as string | undefined)
+  const orgId = getClientOrganizationId() || undefined
   const res = await fetch(
     `${cleanBase}/processors/batches/${encodeURIComponent(batchId)}/products`,
     {

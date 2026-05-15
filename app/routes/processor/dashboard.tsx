@@ -204,7 +204,7 @@ export default function ProcessorDashboard() {
           className="rounded-md border border-dashed border-amber-200 bg-amber-50/40 py-14"
           icon={<AlertCircle className="size-9 text-amber-600" />}
           title="Organization context is missing"
-          description="Set `VITE_DEFAULT_ORGANIZATION_ID` or log in to an organization-aware account."
+          description="Please log in to an organization-aware account to view dashboard data."
         />
       ) : null}
       {hasLoadError ? (

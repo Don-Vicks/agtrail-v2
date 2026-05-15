@@ -165,7 +165,7 @@ export default function CooperativeFarmDetails() {
         {isLoading ? (
           <div className='flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6'>
             <div className='flex items-center gap-5'>
-              <Skeleton className='size-16 rounded-2xl' />
+              <Skeleton className='size-16 rounded-md' />
               <div className='space-y-2'>
                 <Skeleton className='h-5 w-48' />
                 <Skeleton className='h-3.5 w-72' />
@@ -175,7 +175,7 @@ export default function CooperativeFarmDetails() {
         ) : (
           <div className='flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6'>
             <div className='flex items-center gap-5'>
-              <div className='size-16 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center text-xl font-bold text-brand shadow-sm'>
+              <div className='size-16 rounded-md bg-gray-50 border border-gray-100 flex items-center justify-center text-xl font-bold text-brand shadow-sm'>
                 {farm?.name.slice(0, 2).toUpperCase()}
               </div>
               <div>
@@ -292,7 +292,7 @@ export default function CooperativeFarmDetails() {
                 className='rounded-md border border-gray-200 bg-white p-6 shadow-sm'
               >
                 <div className='mb-6 flex items-start justify-between'>
-                  <Skeleton className='size-12 rounded-2xl' />
+                  <Skeleton className='size-12 rounded-md' />
                   <Skeleton className='h-5 w-20 rounded-full' />
                 </div>
                 <div className='mb-6 space-y-2'>
@@ -317,7 +317,7 @@ export default function CooperativeFarmDetails() {
               </div>
 
               <div className='mb-6 flex items-start justify-between relative z-10'>
-                <div className='flex size-12 items-center justify-center rounded-2xl bg-brand/5 text-brand shadow-sm border border-brand/10'>
+                <div className='flex size-12 items-center justify-center rounded-md bg-brand/5 text-brand shadow-sm border border-brand/10'>
                   <CheckCircle2 className='size-6' />
                 </div>
                 <Badge
@@ -376,7 +376,7 @@ export default function CooperativeFarmDetails() {
           {filteredCycles.length === 0 && !isLoadingCycles && (
             <div className="col-span-full">
               <EmptyState
-                className="rounded-2xl border-2 border-dashed border-gray-100 bg-gray-50/20 py-16"
+                className="rounded-md border-2 border-dashed border-gray-100 bg-gray-50/20 py-16"
                 icon={<Package className="size-8 text-gray-300" />}
                 title="No crop cycles"
                 description="Start a crop cycle for this farm to record activities here."

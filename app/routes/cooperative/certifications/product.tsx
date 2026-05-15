@@ -315,7 +315,7 @@ export default function ProductCertificationPage() {
       {productsLoading && (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-72 animate-pulse rounded-2xl bg-gray-100" />
+            <div key={i} className="h-72 animate-pulse rounded-md bg-gray-100" />
           ))}
         </div>
       )}
@@ -336,10 +336,10 @@ export default function ProductCertificationPage() {
             return (
               <div
                 key={batch.id}
-                className="group relative rounded-2xl border border-gray-100 bg-white p-6 transition-all hover:border-brand/30 hover:shadow-lg overflow-hidden flex flex-col shadow-sm"
+                className="group relative rounded-md border border-gray-100 bg-white p-6 transition-all hover:border-brand/30 hover:shadow-lg overflow-hidden flex flex-col shadow-sm"
               >
                 <div className="flex items-start justify-between mb-6">
-                  <div className="rounded-2xl border border-gray-100 p-2 bg-white shadow-sm group-hover:scale-105 transition-transform">
+                  <div className="rounded-md border border-gray-100 p-2 bg-white shadow-sm group-hover:scale-105 transition-transform">
                     <QRCodeSVG value={qrValue} size={64} />
                   </div>
                   <div className="text-right flex flex-col items-end gap-1">
@@ -396,7 +396,7 @@ export default function ProductCertificationPage() {
 
       {filteredProducts.length === 0 && !productsLoading && products.length > 0 && (
         <EmptyState
-          className="rounded-2xl border border-dashed border-gray-100 py-16"
+          className="rounded-md border border-dashed border-gray-100 py-16"
           icon={<Package className="size-8 text-gray-300" />}
           title="No products match"
           description="Adjust search or farm and product filters."
@@ -455,7 +455,7 @@ export default function ProductCertificationPage() {
           <div className="relative z-10 w-full max-w-xl overflow-hidden rounded-3xl bg-white shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-300">
             <div className="p-8 border-b border-gray-50 flex items-start justify-between text-left">
               <div className="flex items-center gap-4">
-                <div className="size-12 rounded-2xl bg-brand/5 border border-brand/10 flex items-center justify-center text-brand">
+                <div className="size-12 rounded-md bg-brand/5 border border-brand/10 flex items-center justify-center text-brand">
                   <Package className="size-6" />
                 </div>
                 <div>
@@ -535,7 +535,7 @@ export default function ProductCertificationPage() {
                   onDragLeave={() => setDragOver(false)}
                   onDrop={handleFileDrop}
                   className={cn(
-                    'relative flex flex-col items-center justify-center rounded-2xl border-2 border-dashed p-8 transition-all cursor-pointer',
+                    'relative flex flex-col items-center justify-center rounded-md border-2 border-dashed p-8 transition-all cursor-pointer',
                     dragOver
                       ? 'border-brand bg-brand/5 scale-[0.98]'
                       : 'border-gray-100 bg-gray-50/30 hover:bg-white hover:border-brand/20',

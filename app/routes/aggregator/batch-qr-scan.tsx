@@ -4,6 +4,7 @@ import {
   CircleAlert,
   Eye,
   Gamepad2,
+  Loader2,
   PackageCheck,
   QrCode,
   Video,
@@ -22,7 +23,7 @@ import { useDraftLot } from '~/lib/aggregator/use-draft-lot'
 
 export default function AggregatorBatchQrScanPage() {
   const { batches } = useAggregatorIncomingBatches()
-  const { draftLotBatches, stats } = useDraftLot()
+  const { draftLotBatches, stats, addBatch, isAdding } = useDraftLot()
   const [cameraOn, setCameraOn] = useState(false)
   const [manualBatchNumber, setManualBatchNumber] = useState('')
 
@@ -33,40 +34,45 @@ export default function AggregatorBatchQrScanPage() {
     [batches, draftLotBatches],
   )
 
-  const handleSimulateScan = () => {
+  const handleSimulateScan = async () => {
     if (!nextScannableBatch) return
-    navigate(`/aggregator/batch/${nextScannableBatch.id}`)
+    try {
+      await addBatch(nextScannableBatch.batchIdentifier || nextScannableBatch.id)
+    } catch (err) {
+      // toast handled in addBatch
+    }
   }
 
-  const handleManualScan = (e: React.FormEvent) => {
+  const handleManualScan = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!manualBatchNumber.trim()) return
     const segment = parseBatchScannedText(manualBatchNumber)
     if (!segment) return
 
-    const foundBatch = batches.find(
-      (b) => b.batchIdentifier === segment || b.id === segment,
-    )
-
-    if (foundBatch) {
-      navigate(`/aggregator/batch/${foundBatch.id}`)
-    } else {
-      navigate(`/aggregator/batch/${encodeURIComponent(segment)}`)
+    try {
+      await addBatch(segment)
+      setManualBatchNumber('')
+    } catch (err) {
+      // toast handled in addBatch
     }
   }
 
   const handleQrDecoded = useCallback(
-    (text: string) => {
+    async (text: string) => {
       const segment = parseBatchScannedText(text)
       if (!segment) {
         toast.error('Could not read a batch id from this QR code.')
         return
       }
-      toast.success('Batch QR detected — opening details')
+
       setCameraOn(false)
-      navigate(`/aggregator/batch/${encodeURIComponent(segment)}`)
+      try {
+        await addBatch(segment)
+      } catch (err) {
+        // toast handled in addBatch
+      }
     },
-    [navigate],
+    [addBatch],
   )
 
   const handleCameraError = useCallback((message: string) => {
@@ -116,7 +122,7 @@ export default function AggregatorBatchQrScanPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Left Column: QR Scan Station & Lot Summary */}
         <div className="space-y-4">
-          <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+          <div className="rounded-md border border-gray-200 bg-white p-4 shadow-sm">
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center gap-2">
                 <div className="flex size-8 items-center justify-center rounded-md bg-gray-50 text-gray-400 border border-gray-100">
@@ -134,11 +140,10 @@ export default function AggregatorBatchQrScanPage() {
                   type="button"
                   variant="outline"
                   size="sm"
-                  className={`h-7 px-2 text-[9px] font-bold uppercase tracking-widest border-none shadow-sm ${
-                    cameraOn
+                  className={`h-7 px-2 text-[9px] font-bold uppercase tracking-widest border-none shadow-sm ${cameraOn
                       ? 'border border-red-200 bg-red-50 text-red-800 hover:bg-red-100'
                       : 'bg-[#1a4332] text-white hover:bg-[#1a4332]/90'
-                  }`}
+                    }`}
                   onClick={() => setCameraOn((v) => !v)}
                 >
                   {cameraOn ? (
@@ -173,6 +178,15 @@ export default function AggregatorBatchQrScanPage() {
                 onScannerError={handleCameraError}
                 className="min-h-[220px] md:min-h-[280px]"
               />
+
+              {isAdding && (
+                <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+                  <div className="flex flex-col items-center gap-3">
+                    <Loader2 className="size-8 animate-spin text-white" />
+                    <p className="text-[10px] font-bold text-white uppercase tracking-[0.2em]">Adding to Draft...</p>
+                  </div>
+                </div>
+              )}
             </div>
 
             <form onSubmit={handleManualScan} className="mt-4 flex flex-col gap-2 sm:flex-row">
@@ -186,9 +200,10 @@ export default function AggregatorBatchQrScanPage() {
               <Button
                 type="submit"
                 className="h-10 shrink-0 bg-brand px-4 font-bold text-white hover:bg-brand/90"
-                disabled={!manualBatchNumber.trim()}
+                disabled={!manualBatchNumber.trim() || isAdding}
               >
-                Open batch
+                {isAdding ? <Loader2 className="size-4 animate-spin mr-2" /> : null}
+                Add to draft
               </Button>
             </form>
 
@@ -221,7 +236,7 @@ export default function AggregatorBatchQrScanPage() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+          <div className="rounded-md border border-gray-200 bg-white p-4 shadow-sm">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xs font-bold text-gray-900 tracking-tight uppercase">Lot Summary</h3>
               <PackageCheck className="size-4 text-gray-400" />
@@ -249,13 +264,13 @@ export default function AggregatorBatchQrScanPage() {
         </div>
 
         {/* Right Column: Draft Lot List */}
-        <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm flex flex-col min-h-[500px]">
+        <div className="rounded-md border border-gray-200 bg-white p-5 shadow-sm flex flex-col min-h-[500px]">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-sm font-bold text-gray-900 tracking-tight uppercase">Draft Lot ({draftLotBatches.length})</h3>
           </div>
 
           {draftLotBatches.length === 0 ? (
-            <div className="flex-1 flex flex-col items-center justify-center text-center p-8 rounded-2xl border border-dashed border-gray-200 bg-gray-50/20">
+            <div className="flex-1 flex flex-col items-center justify-center text-center p-8 rounded-md border border-dashed border-gray-200 bg-gray-50/20">
               <div className="size-10 rounded-md bg-white border border-gray-100 flex items-center justify-center mb-4 shadow-sm">
                 <QrCode className="size-5 text-[#2e7d32]" />
               </div>
@@ -337,7 +352,7 @@ export default function AggregatorBatchQrScanPage() {
 
 function StatCard({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm hover:shadow-md transition-shadow group">
+    <div className="rounded-md border border-gray-200 bg-white p-6 shadow-sm hover:shadow-md transition-shadow group">
       <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400 mb-2 group-hover:text-[#2e7d32] transition-colors">{label}</p>
       <p className="text-3xl font-bold text-gray-900 tracking-tighter">{value}</p>
     </div>

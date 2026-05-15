@@ -1,4 +1,4 @@
-import { Globe, MapPin } from 'lucide-react'
+import { Globe } from 'lucide-react'
 import { FarmMap } from '~/components/farm-map.client'
 
 export function ReportGeolocation() {
@@ -16,7 +16,7 @@ export function ReportGeolocation() {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div className="lg:col-span-8">
-          <div className="relative aspect-[21/9] rounded-xl border border-gray-100 overflow-hidden bg-gray-50 group">
+          <div className="relative aspect-[21/9] rounded-md border border-gray-100 overflow-hidden bg-gray-50 group">
             <FarmMap farms={[]} className="size-full grayscale opacity-80" />
             <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur px-3 py-1.5 rounded-md border border-gray-100 shadow-sm">
               <p className="text-[10px] font-black text-gray-900 tracking-tighter uppercase">LAT: -18.3186 | LONG: 48.2772</p>

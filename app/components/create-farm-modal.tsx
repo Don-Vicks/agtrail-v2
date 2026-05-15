@@ -239,6 +239,9 @@ export function CreateFarmModal({ isOpen, onClose }: CreateFarmModalProps) {
 
   const queryClient = useQueryClient()
   const { mutate: createFarm, isPending } = usePostFarms({
+    request: {
+      headers: { 'X-Offline-Label': 'Create farm' }
+    },
     mutation: {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: [`/farms`] })

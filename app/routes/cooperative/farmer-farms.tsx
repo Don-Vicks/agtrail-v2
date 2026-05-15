@@ -64,7 +64,7 @@ export default function CooperativeFarmerFarms() {
       {/* High Density Farmer Summary */}
       <div className="rounded-md border border-gray-200 bg-white p-6 shadow-sm">
         <div className="flex items-center gap-5">
-          <div className="size-14 rounded-2xl overflow-hidden bg-gray-50 border-2 border-white shadow-sm ring-1 ring-gray-100">
+          <div className="size-14 rounded-md overflow-hidden bg-gray-50 border-2 border-white shadow-sm ring-1 ring-gray-100">
             <img
               src={farmer.avatar}
               alt={farmer.name}
@@ -133,7 +133,7 @@ export default function CooperativeFarmerFarms() {
 
         {/* Empty State Discovery */}
         <div className="rounded-md border border-gray-200 bg-white p-20 flex flex-col items-center justify-center text-center shadow-sm min-h-[360px]">
-          <div className="size-16 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center mb-6">
+          <div className="size-16 rounded-md bg-gray-50 border border-gray-100 flex items-center justify-center mb-6">
             <MapPin className="size-8 text-gray-200" />
           </div>
           <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-2 italic">No Farms Registered</h3>

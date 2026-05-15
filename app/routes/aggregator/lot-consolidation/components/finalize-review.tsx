@@ -18,7 +18,11 @@ export function FinalizeReview({ draftId, onBack, onFinalize }: FinalizeReviewPr
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const { stats, draftLotBatches } = useDraftLot()
-  const finalizeMutation = usePostAggregatorLotsDraftIdFinalise()
+  const finalizeMutation = usePostAggregatorLotsDraftIdFinalise({
+    request: {
+      headers: { 'X-Offline-Label': 'Finalize & create lot' }
+    }
+  } as any)
 
   const handleFinalize = async () => {
     if (!draftId) return

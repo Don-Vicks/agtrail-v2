@@ -257,17 +257,17 @@ export default function ViewCertificationsPage() {
         {/* Certification Registry Grid */}
         <div className="grid grid-cols-1 gap-6">
           {isLoading ? (
-            <div className="rounded-2xl border border-gray-100 p-12 text-center text-sm text-gray-500">
+            <div className="rounded-md border border-gray-100 p-12 text-center text-sm text-gray-500">
               Loading certifications...
             </div>
           ) : filteredCerts.length > 0 ? (
             filteredCerts.map((cert) => (
-              <div key={cert.id} className="group relative rounded-2xl border border-gray-100 bg-white p-6 transition-all hover:border-brand/30 hover:shadow-lg overflow-hidden flex flex-col sm:flex-row sm:items-center gap-8 shadow-sm">
+              <div key={cert.id} className="group relative rounded-md border border-gray-100 bg-white p-6 transition-all hover:border-brand/30 hover:shadow-lg overflow-hidden flex flex-col sm:flex-row sm:items-center gap-8 shadow-sm">
                 <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none transition-opacity group-hover:opacity-20 scale-125">
                   <ShieldCheck className="size-20 text-brand" />
                 </div>
 
-                <div className="shrink-0 size-16 rounded-2xl bg-brand/5 border border-brand/10 flex items-center justify-center text-brand relative z-10">
+                <div className="shrink-0 size-16 rounded-md bg-brand/5 border border-brand/10 flex items-center justify-center text-brand relative z-10">
                   <Award className="size-8" />
                 </div>
 
@@ -323,7 +323,7 @@ export default function ViewCertificationsPage() {
             ))
           ) : (
             <EmptyState
-              className="rounded-2xl border-2 border-dashed border-gray-100 py-16"
+              className="rounded-md border-2 border-dashed border-gray-100 py-16"
               icon={<Search className="size-8 text-gray-300" />}
               title="No certifications match filters"
               description="Try another search, status filter, or tab."

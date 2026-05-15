@@ -27,7 +27,7 @@ export default function ProcessorTransferHistory() {
           </div>
         </div>
 
-        <div className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+        <div className="rounded-md border border-gray-100 bg-white shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead className="bg-gray-50/50 border-b border-gray-100">

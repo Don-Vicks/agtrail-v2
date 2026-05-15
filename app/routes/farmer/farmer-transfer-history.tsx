@@ -11,14 +11,14 @@ export default function FarmerTransferHistory() {
           { label: 'Transfer History' },
         ]}
       />
-      
+
       <div className="space-y-8">
         <div>
           <h1 className="text-2xl font-extrabold text-[#1d3d1e] uppercase tracking-tight">Transfer History</h1>
           <p className="text-sm text-gray-500 font-medium mt-1">Review all your past product transfers and their status on the blockchain.</p>
         </div>
 
-        <div className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+        <div className="rounded-md border border-gray-100 bg-white shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead className="bg-gray-50/50 border-b border-gray-100">

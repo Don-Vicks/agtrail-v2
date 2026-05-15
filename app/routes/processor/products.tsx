@@ -11,6 +11,7 @@ import {
   Search,
   Send,
 } from 'lucide-react'
+import { QRCodeSVG } from 'qrcode.react'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router'
 import { EmptyState } from '~/components/empty-state'
@@ -19,14 +20,13 @@ import { ShareQRModal } from '~/components/share-qr-modal'
 import { StatCard } from '~/components/stat-card'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
+import type { BatchProduct, ProcessorBatch } from '~/lib/api/generated/models'
+import { ProcessorBatchStatus } from '~/lib/api/generated/models/processorBatchStatus'
 import { useGetProcessorsBatches } from '~/lib/api/generated/processors-batches/processors-batches'
 import { useGetProcessorsProducts } from '~/lib/api/generated/processors-products/processors-products'
-import { ProcessorBatchStatus } from '~/lib/api/generated/models/processorBatchStatus'
-import type { BatchProduct, ProcessorBatch } from '~/lib/api/generated/models'
 import { useGetTransfers } from '~/lib/api/generated/transfers/transfers'
 import { getClientOrganizationId, getOrganizationHeaders } from '~/lib/organization-context'
 import { cn } from '~/lib/utils'
-import { QRCodeSVG } from 'qrcode.react'
 import type { Route } from './+types/products'
 
 export function meta({ }: Route.MetaArgs) {
@@ -211,118 +211,118 @@ function InventoryTab() {
                 : ''
 
             return (
-            <div
-              key={item.id}
-              className='group relative rounded-2xl border border-gray-100 bg-white p-6 transition-all hover:border-brand/30 hover:shadow-lg overflow-hidden flex flex-col sm:flex-row sm:items-center gap-6 shadow-sm'
-            >
-              <div className='absolute top-0 right-0 p-4 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity pointer-events-none'>
-                <Package className='size-20' />
-              </div>
-
-              <div className='flex-shrink-0 size-14 rounded-2xl bg-brand/5 border border-brand/10 flex items-center justify-center text-brand transition-transform group-hover:scale-110'>
-                {primaryProduct && passportUrl ? (
-                  <button
-                    type='button'
-                    title='Open product passport (QR)'
-                    onClick={() =>
-                      setPassportModal({
-                        productId: primaryProduct.id,
-                        productName: primaryProduct.productName,
-                        batchNumber: primaryProduct.batchNumber,
-                      })
-                    }
-                    className='rounded-xl border border-brand/20 bg-white p-1 shadow-inner hover:border-brand/40'
-                  >
-                    <QRCodeSVG value={passportUrl} size={48} level='M' includeMargin={false} />
-                  </button>
-                ) : (
-                  <Package className='size-7' />
-                )}
-              </div>
-
-              <div className='flex-1 min-w-0 relative z-10 space-y-1'>
-                <div className='flex items-center gap-3 mb-1'>
-                  <h3 className='text-lg font-bold text-gray-900 uppercase tracking-tight group-hover:text-brand transition-colors'>
-                    {item.outputProductName}
-                  </h3>
-                  <Badge
-                    className={cn(
-                      'px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-widest border shadow-none',
-                      item.status?.toLowerCase() === 'completed'
-                        ? 'border-green-200 bg-green-50 text-emerald-600'
-                        : 'border-amber-200 bg-amber-50 text-amber-600',
-                    )}
-                  >
-                    {item.status || 'Draft'}
-                  </Badge>
+              <div
+                key={item.id}
+                className='group relative rounded-md border border-gray-100 bg-white p-6 transition-all hover:border-brand/30 hover:shadow-lg overflow-hidden flex flex-col sm:flex-row sm:items-center gap-6 shadow-sm'
+              >
+                <div className='absolute top-0 right-0 p-4 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity pointer-events-none'>
+                  <Package className='size-20' />
                 </div>
-                <div className='grid grid-cols-2 md:grid-cols-4 gap-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest italic pt-2 border-t border-gray-50'>
-                  <div className='space-y-1'>
-                    <span className='text-gray-300 block'>Batch ID</span>
-                    <span className='text-gray-900 block truncate'>
-                      {item.batchCode}
-                    </span>
+
+                <div className='flex-shrink-0 size-14 rounded-md bg-brand/5 border border-brand/10 flex items-center justify-center text-brand transition-transform group-hover:scale-110'>
+                  {primaryProduct && passportUrl ? (
+                    <button
+                      type='button'
+                      title='Open product passport (QR)'
+                      onClick={() =>
+                        setPassportModal({
+                          productId: primaryProduct.id,
+                          productName: primaryProduct.productName,
+                          batchNumber: primaryProduct.batchNumber,
+                        })
+                      }
+                      className='rounded-md border border-brand/20 bg-white p-1 shadow-inner hover:border-brand/40'
+                    >
+                      <QRCodeSVG value={passportUrl} size={48} level='M' includeMargin={false} />
+                    </button>
+                  ) : (
+                    <Package className='size-7' />
+                  )}
+                </div>
+
+                <div className='flex-1 min-w-0 relative z-10 space-y-1'>
+                  <div className='flex items-center gap-3 mb-1'>
+                    <h3 className='text-lg font-bold text-gray-900 uppercase tracking-tight group-hover:text-brand transition-colors'>
+                      {item.outputProductName}
+                    </h3>
+                    <Badge
+                      className={cn(
+                        'px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-widest border shadow-none',
+                        item.status?.toLowerCase() === 'completed'
+                          ? 'border-green-200 bg-green-50 text-emerald-600'
+                          : 'border-amber-200 bg-amber-50 text-amber-600',
+                      )}
+                    >
+                      {item.status || 'Draft'}
+                    </Badge>
                   </div>
-                  <div className='space-y-1'>
-                    <span className='text-gray-300 block'>Category</span>
-                    <span className='text-gray-900 block not-italic'>
-                      {item.outputProductType}
-                    </span>
-                  </div>
-                  <div className='space-y-1'>
-                    <span className='text-gray-300 block'>Quantity</span>
-                    <span className='text-gray-900 block not-italic'>
-                      {primaryProduct
-                        ? `${primaryProduct.quantityAvailable} ${primaryProduct.unit}`
-                        : isCompleted
-                          ? '—'
-                          : 'Pending'}
-                    </span>
-                  </div>
-                  <div className='space-y-1'>
-                    <span className='text-gray-300 block'>Date</span>
-                    <span className='text-gray-900 block not-italic'>
-                      {new Date(item.createdAt).toLocaleDateString()}
-                    </span>
+                  <div className='grid grid-cols-2 md:grid-cols-4 gap-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest italic pt-2 border-t border-gray-50'>
+                    <div className='space-y-1'>
+                      <span className='text-gray-300 block'>Batch ID</span>
+                      <span className='text-gray-900 block truncate'>
+                        {item.batchCode}
+                      </span>
+                    </div>
+                    <div className='space-y-1'>
+                      <span className='text-gray-300 block'>Category</span>
+                      <span className='text-gray-900 block not-italic'>
+                        {item.outputProductType}
+                      </span>
+                    </div>
+                    <div className='space-y-1'>
+                      <span className='text-gray-300 block'>Quantity</span>
+                      <span className='text-gray-900 block not-italic'>
+                        {primaryProduct
+                          ? `${primaryProduct.quantityAvailable} ${primaryProduct.unit}`
+                          : isCompleted
+                            ? '—'
+                            : 'Pending'}
+                      </span>
+                    </div>
+                    <div className='space-y-1'>
+                      <span className='text-gray-300 block'>Date</span>
+                      <span className='text-gray-900 block not-italic'>
+                        {new Date(item.createdAt).toLocaleDateString()}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className='relative z-10 flex flex-wrap items-center gap-2'>
-                {primaryProduct ? (
-                  <Link to={`/processor/products/${primaryProduct.id}`}>
+                <div className='relative z-10 flex flex-wrap items-center gap-2'>
+                  {primaryProduct ? (
+                    <Link to={`/processor/products/${primaryProduct.id}`}>
+                      <Button
+                        variant='ghost'
+                        size='sm'
+                        className='h-10 px-3 text-[10px] font-bold uppercase tracking-widest text-brand hover:bg-brand/5 gap-2'
+                      >
+                        <BookOpen className='size-3.5' />
+                        View story
+                      </Button>
+                    </Link>
+                  ) : (
                     <Button
                       variant='ghost'
                       size='sm'
-                      className='h-10 px-3 text-[10px] font-bold uppercase tracking-widest text-brand hover:bg-brand/5 gap-2'
+                      disabled
+                      title='Complete packaging on the batch to create a batch product and unlock the story.'
+                      className='h-10 px-3 text-[10px] font-bold uppercase tracking-widest text-gray-400 gap-2'
                     >
                       <BookOpen className='size-3.5' />
                       View story
                     </Button>
-                  </Link>
-                ) : (
+                  )}
                   <Button
-                    variant='ghost'
                     size='sm'
-                    disabled
-                    title='Complete packaging on the batch to create a batch product and unlock the story.'
-                    className='h-10 px-3 text-[10px] font-bold uppercase tracking-widest text-gray-400 gap-2'
+                    disabled={isCompleted}
+                    title={isCompleted ? 'Transfers are locked for completed batches in this view.' : undefined}
+                    className='bg-[#1b3d1e] hover:bg-black text-white h-10 px-5 font-bold uppercase tracking-widest text-[10px] gap-2 shadow-sm disabled:opacity-40'
                   >
-                    <BookOpen className='size-3.5' />
-                    View story
+                    <Send className='size-3.5' />
+                    Transfer
                   </Button>
-                )}
-                <Button
-                  size='sm'
-                  disabled={isCompleted}
-                  title={isCompleted ? 'Transfers are locked for completed batches in this view.' : undefined}
-                  className='bg-[#1b3d1e] hover:bg-black text-white h-10 px-5 font-bold uppercase tracking-widest text-[10px] gap-2 shadow-sm disabled:opacity-40'
-                >
-                  <Send className='size-3.5' />
-                  Transfer
-                </Button>
+                </div>
               </div>
-            </div>
             )
           })
         )}
@@ -484,7 +484,7 @@ function TransfersTab() {
           </div>
 
           {hasActiveFilters && (
-           <Button
+            <Button
               variant='ghost'
               className='h-11 px-4 text-red-500 font-bold uppercase tracking-widest text-[10px] hover:bg-red-50 gap-2'
               onClick={clearFilters}
@@ -513,7 +513,7 @@ function TransfersTab() {
           paginatedTransfers.map((trf) => (
             <div
               key={trf.id}
-              className='flex flex-col md:flex-row items-start md:items-center justify-between p-6 bg-white border border-gray-100 rounded-2xl shadow-sm hover:border-brand/20 transition-all group gap-6'
+              className='flex flex-col md:flex-row items-start md:items-center justify-between p-6 bg-white border border-gray-100 rounded-md shadow-sm hover:border-brand/20 transition-all group gap-6'
             >
               <div className='flex-1 w-full md:w-auto'>
                 <div className='flex items-center gap-3 mb-3'>

@@ -199,6 +199,9 @@ export function StartCropCycleModal({
 
   const queryClient = useQueryClient()
   const { mutate: createCropCycle, isPending } = usePostFarmsIdCropCycles({
+    request: {
+      headers: { 'X-Offline-Label': 'Start crop cycle' }
+    },
     mutation: {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: [`/farms/${farmId}`] })

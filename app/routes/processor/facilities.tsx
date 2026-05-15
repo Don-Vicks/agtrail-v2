@@ -377,7 +377,7 @@ export default function ProcessorFacilitiesPage() {
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1, 2, 3].map(i => (
-            <div key={i} className="h-48 rounded-2xl border border-gray-100 bg-gray-50/50 animate-pulse" />
+            <div key={i} className="h-48 rounded-md border border-gray-100 bg-gray-50/50 animate-pulse" />
           ))}
         </div>
       ) : isError ? (
@@ -386,7 +386,7 @@ export default function ProcessorFacilitiesPage() {
           title="Could not load facilities"
           description="Please check your organization context and try again."
           action={{ label: 'Retry', onClick: () => refetch() }}
-          className="py-16 bg-white rounded-2xl border border-red-100 shadow-sm"
+          className="py-16 bg-white rounded-md border border-red-100 shadow-sm"
         />
       ) : facilities.length === 0 ? (
         <EmptyState
@@ -401,21 +401,21 @@ export default function ProcessorFacilitiesPage() {
               setIsModalOpen(true)
             },
           }}
-          className="py-16 bg-white rounded-2xl border border-gray-100 shadow-sm"
+          className="py-16 bg-white rounded-md border border-gray-100 shadow-sm"
         />
       ) : filteredAndSorted.length === 0 ? (
         <EmptyState
           icon={<Building2 className="size-12" />}
           title="No facilities matches your criteria"
           description="Try adjusting your filters or search query to find more results."
-          className="py-16 bg-white rounded-2xl border border-gray-100 shadow-sm"
+          className="py-16 bg-white rounded-md border border-gray-100 shadow-sm"
         />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredAndSorted.map((facility) => (
             <div
               key={facility.id}
-              className="group relative rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition-all duration-300 hover:shadow-xl hover:-translate-y-1 hover:border-brand/20"
+              className="group relative rounded-md border border-gray-100 bg-white p-5 shadow-sm transition-all duration-300 hover:shadow-xl hover:-translate-y-1 hover:border-brand/20"
             >
               <div className="flex justify-between items-start mb-4">
                 <div className="flex items-center gap-3">

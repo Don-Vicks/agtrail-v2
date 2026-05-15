@@ -1,9 +1,10 @@
-import { useCallback, useMemo, useState } from 'react'
-import { GoogleMap, InfoWindow, Marker, Polygon, useJsApiLoader } from '@react-google-maps/api'
-import { getGoogleMapsApiKey, NIGERIA_ROUGH_CENTER } from '~/lib/google-maps'
+import { useCallback, useMemo, useState, useRef, useEffect } from 'react'
+import { GoogleMap, InfoWindow, Polygon, useJsApiLoader } from '@react-google-maps/api'
+import { getGoogleMapsApiKey, NIGERIA_ROUGH_CENTER, DEFAULT_MAP_ID } from '~/lib/google-maps'
 import { MapPin, Maximize2 } from 'lucide-react'
 
 const loaderId = 'argolinking-google-maps'
+const libraries: ("marker" | "drawing" | "geometry" | "localContext" | "places" | "visualization")[] = ['marker']
 
 interface FarmLocation {
   id: string
@@ -36,12 +37,59 @@ const polygonOptions = {
   zIndex: 1
 }
 
+function AdvancedMarker({ map, position, onClick, title }: { 
+  map?: google.maps.Map | null, 
+  position: google.maps.LatLngLiteral, 
+  onClick?: () => void,
+  title?: string
+}) {
+  const markerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
+
+  useEffect(() => {
+    if (!map || !google.maps.marker?.AdvancedMarkerElement) return;
+
+    if (!markerRef.current) {
+      // Create a custom pin element
+      const pinElement = new google.maps.marker.PinElement({
+        background: '#2e7d32',
+        borderColor: '#ffffff',
+        glyphColor: '#ffffff',
+        scale: 1.2,
+      });
+
+      markerRef.current = new google.maps.marker.AdvancedMarkerElement({
+        map,
+        position,
+        title,
+        content: pinElement.element,
+      });
+
+      if (onClick) {
+        markerRef.current.addListener('click', onClick);
+      }
+    } else {
+      markerRef.current.position = position;
+    }
+
+    return () => {
+      if (markerRef.current) {
+        markerRef.current.map = null;
+        markerRef.current = null;
+      }
+    };
+  }, [map, position, title, onClick]);
+
+  return null;
+}
+
 function FarmMapLoaded({ farms, className, apiKey }: FarmMapProps & { apiKey: string }) {
   const { isLoaded, loadError } = useJsApiLoader({
     id: loaderId,
     googleMapsApiKey: apiKey,
+    libraries,
   })
   const [openInfoId, setOpenInfoId] = useState<FarmId | null>(null)
+  const [map, setMap] = useState<google.maps.Map | null>(null)
 
   const totalHectares = useMemo(() => farms.reduce((acc, f) => acc + f.hectares, 0), [farms])
 
@@ -61,6 +109,7 @@ function FarmMapLoaded({ farms, className, apiKey }: FarmMapProps & { apiKey: st
       mapTypeControl: false,
       fullscreenControl: false,
       zoomControl: true,
+      mapId: DEFAULT_MAP_ID,
       styles: [
         {
           featureType: 'all',
@@ -72,10 +121,11 @@ function FarmMapLoaded({ farms, className, apiKey }: FarmMapProps & { apiKey: st
     []
   )
 
-  const onMapLoad = useCallback((map: google.maps.Map) => {
+  const onMapLoad = useCallback((mapInstance: google.maps.Map) => {
+    setMap(mapInstance)
     window.setTimeout(() => {
       if (window.google?.maps?.event) {
-        window.google.maps.event.trigger(map, 'resize')
+        window.google.maps.event.trigger(mapInstance, 'resize')
       }
     }, 200)
   }, [])
@@ -142,36 +192,32 @@ function FarmMapLoaded({ farms, className, apiKey }: FarmMapProps & { apiKey: st
                 options={polygonOptions}
               />
             )}
-            <Marker
+            <AdvancedMarker
+              map={map}
               position={{ lat: farm.lat, lng: farm.lng }}
               onClick={() => setOpenInfoId(farm.id)}
-              icon={{
-                path: 'M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z',
-                fillColor: '#2e7d32',
-                fillOpacity: 1,
-                strokeWeight: 1,
-                strokeColor: '#ffffff',
-                scale: 1.2,
-              }}
-            >
-              {openInfoId === farm.id && (
-                <InfoWindow onCloseClick={() => setOpenInfoId(null)}>
-                  <div className="p-1 min-w-0 max-w-[220px]">
-                    <div className="flex items-center gap-2 mb-1">
-                      <MapPin className="size-3 text-[#2e7d32]" />
-                      <h3 className="text-sm font-extrabold text-[#1a4332]">{farm.name}</h3>
-                    </div>
-                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-2">{farm.location}</p>
-                    <div className="bg-gray-50 p-2 rounded border border-gray-100">
-                      <div className="flex justify-between text-[10px]">
-                        <span className="text-gray-400 font-bold uppercase">Size</span>
-                        <span className="font-extrabold text-[#2e7d32]">{farm.hectares} Ha</span>
-                      </div>
+              title={farm.name}
+            />
+            {openInfoId === farm.id && (
+              <InfoWindow 
+                position={{ lat: farm.lat, lng: farm.lng }}
+                onCloseClick={() => setOpenInfoId(null)}
+              >
+                <div className="p-1 min-w-0 max-w-[220px]">
+                  <div className="flex items-center gap-2 mb-1">
+                    <MapPin className="size-3 text-[#2e7d32]" />
+                    <h3 className="text-sm font-extrabold text-[#1a4332]">{farm.name}</h3>
+                  </div>
+                  <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-2">{farm.location}</p>
+                  <div className="bg-gray-50 p-2 rounded border border-gray-100">
+                    <div className="flex justify-between text-[10px]">
+                      <span className="text-gray-400 font-bold uppercase">Size</span>
+                      <span className="font-extrabold text-[#2e7d32]">{farm.hectares} Ha</span>
                     </div>
                   </div>
-                </InfoWindow>
-              )}
-            </Marker>
+                </div>
+              </InfoWindow>
+            )}
           </div>
         ))}
       </GoogleMap>

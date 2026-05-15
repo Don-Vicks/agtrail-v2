@@ -5,13 +5,12 @@ import {
   Clock,
   Download,
   Eye,
-  LayoutDashboard,
   Mail,
   Plus,
   Search,
   Trash2,
   UserCheck,
-  Users,
+  Users
 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router'
@@ -292,7 +291,7 @@ export default function CooperativeFarmers() {
             </div>
 
             <div className='relative mb-6'>
-              <div className='size-24 rounded-2xl overflow-hidden bg-gray-50 border-2 border-white shadow-sm ring-1 ring-gray-100'>
+              <div className='size-24 rounded-md overflow-hidden bg-gray-50 border-2 border-white shadow-sm ring-1 ring-gray-100'>
                 <img
                   src={
                     member.profilePhotoUrl ||
