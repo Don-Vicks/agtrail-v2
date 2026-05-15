@@ -208,13 +208,20 @@ export const customFetch = async <T>(
   const body = options?.body
   const isFormData =
     typeof FormData !== 'undefined' && body instanceof FormData
-  const mergedHeaders = {
+  const mergedHeaders: Record<string, string> = {
     ...(!isFormData ? { 'Content-Type': 'application/json' } : {}),
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...(organizationId && shouldAttachOrganizationIdHeader(cleanPath)
       ? { 'X-Organization-Id': organizationId }
       : {}),
     ...headersToRecord(options?.headers),
+  }
+
+  // Extract offline label if provided
+  const offlineLabel = mergedHeaders['X-Offline-Label'] || mergedHeaders['x-offline-label']
+  if (offlineLabel) {
+    delete mergedHeaders['X-Offline-Label']
+    delete mergedHeaders['x-offline-label']
   }
 
   if (typeof navigator !== 'undefined' && !navigator.onLine) {
@@ -258,6 +265,7 @@ export const customFetch = async <T>(
               : undefined,
         organizationId: organizationId ?? null,
         idempotencyKey,
+        label: offlineLabel,
       })
 
       if (DEBUG_API) {
@@ -315,6 +323,7 @@ export const customFetch = async <T>(
               : undefined,
         organizationId: organizationId ?? null,
         idempotencyKey,
+        label: offlineLabel,
       })
 
       if (DEBUG_API) {

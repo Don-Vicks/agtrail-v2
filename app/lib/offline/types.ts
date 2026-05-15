@@ -10,6 +10,7 @@ export type OfflineQueueAction = {
   idempotencyKey: string
   lastError?: string
   failed?: boolean
+  label?: string
 }
 
 export type OfflineSyncSummary = {

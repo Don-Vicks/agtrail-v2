@@ -1,24 +1,38 @@
 import { OFFLINE_QUEUE_POLL_INTERVAL_MS, OFFLINE_QUEUE_STORAGE_KEY } from './constants'
 import type { OfflineQueueAction } from './types'
 
+// In-memory queue to avoid constant localStorage parsing
+let memoryQueue: OfflineQueueAction[] | null = null
+
 function isBrowser() {
   return typeof window !== 'undefined'
 }
 
 function readQueueRaw(): OfflineQueueAction[] {
   if (!isBrowser()) return []
+  
+  // Use memory queue if already loaded
+  if (memoryQueue) return memoryQueue
+
   const raw = localStorage.getItem(OFFLINE_QUEUE_STORAGE_KEY)
-  if (!raw) return []
+  if (!raw) {
+    memoryQueue = []
+    return memoryQueue
+  }
+  
   try {
     const parsed = JSON.parse(raw) as OfflineQueueAction[]
-    return Array.isArray(parsed) ? parsed : []
+    memoryQueue = Array.isArray(parsed) ? parsed : []
+    return memoryQueue
   } catch {
-    return []
+    memoryQueue = []
+    return memoryQueue
   }
 }
 
 function writeQueueRaw(actions: OfflineQueueAction[]) {
   if (!isBrowser()) return
+  memoryQueue = actions
   localStorage.setItem(OFFLINE_QUEUE_STORAGE_KEY, JSON.stringify(actions))
 }
 
@@ -50,7 +64,7 @@ export function enqueueOfflineAction(
     timestamp: Date.now(),
     retries: 0,
   }
-  const queue = readQueueRaw()
+  const queue = [...readQueueRaw()] // Copy to avoid mutation issues
   queue.push(next)
   writeQueueRaw(queue)
   return next
@@ -60,7 +74,7 @@ export function updateOfflineAction(
   actionId: string,
   patch: Partial<OfflineQueueAction>,
 ): OfflineQueueAction | null {
-  const queue = readQueueRaw()
+  const queue = [...readQueueRaw()]
   const idx = queue.findIndex((item) => item.id === actionId)
   if (idx === -1) return null
   queue[idx] = { ...queue[idx], ...patch }
@@ -69,7 +83,7 @@ export function updateOfflineAction(
 }
 
 export function removeOfflineAction(actionId: string): void {
-  const queue = readQueueRaw()
+  const queue = [...readQueueRaw()]
   const next = queue.filter((item) => item.id !== actionId)
   writeQueueRaw(next)
 }
@@ -81,7 +95,11 @@ export function subscribeOfflineQueue(
 
   const emit = () => onChange(readQueueRaw())
   const onStorage = (event: StorageEvent) => {
-    if (event.key === OFFLINE_QUEUE_STORAGE_KEY) emit()
+    if (event.key === OFFLINE_QUEUE_STORAGE_KEY) {
+      // Force reload from localStorage on external change
+      memoryQueue = null 
+      emit()
+    }
   }
 
   window.addEventListener('storage', onStorage)

@@ -1,5 +1,4 @@
-export const DEFAULT_ORGANIZATION_ID =
-  import.meta.env.VITE_DEFAULT_ORGANIZATION_ID ?? ''
+export const DEFAULT_ORGANIZATION_ID = ''
 
 function decodeJwtPayload(token: string): Record<string, unknown> | null {
   const parts = token.split('.')
@@ -52,7 +51,7 @@ export function getClientOrganizationId(): string | null {
     }
   }
 
-  return DEFAULT_ORGANIZATION_ID || null
+  return null
 }
 
 export function getOrganizationHeaders(): Record<string, string> {

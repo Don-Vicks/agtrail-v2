@@ -10,29 +10,57 @@ function formatTime(timestamp: number) {
   return new Date(timestamp).toLocaleString()
 }
 
-function toFriendlyActionLabel(method: string, url: string) {
+function toFriendlyActionLabel(item: any) {
+  if (item.label) return item.label
+
+  const method = item.method
+  const url = item.url
   const normalized = url.toLowerCase()
 
-  if (method === 'POST' && normalized === '/processors/batches') {
-    return 'Create processing batch'
-  }
+  // Aggregator & Processor Batches
+  if (method === 'POST' && normalized.includes('/aggregator/lots/draft/scan-batch')) return 'Draft new lot'
+  if (method === 'POST' && normalized === '/processors/batches') return 'Create processing batch'
+  if (method === 'POST' && normalized.includes('/processors/batches/') && normalized.includes('/processing-steps')) return 'Add processing step'
+  if (method === 'POST' && normalized.includes('/processors/batches/') && normalized.includes('/products')) return 'Add processed product'
+  if (method === 'POST' && normalized.includes('/processors/batches/') && normalized.includes('/input-materials')) return 'Add input material'
+  if (method === 'PUT' && normalized.includes('/processors/batches/') && normalized.endsWith('/status')) return 'Update batch status'
 
-  if (method === 'POST' && /\/farms\/[^/]+\/operations$/.test(normalized)) {
-    return 'Record farm operation'
-  }
+  // Farms & Crop Cycles
+  if (method === 'POST' && normalized === '/farms') return 'Create farm'
+  if (method === 'POST' && /\/farms\/[^/]+\/crop-cycles$/.test(normalized)) return 'Start crop cycle'
+  if (method === 'POST' && /\/farms\/[^/]+\/operations$/.test(normalized)) return 'Record farm operation'
 
-  if (method === 'POST' && /\/farms\/[^/]+\/crop-cycles$/.test(normalized)) {
-    return 'Start crop cycle'
-  }
+  // Products & Inventory
+  if (method === 'POST' && normalized === '/farmers/products') return 'Create farmer product'
+  if (method === 'POST' && normalized === '/supplies/inventory') return 'Add inventory item'
+  if (method === 'PATCH' && normalized.includes('/supplies/inventory/')) return 'Update inventory item'
+  if (method === 'DELETE' && normalized.includes('/supplies/inventory/')) return 'Remove inventory item'
 
-  if (method === 'POST' && normalized === '/farms') {
-    return 'Create farm'
-  }
+  // Personnel
+  if (method === 'POST' && normalized === '/personnel') return 'Add personnel'
+  if (method === 'PATCH' && normalized.includes('/personnel/')) return 'Update personnel'
+  if (method === 'DELETE' && normalized.includes('/personnel/')) return 'Remove personnel'
 
-  if (method === 'POST' && normalized.includes('/certifications')) {
-    return 'Submit certification'
-  }
+  // Finance & Purchases
+  if (method === 'POST' && normalized === '/purchases') return 'Record purchase'
 
+  // Certifications & Uploads
+  if (method === 'POST' && normalized.includes('/certifications')) return 'Submit certification'
+  if (method === 'POST' && normalized === '/upload') return 'Upload document'
+
+  // Field Agent
+  if (method === 'POST' && normalized === '/field-agents/check-ins') return 'Submit farm check-in'
+  if (method === 'POST' && normalized === '/field-agents/observations') return 'Submit observation'
+  if (method === 'POST' && normalized === '/field-agents/harvest-approvals') return 'Submit harvest approval'
+
+  // Transfers
+  if (method === 'POST' && normalized === '/transfers') return 'Initiate transfer'
+  if (method === 'PATCH' && normalized.includes('/transfers/') && normalized.endsWith('/status')) return 'Update transfer status'
+
+  // Compliance
+  if (method === 'POST' && normalized.includes('/deforestation/analyze')) return 'Analyze deforestation risk'
+
+  // Generic fallbacks
   if (method === 'POST') return 'Create record'
   if (method === 'PATCH' || method === 'PUT') return 'Update record'
   if (method === 'DELETE') return 'Delete record'
@@ -98,7 +126,7 @@ export function PendingActionsDialog({ isOpen, onClose }: PendingActionsDialogPr
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <p className="text-sm font-semibold text-gray-900">
-                      {toFriendlyActionLabel(item.method, item.url)}
+                      {toFriendlyActionLabel(item)}
                     </p>
                     <p className="text-xs text-gray-600">
                       Queued: {formatTime(item.timestamp)} · Retries: {item.retries}

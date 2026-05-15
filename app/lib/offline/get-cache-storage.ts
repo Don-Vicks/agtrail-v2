@@ -8,24 +8,40 @@ type CachedGetEntry = {
 
 type GetCacheStore = Record<string, CachedGetEntry>
 
+// In-memory cache to avoid constant localStorage parsing
+let memoryStore: GetCacheStore | null = null
+
 function isBrowser() {
   return typeof window !== 'undefined'
 }
 
 function readStore(): GetCacheStore {
   if (!isBrowser()) return {}
+  
+  // Use memory store if already loaded
+  if (memoryStore) return memoryStore
+
   const raw = localStorage.getItem(OFFLINE_GET_CACHE_STORAGE_KEY)
-  if (!raw) return {}
+  if (!raw) {
+    memoryStore = {}
+    return memoryStore
+  }
+  
   try {
     const parsed = JSON.parse(raw) as GetCacheStore
-    return parsed && typeof parsed === 'object' ? parsed : {}
+    memoryStore = parsed && typeof parsed === 'object' ? parsed : {}
+    return memoryStore
   } catch {
-    return {}
+    memoryStore = {}
+    return memoryStore
   }
 }
 
 function writeStore(store: GetCacheStore) {
   if (!isBrowser()) return
+  memoryStore = store
+  // Use a slight delay or throttle if this becomes too frequent, 
+  // but for now, updating memory store immediately is the key.
   localStorage.setItem(OFFLINE_GET_CACHE_STORAGE_KEY, JSON.stringify(store))
 }
 
