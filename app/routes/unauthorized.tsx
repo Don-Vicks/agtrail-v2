@@ -16,6 +16,8 @@ export default function UnauthorizedPage() {
   else if (role === 'transporter') dashboardPath = '/transporter';
   else if (role === 'field-agent') dashboardPath = '/field-agent';
   else if (role === 'cooperative') dashboardPath = '/cooperative';
+  else if (role === 'exporter') dashboardPath = '/exporter';
+  else if (role === 'regulator') dashboardPath = '/regulator';
   else if (role === 'admin') dashboardPath = '/admin';
 
   const handleSwitchAccount = () => {

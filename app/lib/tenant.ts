@@ -6,6 +6,8 @@ export type TenantRole =
   | 'cooperative'
   | 'aggregator'
   | 'transporter'
+  | 'exporter'
+  | 'regulator'
   | 'field-agent'
 
 export function getTenantFromPathname(pathname: string): TenantRole {
@@ -14,6 +16,8 @@ export function getTenantFromPathname(pathname: string): TenantRole {
   if (pathname.startsWith('/processor')) return 'processor'
   if (pathname.startsWith('/cooperative')) return 'cooperative'
   if (pathname.startsWith('/transporter')) return 'transporter'
+  if (pathname.startsWith('/exporter')) return 'exporter'
+  if (pathname.startsWith('/regulator')) return 'regulator'
   return 'farmer'
 }
 
@@ -23,6 +27,8 @@ export function getTenantSelectValue(role: TenantRole): string {
   if (role === 'processor') return 'Processor'
   if (role === 'cooperative') return 'Cooperative'
   if (role === 'transporter') return 'Transporter'
+  if (role === 'exporter') return 'Exporter'
+  if (role === 'regulator') return 'Regulator'
   return 'Farmer'
 }
 
@@ -58,6 +64,20 @@ export function getTenantOperationAction(role: TenantRole) {
     return {
       href: '/transporter/transfer/product-transfer',
       label: 'View Offers',
+    }
+  }
+
+  if (role === 'exporter') {
+    return {
+      href: '/exporter/record-operation',
+      label: 'Record Operation',
+    }
+  }
+  
+  if (role === 'regulator') {
+    return {
+      href: '/regulator/reports',
+      label: 'Generate Reports',
     }
   }
 

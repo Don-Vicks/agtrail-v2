@@ -11,6 +11,8 @@ import { cooperativeRoutes } from './routes/cooperative/cooperative-routes'
 import { aggregatorRoutes } from './routes/aggregator/aggregator-routes'
 import { fieldAgentRoutes } from './routes/field-agent/field-agent-routes'
 import { transporterRoutes } from './routes/transporter/transporter-routes'
+import { regulatorRoutes } from './routes/regulator/regulator-routes'
+import { exporterRoutes } from './routes/exporter/exporter-routes'
 
 // Triggering re-build for new routes - v3
 
@@ -44,5 +46,11 @@ export default [
   ...fieldAgentRoutes as any,
 
   // Transporter tenant
-  ...transporterRoutes,
+  ...transporterRoutes as any,
+
+  // Regulator tenant
+  ...regulatorRoutes as any,
+
+  // Exporter tenant
+  ...exporterRoutes as any,
 ] satisfies RouteConfig
