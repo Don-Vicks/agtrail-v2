@@ -66,7 +66,7 @@ export function PickupHandoffQRModal({ isOpen, onClose, transfer }: PickupHandof
 
   return (
     <Dialog open={Boolean(isOpen && transfer)} onOpenChange={(open) => { if (!open) onClose() }}>
-      <DialogContent className="sm:max-w-md w-[95vw] bg-white p-0 overflow-hidden border-none shadow-2xl rounded-2xl max-h-[90vh] flex flex-col">
+      <DialogContent className="sm:max-w-md w-[95vw] bg-white p-0 overflow-hidden border-none shadow-2xl rounded-md max-h-[90vh] flex flex-col">
         <div className="bg-[#1d3d1e] p-6 sm:p-8 text-center text-white relative shrink-0">
           <button
             type="button"
@@ -77,7 +77,7 @@ export function PickupHandoffQRModal({ isOpen, onClose, transfer }: PickupHandof
             <X className="size-5" />
           </button>
 
-          <div className="mx-auto size-16 sm:size-20 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center mb-4">
+          <div className="mx-auto size-16 sm:size-20 rounded-md bg-white/10 backdrop-blur-md flex items-center justify-center mb-4">
             <Truck className="size-8 sm:size-10 text-white" />
           </div>
 
@@ -108,14 +108,14 @@ export function PickupHandoffQRModal({ isOpen, onClose, transfer }: PickupHandof
               </p>
             ) : showLoading ? (
               <div
-                className="flex size-[min(280px,72vw)] items-center justify-center rounded-2xl border border-gray-100 bg-gray-50"
+                className="flex size-[min(280px,72vw)] items-center justify-center rounded-md border border-gray-100 bg-gray-50"
                 aria-busy="true"
                 aria-label="Loading QR code"
               >
                 <div className="size-10 rounded-full border-2 border-brand border-t-transparent animate-spin" />
               </div>
             ) : (
-              <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-gray-100">
+              <div className="bg-white p-4 sm:p-6 rounded-md shadow-sm border border-gray-100">
                 <QRCodeSVG
                   id="pickup-handoff-qr-svg"
                   value={handoffUrl}
@@ -136,7 +136,7 @@ export function PickupHandoffQRModal({ isOpen, onClose, transfer }: PickupHandof
           <div className="space-y-4">
             <div className="space-y-2">
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Pickup link</label>
-              <div className="flex items-center gap-2 p-1 pl-4 rounded-xl border border-gray-100 bg-gray-50/50">
+              <div className="flex items-center gap-2 p-1 pl-4 rounded-md border border-gray-100 bg-gray-50/50">
                 <span className="flex-1 text-[11px] sm:text-xs font-bold text-gray-500 truncate mr-2">
                   {handoffUrl || (showLoading ? 'Preparing link…' : '—')}
                 </span>
@@ -157,7 +157,7 @@ export function PickupHandoffQRModal({ isOpen, onClose, transfer }: PickupHandof
               type="button"
               onClick={onClose}
               variant="outline"
-              className="h-12 w-full border-gray-200 text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all"
+              className="h-12 w-full border-gray-200 text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-md font-black uppercase tracking-widest text-[10px] transition-all"
             >
               Close
             </Button>

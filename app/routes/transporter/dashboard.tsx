@@ -1,12 +1,11 @@
-import { CheckCircle2, Eye, MapPin, Truck, ChevronRight } from 'lucide-react'
+import { CheckCircle2, Eye, MapPin, Truck } from 'lucide-react'
 import { useState } from 'react'
-import { Button } from '~/components/ui/button'
 import { PageHeader } from '~/components/page-header'
-import { Dialog, DialogContent } from '~/components/ui/dialog'
 import { Badge } from '~/components/ui/badge'
-import { BATCHES, VERIFIED_EVENTS, SHIPMENTS } from '~/lib/mock-data/transporter'
+import { Button } from '~/components/ui/button'
+import { Dialog, DialogContent } from '~/components/ui/dialog'
+import { BATCHES, SHIPMENTS, VERIFIED_EVENTS } from '~/lib/mock-data/transporter'
 import type { Route } from './+types/dashboard'
-import { cn } from '~/lib/utils'
 
 export function meta({ }: Route.MetaArgs) {
   return [
@@ -80,7 +79,7 @@ export default function TransporterDashboard() {
                   <td className='px-6 py-4 text-emerald-600 font-bold text-[13px]'>{batch.weight}</td>
                   <td className='px-6 py-4'>
                     <div className='flex items-center gap-6'>
-                      <Button 
+                      <Button
                         onClick={() => setShowPickupModal(true)}
                         className='bg-brand-dark hover:bg-black text-white font-bold text-[11px] uppercase tracking-widest px-8 h-9 rounded-md shadow-md active:scale-95 transition-all'
                       >
@@ -104,18 +103,18 @@ export default function TransporterDashboard() {
           <div className='size-2 rounded-full bg-gray-400'></div>
           <h2 className='text-[11px] font-bold text-gray-900 uppercase tracking-widest'>Verified Events</h2>
         </div>
-        <div className='grid grid-cols-1 md:grid-cols-3 gap-8'>
+        <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
           {VERIFIED_EVENTS.map((event) => (
-            <div key={event.id} className='flex items-center gap-4'>
-              <div className='size-10 rounded-md border border-gray-100 flex items-center justify-center shadow-sm shrink-0 bg-white'>
-                <CheckCircle2 className='size-4 text-gray-400' />
+            <div key={event.id} className='flex items-center gap-5 p-5 rounded-md border border-gray-100 bg-white shadow-sm hover:shadow-md transition-all group'>
+              <div className='size-14 rounded-md border border-gray-100 flex items-center justify-center shadow-sm shrink-0 bg-gray-50 group-hover:bg-brand/10 group-hover:text-brand transition-colors'>
+                <CheckCircle2 className='size-6 text-gray-400 group-hover:text-brand' />
               </div>
-              <div className='space-y-0.5'>
-                <p className='text-[13px] font-bold text-gray-900'>{event.location}</p>
-                <div className='flex items-center gap-2'>
-                  <span className='text-[10px] font-semibold text-gray-300 uppercase'>Verified by {event.verifiedBy}</span>
-                  <span className='text-[10px] font-semibold text-gray-300 flex items-center gap-1.5'>
-                    <ClockIcon className='size-3' />
+              <div className='space-y-1'>
+                <p className='text-[15px] font-bold text-gray-900 tracking-tight'>{event.location}</p>
+                <div className='flex flex-col gap-0.5'>
+                  <span className='text-[11px] font-bold text-gray-400 uppercase tracking-widest'>Verified by {event.verifiedBy}</span>
+                  <span className='text-[11px] font-bold text-brand flex items-center gap-1.5 uppercase tracking-widest'>
+                    <ClockIcon className='size-3.5' />
                     {event.time}
                   </span>
                 </div>
@@ -136,7 +135,7 @@ export default function TransporterDashboard() {
 
         <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6'>
           {SHIPMENTS.map((shipment) => (
-            <div key={shipment.id} className='rounded-2xl border border-gray-100 bg-white p-6 shadow-sm space-y-6'>
+            <div key={shipment.id} className='rounded-md border border-gray-100 bg-white p-6 shadow-sm space-y-6'>
               <div className='flex items-center gap-4'>
                 <div className='size-12 rounded-md bg-gray-900 flex items-center justify-center overflow-hidden shrink-0'>
                   <img src={shipment.image} alt={shipment.driver} className='size-10 object-contain grayscale brightness-200' />
@@ -175,9 +174,9 @@ export default function TransporterDashboard() {
         </div>
       </section>
 
-      <PickupRequestModal 
-        open={showPickupModal} 
-        onClose={() => setShowPickupModal(false)} 
+      <PickupRequestModal
+        open={showPickupModal}
+        onClose={() => setShowPickupModal(false)}
       />
     </div>
   )
@@ -202,7 +201,7 @@ function PickupRequestModal({ open, onClose }: { open: boolean, onClose: () => v
               <h2 className="text-xl font-bold text-gray-900 tracking-tight">New Pickup Request</h2>
               <div className="flex items-center gap-2">
                 <div className="size-5 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden">
-                   <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=John" className="size-4" />
+                  <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=John" className="size-4" />
                 </div>
                 <span className="text-[11px] text-gray-400 font-bold tracking-tight">From <span className="text-gray-900">John Mwangi</span></span>
               </div>
@@ -212,84 +211,84 @@ function PickupRequestModal({ open, onClose }: { open: boolean, onClose: () => v
 
           <div className="space-y-6">
             <div className="flex gap-4">
-               <div className="flex flex-col items-center gap-1.5 py-1">
-                  <div className="size-8 rounded-full bg-emerald-900 flex items-center justify-center text-white">
-                    <MapPin className="size-4" />
-                  </div>
-                  <div className="flex-1 w-0.5 bg-gray-100 border-dashed border-l-2"></div>
-                  <div className="size-8 rounded-full bg-red-600 flex items-center justify-center text-white">
-                    <MapPin className="size-4" />
-                  </div>
-               </div>
-               <div className="flex-1 space-y-8">
-                  <div className="space-y-1">
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Type of Goods</p>
-                    <p className="text-[13px] font-bold text-emerald-900">Kiambu Farm, Kiambu County</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Type of Goods</p>
-                    <p className="text-[13px] font-bold text-emerald-900">Kiambu Farm, Kiambu County</p>
-                  </div>
-               </div>
+              <div className="flex flex-col items-center gap-1.5 py-1">
+                <div className="size-8 rounded-full bg-emerald-900 flex items-center justify-center text-white">
+                  <MapPin className="size-4" />
+                </div>
+                <div className="flex-1 w-0.5 bg-gray-100 border-dashed border-l-2"></div>
+                <div className="size-8 rounded-full bg-red-600 flex items-center justify-center text-white">
+                  <MapPin className="size-4" />
+                </div>
+              </div>
+              <div className="flex-1 space-y-8">
+                <div className="space-y-1">
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Type of Goods</p>
+                  <p className="text-[13px] font-bold text-emerald-900">Kiambu Farm, Kiambu County</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Type of Goods</p>
+                  <p className="text-[13px] font-bold text-emerald-900">Kiambu Farm, Kiambu County</p>
+                </div>
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-               <div className="flex items-center gap-3 bg-gray-50/50 p-3 rounded-md border border-gray-100">
-                  <div className="size-8 rounded-md bg-white flex items-center justify-center shadow-sm text-emerald-900">
-                    <Truck className="size-4" />
-                  </div>
-                  <div>
-                    <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Type of Goods</p>
-                    <p className="text-[11px] font-bold text-emerald-900">Maize</p>
-                  </div>
-               </div>
-               <div className="flex items-center gap-3 bg-gray-50/50 p-3 rounded-md border border-gray-100">
-                  <div className="size-8 rounded-md bg-white flex items-center justify-center shadow-sm text-emerald-900">
-                    <Truck className="size-4" />
-                  </div>
-                  <div>
-                    <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Quantity</p>
-                    <p className="text-[11px] font-bold text-emerald-900">500Kg (10 Bags)</p>
-                  </div>
-               </div>
-               <div className="flex items-center gap-3 bg-gray-50/50 p-3 rounded-md border border-gray-100">
-                  <div className="size-8 rounded-md bg-white flex items-center justify-center shadow-sm text-emerald-900">
-                    <Truck className="size-4" />
-                  </div>
-                  <div>
-                    <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Distance</p>
-                    <p className="text-[11px] font-bold text-emerald-900">32 km</p>
-                  </div>
-               </div>
-               <div className="flex items-center gap-3 bg-gray-50/50 p-3 rounded-md border border-gray-100">
-                  <div className="size-8 rounded-md bg-white flex items-center justify-center shadow-sm text-emerald-900">
-                    <Truck className="size-4" />
-                  </div>
-                  <div>
-                    <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Est. Time</p>
-                    <p className="text-[11px] font-bold text-emerald-900">45 mins</p>
-                  </div>
-               </div>
+              <div className="flex items-center gap-3 bg-gray-50/50 p-3 rounded-md border border-gray-100">
+                <div className="size-8 rounded-md bg-white flex items-center justify-center shadow-sm text-emerald-900">
+                  <Truck className="size-4" />
+                </div>
+                <div>
+                  <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Type of Goods</p>
+                  <p className="text-[11px] font-bold text-emerald-900">Maize</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 bg-gray-50/50 p-3 rounded-md border border-gray-100">
+                <div className="size-8 rounded-md bg-white flex items-center justify-center shadow-sm text-emerald-900">
+                  <Truck className="size-4" />
+                </div>
+                <div>
+                  <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Quantity</p>
+                  <p className="text-[11px] font-bold text-emerald-900">500Kg (10 Bags)</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 bg-gray-50/50 p-3 rounded-md border border-gray-100">
+                <div className="size-8 rounded-md bg-white flex items-center justify-center shadow-sm text-emerald-900">
+                  <Truck className="size-4" />
+                </div>
+                <div>
+                  <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Distance</p>
+                  <p className="text-[11px] font-bold text-emerald-900">32 km</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 bg-gray-50/50 p-3 rounded-md border border-gray-100">
+                <div className="size-8 rounded-md bg-white flex items-center justify-center shadow-sm text-emerald-900">
+                  <Truck className="size-4" />
+                </div>
+                <div>
+                  <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Est. Time</p>
+                  <p className="text-[11px] font-bold text-emerald-900">45 mins</p>
+                </div>
+              </div>
             </div>
 
             <div className="bg-gray-50/50 p-6 rounded-md border border-gray-100 flex items-center justify-between">
-               <div className="flex items-center gap-3">
-                  <span className="text-xl font-bold text-emerald-600">$</span>
-                  <span className="text-lg font-bold text-emerald-900 tracking-tight">Payment</span>
-               </div>
-               <span className="text-2xl font-bold text-emerald-900 tracking-tight">2,500</span>
+              <div className="flex items-center gap-3">
+                <span className="text-xl font-bold text-emerald-600">$</span>
+                <span className="text-lg font-bold text-emerald-900 tracking-tight">Payment</span>
+              </div>
+              <span className="text-2xl font-bold text-emerald-900 tracking-tight">2,500</span>
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={onClose}
               className="h-12 bg-red-600 hover:bg-red-700 text-white border-none font-bold text-[13px] rounded-md active:scale-95 transition-all"
             >
               Decline
             </Button>
-            <Button 
+            <Button
               onClick={onClose}
               className="h-12 bg-brand-dark hover:bg-black text-white font-bold text-[13px] rounded-md shadow-lg active:scale-95 transition-all"
             >
