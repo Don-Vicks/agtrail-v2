@@ -19,6 +19,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [errorMsg, setErrorMsg] = useState('')
   const { login: setAuth, isAuthenticated, user, isLoading } = useAuth()
+  const [showForm, setShowForm] = useState(false)
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -34,6 +35,23 @@ export default function LoginPage() {
       navigate(targetPath, { replace: true });
     }
   }, [isAuthenticated, user, isLoading, navigate])
+
+  // Show form after a short delay to avoid flickering for authenticated users
+  useEffect(() => {
+    if (!isLoading) {
+      if (isAuthenticated) {
+        setShowForm(false)
+      } else {
+        setShowForm(true)
+      }
+    } else {
+      const timer = setTimeout(() => setShowForm(true), 200)
+      return () => clearTimeout(timer)
+    }
+  }, [isLoading, isAuthenticated])
+
+  if (isLoading && !showForm) return null
+  if (isAuthenticated && user) return null
 
   const { mutate: login, isPending } = usePostAuthLogin({
     mutation: {
