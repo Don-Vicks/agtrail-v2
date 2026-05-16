@@ -3,9 +3,11 @@ import { useState } from 'react'
 import { Pagination } from '~/components/pagination'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
-import { usePatchTransfersIdStatus } from '~/lib/api/generated/transfers/transfers'
+import { getGetTransfersQueryKey, usePatchTransfersIdStatus } from '~/lib/api/generated/transfers/transfers'
 import type { TransferOffer } from '~/types/transfer'
 import { TransferOfferCard } from './transfer-offer-card'
+import { toast } from 'sonner'
+import { useQueryClient } from '@tanstack/react-query'
 
 interface OffersPageContentProps {
   offers: TransferOffer[]
@@ -14,6 +16,7 @@ interface OffersPageContentProps {
 export function OffersPageContent({ offers }: OffersPageContentProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const { mutateAsync: acceptTransfer } = usePatchTransfersIdStatus()
+  const queryClient = useQueryClient()
 
   const handleAccept = async (offer: TransferOffer) => {
     try {
@@ -21,10 +24,11 @@ export function OffersPageContent({ offers }: OffersPageContentProps) {
         id: offer.id,
         data: { status: 'accepted' }
       })
-      alert(`Transfer accepted successfully!`)
+      toast.success(`Transfer offer accepted!`)
+      void queryClient.invalidateQueries({ queryKey: getGetTransfersQueryKey() })
     } catch (error) {
       console.error('Failed to accept transfer', error)
-      alert(`Failed to accept transfer.`)
+      toast.error(`Failed to accept transfer.`)
     }
   }
 

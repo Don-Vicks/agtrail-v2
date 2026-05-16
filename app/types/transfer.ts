@@ -1,4 +1,4 @@
-export type TransferStatus = 'available' | 'pending' | 'ready_for_pickup' | 'in_transit' | 'completed';
+export type TransferStatus = 'pending' | 'accepted' | 'picked_up' | 'in_transit' | 'delivered' | 'acknowledged' | 'cancelled' | 'rejected' | 'ready_for_pickup' | 'available';
 
 export interface ProductTransfer {
   id: string;

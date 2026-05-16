@@ -1,11 +1,49 @@
+import { useSearchParams } from 'react-router'
 import { Camera, Key, MapPin, QrCode, Scan, ShieldCheck } from 'lucide-react'
 import { FarmMap } from '~/components/farm-map.client'
 import { PageHeader } from '~/components/page-header'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
+import { useGetTransfers, usePatchTransfersIdStatus } from '~/lib/api/generated/transfers/transfers'
 import { cn } from '~/lib/utils'
+import { toast } from 'sonner'
+import { useQueryClient } from '@tanstack/react-query'
+import { getGetTransfersQueryKey } from '~/lib/api/generated/transfers/transfers'
 
 export default function PickupVerificationPage() {
+   const [searchParams] = useSearchParams()
+   const transferId = searchParams.get('transferId')
+   const queryClient = useQueryClient()
+
+   const { data: transfersData, isLoading } = useGetTransfers({
+      query: {
+         enabled: !!transferId
+      }
+   })
+   
+   const { mutateAsync: updateStatus, isPending } = usePatchTransfersIdStatus()
+
+   const transfer = transfersData?.data?.data?.find(t => t.id === transferId)
+
+   const handleVerify = async () => {
+      if (!transferId) {
+         toast.error('No transfer selected for pickup.')
+         return
+      }
+
+      try {
+         await updateStatus({
+            id: transferId,
+            data: { status: 'picked_up' }
+         })
+         toast.success('Pickup verified successfully! Goods are now in transit.')
+         void queryClient.invalidateQueries({ queryKey: getGetTransfersQueryKey() })
+      } catch (error) {
+         console.error('Pickup verification failed:', error)
+         toast.error('Failed to verify pickup. Please try again.')
+      }
+   }
+
    return (
       <div className="space-y-8 pb-10">
          <PageHeader
@@ -21,10 +59,10 @@ export default function PickupVerificationPage() {
                <div className="flex items-center justify-between">
                   <div className="space-y-1">
                      <h1 className="text-2xl font-bold text-brand tracking-tight">Pickup Verification</h1>
-                     <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-widest">Driver Session: Gate 4A - Northern Grain Silos</p>
+                     <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-widest">Driver Session: {transfer?.pickupLocation || 'Gate 4A - Northern Grain Silos'}</p>
                   </div>
                   <Badge className="bg-brand-dark text-white font-semibold text-[11px] uppercase tracking-widest px-4 py-2 rounded-md border-none shadow-md">
-                     Blockchain Pending
+                     {transfer?.status || 'Blockchain Pending'}
                   </Badge>
                </div>
 
@@ -32,11 +70,13 @@ export default function PickupVerificationPage() {
                <div className="flex gap-6">
                   <div className="flex-1 rounded-md border border-gray-100 bg-white p-6 shadow-sm">
                      <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-1.5">Active Batch</p>
-                     <p className="text-2xl font-bold text-gray-900 tracking-tight">#BTCH-2024-0892</p>
+                     <p className="text-2xl font-bold text-gray-900 tracking-tight">{transfer?.transferCode || '#BTCH-2024-0892'}</p>
                   </div>
                   <div className="w-[240px] rounded-md border border-gray-100 bg-white p-6 shadow-sm flex flex-col justify-between">
                      <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest text-right">Weight (EST)</p>
-                     <p className="text-3xl font-bold text-gray-900 tracking-tight text-right">300 Kg</p>
+                     <p className="text-3xl font-bold text-gray-900 tracking-tight text-right">
+                        {transfer?.quantityTransferred || '300'} {transfer?.unit || 'Kg'}
+                     </p>
                   </div>
                </div>
 
@@ -52,7 +92,7 @@ export default function PickupVerificationPage() {
                      <div className="grid grid-cols-1 gap-4">
                         <div className="rounded-md border border-gray-50 bg-gray-50/30 p-4 space-y-1">
                            <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-widest">Commodity</p>
-                           <p className="text-sm font-bold text-emerald-900">Hard Red Feed Corn</p>
+                           <p className="text-sm font-bold text-emerald-900">{transfer?.productName || 'Hard Red Feed Corn'}</p>
                         </div>
                         <div className="rounded-md border border-gray-50 bg-gray-50/30 p-4 space-y-1">
                            <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-widest">Grade / Quality</p>
@@ -100,7 +140,7 @@ export default function PickupVerificationPage() {
                         farms={[
                            {
                               id: 'pickup-node',
-                              name: 'Northern Grain Silos',
+                              name: transfer?.pickupLocation || 'Northern Grain Silos',
                               location: 'Akure, Nigeria',
                               region: 'Ondo State',
                               hectares: 120,
@@ -127,8 +167,12 @@ export default function PickupVerificationPage() {
                   <div className="space-y-2">
                      <p className="text-xs text-gray-500 leading-relaxed font-medium">Scan the farm terminal QR code to finalize pickup and trigger blockchain immutable record.</p>
                   </div>
-                  <Button className="w-full h-12 bg-brand-dark hover:bg-black text-white font-bold text-[14px] uppercase tracking-widest rounded-md shadow-xl active:scale-95 transition-all">
-                     Scan & Verify
+                  <Button 
+                     onClick={handleVerify}
+                     disabled={isPending || transfer?.status === 'picked_up' || transfer?.status === 'in_transit'}
+                     className="w-full h-12 bg-brand-dark hover:bg-black text-white font-bold text-[14px] uppercase tracking-widest rounded-md shadow-xl active:scale-95 transition-all"
+                  >
+                     {isPending ? 'Verifying...' : transfer?.status === 'picked_up' || transfer?.status === 'in_transit' ? 'Pickup Verified' : 'Scan & Verify'}
                   </Button>
                   <div className="relative">
                      <div className="absolute inset-0 flex items-center">
@@ -157,7 +201,7 @@ export default function PickupVerificationPage() {
 
                      <TimelineItem
                         title="Manifest Generation"
-                        time="08:45 AM"
+                        time={transfer?.initiatedDate ? new Date(transfer.initiatedDate).toLocaleTimeString() : "08:45 AM"}
                         meta="Block #49281"
                         status="completed"
                      />
@@ -168,10 +212,10 @@ export default function PickupVerificationPage() {
                         status="completed"
                      />
                      <TimelineItem
-                        title="Driver Verification Required"
-                        time="Awaiting Scan..."
+                        title={transfer?.status === 'picked_up' || transfer?.status === 'in_transit' ? "Pickup Verified" : "Driver Verification Required"}
+                        time={transfer?.status === 'picked_up' || transfer?.status === 'in_transit' ? "Now" : "Awaiting Scan..."}
                         meta=""
-                        status="active"
+                        status={transfer?.status === 'picked_up' || transfer?.status === 'in_transit' ? 'completed' : 'active'}
                      />
                   </div>
                </div>

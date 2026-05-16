@@ -123,3 +123,26 @@ This section tracks backend response fields/endpoints the frontend currently nee
     - product-level readiness checklist/status rows
 
 ### 8) Farmer Dashboard Stats Returning 500
+
+- **Endpoint:** `GET /farmers/dashboard/stats`
+- **Problem:** The endpoint consistently returns a 500 Internal Server Error, preventing the farmer dashboard from loading real metrics.
+- **Current impact:** The farmer dashboard remains in a loading state or falls back to generic placeholders.
+
+### 9) Missing Endpoints & Fields for Product Transfer Workflow (No. 1)
+
+- **Workflow:** Initiator creates an open transfer -> Transporter accepts -> Initiator marks ready for pickup -> Transporter scans QR code to take custody.
+- **Problem 1 (Missing `transporterId` & `transporterName`):** The `Transfer` object currently only tracks `fromUserId` and `toUserId` (the buyer). When a transporter accepts an offer, the backend needs a way to track the assigned transporter.
+- **Problem 2 (Missing Statuses):** The `UpdateTransferStatusRequestStatus` enum lacks `ready_for_pickup`.
+- **Problem 3 (Missing QR Code/Handover Endpoint):** There is no endpoint to cryptographically verify a handover via QR code scan.
+
+**Backend action requested:**
+1. **Update `Transfer` Model:**
+   Add `transporterId: string | null` and `transporterName: string | null` to the `Transfer` and `ProductTransfer` models.
+2. **Update Status Enum:**
+   Add `ready_for_pickup` to the transfer status enums.
+3. **Add Endpoint to Accept Offer:**
+   `POST /transfers/{id}/accept-offer` (or update `PATCH /transfers/{id}/status` with `status: "accepted"` to assign the caller as the `transporterId`).
+4. **Add Endpoint for QR Handover:**
+   `POST /transfers/{id}/pickup-scan`
+   - **Payload:** `{ "qrPayload": "string" }`
+   - **Action:** Verifies the QR code, changes status to `picked_up` / `in_transit`, and confirms custody handover.
