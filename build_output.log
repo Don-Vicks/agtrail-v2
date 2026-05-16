@@ -1,0 +1,160 @@
+
+> build
+> pnpm generate:api && react-router build
+
+
+> frontend-v2@ generate:api /Users/donvicks/Developer/projects/work/argolinking/frontend-v2
+> orval
+
+🍻 orval v8.4.2 - A swagger client generator for typescript
+agtrail Cleaning output folder
+🎉 agtrail - Your OpenAPI spec has been converted into ready to use orval!
+vite v7.3.1 building client environment for production...
+transforming...
+app/components/ui/dropdown-menu.tsx (1:0): Error when using sourcemap for reporting an error: Can't resolve original location of error.
+app/components/ui/dialog.tsx (1:0): Error when using sourcemap for reporting an error: Can't resolve original location of error.
+app/components/ui/alert-dialog.tsx (1:0): Error when using sourcemap for reporting an error: Can't resolve original location of error.
+✓ 4131 modules transformed.
+✗ Build failed in 8.54s
+app/routes/exporter/lot-draft.tsx (13:2): "consolidationStats" is not exported by "app/lib/mock-data/exporter.ts", imported by "app/routes/exporter/lot-draft.tsx".
+file: /Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/exporter/lot-draft.tsx:13:2
+
+11: import {
+12:   availableFarmers,
+13:   consolidationStats
+      ^
+14: } from '~/lib/mock-data/exporter'
+15: import { cn } from '~/lib/utils'
+
+    at getRollupError (file:///Users/donvicks/Developer/projects/work/argolinking/frontend-v2/node_modules/.pnpm/rollup@4.57.1/node_modules/rollup/dist/es/shared/parseAst.js:402:41)
+    at error (file:///Users/donvicks/Developer/projects/work/argolinking/frontend-v2/node_modules/.pnpm/rollup@4.57.1/node_modules/rollup/dist/es/shared/parseAst.js:398:42)
+    at Module.error (file:///Users/donvicks/Developer/projects/work/argolinking/frontend-v2/node_modules/.pnpm/rollup@4.57.1/node_modules/rollup/dist/es/shared/node-entry.js:17040:16)
+    at Module.traceVariable (file:///Users/donvicks/Developer/projects/work/argolinking/frontend-v2/node_modules/.pnpm/rollup@4.57.1/node_modules/rollup/dist/es/shared/node-entry.js:17452:29)
+    at ModuleScope.findVariable (file:///Users/donvicks/Developer/projects/work/argolinking/frontend-v2/node_modules/.pnpm/rollup@4.57.1/node_modules/rollup/dist/es/shared/node-entry.js:15070:39)
+    at ChildScope.findVariable (file:///Users/donvicks/Developer/projects/work/argolinking/frontend-v2/node_modules/.pnpm/rollup@4.57.1/node_modules/rollup/dist/es/shared/node-entry.js:5673:38)
+    at FunctionScope.findVariable (file:///Users/donvicks/Developer/projects/work/argolinking/frontend-v2/node_modules/.pnpm/rollup@4.57.1/node_modules/rollup/dist/es/shared/node-entry.js:5673:38)
+    at FunctionBodyScope.findVariable (file:///Users/donvicks/Developer/projects/work/argolinking/frontend-v2/node_modules/.pnpm/rollup@4.57.1/node_modules/rollup/dist/es/shared/node-entry.js:5673:38)
+    at MemberExpression.bind (file:///Users/donvicks/Developer/projects/work/argolinking/frontend-v2/node_modules/.pnpm/rollup@4.57.1/node_modules/rollup/dist/es/shared/node-entry.js:7392:49)
+    at CallExpression.bind (file:///Users/donvicks/Developer/projects/work/argolinking/frontend-v2/node_modules/.pnpm/rollup@4.57.1/node_modules/rollup/dist/es/shared/node-entry.js:2829:23) {
+  binding: 'consolidationStats',
+  code: 'MISSING_EXPORT',
+  exporter: '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/lib/mock-data/exporter.ts',
+  id: '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/exporter/lot-draft.tsx',
+  url: 'https://rollupjs.org/troubleshooting/#error-name-is-not-exported-by-module',
+  pos: 332,
+  loc: {
+    column: 2,
+    file: '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/exporter/lot-draft.tsx',
+    line: 13
+  },
+  frame: '11: import {\n' +
+    '12:   availableFarmers,\n' +
+    '13:   consolidationStats\n' +
+    '      ^\n' +
+    "14: } from '~/lib/mock-data/exporter'\n" +
+    "15: import { cn } from '~/lib/utils'",
+  watchFiles: [
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/root.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/home.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/auth/layout.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/auth/login.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/auth/forgot-password.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/unauthorized.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/dojah-test.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/public/passport.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/farmer/layout.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/farmer/dashboard.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/farmer/farms.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/farmer/crop-cycle.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/farmer/farm-detail.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/farmer/products/story.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/farmer/record-operation.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/farmer/inventory.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/farmer/operations/planting.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/farmer/products/index.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/farmer/operations/fertilizer.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/farmer/operations/land-prep.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/farmer/personnel.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/farmer/operations/pest-control.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/farmer/operations/weeding.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/farmer/operations/pruning.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/auth/farmer-registration.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/farmer/operations/irrigation.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/farmer/operations/harvesting.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/farmer/operations/drying.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/farmer/operations/processing.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/farmer/operations/sorting.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/farmer/operations/storage.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/farmer/operations/packaging.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/farmer/certifications/product-certification.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/farmer/certifications/view-certifications.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/farmer/finance/record-purchase.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/farmer/reports/reports-analytics.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/farmer/finance/receivables.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/farmer/reports/crop-cycle-summary.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/farmer/reports/harvest-sales-report.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/farmer/reports/farm-report.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/farmer/reports/payment-history.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/farmer/compliance/compliance-analysis.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/farmer/compliance/risk-assessment.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/farmer/compliance/compliance-report.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/farmer/certifications/farm-certification.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/farmer/compliance/readiness-check.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/farmer/settings/settings-root.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/farmer/farmer-product-transfer.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/admin/layout.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/farmer/compliance/market-selection.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/farmer/transfer/pickup.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/admin/dashboard.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/processor/facilities.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/processor/layout.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/processor/facility-detail.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/processor/batches.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/processor/batches/detail.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/processor/products/story.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/node_modules/.pnpm/@react-router+dev@7.12.0_@react-router+serve@7.12.0_react-router@7.12.0_react-dom@19.2._ac276613bc148ca78d578ebb2659971b/node_modules/@react-router/dev/dist/config/defaults/entry.client.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/processor/products.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/processor/batches/new.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/processor/certifications/processor.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/processor/certifications/readiness.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/processor/finance/receivables.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/processor/operations/land-prep.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/processor/finance/purchase.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/processor/operations/fertilizer.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/processor/operations/irrigation.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/processor/operations/weeding.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/processor/certifications/product.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/processor/operations/planting.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/processor/operations/pruning.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/processor/operations/pest-control.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/processor/operations/sorting.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/processor/operations/drying.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/processor/operations/processing.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/processor/operations/packaging.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/processor/operations/storage.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/processor/operations/harvesting.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/processor/settings/settings-root.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/processor/processor-pickup.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/processor/processor-product-transfer.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/cooperative/layout.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/cooperative/dashboard.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/farmer/farmer-transfer-history.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/cooperative/farmer-details.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/cooperative/farmers.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/cooperative/farmer-farms.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/processor/processor-transfer-history.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/cooperative/farms.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/cooperative/farm-details.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/cooperative/products/index.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/cooperative/products/story.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/cooperative/inventory.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/cooperative/personnel.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/cooperative/operations/land-prep.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/cooperative/operations/record.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/cooperative/operations/planting.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/cooperative/operations/fertilizer.tsx',
+    '/Users/donvicks/Developer/projects/work/argolinking/frontend-v2/app/routes/cooperative/operations/start.tsx',
+    ... 4475 more items
+  ],
+  Symbol(augmented): true
+}

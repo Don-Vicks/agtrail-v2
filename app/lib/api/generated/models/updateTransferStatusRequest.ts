@@ -8,5 +8,8 @@
 import type { UpdateTransferStatusRequestStatus } from './updateTransferStatusRequestStatus';
 
 export interface UpdateTransferStatusRequest {
+  /** New status. Use "initiated" to dispatch a draft (generates QR). Initiator sets ready_for_pickup when product is packaged. Transporter scans QR to set picked_up. Buyer uses acknowledged after payment. */
   status: UpdateTransferStatusRequestStatus;
+  /** Optional note appended to the activity log */
+  note?: string;
 }

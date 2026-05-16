@@ -6,13 +6,11 @@
  * OpenAPI spec version: 1.0.0
  */
 
-/**
- * New status. Use "initiated" to dispatch a draft (generates QR). Initiator sets ready_for_pickup when product is packaged. Transporter scans QR to set picked_up. Buyer uses acknowledged after payment.
- */
-export type UpdateTransferStatusRequestStatus = typeof UpdateTransferStatusRequestStatus[keyof typeof UpdateTransferStatusRequestStatus];
+export type TransferStatus = typeof TransferStatus[keyof typeof TransferStatus];
 
 
-export const UpdateTransferStatusRequestStatus = {
+export const TransferStatus = {
+  draft: 'draft',
   initiated: 'initiated',
   accepted: 'accepted',
   ready_for_pickup: 'ready_for_pickup',

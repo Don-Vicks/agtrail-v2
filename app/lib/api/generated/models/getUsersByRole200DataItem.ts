@@ -17,4 +17,10 @@ export type GetUsersByRole200DataItem = {
   /** @nullable */
   profilePhotoUrl: string | null;
   kycStatus: string;
+  /** @nullable */
+  phoneNumber?: string | null;
+  /** @nullable */
+  address?: string | null;
+  /** @nullable */
+  country?: string | null;
 };

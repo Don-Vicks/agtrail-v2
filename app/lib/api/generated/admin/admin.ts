@@ -25,9 +25,13 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  GetAdminLogsData200Item,
   GetAdminOrganizations200,
   GetAdminStats200,
   GetAdminUsers200,
+  GetDownloadsCsvDropoffParams,
+  GetDownloadsCsvParams,
+  GetDownloadsCsvSummaryParams,
   PutAdminOrganizationsIdStatus200,
   PutAdminUsersIdRole200,
   UpdateOrgStatusRequest,
@@ -638,6 +642,504 @@ export function useGetAdminOnboardingStats<TData = Awaited<ReturnType<typeof get
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetAdminOnboardingStatsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+/**
+ * Exports full farmer/cooperative onboarding records as CSV. Protected by ?key= query param matching ADMIN_DOWNLOAD_KEY env var.
+ * @summary Download onboarding stats CSV (admin)
+ */
+export type getDownloadsCsvResponse200 = {
+  data: void
+  status: 200
+}
+
+export type getDownloadsCsvResponse401 = {
+  data: void
+  status: 401
+}
+
+export type getDownloadsCsvResponseSuccess = (getDownloadsCsvResponse200) & {
+  headers: Headers;
+};
+export type getDownloadsCsvResponseError = (getDownloadsCsvResponse401) & {
+  headers: Headers;
+};
+
+export type getDownloadsCsvResponse = (getDownloadsCsvResponseSuccess | getDownloadsCsvResponseError)
+
+export const getGetDownloadsCsvUrl = (params: GetDownloadsCsvParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/downloads/csv?${stringifiedParams}` : `/downloads/csv`
+}
+
+export const getDownloadsCsv = async (params: GetDownloadsCsvParams, options?: RequestInit): Promise<getDownloadsCsvResponse> => {
+  
+  return customFetch<getDownloadsCsvResponse>(getGetDownloadsCsvUrl(params),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+  
+
+
+
+
+export const getGetDownloadsCsvQueryKey = (params?: GetDownloadsCsvParams,) => {
+    return [
+    `/downloads/csv`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+    
+export const getGetDownloadsCsvQueryOptions = <TData = Awaited<ReturnType<typeof getDownloadsCsv>>, TError = void>(params: GetDownloadsCsvParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDownloadsCsv>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetDownloadsCsvQueryKey(params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDownloadsCsv>>> = ({ signal }) => getDownloadsCsv(params, { signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getDownloadsCsv>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetDownloadsCsvQueryResult = NonNullable<Awaited<ReturnType<typeof getDownloadsCsv>>>
+export type GetDownloadsCsvQueryError = void
+
+
+export function useGetDownloadsCsv<TData = Awaited<ReturnType<typeof getDownloadsCsv>>, TError = void>(
+ params: GetDownloadsCsvParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDownloadsCsv>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getDownloadsCsv>>,
+          TError,
+          Awaited<ReturnType<typeof getDownloadsCsv>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetDownloadsCsv<TData = Awaited<ReturnType<typeof getDownloadsCsv>>, TError = void>(
+ params: GetDownloadsCsvParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDownloadsCsv>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getDownloadsCsv>>,
+          TError,
+          Awaited<ReturnType<typeof getDownloadsCsv>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetDownloadsCsv<TData = Awaited<ReturnType<typeof getDownloadsCsv>>, TError = void>(
+ params: GetDownloadsCsvParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDownloadsCsv>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Download onboarding stats CSV (admin)
+ */
+
+export function useGetDownloadsCsv<TData = Awaited<ReturnType<typeof getDownloadsCsv>>, TError = void>(
+ params: GetDownloadsCsvParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDownloadsCsv>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetDownloadsCsvQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+/**
+ * Exports aggregate onboarding metrics as CSV. Protected by ?key= query param.
+ * @summary Download summary metrics CSV (admin)
+ */
+export type getDownloadsCsvSummaryResponse200 = {
+  data: void
+  status: 200
+}
+
+export type getDownloadsCsvSummaryResponse401 = {
+  data: void
+  status: 401
+}
+
+export type getDownloadsCsvSummaryResponseSuccess = (getDownloadsCsvSummaryResponse200) & {
+  headers: Headers;
+};
+export type getDownloadsCsvSummaryResponseError = (getDownloadsCsvSummaryResponse401) & {
+  headers: Headers;
+};
+
+export type getDownloadsCsvSummaryResponse = (getDownloadsCsvSummaryResponseSuccess | getDownloadsCsvSummaryResponseError)
+
+export const getGetDownloadsCsvSummaryUrl = (params: GetDownloadsCsvSummaryParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/downloads/csv/summary?${stringifiedParams}` : `/downloads/csv/summary`
+}
+
+export const getDownloadsCsvSummary = async (params: GetDownloadsCsvSummaryParams, options?: RequestInit): Promise<getDownloadsCsvSummaryResponse> => {
+  
+  return customFetch<getDownloadsCsvSummaryResponse>(getGetDownloadsCsvSummaryUrl(params),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+  
+
+
+
+
+export const getGetDownloadsCsvSummaryQueryKey = (params?: GetDownloadsCsvSummaryParams,) => {
+    return [
+    `/downloads/csv/summary`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+    
+export const getGetDownloadsCsvSummaryQueryOptions = <TData = Awaited<ReturnType<typeof getDownloadsCsvSummary>>, TError = void>(params: GetDownloadsCsvSummaryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDownloadsCsvSummary>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetDownloadsCsvSummaryQueryKey(params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDownloadsCsvSummary>>> = ({ signal }) => getDownloadsCsvSummary(params, { signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getDownloadsCsvSummary>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetDownloadsCsvSummaryQueryResult = NonNullable<Awaited<ReturnType<typeof getDownloadsCsvSummary>>>
+export type GetDownloadsCsvSummaryQueryError = void
+
+
+export function useGetDownloadsCsvSummary<TData = Awaited<ReturnType<typeof getDownloadsCsvSummary>>, TError = void>(
+ params: GetDownloadsCsvSummaryParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDownloadsCsvSummary>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getDownloadsCsvSummary>>,
+          TError,
+          Awaited<ReturnType<typeof getDownloadsCsvSummary>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetDownloadsCsvSummary<TData = Awaited<ReturnType<typeof getDownloadsCsvSummary>>, TError = void>(
+ params: GetDownloadsCsvSummaryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDownloadsCsvSummary>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getDownloadsCsvSummary>>,
+          TError,
+          Awaited<ReturnType<typeof getDownloadsCsvSummary>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetDownloadsCsvSummary<TData = Awaited<ReturnType<typeof getDownloadsCsvSummary>>, TError = void>(
+ params: GetDownloadsCsvSummaryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDownloadsCsvSummary>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Download summary metrics CSV (admin)
+ */
+
+export function useGetDownloadsCsvSummary<TData = Awaited<ReturnType<typeof getDownloadsCsvSummary>>, TError = void>(
+ params: GetDownloadsCsvSummaryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDownloadsCsvSummary>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetDownloadsCsvSummaryQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+/**
+ * Exports drop-off funnel analysis as CSV. Protected by ?key= query param.
+ * @summary Download onboarding drop-off analysis CSV (admin)
+ */
+export type getDownloadsCsvDropoffResponse200 = {
+  data: void
+  status: 200
+}
+
+export type getDownloadsCsvDropoffResponse401 = {
+  data: void
+  status: 401
+}
+
+export type getDownloadsCsvDropoffResponseSuccess = (getDownloadsCsvDropoffResponse200) & {
+  headers: Headers;
+};
+export type getDownloadsCsvDropoffResponseError = (getDownloadsCsvDropoffResponse401) & {
+  headers: Headers;
+};
+
+export type getDownloadsCsvDropoffResponse = (getDownloadsCsvDropoffResponseSuccess | getDownloadsCsvDropoffResponseError)
+
+export const getGetDownloadsCsvDropoffUrl = (params: GetDownloadsCsvDropoffParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/downloads/csv/dropoff?${stringifiedParams}` : `/downloads/csv/dropoff`
+}
+
+export const getDownloadsCsvDropoff = async (params: GetDownloadsCsvDropoffParams, options?: RequestInit): Promise<getDownloadsCsvDropoffResponse> => {
+  
+  return customFetch<getDownloadsCsvDropoffResponse>(getGetDownloadsCsvDropoffUrl(params),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+  
+
+
+
+
+export const getGetDownloadsCsvDropoffQueryKey = (params?: GetDownloadsCsvDropoffParams,) => {
+    return [
+    `/downloads/csv/dropoff`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+    
+export const getGetDownloadsCsvDropoffQueryOptions = <TData = Awaited<ReturnType<typeof getDownloadsCsvDropoff>>, TError = void>(params: GetDownloadsCsvDropoffParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDownloadsCsvDropoff>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetDownloadsCsvDropoffQueryKey(params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDownloadsCsvDropoff>>> = ({ signal }) => getDownloadsCsvDropoff(params, { signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getDownloadsCsvDropoff>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetDownloadsCsvDropoffQueryResult = NonNullable<Awaited<ReturnType<typeof getDownloadsCsvDropoff>>>
+export type GetDownloadsCsvDropoffQueryError = void
+
+
+export function useGetDownloadsCsvDropoff<TData = Awaited<ReturnType<typeof getDownloadsCsvDropoff>>, TError = void>(
+ params: GetDownloadsCsvDropoffParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDownloadsCsvDropoff>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getDownloadsCsvDropoff>>,
+          TError,
+          Awaited<ReturnType<typeof getDownloadsCsvDropoff>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetDownloadsCsvDropoff<TData = Awaited<ReturnType<typeof getDownloadsCsvDropoff>>, TError = void>(
+ params: GetDownloadsCsvDropoffParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDownloadsCsvDropoff>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getDownloadsCsvDropoff>>,
+          TError,
+          Awaited<ReturnType<typeof getDownloadsCsvDropoff>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetDownloadsCsvDropoff<TData = Awaited<ReturnType<typeof getDownloadsCsvDropoff>>, TError = void>(
+ params: GetDownloadsCsvDropoffParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDownloadsCsvDropoff>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Download onboarding drop-off analysis CSV (admin)
+ */
+
+export function useGetDownloadsCsvDropoff<TData = Awaited<ReturnType<typeof getDownloadsCsvDropoff>>, TError = void>(
+ params: GetDownloadsCsvDropoffParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDownloadsCsvDropoff>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetDownloadsCsvDropoffQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+/**
+ * Returns the current in-memory log buffer. Used by the /admin/logs browser viewer. Requires admin role.
+ * @summary Get in-memory server logs (admin only)
+ */
+export type getAdminLogsDataResponse200 = {
+  data: GetAdminLogsData200Item[]
+  status: 200
+}
+
+export type getAdminLogsDataResponse401 = {
+  data: void
+  status: 401
+}
+
+export type getAdminLogsDataResponse403 = {
+  data: void
+  status: 403
+}
+
+export type getAdminLogsDataResponseSuccess = (getAdminLogsDataResponse200) & {
+  headers: Headers;
+};
+export type getAdminLogsDataResponseError = (getAdminLogsDataResponse401 | getAdminLogsDataResponse403) & {
+  headers: Headers;
+};
+
+export type getAdminLogsDataResponse = (getAdminLogsDataResponseSuccess | getAdminLogsDataResponseError)
+
+export const getGetAdminLogsDataUrl = () => {
+
+
+  
+
+  return `/admin/logs/data`
+}
+
+export const getAdminLogsData = async ( options?: RequestInit): Promise<getAdminLogsDataResponse> => {
+  
+  return customFetch<getAdminLogsDataResponse>(getGetAdminLogsDataUrl(),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+  
+
+
+
+
+export const getGetAdminLogsDataQueryKey = () => {
+    return [
+    `/admin/logs/data`
+    ] as const;
+    }
+
+    
+export const getGetAdminLogsDataQueryOptions = <TData = Awaited<ReturnType<typeof getAdminLogsData>>, TError = void>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminLogsData>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAdminLogsDataQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAdminLogsData>>> = ({ signal }) => getAdminLogsData({ signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAdminLogsData>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetAdminLogsDataQueryResult = NonNullable<Awaited<ReturnType<typeof getAdminLogsData>>>
+export type GetAdminLogsDataQueryError = void
+
+
+export function useGetAdminLogsData<TData = Awaited<ReturnType<typeof getAdminLogsData>>, TError = void>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminLogsData>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAdminLogsData>>,
+          TError,
+          Awaited<ReturnType<typeof getAdminLogsData>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAdminLogsData<TData = Awaited<ReturnType<typeof getAdminLogsData>>, TError = void>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminLogsData>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAdminLogsData>>,
+          TError,
+          Awaited<ReturnType<typeof getAdminLogsData>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAdminLogsData<TData = Awaited<ReturnType<typeof getAdminLogsData>>, TError = void>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminLogsData>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Get in-memory server logs (admin only)
+ */
+
+export function useGetAdminLogsData<TData = Awaited<ReturnType<typeof getAdminLogsData>>, TError = void>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminLogsData>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetAdminLogsDataQueryOptions(options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

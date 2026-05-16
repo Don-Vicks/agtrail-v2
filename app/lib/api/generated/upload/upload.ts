@@ -6,13 +6,22 @@
  * OpenAPI spec version: 1.0.0
  */
 import {
-  useMutation
+  useMutation,
+  useQuery
 } from '@tanstack/react-query';
 import type {
+  DataTag,
+  DefinedInitialDataOptions,
+  DefinedUseQueryResult,
   MutationFunction,
   QueryClient,
+  QueryFunction,
+  QueryKey,
+  UndefinedInitialDataOptions,
   UseMutationOptions,
-  UseMutationResult
+  UseMutationResult,
+  UseQueryOptions,
+  UseQueryResult
 } from '@tanstack/react-query';
 
 import type {
@@ -138,4 +147,129 @@ export const usePostUpload = <TError = unknown,
       > => {
       return useMutation(getPostUploadMutationOptions(options), queryClient);
     }
+    /**
+ * Proxies the file from S3/Railway bucket storage and streams it directly to the client. No authentication required — use in <img src> or similar.
+ * @summary Stream a stored file (proxy to bypass bucket privacy)
+ */
+export type getUploadFileFolderFilenameResponse200 = {
+  data: void
+  status: 200
+}
+
+export type getUploadFileFolderFilenameResponse404 = {
+  data: void
+  status: 404
+}
+
+export type getUploadFileFolderFilenameResponseSuccess = (getUploadFileFolderFilenameResponse200) & {
+  headers: Headers;
+};
+export type getUploadFileFolderFilenameResponseError = (getUploadFileFolderFilenameResponse404) & {
+  headers: Headers;
+};
+
+export type getUploadFileFolderFilenameResponse = (getUploadFileFolderFilenameResponseSuccess | getUploadFileFolderFilenameResponseError)
+
+export const getGetUploadFileFolderFilenameUrl = (folder: string,
+    filename: string,) => {
+
+
+  
+
+  return `/upload/file/${folder}/${filename}`
+}
+
+export const getUploadFileFolderFilename = async (folder: string,
+    filename: string, options?: RequestInit): Promise<getUploadFileFolderFilenameResponse> => {
+  
+  return customFetch<getUploadFileFolderFilenameResponse>(getGetUploadFileFolderFilenameUrl(folder,filename),
+  {      
+    ...options,
+    method: 'GET'
     
+    
+  }
+);}
+  
+
+
+
+
+export const getGetUploadFileFolderFilenameQueryKey = (folder: string,
+    filename: string,) => {
+    return [
+    `/upload/file/${folder}/${filename}`
+    ] as const;
+    }
+
+    
+export const getGetUploadFileFolderFilenameQueryOptions = <TData = Awaited<ReturnType<typeof getUploadFileFolderFilename>>, TError = void>(folder: string,
+    filename: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUploadFileFolderFilename>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetUploadFileFolderFilenameQueryKey(folder,filename);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getUploadFileFolderFilename>>> = ({ signal }) => getUploadFileFolderFilename(folder,filename, { signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(folder && filename), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getUploadFileFolderFilename>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetUploadFileFolderFilenameQueryResult = NonNullable<Awaited<ReturnType<typeof getUploadFileFolderFilename>>>
+export type GetUploadFileFolderFilenameQueryError = void
+
+
+export function useGetUploadFileFolderFilename<TData = Awaited<ReturnType<typeof getUploadFileFolderFilename>>, TError = void>(
+ folder: string,
+    filename: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUploadFileFolderFilename>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getUploadFileFolderFilename>>,
+          TError,
+          Awaited<ReturnType<typeof getUploadFileFolderFilename>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetUploadFileFolderFilename<TData = Awaited<ReturnType<typeof getUploadFileFolderFilename>>, TError = void>(
+ folder: string,
+    filename: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUploadFileFolderFilename>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getUploadFileFolderFilename>>,
+          TError,
+          Awaited<ReturnType<typeof getUploadFileFolderFilename>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetUploadFileFolderFilename<TData = Awaited<ReturnType<typeof getUploadFileFolderFilename>>, TError = void>(
+ folder: string,
+    filename: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUploadFileFolderFilename>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Stream a stored file (proxy to bypass bucket privacy)
+ */
+
+export function useGetUploadFileFolderFilename<TData = Awaited<ReturnType<typeof getUploadFileFolderFilename>>, TError = void>(
+ folder: string,
+    filename: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUploadFileFolderFilename>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetUploadFileFolderFilenameQueryOptions(folder,filename,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+

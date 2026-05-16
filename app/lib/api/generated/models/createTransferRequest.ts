@@ -6,11 +6,14 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { CreateTransferRequestProductType } from './createTransferRequestProductType';
+import type { CreateTransferRequestQualityAtPickup } from './createTransferRequestQualityAtPickup';
 
 export interface CreateTransferRequest {
+  /** Source product type */
   productType: CreateTransferRequestProductType;
   farmProductId?: string;
   batchProductId?: string;
+  /** Buyer/receiver user ID (any role) */
   toUserId: string;
   /** @exclusiveMinimum 0 */
   quantityTransferred: number;
@@ -20,6 +23,20 @@ export interface CreateTransferRequest {
   totalPrice?: number;
   pickupLocation?: string;
   deliveryLocation?: string;
+  /** Scheduled pickup date (ISO date string) */
+  scheduledPickupDate?: string;
   expectedDeliveryDate?: string;
   notes?: string;
+  /** Save as draft (no QR). Omit or false to dispatch immediately. */
+  isDraft?: boolean;
+  /** Pre-filled buyer email */
+  buyerEmail?: string;
+  /** Buyer contact phone 1 */
+  buyerPhone1?: string;
+  /** Buyer contact phone 2 */
+  buyerPhone2?: string;
+  buyerCountry?: string;
+  buyerAddress?: string;
+  /** Quality assessment at pickup point */
+  qualityAtPickup?: CreateTransferRequestQualityAtPickup;
 }

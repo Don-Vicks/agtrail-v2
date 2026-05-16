@@ -5,6 +5,11 @@
  * API Documentation for AgTrail Backend V2
  * OpenAPI spec version: 1.0.0
  */
+import type { TransferActivityLogItem } from './transferActivityLogItem';
+import type { TransferProofOfDelivery } from './transferProofOfDelivery';
+import type { TransferQualityAtDelivery } from './transferQualityAtDelivery';
+import type { TransferQualityAtPickup } from './transferQualityAtPickup';
+import type { TransferStatus } from './transferStatus';
 
 export interface Transfer {
   id: string;
@@ -16,6 +21,14 @@ export interface Transfer {
   batchProductId: string | null;
   fromUserId: string;
   toUserId: string;
+  /** @nullable */
+  transporterId?: string | null;
+  /** @nullable */
+  transporterOrganizationId?: string | null;
+  /** @nullable */
+  transporterName?: string | null;
+  /** @nullable */
+  transporterOrgName?: string | null;
   /** @nullable */
   fromUserName?: string | null;
   /** @nullable */
@@ -29,16 +42,48 @@ export interface Transfer {
   /** @nullable */
   totalPrice: string | null;
   currency: string;
-  status: string;
+  status: TransferStatus;
   /** @nullable */
   pickupLocation: string | null;
   /** @nullable */
   deliveryLocation: string | null;
   /** @nullable */
+  scheduledPickupDate?: string | null;
+  /** @nullable */
   expectedDeliveryDate: string | null;
-  initiatedDate: string;
+  pickupDate?: string | unknown | null;
+  deliveryDate?: string | unknown | null;
+  acknowledgedDate?: string | unknown | null;
+  initiatedDate: string | unknown | null;
   /** @nullable */
   notes: string | null;
+  /** @nullable */
+  buyerEmail?: string | null;
+  /** @nullable */
+  buyerPhone1?: string | null;
+  /** @nullable */
+  buyerPhone2?: string | null;
+  /** @nullable */
+  buyerCountry?: string | null;
+  /** @nullable */
+  buyerAddress?: string | null;
+  /** @nullable */
+  assignedDriverPersonnelId?: string | null;
+  /** @nullable */
+  assignedDriverName?: string | null;
+  /**
+   * Base64 QR code data URL — generated when status moves to initiated
+   * @nullable
+   */
+  qrCodeData?: string | null;
+  /** @nullable */
+  proofOfDelivery?: TransferProofOfDelivery;
+  /** Ordered activity/custody chain events */
+  activityLog?: TransferActivityLogItem[];
+  /** @nullable */
+  qualityAtPickup?: TransferQualityAtPickup;
+  /** @nullable */
+  qualityAtDelivery?: TransferQualityAtDelivery;
   createdAt: string;
   updatedAt: string;
 }

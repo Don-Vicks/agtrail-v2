@@ -27,8 +27,19 @@ import type {
 import type {
   CreateTransferRequest,
   GetTransfers200,
+  GetTransfersActiveTransits200,
+  GetTransfersAvailablePickups200,
+  GetTransfersHistory200,
+  GetTransfersHistoryParams,
+  GetTransfersTransporterStats200,
   PatchTransfersIdStatus200,
+  PickupScanRequest,
   PostTransfers201,
+  PostTransfersIdAccept200,
+  PostTransfersIdAcceptBody,
+  PostTransfersIdConfirmDelivery200,
+  PostTransfersIdConfirmDeliveryBody,
+  PostTransfersIdPickupScan200,
   UpdateTransferStatusRequest
 } from '.././models';
 
@@ -40,7 +51,455 @@ type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
 /**
- * @summary Initiate a product transfer to any user
+ * @summary List all dispatched transfers available for transporters to accept
+ */
+export type getTransfersAvailablePickupsResponse200 = {
+  data: GetTransfersAvailablePickups200
+  status: 200
+}
+
+export type getTransfersAvailablePickupsResponseSuccess = (getTransfersAvailablePickupsResponse200) & {
+  headers: Headers;
+};
+;
+
+export type getTransfersAvailablePickupsResponse = (getTransfersAvailablePickupsResponseSuccess)
+
+export const getGetTransfersAvailablePickupsUrl = () => {
+
+
+  
+
+  return `/transfers/available-pickups`
+}
+
+export const getTransfersAvailablePickups = async ( options?: RequestInit): Promise<getTransfersAvailablePickupsResponse> => {
+  
+  return customFetch<getTransfersAvailablePickupsResponse>(getGetTransfersAvailablePickupsUrl(),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+  
+
+
+
+
+export const getGetTransfersAvailablePickupsQueryKey = () => {
+    return [
+    `/transfers/available-pickups`
+    ] as const;
+    }
+
+    
+export const getGetTransfersAvailablePickupsQueryOptions = <TData = Awaited<ReturnType<typeof getTransfersAvailablePickups>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTransfersAvailablePickups>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTransfersAvailablePickupsQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTransfersAvailablePickups>>> = ({ signal }) => getTransfersAvailablePickups({ signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTransfersAvailablePickups>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetTransfersAvailablePickupsQueryResult = NonNullable<Awaited<ReturnType<typeof getTransfersAvailablePickups>>>
+export type GetTransfersAvailablePickupsQueryError = unknown
+
+
+export function useGetTransfersAvailablePickups<TData = Awaited<ReturnType<typeof getTransfersAvailablePickups>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTransfersAvailablePickups>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTransfersAvailablePickups>>,
+          TError,
+          Awaited<ReturnType<typeof getTransfersAvailablePickups>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetTransfersAvailablePickups<TData = Awaited<ReturnType<typeof getTransfersAvailablePickups>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTransfersAvailablePickups>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTransfersAvailablePickups>>,
+          TError,
+          Awaited<ReturnType<typeof getTransfersAvailablePickups>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetTransfersAvailablePickups<TData = Awaited<ReturnType<typeof getTransfersAvailablePickups>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTransfersAvailablePickups>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary List all dispatched transfers available for transporters to accept
+ */
+
+export function useGetTransfersAvailablePickups<TData = Awaited<ReturnType<typeof getTransfersAvailablePickups>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTransfersAvailablePickups>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetTransfersAvailablePickupsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+/**
+ * @summary Transporter's in-flight shipments (accepted, picked_up, in_transit)
+ */
+export type getTransfersActiveTransitsResponse200 = {
+  data: GetTransfersActiveTransits200
+  status: 200
+}
+
+export type getTransfersActiveTransitsResponseSuccess = (getTransfersActiveTransitsResponse200) & {
+  headers: Headers;
+};
+;
+
+export type getTransfersActiveTransitsResponse = (getTransfersActiveTransitsResponseSuccess)
+
+export const getGetTransfersActiveTransitsUrl = () => {
+
+
+  
+
+  return `/transfers/active-transits`
+}
+
+export const getTransfersActiveTransits = async ( options?: RequestInit): Promise<getTransfersActiveTransitsResponse> => {
+  
+  return customFetch<getTransfersActiveTransitsResponse>(getGetTransfersActiveTransitsUrl(),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+  
+
+
+
+
+export const getGetTransfersActiveTransitsQueryKey = () => {
+    return [
+    `/transfers/active-transits`
+    ] as const;
+    }
+
+    
+export const getGetTransfersActiveTransitsQueryOptions = <TData = Awaited<ReturnType<typeof getTransfersActiveTransits>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTransfersActiveTransits>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTransfersActiveTransitsQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTransfersActiveTransits>>> = ({ signal }) => getTransfersActiveTransits({ signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTransfersActiveTransits>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetTransfersActiveTransitsQueryResult = NonNullable<Awaited<ReturnType<typeof getTransfersActiveTransits>>>
+export type GetTransfersActiveTransitsQueryError = unknown
+
+
+export function useGetTransfersActiveTransits<TData = Awaited<ReturnType<typeof getTransfersActiveTransits>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTransfersActiveTransits>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTransfersActiveTransits>>,
+          TError,
+          Awaited<ReturnType<typeof getTransfersActiveTransits>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetTransfersActiveTransits<TData = Awaited<ReturnType<typeof getTransfersActiveTransits>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTransfersActiveTransits>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTransfersActiveTransits>>,
+          TError,
+          Awaited<ReturnType<typeof getTransfersActiveTransits>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetTransfersActiveTransits<TData = Awaited<ReturnType<typeof getTransfersActiveTransits>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTransfersActiveTransits>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Transporter's in-flight shipments (accepted, picked_up, in_transit)
+ */
+
+export function useGetTransfersActiveTransits<TData = Awaited<ReturnType<typeof getTransfersActiveTransits>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTransfersActiveTransits>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetTransfersActiveTransitsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+/**
+ * @summary Transporter dashboard metrics (active fleet, pending, completed today)
+ */
+export type getTransfersTransporterStatsResponse200 = {
+  data: GetTransfersTransporterStats200
+  status: 200
+}
+
+export type getTransfersTransporterStatsResponseSuccess = (getTransfersTransporterStatsResponse200) & {
+  headers: Headers;
+};
+;
+
+export type getTransfersTransporterStatsResponse = (getTransfersTransporterStatsResponseSuccess)
+
+export const getGetTransfersTransporterStatsUrl = () => {
+
+
+  
+
+  return `/transfers/transporter-stats`
+}
+
+export const getTransfersTransporterStats = async ( options?: RequestInit): Promise<getTransfersTransporterStatsResponse> => {
+  
+  return customFetch<getTransfersTransporterStatsResponse>(getGetTransfersTransporterStatsUrl(),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+  
+
+
+
+
+export const getGetTransfersTransporterStatsQueryKey = () => {
+    return [
+    `/transfers/transporter-stats`
+    ] as const;
+    }
+
+    
+export const getGetTransfersTransporterStatsQueryOptions = <TData = Awaited<ReturnType<typeof getTransfersTransporterStats>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTransfersTransporterStats>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTransfersTransporterStatsQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTransfersTransporterStats>>> = ({ signal }) => getTransfersTransporterStats({ signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTransfersTransporterStats>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetTransfersTransporterStatsQueryResult = NonNullable<Awaited<ReturnType<typeof getTransfersTransporterStats>>>
+export type GetTransfersTransporterStatsQueryError = unknown
+
+
+export function useGetTransfersTransporterStats<TData = Awaited<ReturnType<typeof getTransfersTransporterStats>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTransfersTransporterStats>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTransfersTransporterStats>>,
+          TError,
+          Awaited<ReturnType<typeof getTransfersTransporterStats>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetTransfersTransporterStats<TData = Awaited<ReturnType<typeof getTransfersTransporterStats>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTransfersTransporterStats>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTransfersTransporterStats>>,
+          TError,
+          Awaited<ReturnType<typeof getTransfersTransporterStats>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetTransfersTransporterStats<TData = Awaited<ReturnType<typeof getTransfersTransporterStats>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTransfersTransporterStats>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Transporter dashboard metrics (active fleet, pending, completed today)
+ */
+
+export function useGetTransfersTransporterStats<TData = Awaited<ReturnType<typeof getTransfersTransporterStats>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTransfersTransporterStats>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetTransfersTransporterStatsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+/**
+ * @summary Completed shipment history. Use ?perspective=transporter|sender|receiver
+ */
+export type getTransfersHistoryResponse200 = {
+  data: GetTransfersHistory200
+  status: 200
+}
+
+export type getTransfersHistoryResponseSuccess = (getTransfersHistoryResponse200) & {
+  headers: Headers;
+};
+;
+
+export type getTransfersHistoryResponse = (getTransfersHistoryResponseSuccess)
+
+export const getGetTransfersHistoryUrl = (params?: GetTransfersHistoryParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/transfers/history?${stringifiedParams}` : `/transfers/history`
+}
+
+export const getTransfersHistory = async (params?: GetTransfersHistoryParams, options?: RequestInit): Promise<getTransfersHistoryResponse> => {
+  
+  return customFetch<getTransfersHistoryResponse>(getGetTransfersHistoryUrl(params),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+  
+
+
+
+
+export const getGetTransfersHistoryQueryKey = (params?: GetTransfersHistoryParams,) => {
+    return [
+    `/transfers/history`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+    
+export const getGetTransfersHistoryQueryOptions = <TData = Awaited<ReturnType<typeof getTransfersHistory>>, TError = unknown>(params?: GetTransfersHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTransfersHistory>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTransfersHistoryQueryKey(params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTransfersHistory>>> = ({ signal }) => getTransfersHistory(params, { signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTransfersHistory>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetTransfersHistoryQueryResult = NonNullable<Awaited<ReturnType<typeof getTransfersHistory>>>
+export type GetTransfersHistoryQueryError = unknown
+
+
+export function useGetTransfersHistory<TData = Awaited<ReturnType<typeof getTransfersHistory>>, TError = unknown>(
+ params: undefined |  GetTransfersHistoryParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTransfersHistory>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTransfersHistory>>,
+          TError,
+          Awaited<ReturnType<typeof getTransfersHistory>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetTransfersHistory<TData = Awaited<ReturnType<typeof getTransfersHistory>>, TError = unknown>(
+ params?: GetTransfersHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTransfersHistory>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTransfersHistory>>,
+          TError,
+          Awaited<ReturnType<typeof getTransfersHistory>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetTransfersHistory<TData = Awaited<ReturnType<typeof getTransfersHistory>>, TError = unknown>(
+ params?: GetTransfersHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTransfersHistory>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Completed shipment history. Use ?perspective=transporter|sender|receiver
+ */
+
+export function useGetTransfersHistory<TData = Awaited<ReturnType<typeof getTransfersHistory>>, TError = unknown>(
+ params?: GetTransfersHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTransfersHistory>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetTransfersHistoryQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+/**
+ * Set isDraft=true to save as draft (no QR generated). Omit or set false to dispatch immediately (QR generated, visible to transporters).
+ * @summary Initiate or draft a product transfer to any user
  */
 export type postTransfersResponse201 = {
   data: PostTransfers201
@@ -121,7 +580,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type PostTransfersMutationError = void
 
     /**
- * @summary Initiate a product transfer to any user
+ * @summary Initiate or draft a product transfer to any user
  */
 export const usePostTransfers = <TError = void,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postTransfers>>, TError,{data: CreateTransferRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
@@ -244,7 +703,304 @@ export function useGetTransfers<TData = Awaited<ReturnType<typeof getTransfers>>
 
 
 /**
- * @summary Update transfer status
+ * @summary Transporter accepts a pickup request and optionally assigns a driver
+ */
+export type postTransfersIdAcceptResponse200 = {
+  data: PostTransfersIdAccept200
+  status: 200
+}
+
+export type postTransfersIdAcceptResponse400 = {
+  data: void
+  status: 400
+}
+
+export type postTransfersIdAcceptResponse404 = {
+  data: void
+  status: 404
+}
+
+export type postTransfersIdAcceptResponseSuccess = (postTransfersIdAcceptResponse200) & {
+  headers: Headers;
+};
+export type postTransfersIdAcceptResponseError = (postTransfersIdAcceptResponse400 | postTransfersIdAcceptResponse404) & {
+  headers: Headers;
+};
+
+export type postTransfersIdAcceptResponse = (postTransfersIdAcceptResponseSuccess | postTransfersIdAcceptResponseError)
+
+export const getPostTransfersIdAcceptUrl = (id: string,) => {
+
+
+  
+
+  return `/transfers/${id}/accept`
+}
+
+export const postTransfersIdAccept = async (id: string,
+    postTransfersIdAcceptBody: PostTransfersIdAcceptBody, options?: RequestInit): Promise<postTransfersIdAcceptResponse> => {
+  
+  return customFetch<postTransfersIdAcceptResponse>(getPostTransfersIdAcceptUrl(id),
+  {      
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      postTransfersIdAcceptBody,)
+  }
+);}
+  
+
+
+
+export const getPostTransfersIdAcceptMutationOptions = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postTransfersIdAccept>>, TError,{id: string;data: PostTransfersIdAcceptBody}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof postTransfersIdAccept>>, TError,{id: string;data: PostTransfersIdAcceptBody}, TContext> => {
+
+const mutationKey = ['postTransfersIdAccept'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postTransfersIdAccept>>, {id: string;data: PostTransfersIdAcceptBody}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  postTransfersIdAccept(id,data,requestOptions)
+        }
+
+
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PostTransfersIdAcceptMutationResult = NonNullable<Awaited<ReturnType<typeof postTransfersIdAccept>>>
+    export type PostTransfersIdAcceptMutationBody = PostTransfersIdAcceptBody
+    export type PostTransfersIdAcceptMutationError = void
+
+    /**
+ * @summary Transporter accepts a pickup request and optionally assigns a driver
+ */
+export const usePostTransfersIdAccept = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postTransfersIdAccept>>, TError,{id: string;data: PostTransfersIdAcceptBody}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof postTransfersIdAccept>>,
+        TError,
+        {id: string;data: PostTransfersIdAcceptBody},
+        TContext
+      > => {
+      return useMutation(getPostTransfersIdAcceptMutationOptions(options), queryClient);
+    }
+    /**
+ * Called by the assigned transporter after the initiator marks the transfer as ready_for_pickup. Verifies the scanned QR payload matches the transfer code, then records custody handover.
+ * @summary Transporter scans QR code to verify and take custody — transitions status to picked_up
+ */
+export type postTransfersIdPickupScanResponse200 = {
+  data: PostTransfersIdPickupScan200
+  status: 200
+}
+
+export type postTransfersIdPickupScanResponse400 = {
+  data: void
+  status: 400
+}
+
+export type postTransfersIdPickupScanResponse403 = {
+  data: void
+  status: 403
+}
+
+export type postTransfersIdPickupScanResponse404 = {
+  data: void
+  status: 404
+}
+
+export type postTransfersIdPickupScanResponseSuccess = (postTransfersIdPickupScanResponse200) & {
+  headers: Headers;
+};
+export type postTransfersIdPickupScanResponseError = (postTransfersIdPickupScanResponse400 | postTransfersIdPickupScanResponse403 | postTransfersIdPickupScanResponse404) & {
+  headers: Headers;
+};
+
+export type postTransfersIdPickupScanResponse = (postTransfersIdPickupScanResponseSuccess | postTransfersIdPickupScanResponseError)
+
+export const getPostTransfersIdPickupScanUrl = (id: string,) => {
+
+
+  
+
+  return `/transfers/${id}/pickup-scan`
+}
+
+export const postTransfersIdPickupScan = async (id: string,
+    pickupScanRequest: PickupScanRequest, options?: RequestInit): Promise<postTransfersIdPickupScanResponse> => {
+  
+  return customFetch<postTransfersIdPickupScanResponse>(getPostTransfersIdPickupScanUrl(id),
+  {      
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      pickupScanRequest,)
+  }
+);}
+  
+
+
+
+export const getPostTransfersIdPickupScanMutationOptions = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postTransfersIdPickupScan>>, TError,{id: string;data: PickupScanRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof postTransfersIdPickupScan>>, TError,{id: string;data: PickupScanRequest}, TContext> => {
+
+const mutationKey = ['postTransfersIdPickupScan'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postTransfersIdPickupScan>>, {id: string;data: PickupScanRequest}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  postTransfersIdPickupScan(id,data,requestOptions)
+        }
+
+
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PostTransfersIdPickupScanMutationResult = NonNullable<Awaited<ReturnType<typeof postTransfersIdPickupScan>>>
+    export type PostTransfersIdPickupScanMutationBody = PickupScanRequest
+    export type PostTransfersIdPickupScanMutationError = void
+
+    /**
+ * @summary Transporter scans QR code to verify and take custody — transitions status to picked_up
+ */
+export const usePostTransfersIdPickupScan = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postTransfersIdPickupScan>>, TError,{id: string;data: PickupScanRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof postTransfersIdPickupScan>>,
+        TError,
+        {id: string;data: PickupScanRequest},
+        TContext
+      > => {
+      return useMutation(getPostTransfersIdPickupScanMutationOptions(options), queryClient);
+    }
+    /**
+ * Accessible by the transporter or the buyer (toUser). After this, buyer pays via POST /payments/initialize then calls PATCH /transfers/{id}/status with acknowledged.
+ * @summary Submit proof of delivery (signature, quality data) — marks transfer as delivered
+ */
+export type postTransfersIdConfirmDeliveryResponse200 = {
+  data: PostTransfersIdConfirmDelivery200
+  status: 200
+}
+
+export type postTransfersIdConfirmDeliveryResponse400 = {
+  data: void
+  status: 400
+}
+
+export type postTransfersIdConfirmDeliveryResponse403 = {
+  data: void
+  status: 403
+}
+
+export type postTransfersIdConfirmDeliveryResponse404 = {
+  data: void
+  status: 404
+}
+
+export type postTransfersIdConfirmDeliveryResponseSuccess = (postTransfersIdConfirmDeliveryResponse200) & {
+  headers: Headers;
+};
+export type postTransfersIdConfirmDeliveryResponseError = (postTransfersIdConfirmDeliveryResponse400 | postTransfersIdConfirmDeliveryResponse403 | postTransfersIdConfirmDeliveryResponse404) & {
+  headers: Headers;
+};
+
+export type postTransfersIdConfirmDeliveryResponse = (postTransfersIdConfirmDeliveryResponseSuccess | postTransfersIdConfirmDeliveryResponseError)
+
+export const getPostTransfersIdConfirmDeliveryUrl = (id: string,) => {
+
+
+  
+
+  return `/transfers/${id}/confirm-delivery`
+}
+
+export const postTransfersIdConfirmDelivery = async (id: string,
+    postTransfersIdConfirmDeliveryBody: PostTransfersIdConfirmDeliveryBody, options?: RequestInit): Promise<postTransfersIdConfirmDeliveryResponse> => {
+  
+  return customFetch<postTransfersIdConfirmDeliveryResponse>(getPostTransfersIdConfirmDeliveryUrl(id),
+  {      
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      postTransfersIdConfirmDeliveryBody,)
+  }
+);}
+  
+
+
+
+export const getPostTransfersIdConfirmDeliveryMutationOptions = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postTransfersIdConfirmDelivery>>, TError,{id: string;data: PostTransfersIdConfirmDeliveryBody}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof postTransfersIdConfirmDelivery>>, TError,{id: string;data: PostTransfersIdConfirmDeliveryBody}, TContext> => {
+
+const mutationKey = ['postTransfersIdConfirmDelivery'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postTransfersIdConfirmDelivery>>, {id: string;data: PostTransfersIdConfirmDeliveryBody}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  postTransfersIdConfirmDelivery(id,data,requestOptions)
+        }
+
+
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PostTransfersIdConfirmDeliveryMutationResult = NonNullable<Awaited<ReturnType<typeof postTransfersIdConfirmDelivery>>>
+    export type PostTransfersIdConfirmDeliveryMutationBody = PostTransfersIdConfirmDeliveryBody
+    export type PostTransfersIdConfirmDeliveryMutationError = void
+
+    /**
+ * @summary Submit proof of delivery (signature, quality data) — marks transfer as delivered
+ */
+export const usePostTransfersIdConfirmDelivery = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postTransfersIdConfirmDelivery>>, TError,{id: string;data: PostTransfersIdConfirmDeliveryBody}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof postTransfersIdConfirmDelivery>>,
+        TError,
+        {id: string;data: PostTransfersIdConfirmDeliveryBody},
+        TContext
+      > => {
+      return useMutation(getPostTransfersIdConfirmDeliveryMutationOptions(options), queryClient);
+    }
+    /**
+ * @summary Update transfer status (sender, receiver, or transporter)
  */
 export type patchTransfersIdStatusResponse200 = {
   data: PatchTransfersIdStatus200
@@ -326,7 +1082,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type PatchTransfersIdStatusMutationError = void
 
     /**
- * @summary Update transfer status
+ * @summary Update transfer status (sender, receiver, or transporter)
  */
 export const usePatchTransfersIdStatus = <TError = void,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchTransfersIdStatus>>, TError,{id: string;data: UpdateTransferStatusRequest}, TContext>, request?: SecondParameter<typeof customFetch>}

@@ -6,6 +6,9 @@
  * OpenAPI spec version: 1.0.0
  */
 
+/**
+ * Source product type
+ */
 export type CreateTransferRequestProductType = typeof CreateTransferRequestProductType[keyof typeof CreateTransferRequestProductType];
 
 

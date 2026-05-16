@@ -5,9 +5,13 @@
  * API Documentation for AgTrail Backend V2
  * OpenAPI spec version: 1.0.0
  */
+import type { RegisterSystemRole } from './registerSystemRole';
 
 export interface Register {
   email: string;
   /** @minLength 6 */
   password: string;
+  name?: string;
+  /** User system role. Defaults to consumer. Registering as transporter auto-creates a transport organisation. */
+  systemRole?: RegisterSystemRole;
 }

@@ -15,7 +15,10 @@ export const UpdateUserRoleRequestSystemRole = {
   processor: 'processor',
   distributor: 'distributor',
   retailer: 'retailer',
-  agronomic_advisor: 'agronomic_advisor',
+  aggregator: 'aggregator',
+  field_agent: 'field_agent',
+  regulator: 'regulator',
   admin: 'admin',
   cooperative: 'cooperative',
+  transporter: 'transporter',
 } as const;

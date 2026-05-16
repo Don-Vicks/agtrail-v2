@@ -6,10 +6,13 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type GetUsersByRoleRole = typeof GetUsersByRoleRole[keyof typeof GetUsersByRoleRole];
+/**
+ * User system role. Defaults to consumer. Registering as transporter auto-creates a transport organisation.
+ */
+export type RegisterSystemRole = typeof RegisterSystemRole[keyof typeof RegisterSystemRole];
 
 
-export const GetUsersByRoleRole = {
+export const RegisterSystemRole = {
   farmer: 'farmer',
   cooperative: 'cooperative',
   processor: 'processor',
@@ -19,5 +22,6 @@ export const GetUsersByRoleRole = {
   aggregator: 'aggregator',
   field_agent: 'field_agent',
   regulator: 'regulator',
+  admin: 'admin',
   transporter: 'transporter',
 } as const;
