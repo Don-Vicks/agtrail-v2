@@ -3,7 +3,7 @@ import { PageHeader } from '~/components/page-header'
 import { PickupHandoffQRModal } from '~/components/transfer/pickup-handoff-qr-modal'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
-import { useGetTransfers } from '~/lib/api/generated/transfers/transfers'
+import { useGetTransfersHistory } from '~/lib/api/generated/transfers/transfers'
 import { cn } from '~/lib/utils'
 import type { ProductTransfer, TransferStatus } from '~/types/transfer'
 
@@ -21,13 +21,13 @@ const statusStyles: Record<TransferStatus, string> = {
 }
 
 export default function FarmerTransferHistory() {
-  const { data: transfersData, isLoading } = useGetTransfers()
+  const { data: transfersData, isLoading } = useGetTransfersHistory({ perspective: 'sender' })
   const [selectedTransfer, setSelectedTransfer] = useState<ProductTransfer | null>(null)
   const [isQRModalOpen, setIsQRModalOpen] = useState(false)
 
   const rawTransfers = transfersData?.data?.data || []
 
-  const transfers: ProductTransfer[] = rawTransfers.map((t) => ({
+  const transfers: ProductTransfer[] = rawTransfers.map((t: any) => ({
     id: t.id,
     batchId: t.transferCode || 'N/A',
     productName: t.productName || 'Unknown Product',

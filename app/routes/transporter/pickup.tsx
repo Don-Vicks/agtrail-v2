@@ -1,43 +1,44 @@
 import { useSearchParams } from 'react-router'
-import { Camera, Key, MapPin, QrCode, Scan, ShieldCheck } from 'lucide-react'
+import { Camera, Key, MapPin, QrCode, Scan, ShieldCheck, ScanLine, Loader2 } from 'lucide-react'
+import { useState } from 'react'
 import { FarmMap } from '~/components/farm-map.client'
 import { PageHeader } from '~/components/page-header'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
-import { useGetTransfers, usePatchTransfersIdStatus } from '~/lib/api/generated/transfers/transfers'
+import { useGetTransfersAvailablePickups, usePostTransfersIdPickupScan } from '~/lib/api/generated/transfers/transfers'
 import { cn } from '~/lib/utils'
 import { toast } from 'sonner'
 import { useQueryClient } from '@tanstack/react-query'
-import { getGetTransfersQueryKey } from '~/lib/api/generated/transfers/transfers'
+import { getGetTransfersAvailablePickupsQueryKey } from '~/lib/api/generated/transfers/transfers'
+import { BatchQrCameraScanner } from '~/components/aggregator/batch-qr-camera-scanner'
 
 export default function PickupVerificationPage() {
    const [searchParams] = useSearchParams()
    const transferId = searchParams.get('transferId')
    const queryClient = useQueryClient()
+   const [isScanning, setIsScanning] = useState(false)
 
-   const { data: transfersData, isLoading } = useGetTransfers({
+   const { data: transfersData, isLoading } = useGetTransfersAvailablePickups({
       query: {
          enabled: !!transferId
       }
    })
    
-   const { mutateAsync: updateStatus, isPending } = usePatchTransfersIdStatus()
+   const { mutateAsync: verifyPickup, isPending } = usePostTransfersIdPickupScan()
 
-   const transfer = transfersData?.data?.data?.find(t => t.id === transferId)
+   const transfer = (transfersData?.data?.data as any[])?.find(t => t.id === transferId)
 
-   const handleVerify = async () => {
-      if (!transferId) {
-         toast.error('No transfer selected for pickup.')
-         return
-      }
-
+   const handleDecoded = async (qrPayload: string) => {
+      if (!transferId) return
+      
+      setIsScanning(false)
       try {
-         await updateStatus({
+         await verifyPickup({
             id: transferId,
-            data: { status: 'picked_up' }
+            data: { qrPayload }
          })
          toast.success('Pickup verified successfully! Goods are now in transit.')
-         void queryClient.invalidateQueries({ queryKey: getGetTransfersQueryKey() })
+         void queryClient.invalidateQueries({ queryKey: getGetTransfersAvailablePickupsQueryKey() })
       } catch (error) {
          console.error('Pickup verification failed:', error)
          toast.error('Failed to verify pickup. Please try again.')
@@ -156,24 +157,39 @@ export default function PickupVerificationPage() {
             {/* Right Column: Scan & Timeline */}
             <div className="w-[380px] space-y-8">
                <div className="rounded-md border border-gray-100 bg-white p-8 shadow-sm text-center space-y-8">
-                  <div className="size-48 mx-auto border-2 border-dashed border-gray-100 rounded-md flex items-center justify-center p-6 bg-gray-50/30 relative">
-                     <div className="absolute top-0 left-0 size-8 border-t-4 border-l-4 border-brand rounded-tl-xl"></div>
-                     <div className="absolute top-0 right-0 size-8 border-t-4 border-r-4 border-brand rounded-tr-xl"></div>
-                     <div className="absolute bottom-0 left-0 size-8 border-b-4 border-l-4 border-brand rounded-bl-xl"></div>
-                     <div className="absolute bottom-0 right-0 size-8 border-b-4 border-r-4 border-brand rounded-br-xl"></div>
-                     <QrCode className="size-24 text-brand-dark opacity-10" />
-                     <Scan className="size-32 text-brand absolute animate-pulse" />
+                  <div className="aspect-square mx-auto border-2 border-dashed border-gray-100 rounded-md overflow-hidden bg-gray-50/30 relative">
+                     <BatchQrCameraScanner
+                        active={isScanning}
+                        onDecoded={handleDecoded}
+                        onScannerError={(msg) => toast.error(msg)}
+                     />
                   </div>
                   <div className="space-y-2">
                      <p className="text-xs text-gray-500 leading-relaxed font-medium">Scan the farm terminal QR code to finalize pickup and trigger blockchain immutable record.</p>
                   </div>
-                  <Button 
-                     onClick={handleVerify}
-                     disabled={isPending || transfer?.status === 'picked_up' || transfer?.status === 'in_transit'}
-                     className="w-full h-12 bg-brand-dark hover:bg-black text-white font-bold text-[14px] uppercase tracking-widest rounded-md shadow-xl active:scale-95 transition-all"
-                  >
-                     {isPending ? 'Verifying...' : transfer?.status === 'picked_up' || transfer?.status === 'in_transit' ? 'Pickup Verified' : 'Scan & Verify'}
-                  </Button>
+                  
+                  {isPending ? (
+                     <Button disabled className="w-full h-12 bg-brand-dark text-white font-bold text-[14px] uppercase tracking-widest rounded-md shadow-xl gap-2">
+                        <Loader2 className="size-4 animate-spin" />
+                        Verifying Scan...
+                     </Button>
+                  ) : isScanning ? (
+                     <Button 
+                        onClick={() => setIsScanning(false)}
+                        className="w-full h-12 bg-red-600 hover:bg-red-700 text-white font-bold text-[14px] uppercase tracking-widest rounded-md shadow-xl active:scale-95 transition-all"
+                     >
+                        Cancel Scanning
+                     </Button>
+                  ) : (
+                     <Button 
+                        onClick={() => setIsScanning(true)}
+                        disabled={transfer?.status === 'picked_up' || transfer?.status === 'in_transit'}
+                        className="w-full h-12 bg-brand-dark hover:bg-black text-white font-bold text-[14px] uppercase tracking-widest rounded-md shadow-xl active:scale-95 transition-all"
+                     >
+                        {transfer?.status === 'picked_up' || transfer?.status === 'in_transit' ? 'Pickup Verified' : 'Start QR Scan'}
+                     </Button>
+                  )}
+
                   <div className="relative">
                      <div className="absolute inset-0 flex items-center">
                         <div className="w-full border-t border-gray-100"></div>

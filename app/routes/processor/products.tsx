@@ -24,7 +24,7 @@ import type { BatchProduct, ProcessorBatch } from '~/lib/api/generated/models'
 import { ProcessorBatchStatus } from '~/lib/api/generated/models/processorBatchStatus'
 import { useGetProcessorsBatches } from '~/lib/api/generated/processors-batches/processors-batches'
 import { useGetProcessorsProducts } from '~/lib/api/generated/processors-products/processors-products'
-import { useGetTransfers } from '~/lib/api/generated/transfers/transfers'
+import { useGetTransfersHistory } from '~/lib/api/generated/transfers/transfers'
 import { getClientOrganizationId, getOrganizationHeaders } from '~/lib/organization-context'
 import { cn } from '~/lib/utils'
 import type { Route } from './+types/products'
@@ -386,13 +386,13 @@ function InventoryTab() {
 }
 
 function TransfersTab() {
-  const { data: transfersData, isLoading } = useGetTransfers()
+  const { data: transfersData, isLoading } = useGetTransfersHistory({ perspective: 'sender' })
   const rawTransfers = transfersData?.data?.data || []
 
   // Map API transfers to the format expected by the UI
-  const transfers = rawTransfers.map(trf => ({
+  const transfers = rawTransfers.map((trf: any) => ({
     id: trf.id,
-    ref: trf.transferCode || trf.id.slice(0, 8).toUpperCase(),
+    ref: trf.transferCode || (trf.id as string).slice(0, 8).toUpperCase(),
     status: trf.status,
     payment: trf.status === 'completed' ? 'completed' : 'pending',
     product: trf.productName || 'Unknown Product',

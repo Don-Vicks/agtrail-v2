@@ -3,9 +3,10 @@ import { useState } from 'react'
 import { Pagination } from '~/components/pagination'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
-import { getGetTransfersQueryKey, usePatchTransfersIdStatus } from '~/lib/api/generated/transfers/transfers'
+import { getGetTransfersAvailablePickupsQueryKey, usePostTransfersIdAccept } from '~/lib/api/generated/transfers/transfers'
 import type { TransferOffer } from '~/types/transfer'
 import { TransferOfferCard } from './transfer-offer-card'
+import { AcceptTransferModal } from './accept-transfer-modal'
 import { toast } from 'sonner'
 import { useQueryClient } from '@tanstack/react-query'
 
@@ -15,20 +16,35 @@ interface OffersPageContentProps {
 
 export function OffersPageContent({ offers }: OffersPageContentProps) {
   const [searchQuery, setSearchQuery] = useState('')
-  const { mutateAsync: acceptTransfer } = usePatchTransfersIdStatus()
+  const [isAcceptModalOpen, setIsAcceptModalOpen] = useState(false)
+  const [selectedOffer, setSelectedOffer] = useState<TransferOffer | null>(null)
+  
+  const { mutateAsync: acceptTransfer } = usePostTransfersIdAccept()
   const queryClient = useQueryClient()
 
-  const handleAccept = async (offer: TransferOffer) => {
+  const handleOpenAcceptModal = (offer: TransferOffer) => {
+    setSelectedOffer(offer)
+    setIsAcceptModalOpen(true)
+  }
+
+  const handleConfirmAccept = async (data: { assignedDriverName?: string; assignedDriverPersonnelId?: string }) => {
+    if (!selectedOffer) return
+
     try {
       await acceptTransfer({
-        id: offer.id,
-        data: { status: 'accepted' }
+        id: selectedOffer.id,
+        data: {
+          assignedDriverName: data.assignedDriverName,
+          assignedDriverPersonnelId: data.assignedDriverPersonnelId
+        }
       })
       toast.success(`Transfer offer accepted!`)
-      void queryClient.invalidateQueries({ queryKey: getGetTransfersQueryKey() })
+      void queryClient.invalidateQueries({ queryKey: getGetTransfersAvailablePickupsQueryKey() })
+      setIsAcceptModalOpen(false)
     } catch (error) {
       console.error('Failed to accept transfer', error)
       toast.error(`Failed to accept transfer.`)
+      throw error // Re-throw to keep modal open if needed or let modal handle its state
     }
   }
 
@@ -71,7 +87,7 @@ export function OffersPageContent({ offers }: OffersPageContentProps) {
           <TransferOfferCard
             key={offer.id}
             offer={offer}
-            onAccept={handleAccept}
+            onAccept={handleOpenAcceptModal}
           />
         ))}
       </div>
@@ -80,8 +96,21 @@ export function OffersPageContent({ offers }: OffersPageContentProps) {
         <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
           0 of 100 row(s) selected.
         </p>
-        <Pagination currentPage={1} totalPages={4} onPageChange={() => { }} />
+        <Pagination 
+          currentPage={1} 
+          totalPages={4} 
+          onPageChange={() => { }} 
+          totalItems={40} 
+          itemsPerPage={10} 
+        />
       </div>
+
+      <AcceptTransferModal
+        isOpen={isAcceptModalOpen}
+        onClose={() => setIsAcceptModalOpen(false)}
+        onConfirm={handleConfirmAccept}
+        offer={selectedOffer}
+      />
     </div>
   )
 }

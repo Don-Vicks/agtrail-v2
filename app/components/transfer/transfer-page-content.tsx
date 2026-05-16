@@ -77,7 +77,13 @@ export function TransferPageContent({ title, subtitle, transfers }: TransferPage
         <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
           0 of 100 row(s) selected.
         </p>
-        <Pagination currentPage={1} totalPages={4} onPageChange={() => { }} />
+        <Pagination 
+          currentPage={1} 
+          totalPages={4} 
+          onPageChange={() => { }} 
+          totalItems={40} 
+          itemsPerPage={10} 
+        />
       </div>
 
       <PickupHandoffQRModal

@@ -1,24 +1,22 @@
 import { PageHeader } from '~/components/page-header'
 import { OffersPageContent } from '~/components/transfer/offers-page-content'
-import { useGetTransfers } from '~/lib/api/generated/transfers/transfers'
+import { useGetTransfersAvailablePickups } from '~/lib/api/generated/transfers/transfers'
 import type { TransferOffer } from '~/types/transfer'
 
 export default function TransporterProductTransfer() {
-  const { data: transfersData, isLoading } = useGetTransfers()
+  const { data: transfersData, isLoading } = useGetTransfersAvailablePickups()
 
-  // Filter transfers that are pending acceptance
   const rawTransfers = transfersData?.data?.data || []
-  const pendingTransfers = rawTransfers.filter(t => t.status === 'pending')
 
-  const offers: TransferOffer[] = pendingTransfers.map(transfer => ({
-    id: transfer.id,
-    transporterName: transfer.fromUserName || 'Unknown Sender',
-    location: transfer.pickupLocation || 'N/A',
-    phone: 'N/A', // Not provided by the API directly
+  const offers: TransferOffer[] = rawTransfers.map((transfer: any) => ({
+    id: transfer.id as string,
+    transporterName: (transfer.fromUserName as string) || 'Unknown Sender',
+    location: (transfer.pickupLocation as string) || 'N/A',
+    phone: (transfer.destinationPhone1 as string) || 'N/A',
     avatar: '',
     quantity: Number(transfer.quantityTransferred),
-    unit: transfer.unit || 'KG',
-    date: transfer.initiatedDate || transfer.createdAt,
+    unit: (transfer.unit as string) || 'KG',
+    date: (transfer.initiatedDate as string) || (transfer.createdAt as string),
     status: transfer.status as any,
   }))
 

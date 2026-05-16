@@ -13,6 +13,7 @@ export interface ProductTransfer {
   qrCode?: string;
   image?: string;
   productType?: 'farm_product' | 'batch_product';
+  date?: string;
 }
 
 export interface TransferOffer {
