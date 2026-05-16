@@ -1,3 +1,4 @@
+import { PageHeader } from '~/components/page-header'
 import {
   AlertTriangle,
   ArrowRight,
@@ -14,20 +15,22 @@ import { Link } from 'react-router'
 import { FarmMap } from '~/components/farm-map.client'
 import { Button } from '~/components/ui/button'
 import {
-  lotReviewStats,
-  mockFarms
+  lotReviewStats
 } from '~/lib/mock-data/exporter'
+import { mockFarms } from '~/lib/mock-data/regulator'
 import { cn } from '~/lib/utils'
 
 export default function ExporterConsolidationPage() {
   return (
     <div className='space-y-6 pb-12'>
-      <div className="flex items-center gap-2 text-[#1a4332] text-[11px] font-bold uppercase tracking-widest">
-        <div className="size-4 rounded-sm border border-[#1a4332] flex items-center justify-center">
-          <Plus className="size-3" />
-        </div>
-        Add Farmer
-      </div>
+      <PageHeader
+        items={[
+          { label: 'Exporter', href: '/exporter' },
+          { label: 'Consolidation' },
+        ]}
+      />
+
+      
 
       <div className="flex items-center justify-between">
         <div className="space-y-1">

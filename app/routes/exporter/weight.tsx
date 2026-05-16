@@ -1,3 +1,4 @@
+import { PageHeader } from '~/components/page-header'
 import {
    ChevronLeft,
    Info,
@@ -8,9 +9,14 @@ import { Button } from '~/components/ui/button'
 export default function ExporterWeight() {
    return (
       <div className="space-y-6 pb-12">
-         <div className="flex items-center gap-2 text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-4">
-            <ChevronLeft className="size-3" /> Add Farmer
-         </div>
+      <PageHeader
+        items={[
+          { label: 'Exporter', href: '/exporter' },
+          { label: 'Weight' },
+        ]}
+      />
+
+         
 
          <div className="space-y-1 mb-8">
             <h1 className="text-2xl font-bold text-[#1a4332] tracking-tight">Confirm Transfer Weight</h1>

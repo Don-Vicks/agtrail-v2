@@ -94,7 +94,7 @@ export default function RecordOperation() {
 
       return {
         ...c,
-        productName: c.cropName || (c as { productName?: string }).productName || 'Unknown Crop',
+        productName: (c as any).cropName || (c as { productName?: string }).productName || 'Unknown Crop',
         farmName: farmConf?.name || 'Unknown Farm',
         farmLocation: formatFarmLocation(farmConf),
         farmer: farmerName,
@@ -103,7 +103,7 @@ export default function RecordOperation() {
         plantedDate: c.plantingDate
           ? new Date(c.plantingDate).toLocaleDateString()
           : null,
-        area: c.areaPlantedHectares ? `${c.areaPlantedHectares} ha` : null,
+        area: (c as any).areaPlantedHectares ? `${(c as any).areaPlantedHectares} ha` : null,
         daysToHarvest: days,
       }
     })
@@ -144,8 +144,8 @@ export default function RecordOperation() {
         <PageHeader
           items={[
             {
-              label: 'Dashboard',
-              href: '/farmer',
+              label: 'Exporter',
+              href: '/exporter',
               icon: (
                 <svg className="size-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                   <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
@@ -171,8 +171,8 @@ export default function RecordOperation() {
       <PageHeader
         items={[
           {
-            label: 'Dashboard',
-            href: '/farmer',
+            label: 'Exporter',
+            href: '/exporter',
             icon: (
               <svg className="size-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />

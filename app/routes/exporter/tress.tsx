@@ -1,3 +1,4 @@
+import { PageHeader } from '~/components/page-header'
 import {
   ArrowRight,
   CheckCircle2,
@@ -21,12 +22,14 @@ import { cn } from '~/lib/utils'
 export default function ExporterLotTressPage() {
   return (
     <div className='space-y-6 pb-12'>
-      <div className="flex items-center gap-2 text-[#1a4332] text-[11px] font-bold uppercase tracking-widest">
-        <div className="size-4 rounded-sm border border-[#1a4332] flex items-center justify-center">
-          <Plus className="size-3" />
-        </div>
-        Add Farmer
-      </div>
+      <PageHeader
+        items={[
+          { label: 'Exporter', href: '/exporter' },
+          { label: 'Tress' },
+        ]}
+      />
+
+      
 
       <div className="flex items-center justify-between">
         <div className="space-y-1">

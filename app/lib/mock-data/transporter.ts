@@ -27,6 +27,18 @@ export const transporterSidebarNavigation = [
         icon: 'package',
       },
       {
+        id: 'transfer-offers',
+        label: 'Transfer Offers',
+        href: '/transporter/transfer/product-transfer',
+        icon: 'inbox',
+      },
+      {
+        id: 'transfer-history',
+        label: 'Transfer History',
+        href: '/transporter/transfer/history',
+        icon: 'history',
+      },
+      {
         id: 'history',
         label: 'Shipment History',
         href: '/transporter/history',

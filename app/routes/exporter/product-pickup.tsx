@@ -1,3 +1,4 @@
+import { PageHeader } from '~/components/page-header'
 import { TransferPageContent } from '~/components/transfer/transfer-page-content'
 import { mockTransfers } from '~/lib/mock-data/transfer'
 

@@ -1,3 +1,4 @@
+import { PageHeader } from '~/components/page-header'
 import {
   ArrowRight,
   CheckCircle2,
@@ -22,6 +23,13 @@ import { cn } from '~/lib/utils'
 export default function ExporterViewOperationPage() {
   return (
     <div className='space-y-8 pb-12'>
+      <PageHeader
+        items={[
+          { label: 'Exporter', href: '/exporter' },
+          { label: 'View Operation' },
+        ]}
+      />
+
       {/* Header Profile Section */}
       <div className="bg-white rounded-md border border-gray-100 shadow-sm p-8 flex flex-col lg:flex-row gap-12">
          <div className="size-64 rounded-md overflow-hidden bg-gray-50 flex items-center justify-center shrink-0 shadow-inner">

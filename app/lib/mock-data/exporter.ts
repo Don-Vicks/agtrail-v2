@@ -3,7 +3,7 @@ export const exporterSidebarNavigation = [
     title: 'Platform',
     items: [
       { id: 'dashboard', label: 'Dashboard Overview', href: '/exporter', icon: 'layout-dashboard' },
-      { id: 'add-farm', label: 'Add Farm', href: '/exporter/add-farm', icon: 'plus-circle' },
+      { id: 'products', label: 'Products', href: '/exporter/products', icon: 'package' },
     ],
   },
   {
@@ -127,4 +127,142 @@ export const recentActivity = [
   { id: 2, title: 'Document uploaded', detail: 'Bill of Lading added to #TRD-882', time: '45 MINS AGO', icon: 'upload' },
   { id: 3, title: 'Shipment In Transit', detail: 'TRD-2024-882 left Port Lagos', time: '2 HOURS AGO', icon: 'truck' },
   { id: 4, title: 'Compliance Flag', detail: 'Certificate renewal required for Batch A', time: '5 HOURS AGO', icon: 'alert' },
+]
+
+export const consolidationStats = [
+  { label: 'Available Batches', value: '8' },
+  { label: 'Lots Sealed', value: '0' },
+  { label: 'Total KG Consolidated', value: '8 kg' },
+  { label: 'Anomalies Flagged', value: '0' },
+]
+
+export const storageHistory = [
+  { id: 'BATCH-1758814569861', product: 'Cashew', warehouse: 'Warehouse A', farm: 'Deborah Ogunyemi Farm', location: 'Zone 16, Kute, Iwo Road', date: '13 Oct, 2025 8:30am', qr: 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=BATCH-1758814569861' },
+  { id: 'BATCH-1758814569862', product: 'Cashew', warehouse: 'Warehouse A', farm: 'Deborah Ogunyemi Farm', location: 'Zone 16, Kute, Iwo Road', date: '13 Oct, 2025 8:30am', qr: 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=BATCH-1758814569862' },
+  { id: 'BATCH-1758814569863', product: 'Cashew', warehouse: 'Warehouse A', farm: 'Deborah Ogunyemi Farm', location: 'Zone 16, Kute, Iwo Road', date: '13 Oct, 2025 8:30am', qr: 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=BATCH-1758814569863' },
+  { id: 'BATCH-1758814569864', product: 'Cashew', warehouse: 'Warehouse A', farm: 'Deborah Ogunyemi Farm', location: 'Zone 16, Kute, Iwo Road', date: '13 Oct, 2025 8:30am', qr: 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=BATCH-1758814569864' },
+]
+
+export const operationJourney = [
+  { 
+    stage: 'Land Preparation', 
+    date: '24th September 2023', 
+    time: '12:00 AM', 
+    description: 'Clearing and preparing the land for farming. This cycle on Plot A began with a strong focus on soil conservation and balanced fertility.',
+    details: [
+      { label: 'Primary Tillage', value: 'No-Till + Zero Tillage' },
+      { label: 'Conservation Structures', value: 'Contour Ploughing' },
+      { label: 'Preparation Techniques', value: 'Harrowing' },
+      { label: 'Clearing Method', value: 'Manual Clearing (Cutlass/Hoe)' },
+      { label: 'Equipment', value: 'Tractor' },
+    ]
+  },
+  { 
+    stage: 'Planting', 
+    date: '24th September 2023', 
+    time: '12:00 AM', 
+    description: 'Clearing and preparing the land for farming. This cycle on Plot A began with a strong focus on soil conservation and balanced fertility.',
+    details: [
+      { label: 'Primary Tillage', value: 'No-Till + Zero Tillage' },
+      { label: 'Conservation Structures', value: 'Contour Ploughing' },
+      { label: 'Preparation Techniques', value: 'Harrowing' },
+      { label: 'Clearing Method', value: 'Manual Clearing (Cutlass/Hoe)' },
+      { label: 'Equipment', value: 'Tractor' },
+    ]
+  },
+  { 
+    stage: 'Land Preparation (Aggregator)', 
+    date: '24th September 2023', 
+    time: '12:00 AM', 
+    description: 'Clearing and preparing the land for farming. This cycle on Plot A began with a strong focus on soil conservation and balanced fertility.',
+    details: [
+      { label: 'Primary Tillage', value: 'No-Till + Zero Tillage' },
+      { label: 'Conservation Structures', value: 'Contour Ploughing' },
+      { label: 'Preparation Techniques', value: 'Harrowing' },
+      { label: 'Clearing Method', value: 'Manual Clearing (Cutlass/Hoe)' },
+      { label: 'Equipment', value: 'Tractor' },
+    ]
+  },
+  { 
+    stage: 'Certification Status', 
+    date: '24th September 2023', 
+    time: '12:00 AM', 
+    description: 'Clearing and preparing the land for farming. This cycle on Plot A began with a strong focus on soil conservation and balanced fertility.',
+    details: []
+  },
+]
+
+export const exportBatchTable = [
+  { batchId: '#BT - 98442', commodity: 'Cocoa Beans', quantity: '420 Unit', harvested: '2025-04-13', weight: '250.00 Kg', selected: true },
+  { batchId: '#BT - 98442', commodity: 'Cashew Nuts', quantity: '500 Unit', harvested: '2025-04-13', weight: '250.00 Kg', selected: false },
+  { batchId: '#BT - 98442', commodity: 'Yam', quantity: '52 Unit', harvested: '2025-04-13', weight: '250.00 Kg', selected: true },
+  { batchId: '#BT - 98442', commodity: 'Beans', quantity: '300 Unit', harvested: '2025-04-13', weight: '250.00 Kg', selected: false },
+  { batchId: '#BT - 98442', commodity: 'Rice', quantity: '10 Unit', harvested: '2025-04-13', weight: '250.00 Kg', selected: true },
+  { batchId: '#BT - 98442', commodity: 'Cashew Nuts', quantity: '300 Unit', harvested: '2025-04-13', weight: '250.00 Kg', selected: false },
+  { batchId: '#BT - 98442', commodity: 'Maize', quantity: '10 Unit', harvested: '2025-04-13', weight: '250.00 Kg', selected: true },
+]
+
+export const draftManifestBatches = [
+  { id: 'BT-44890', type: 'Premium Cocoa', weight: '45 MT' },
+  { id: 'BT-44895', type: 'Raw Cashew', weight: '32 MT' },
+]
+
+export const manifestSummary = {
+  attachedBatches: 12,
+  totalNetWeight: '24,500',
+  loadPercentage: 88,
+  compliance: {
+    license: true,
+    phytosanitary: false,
+  }
+}
+
+export const availableFarmers = [
+  { id: 1, batchId: '#BT - 98442', farmer: 'Sarah Greenfield', farmerId: 'F - 006', quantity: '420 Unit', harvested: '2025-04-13', weight: '250.00 Kg', selected: true },
+  { id: 2, batchId: '#BT - 98442', farmer: 'Sarah Rogers', farmerId: 'F - 004', quantity: '500 Unit', harvested: '2025-04-13', weight: '250.00 Kg', selected: false },
+  { id: 3, batchId: '#BT - 98442', farmer: 'Sarah Greenfield', farmerId: 'F - 006', quantity: '52 Unit', harvested: '2025-04-13', weight: '250.00 Kg', selected: true },
+  { id: 4, batchId: '#BT - 98442', farmer: 'Sarah Rogers', farmerId: 'F - 008', quantity: '300 Unit', harvested: '2025-04-13', weight: '250.00 Kg', selected: false },
+  { id: 5, batchId: '#BT - 98442', farmer: 'Johnathan Arable', farmerId: 'F - 007', quantity: '10 Unit', harvested: '2025-04-13', weight: '250.00 Kg', selected: true },
+  { id: 6, batchId: '#BT - 98442', farmer: 'Sarah Rogers', farmerId: 'F - 008', quantity: '300 Unit', harvested: '2025-04-13', weight: '250.00 Kg', selected: false },
+  { id: 7, batchId: '#BT - 98442', farmer: 'Johnathan Arable', farmerId: 'F - 007', quantity: '10 Unit', harvested: '2025-04-13', weight: '250.00 Kg', selected: true },
+]
+
+export const auditLogs = [
+  { timestamp: '24 Oct 2023, 09:12 AM', action: 'Lot Composition Finalized', entity: 'LOT-2023-001', performedBy: 'Robert Miller (Manager)', status: 'COMPLETED' },
+  { timestamp: '23 Oct 2023, 04:45 PM', action: 'Batch G05 Verified', entity: 'Sarah Greenfield', performedBy: 'System Autocheck', status: 'VERIFIED' },
+  { timestamp: '22 Oct 2023, 11:30 AM', action: 'New Farmer Onboarding', entity: 'Jonathan Arable', performedBy: 'Alice Wong (Admin)', status: 'COMPLETED' },
+]
+
+export const lotTreeData = {
+  id: 'LOT-2023-001',
+  weight: '12,450 kg',
+  grade: 'Arabica Grade A',
+  farmers: [
+    {
+      name: 'Jonathan Arable',
+      role: 'Source Farmer',
+      contribution: '7,200 kg',
+      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop',
+      batches: [
+        { id: 'BATCH-A12', weight: '3,600 kg', date: 'Oct 12, 2023' },
+        { id: 'BATCH-A15', weight: '3,600 kg', date: 'Oct 15, 2023' },
+      ]
+    },
+    {
+      name: 'Sarah Greenfield',
+      role: 'Source Farmer',
+      contribution: '5,250 kg',
+      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop',
+      batches: [
+        { id: 'BATCH-G02', weight: '2,625 kg', date: 'Oct 18, 2023' },
+        { id: 'BATCH-G05', weight: '2,625 kg', date: 'Oct 20, 2023' },
+      ]
+    }
+  ]
+}
+
+export const lotReviewStats = [
+  { label: 'Total Batches', value: '142', sublabel: 'All Verified' },
+  { label: 'Total Farmers', value: '2', sublabel: 'Direct Sourcing' },
+  { label: 'Final Weight', value: '1000 kg', sublabel: '+12% vs last Mo' },
 ]

@@ -41,7 +41,7 @@ export function SidebarRoleSwitcher({ roleLabel, activeRole }: SidebarRoleSwitch
           <SelectValue className='text-sm font-semibold text-gray-900' />
         </SelectTrigger>
         <SelectContent>
-          {['Farmer', 'Processor', 'Cooperative', 'Aggregator', 'Transporter', 'Field Agent', 'Admin'].map((r) => (
+          {['Farmer', 'Processor', 'Cooperative', 'Aggregator', 'Transporter', 'Field Agent', 'Admin', 'Exporter', 'Regulator'].map((r) => (
             <SelectItem
               key={r}
               value={r}

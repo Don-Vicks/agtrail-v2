@@ -14,6 +14,7 @@ import {
   usePutUsersProfile,
 } from '~/lib/api/generated/users/users'
 import { usePostUpload } from '~/lib/api/generated/upload/upload'
+import { getKycStatusFromUsersProfileBody, isVerifiedKycStatus } from '~/lib/kyc'
 import type { Route } from './+types/settings-root'
 
 export function meta({ }: Route.MetaArgs) {
@@ -153,6 +154,9 @@ function AccountSettingsTab() {
   const profile = profileResp?.data?.user as any
   const org = orgResp?.data?.data as any
 
+  const kycStatus = getKycStatusFromUsersProfileBody(profileResp?.data)
+  const isKycVerified = isVerifiedKycStatus(kycStatus)
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const formData = new FormData(e.currentTarget)
@@ -190,18 +194,27 @@ function AccountSettingsTab() {
         <p className='text-sm text-gray-500'>
           Update your personal and organization details
         </p>
+        {isKycVerified && (
+          <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-amber-50 border border-amber-100 text-amber-700 text-[11px] font-bold uppercase tracking-tight">
+            <svg className="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+            </svg>
+            Profile locked due to verified KYC status
+          </div>
+        )}
       </div>
 
       <form onSubmit={handleSubmit} className='max-w-3xl space-y-5'>
         <div className='space-y-1.5'>
           <label className='block text-sm font-bold text-gray-900'>Name</label>
-          <input
-            type='text'
-            name='name'
-            defaultValue={profile?.name || ''}
-            className='h-10 w-full rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand'
-            required
-          />
+            <input
+              type='text'
+              name='name'
+              defaultValue={profile?.name || ''}
+              className={`h-10 w-full rounded-md border border-gray-300 px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand ${isKycVerified ? 'bg-gray-50 cursor-not-allowed opacity-70' : 'bg-white'}`}
+              required
+              disabled={isKycVerified}
+            />
         </div>
 
         <div className='space-y-1.5 opacity-60'>
@@ -221,32 +234,34 @@ function AccountSettingsTab() {
           <label className='block text-sm font-bold text-gray-900'>
             Organization
           </label>
-          <input
-            type='text'
-            name='organization'
-            defaultValue={org?.name || ''}
-            className='h-10 w-full rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand'
-          />
+            <input
+              type='text'
+              name='organization'
+              defaultValue={org?.name || ''}
+              className={`h-10 w-full rounded-md border border-gray-300 px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand ${isKycVerified ? 'bg-gray-50 cursor-not-allowed opacity-70' : 'bg-white'}`}
+              disabled={isKycVerified}
+            />
         </div>
 
         <div className='space-y-1.5'>
           <label className='block text-sm font-bold text-gray-900'>
             Phone Number (Optional)
           </label>
-          <input
-            type='tel'
-            name='phoneNumber'
-            placeholder='Your phone number'
-            defaultValue={profile?.phoneNumber || ''}
-            className='h-10 w-full rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand'
-          />
+            <input
+              type='tel'
+              name='phoneNumber'
+              placeholder='Your phone number'
+              defaultValue={profile?.phoneNumber || ''}
+              className={`h-10 w-full rounded-md border border-gray-300 px-3 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand ${isKycVerified ? 'bg-gray-50 cursor-not-allowed opacity-70' : 'bg-white'}`}
+              disabled={isKycVerified}
+            />
         </div>
 
         <div className='pt-2'>
           <button
             type='submit'
-            disabled={isUpdatingProfile || isUpdatingOrg}
-            className='flex h-10 items-center justify-center gap-2 rounded-md bg-[#2e7d32] px-5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-[#1b5e20] disabled:opacity-50'
+            disabled={isUpdatingProfile || isUpdatingOrg || isKycVerified}
+            className='flex h-10 items-center justify-center gap-2 rounded-md bg-[#2e7d32] px-5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-[#1b5e20] disabled:opacity-50 disabled:cursor-not-allowed'
           >
             {isUpdatingProfile || isUpdatingOrg ? (
               'Saving...'

@@ -1,3 +1,4 @@
+import { PageHeader } from '~/components/page-header'
 import {
   ArrowRight,
   ChevronRight,
@@ -21,6 +22,13 @@ export default function ExporterStoragePage() {
 
   return (
     <div className='space-y-6 pb-12'>
+      <PageHeader
+        items={[
+          { label: 'Exporter', href: '/exporter' },
+          { label: 'Storage' },
+        ]}
+      />
+
       <div className="flex items-center gap-2 text-[#1a4332] text-[11px] font-bold uppercase tracking-widest">
         <ClipboardList className="size-3.5" /> Product
       </div>

@@ -1,3 +1,4 @@
+import { PageHeader } from '~/components/page-header'
 import {
    ArrowRight,
    ChevronDown,
@@ -20,6 +21,13 @@ const mockProducts = [
 export default function ExporterProducts() {
    return (
       <div className="space-y-6 pb-12">
+      <PageHeader
+        items={[
+          { label: 'Exporter', href: '/exporter' },
+          { label: 'Products' },
+        ]}
+      />
+
          <div className="flex items-center gap-2 text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-4">
             <ChevronLeft className="size-3" /> Product
          </div>

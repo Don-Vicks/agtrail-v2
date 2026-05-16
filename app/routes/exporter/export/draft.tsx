@@ -1,3 +1,4 @@
+import { PageHeader } from '~/components/page-header'
 import {
   ArrowRight,
   CheckCircle2,
@@ -22,9 +23,14 @@ import { cn } from '~/lib/utils'
 export default function ExporterExportDraftPage() {
   return (
     <div className='space-y-6 pb-12'>
-      <div className="flex items-center gap-2 text-[#1a4332] text-[11px] font-bold uppercase tracking-widest">
-        <Plus className="size-3.5" /> Add Farmer
-      </div>
+      <PageHeader
+        items={[
+          { label: 'Exporter', href: '/exporter' },
+          { label: 'Draft' },
+        ]}
+      />
+
+      
 
       <div className="flex items-center justify-between">
         <div className="space-y-1">

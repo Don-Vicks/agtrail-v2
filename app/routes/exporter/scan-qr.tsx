@@ -1,3 +1,4 @@
+import { PageHeader } from '~/components/page-header'
 import {
    AlertTriangle,
    Camera,
@@ -15,9 +16,14 @@ import { Button } from '~/components/ui/button'
 export default function ExporterScanQR() {
    return (
       <div className="space-y-6 pb-12">
-         <div className="flex items-center gap-2 text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-4">
-            <ChevronLeft className="size-3" /> Add Farmer
-         </div>
+      <PageHeader
+        items={[
+          { label: 'Exporter', href: '/exporter' },
+          { label: 'Scan Qr' },
+        ]}
+      />
+
+         
 
          <div className="space-y-1 mb-8">
             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">INBOUND CONSOLIDATION - DRAFT-2026-04-22</p>

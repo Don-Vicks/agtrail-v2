@@ -1,3 +1,4 @@
+import { PageHeader } from '~/components/page-header'
 import {
    AlertTriangle,
    ArrowUpRight,
@@ -24,6 +25,13 @@ import { cn } from '~/lib/utils'
 export default function ExporterDashboard() {
    return (
       <div className="space-y-6 pb-12">
+      <PageHeader
+        items={[
+          { label: 'Exporter', href: '/exporter' },
+          { label: 'Dashboard' },
+        ]}
+      />
+
          <div className="flex items-center justify-between">
             <div className="space-y-1">
                <h1 className="text-[14px] font-bold text-[#1a4332]">Good Morning</h1>

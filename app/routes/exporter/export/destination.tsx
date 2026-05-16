@@ -1,3 +1,4 @@
+import { PageHeader } from '~/components/page-header'
 import {
   ArrowRight,
   CheckCircle2,
@@ -21,9 +22,14 @@ import { cn } from '~/lib/utils'
 export default function ExporterManifestDestinationPage() {
   return (
     <div className='space-y-6 pb-12'>
-      <div className="flex items-center gap-2 text-[#1a4332] text-[11px] font-bold uppercase tracking-widest">
-        <Plus className="size-3.5" /> Add Farmer
-      </div>
+      <PageHeader
+        items={[
+          { label: 'Exporter', href: '/exporter' },
+          { label: 'Destination' },
+        ]}
+      />
+
+      
 
       <div className="flex items-center justify-between">
         <div className="space-y-1">
@@ -148,11 +154,9 @@ export default function ExporterManifestDestinationPage() {
               <Button variant="outline" className="h-10 px-8 text-[11px] font-bold border-gray-200 text-gray-600 uppercase tracking-widest rounded-md">
                 Discharger Changes
               </Button>
-              <Button asChild className="h-10 px-8 text-[11px] font-bold bg-[#1a4332] hover:bg-[#1a4332]/90 text-white uppercase tracking-widest gap-2 rounded-md shadow-sm">
-                <Link to="/exporter/export/manifest">
+              <Link to="/exporter/export/manifest" className="inline-flex items-center justify-center h-10 px-8 text-[11px] font-bold bg-[#1a4332] hover:bg-[#1a4332]/90 text-white uppercase tracking-widest gap-2 rounded-md shadow-sm transition-colors">
                   Save & Continue <ArrowRight className="size-4" />
-                </Link>
-              </Button>
+              </Link>
            </div>
         </div>
 

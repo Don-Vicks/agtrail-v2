@@ -50,9 +50,6 @@ export default function LoginPage() {
     }
   }, [isLoading, isAuthenticated])
 
-  if (isLoading && !showForm) return null
-  if (isAuthenticated && user) return null
-
   const { mutate: login, isPending } = usePostAuthLogin({
     mutation: {
       onSuccess: (response) => {
@@ -101,6 +98,9 @@ export default function LoginPage() {
       },
     },
   })
+
+  if (isLoading && !showForm) return null
+  if (isAuthenticated && user) return null
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()

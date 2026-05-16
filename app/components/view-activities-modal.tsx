@@ -7,7 +7,10 @@ import {
   Sun,
   Tractor,
   User,
-  Wheat
+  Wheat,
+  Thermometer,
+  CloudRain,
+  Cloud
 } from 'lucide-react'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '~/components/ui/dialog'
 import { useGetFarmsCropCyclesIdOperations as useGetCropCylesOperations } from '~/lib/api/generated/farms-operations/farms-operations'
@@ -194,13 +197,45 @@ export function ViewActivitiesModal({ isOpen, onClose, cropCycle }: ViewActiviti
                         </div>
                       )}
 
-                      {activity.weather && (
-                        <div className="flex items-center gap-1.5">
-                          <Sun size={14} className="text-brand-light" />
-                          <span className="text-gray-400 shrink-0">Weather:</span>
-                          <span className="truncate">{activity.weather}</span>
-                        </div>
-                      )}
+                      {activity.weather && (() => {
+                        try {
+                          const weatherObj = JSON.parse(activity.weather);
+                          return (
+                            <>
+                              {weatherObj.temperature && (
+                                <div className="flex items-center gap-1.5">
+                                  <Thermometer size={14} className="text-brand-light" />
+                                  <span className="text-gray-400 shrink-0">Temperature:</span>
+                                  <span className="truncate">{weatherObj.temperature}</span>
+                                </div>
+                              )}
+                              {weatherObj.rainfall && (
+                                <div className="flex items-center gap-1.5">
+                                  <CloudRain size={14} className="text-brand-light" />
+                                  <span className="text-gray-400 shrink-0">Rainfall:</span>
+                                  <span className="truncate">{weatherObj.rainfall}</span>
+                                </div>
+                              )}
+                              {weatherObj.notes && (
+                                <div className="flex items-center gap-1.5">
+                                  <Cloud size={14} className="text-brand-light" />
+                                  <span className="text-gray-400 shrink-0">Conditions:</span>
+                                  <span className="truncate">{weatherObj.notes}</span>
+                                </div>
+                              )}
+                            </>
+                          )
+                        } catch (e) {
+                          // Fallback if not valid JSON
+                          return (
+                            <div className="flex items-center gap-1.5">
+                              <Sun size={14} className="text-brand-light" />
+                              <span className="text-gray-400 shrink-0">Weather:</span>
+                              <span className="truncate">{activity.weather}</span>
+                            </div>
+                          )
+                        }
+                      })()}
 
                       {activity.cost && (
                         <div className="flex items-center gap-1.5">
